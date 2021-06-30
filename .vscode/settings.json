@@ -1,0 +1,19 @@
+{
+    "eslint.run": "onType",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "cSpell.words": [
+        "vite",
+        "vitejs"
+    ],
+    "cSpell.ignorePaths": [
+      ".git",
+      ".vscode",
+      "node_modules",
+      "package.json",
+      "package-lock.json",
+      ".prettierrc",
+      ".eslintrc.js",
+    ]
+}
