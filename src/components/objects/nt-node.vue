@@ -14,6 +14,7 @@
       :dominant-baseline="dominantBaseline"
       :x="labelX"
       :y="labelY"
+      :fill="labelStyle.color"
     >{{ label }}</text>
   </g>
 </template>
