@@ -7,9 +7,9 @@
         <div class="control slider">
           <label for="zoomLevel">Zoom Level</label>
           <input
+            id="zoomLevel"
             v-model.number="zoomLevel"
             type="range"
-            name="zoomLevel"
             min="0.1"
             max="16"
             step="0.1"
@@ -48,14 +48,25 @@
         <div class="control slider">
           <label for="nodeSize">Size</label>
           <input
+            id="nodeSize"
             v-model.number="styles.node.width"
             type="range"
-            name="nodeSize"
             min="1"
             max="64"
             step="1"
           >
           <div class="value">{{ styles.node.width }}</div>
+        </div>
+        <div class="control color">
+          <label for="nodeColor">Color</label>
+          <input
+            id="nodeColor"
+            v-model="styles.node.color"
+            type="color"
+          >
+          <div class="value">
+            <input v-model="styles.node.color" type="input">
+          </div>
         </div>
       </div>
       <h5>Node Label</h5>
@@ -63,9 +74,9 @@
         <div class="control slider">
           <label for="nodeFontSize">Font Size</label>
           <input
+            id="nodeFontSize"
             v-model.number="styles.nodeLabel.fontSize"
             type="range"
-            name="nodeFontSize"
             min="1"
             max="32"
             step="1"
@@ -75,18 +86,29 @@
         <div class="control slider">
           <label for="nodeLabelMargin">Margin</label>
           <input
+            id="nodeLabelMargin"
             v-model.number="styles.nodeLabel.margin"
             type="range"
-            name="nodeLabelMargin"
             min="0"
             max="24"
             step="1"
           >
           <div class="value">{{ styles.nodeLabel.margin }}</div>
         </div>
+        <div class="control color">
+          <label for="nodeLabelColor">Color</label>
+          <input
+            id="nodeLabelColor"
+            v-model="styles.nodeLabel.color"
+            type="color"
+          >
+          <div class="value">
+            <input v-model="styles.nodeLabel.color" type="input">
+          </div>
+        </div>
         <div class="control">
-          <label>Direction</label>
-          <select v-model.number="styles.nodeLabel.direction">
+          <label for="nodeLabelDirection">Direction</label>
+          <select id="nodeLabelDirection" v-model.number="styles.nodeLabel.direction">
             <option value="0">N</option>
             <option value="1">NE</option>
             <option value="2">E</option>
@@ -103,9 +125,9 @@
         <div class="control slider">
           <label for="nodeSelectionSize">Border Size</label>
           <input
+            id="nodeSelectionSize"
             v-model.number="styles.nodeSelection.width"
             type="range"
-            name="nodeSelectionSize"
             min="1"
             max="32"
             step="1"
@@ -115,14 +137,63 @@
         <div class="control slider">
           <label for="nodeSelectionPadding">Padding</label>
           <input
+            id="nodeSelectionPadding"
             v-model.number="styles.nodeSelection.padding"
             type="range"
-            name="nodeSelectionPadding"
             min="0"
             max="24"
             step="1"
           >
           <div class="value">{{ styles.nodeSelection.padding }}</div>
+        </div>
+        <div class="control color">
+          <label for="nodeSelectionColor">Color</label>
+          <input
+            id="nodeSelectionColor"
+            v-model="styles.nodeSelection.color"
+            type="color"
+          >
+          <div class="value">
+            <input v-model="styles.nodeSelection.color" type="input">
+          </div>
+        </div>
+      </div>
+      <h5>Link</h5>
+      <div class="controls">
+        <div class="control slider">
+          <label for="linkWidth">Width</label>
+          <input
+            id="linkWidth"
+            v-model.number="styles.link.width"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ styles.link.width }}</div>
+        </div>
+        <div class="control slider">
+          <label for="linkGap">Gap</label>
+          <input
+            id="linkGap"
+            v-model.number="styles.link.gap"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ styles.link.gap }}</div>
+        </div>
+        <div class="control color">
+          <label for="linkColor">Color</label>
+          <input
+            id="linkColor"
+            v-model="styles.link.color"
+            type="color"
+          >
+          <div class="value">
+            <input v-model="styles.link.color" type="input">
+          </div>
         </div>
       </div>
       <h4>Layouts</h4>
@@ -339,6 +410,22 @@ export default /*#__PURE__*/ defineComponent({
     }
     .value {
       width: 40px;
+    }
+  }
+  .color {
+    label {
+      flex: 1;
+    }
+    input {
+      width: 60px;
+      height: 16px;
+    }
+    .value {
+      padding-left: 4px;
+      width: 100px;
+      input {
+        width: 70px;
+      }
     }
   }
   ul {

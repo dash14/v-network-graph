@@ -9,7 +9,7 @@ export const STYLE_DEFAULT: Styles = {
   nodeLabel: {
     fontFamily: undefined,
     fontSize: 10,
-    color: "#000",
+    color: "#000000",
     margin: 4,
     direction: NodeLabelDirection.SOUTH,
   },
