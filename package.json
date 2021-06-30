@@ -1,0 +1,28 @@
+{
+  "name": "nt-topology",
+  "version": "0.0.0",
+  "files": ["dist"],
+  "main": "./dist/nt-topology.umd.js",
+  "module": "./dist/nt-topology.es.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite --config vite-lib.config.ts build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.0.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^1.2.3",
+    "@vue/compiler-sfc": "^3.0.5",
+    "typescript": "^4.3.2",
+    "vite": "^2.3.8",
+    "vue-tsc": "^0.0.24"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/nt-topology.es.js",
+      "require": "./dist/nt-topology.umd.js"
+    }
+  }
+}
