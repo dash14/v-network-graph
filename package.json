@@ -1,7 +1,9 @@
 {
   "name": "nt-topology",
   "version": "0.0.0",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/nt-topology.umd.js",
   "module": "./dist/nt-topology.es.js",
   "scripts": {
@@ -10,9 +12,13 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "lodash-es": "^4.17.21",
+    "mitt": "^3.0.0",
+    "svg-pan-zoom": "^3.6.1",
     "vue": "^3.0.5"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.4",
     "@types/node": "^15.12.5",
     "@typescript-eslint/eslint-plugin": "^4.28.1",
     "@typescript-eslint/parser": "^4.28.1",
@@ -22,6 +28,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^7.12.1",
+    "sass": "^1.35.1",
     "typescript": "^4.3.2",
     "vite": "^2.3.8",
     "vue-tsc": "^0.0.24"
