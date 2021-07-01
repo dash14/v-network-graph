@@ -212,7 +212,7 @@
       :links="links"
       :styles="styles"
       :layouts="layouts"
-      @event="handleEvent"
+      :event-handler="handleEvent"
     >
       <template #layer1>
         <text
@@ -341,9 +341,8 @@ export default /*#__PURE__*/ defineComponent({
     }
   },
   methods: {
-    handleEvent(params: { type: string; event?: unknown }) {
+    handleEvent(type: string, event?: unknown) {
       const timestamp = new Date().toISOString()
-      const { type, event } = params
       const MAX = 100
       if (this.eventLogs.length > MAX) {
         this.eventLogs.splice(MAX, this.eventLogs.length - MAX)

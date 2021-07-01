@@ -65,6 +65,8 @@ export type Events = {
   "view:fit": undefined,
 }
 
+export type EventHandler = <T extends keyof Events>(event : T, value: Events[T]) => void
+
 /* ------------------------------------------ *
  * Styles
  * ------------------------------------------ */

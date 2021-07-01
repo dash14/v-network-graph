@@ -117,7 +117,7 @@ import { provideStyles } from "./composables/style"
 import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
 import { useSvgPanZoom } from "./composables/svg-pan-zoom"
-import { Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
+import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
 
 function propBoundRef<T, K extends keyof T>(
@@ -202,13 +202,18 @@ export default defineComponent({
     styles: {
       type: Object as PropType<UserStyles>,
       default: () => ({})
+    },
+    eventHandler: {
+      // 多量のイベントが発行されるため、開発ツールのイベントログを汚さないよう
+      // 指定した関数にイベントを流しこむ設計とする.
+      type: Function as PropType<EventHandler>,
+      default: () => ((_e: any, _v: any) => {})
     }
   },
   emits: [
     "update:zoomLevel", "update:maxZoomLevel",
     "update:mouseMode", "update:selectedNodes",
     "update:layouts",
-    "event"
   ],
   setup(props, { emit }) {
     const backgroundLayers = computed(() => {
@@ -355,7 +360,7 @@ export default defineComponent({
 
     provideMouseOperation(svg, currentLayouts.nodes, zoomLevel, currentSelectedNodes, emitter)
 
-    emitter.on("*", (type, event) => emit("event", { type, event }))
+    emitter.on("*", (type, event) => props.eventHandler(type, event))
     // emitter.on("node:click", node => emit("node:click", node))
 
     // Selection Layer:
