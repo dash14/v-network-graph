@@ -21,7 +21,7 @@ export const STYLE_DEFAULT: Styles = {
   link: {
     width: 1,
     gap: 3,
-    color: "#0000ff",
+    color: "#4466cc",
     selectable: true,
     strokeDasharray: "0",
   },

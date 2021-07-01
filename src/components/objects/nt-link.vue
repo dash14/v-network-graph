@@ -13,6 +13,37 @@ import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { useLinkStyle, useNodeStyle } from "../composables/style"
 import { Node, Position } from "../common/types"
 
+function calculateLinePosition(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  index: number,
+  count: number,
+  zoom: number,
+  width: number,
+  gap: number
+) {
+  const dx = x2 - x1
+  const dy = y2 - y1
+
+  // 中央からずれたところを開始位置とするためのずらし幅
+  const interval = width + gap
+  const allWidth = interval * (count - 1)
+  const diff = (interval * index - allWidth / 2) / zoom
+
+  if (dx === 0) {
+    return [x1 + diff, y1, x2 + diff, y2]
+  } else if (dy === 0) {
+    return [x1, y1 + diff, x2, y2 + diff]
+  } else {
+    const slope = dy / dx
+    const moveSlope = -1 / slope
+    const diffX = diff / Math.sqrt(1 + Math.pow(moveSlope, 2))
+    return [x1 + diffX, y1 + diffX * moveSlope, x2 + diffX, y2 + diffX * moveSlope]
+  }
+}
+
 export default defineComponent({
   props: {
     sourceId: {
@@ -34,12 +65,12 @@ export default defineComponent({
     sourcePos: {
       type: Object as PropType<Position>,
       required: false,
-      default: undefined
+      default: undefined,
     },
     targetPos: {
       type: Object as PropType<Position>,
       required: false,
-      default: undefined
+      default: undefined,
     },
     i: {
       type: Number,
@@ -65,40 +96,30 @@ export default defineComponent({
 
     watchEffect(() => {
       const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
-      let nx1, nx2, ny1, ny2
       if (props.sourceId < props.targetId) {
-        nx1 = props.sourcePos?.x ?? 0
-        ny1 = props.sourcePos?.y ?? 0
-        nx2 = props.targetPos?.x ?? 0
-        ny2 = props.targetPos?.y ?? 0
+        [x1.value, y1.value, x2.value, y2.value] = calculateLinePosition(
+          props.sourcePos?.x ?? 0,
+          props.sourcePos?.y ?? 0,
+          props.targetPos?.x ?? 0,
+          props.targetPos?.y ?? 0,
+          props.i,
+          props.count,
+          z,
+          style.width,
+          style.gap
+        )
       } else {
-        nx1 = props.targetPos?.x ?? 0
-        ny1 = props.targetPos?.y ?? 0
-        nx2 = props.sourcePos?.x ?? 0
-        ny2 = props.sourcePos?.y ?? 0
-      }
-
-      const dx = nx2 - nx1
-      const dy = ny2 - ny1
-      const slope = dx === 0 ? 1 : dy / dx
-
-      // 中央からずれたところを開始位置とするためのずらし幅
-      const allWidth = style.gap * (props.count - 1)
-      const diff = style.gap * props.i - allWidth / 2
-
-      if (slope === 0) {
-        const diffY = diff / z
-        x1.value = nx1
-        y1.value = ny1 + diffY
-        x2.value = nx2
-        y2.value = ny2 + diffY
-      } else {
-        const moveSlope = -1 / slope
-        const diffX = diff / Math.sqrt(1 + Math.pow(moveSlope, 2)) / z
-        x1.value = nx1 + diffX
-        y1.value = ny1 + diffX * moveSlope
-        x2.value = nx2 + diffX
-        y2.value = ny2 + diffX * moveSlope
+        [x2.value, y2.value, x1.value, y1.value] = calculateLinePosition(
+          props.targetPos?.x ?? 0,
+          props.targetPos?.y ?? 0,
+          props.sourcePos?.x ?? 0,
+          props.sourcePos?.y ?? 0,
+          props.i,
+          props.count,
+          z,
+          style.width,
+          style.gap
+        )
       }
     })
 
@@ -106,6 +127,7 @@ export default defineComponent({
       const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
       return style.width / z
     })
+
     const strokeDasharray = computed(() => {
       const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
       if (z === 1) {
@@ -130,5 +152,6 @@ path {
 path.selectable {
   pointer-events: all;
   cursor: pointer;
-}</style
->>
+}
+</style>
+
