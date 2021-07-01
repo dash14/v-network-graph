@@ -12,8 +12,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
-import { Position } from "../common/types"
-import { useNodeStyle, useNodeSelectionStyle, useViewStyle } from "../composables/style"
+import { Position } from "@/common/types"
+import { useNodeStyle, useNodeSelectionStyle, useViewStyle } from "@/composables/style"
 
 export default defineComponent({
   props: {

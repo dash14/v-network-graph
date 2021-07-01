@@ -10,8 +10,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
-import { useLinkStyle, useViewStyle } from "../composables/style"
-import { Node, Position } from "../common/types"
+import { useLinkStyle, useViewStyle } from "@/composables/style"
+import { Node, Position } from "@/common/types"
 
 function calculateLinePosition(
   x1: number,

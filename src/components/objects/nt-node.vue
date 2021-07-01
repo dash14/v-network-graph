@@ -22,9 +22,9 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
-import { Node, NodeLabelDirection, Position } from "../common/types"
-import { useNodeLabelStyle, useNodeStyle, useViewStyle } from "../composables/style"
-import { useMouseOperation } from "../composables/mouse"
+import { Node, NodeLabelDirection, Position } from "@/common/types"
+import { useNodeLabelStyle, useNodeStyle, useViewStyle } from "@/composables/style"
+import { useMouseOperation } from "@/composables/mouse"
 
 export default defineComponent({
   props: {
