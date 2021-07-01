@@ -180,7 +180,7 @@ export default defineComponent({
       default: 16
     },
     mouseMode: {
-      type: String as PropType<MouseMode>,
+      type: String as PropType<MouseMode | string>,
       default: MouseMode.NORMAL
     },
     nodes: {
