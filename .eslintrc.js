@@ -33,7 +33,8 @@ module.exports = {
     // "no-unused-vars": ["warn", { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     "@typescript-eslint/explicit-module-boundary-types": 0,
     "@typescript-eslint/no-explicit-any": 0,
-    "no-unused-vars": "off",
+    "@typescript-eslint/no-empty-function": 0,
+    "no-unused-vars": 0,
     "@typescript-eslint/no-unused-vars": ["warn", { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
   },
 }
