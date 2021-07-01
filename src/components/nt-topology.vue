@@ -262,15 +262,22 @@ export default defineComponent({
         }
     })
 
+    const applyZoomByAbsoluteZoom = (absoluteZoomLevel: number) => {
+      const org = getOriginalZoom()
+      svgPanZoom.value?.setMinZoom(0.1 / org)
+                      .setMaxZoom(props.maxZoomLevel / org)
+                      .zoom(absoluteZoomLevel / org)
+    }
+
     onMounted(() => {
       const initialZoomLevel = props.zoomLevel
       // zoom初期値の反映
-      svgPanZoom.value?.zoom(initialZoomLevel / getOriginalZoom())
+      applyZoomByAbsoluteZoom(initialZoomLevel)
       center()
     })
 
     watch(zoomLevel, value => {
-      svgPanZoom.value?.zoom(value / getOriginalZoom())
+      applyZoomByAbsoluteZoom(value)
     })
 
     const maxZoomLevel = propBoundRef(props, "maxZoomLevel", emit)
