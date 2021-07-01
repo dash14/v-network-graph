@@ -68,6 +68,14 @@
             <input v-model="styles.node.color" type="input">
           </div>
         </div>
+        <div class="control">
+          <input
+            id="nodeSelectable"
+            v-model="styles.node.selectable"
+            type="checkbox"
+          >
+          <label for="nodeSelectable">Selectable</label>
+        </div>
       </div>
       <h5>Node Label</h5>
       <div class="controls">

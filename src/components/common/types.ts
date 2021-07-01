@@ -76,6 +76,7 @@ export interface NodeStyle {
   height?: number
   color: string
   resizeWithZooming: boolean
+  selectable: boolean
 }
 
 export enum NodeLabelDirection {

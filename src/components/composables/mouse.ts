@@ -23,6 +23,7 @@ export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
   nodePositions: NodePositions,
   zoomLevel: Ref<number>,
+  selectable: Ref<boolean>,
   selectedNodes: string[],
   emitter: Emitter<Events>
 ): void {
@@ -67,21 +68,22 @@ export function provideMouseOperation(
     if (isMoved) {
       return
     }
-    if (event.shiftKey) {
-      // 複数選択
-      const index = selectedNodes.indexOf(node)
-      // const cloned = [...selectedNodes.value]
-      if (index >= 0) {
-        selectedNodes.splice(index, 1)
+    if (selectable.value) {
+      if (event.shiftKey) {
+        // 複数選択
+        const index = selectedNodes.indexOf(node)
+        // const cloned = [...selectedNodes.value]
+        if (index >= 0) {
+          selectedNodes.splice(index, 1)
+        } else {
+          selectedNodes.push(node)
+        }
       } else {
-        selectedNodes.push(node)
+        // クリック操作: 選択中のノードをクリックされたノード1つにする
+        selectedNodes.splice(0, selectedNodes.length, node)
       }
-      // selectedNodes.value = cloned
-    } else {
-      // クリック操作: 選択中のノードをクリックされたノード1つにする
-      selectedNodes.splice(0, selectedNodes.length, node)
-      emitter.emit("node:click", node)
     }
+    emitter.emit("node:click", node)
   }
 
   // TODO: Touch対応

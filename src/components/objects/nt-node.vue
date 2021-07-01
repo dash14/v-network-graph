@@ -5,6 +5,7 @@
       cy="0"
       :r="radius"
       :fill="style.color"
+      :class="{ selectable: style.selectable }"
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
     />
     <text
@@ -38,7 +39,7 @@ export default defineComponent({
     pos: {
       type: Object as PropType<Position>,
       required: false,
-      default: undefined
+      default: undefined,
     },
     zoom: {
       type: Number,
@@ -163,7 +164,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-circle {
+circle.selectable {
   cursor: pointer;
 }
 .dragging circle {

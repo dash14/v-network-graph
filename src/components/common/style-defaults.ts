@@ -5,6 +5,7 @@ export const STYLE_DEFAULT: Styles = {
     width: 32,
     color: "#4466cc",
     resizeWithZooming: false,
+    selectable: true,
   },
   nodeLabel: {
     fontFamily: undefined,

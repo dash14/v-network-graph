@@ -108,7 +108,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, nextTick, onMounted, PropType, reactive, Ref, ref, watch } from "vue"
+import { computed, defineComponent, nextTick, onMounted, PropType, reactive, Ref, ref, toRef, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/nt-node.vue"
 import NtNodeSelection from "./objects/nt-node-selection.vue"
@@ -358,7 +358,10 @@ export default defineComponent({
     emitter.on("node:dragstart", _ => (dragging.value = true))
     emitter.on("node:dragend", _ => (dragging.value = false))
 
-    provideMouseOperation(svg, currentLayouts.nodes, zoomLevel, currentSelectedNodes, emitter)
+    provideMouseOperation(
+      svg, currentLayouts.nodes, zoomLevel,
+      toRef(styles.node, "selectable"), currentSelectedNodes, emitter
+    )
 
     emitter.on("*", (type, event) => props.eventHandler(type, event))
     // emitter.on("node:click", node => emit("node:click", node))
