@@ -71,15 +71,37 @@ export type EventHandler = <T extends keyof Events>(event : T, value: Events[T])
  * Styles
  * ------------------------------------------ */
 
+export interface StrokeStyle {
+  width: number
+  color: string
+}
+
+export interface ShapeStyleBase {
+  stroke?: StrokeStyle | null
+  color: string
+}
+
+export interface CircleShapeStyle extends ShapeStyleBase {
+  type: "circle"
+  radius: number
+}
+
+export interface RectangleShapeStyle extends ShapeStyleBase {
+  type: "rect"
+  width: number
+  height: number
+  borderRadius: number
+}
+
+export type ShapeStyle = CircleShapeStyle | RectangleShapeStyle
+
 export interface ViewStyle {
   resizeWithZooming: boolean
 }
 
 /** ノードスタイル */
 export interface NodeStyle {
-  width: number
-  height?: number
-  color: string
+  shape: ShapeStyle
   selectable: boolean
 }
 
@@ -124,8 +146,14 @@ export interface Styles {
   link: LinkStyle
 }
 
+type RecursivePartial<T> = {
+  [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
 /** ユーザ指定用 optionalな指定のためのinterface */
-export type UserStyles = { [P in keyof Styles]?: { [S in keyof Styles[P]]?: Styles[P][S] } }
+// export type UserStyles = { [P in keyof Styles]?: Partial<Styles[P]> }
+export type UserStyles = RecursivePartial<Styles>
+
 
 /* ------------------------------------------ *
  * Type Utility

@@ -54,23 +54,23 @@
           <label for="nodeSize">Size</label>
           <input
             id="nodeSize"
-            v-model.number="styles.node.width"
+            v-model.number="styles.node.shape.radius"
             type="range"
             min="1"
             max="64"
             step="1"
           >
-          <div class="value">{{ styles.node.width }}</div>
+          <div class="value">{{ styles.node.shape.radius }}</div>
         </div>
         <div class="control color">
           <label for="nodeColor">Color</label>
           <input
             id="nodeColor"
-            v-model="styles.node.color"
+            v-model="styles.node.shape.color"
             type="color"
           >
           <div class="value">
-            <input v-model="styles.node.color" type="input">
+            <input v-model="styles.node.shape.color" type="input">
           </div>
         </div>
         <div class="control">

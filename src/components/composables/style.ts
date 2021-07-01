@@ -2,15 +2,13 @@
 import { nonNull, Styles, UserStyles } from "../common/types"
 import { STYLE_DEFAULT } from "../common/style-defaults"
 import { inject, provide, reactive, watch } from "@vue/runtime-core"
+import cloneDeep from "lodash-es/cloneDeep"
+import merge from "lodash-es/merge"
 
 function getObjectStyle<K extends keyof Styles>(style: UserStyles, key: keyof Styles): Styles[K] {
-  const result = { ...STYLE_DEFAULT[key] } as Styles[K]
+  const result = cloneDeep(STYLE_DEFAULT[key]) as Styles[K]
   const userStyle: UserStyles[K] = style[key] || {}
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  for (const [param, value] of Object.entries(userStyle as Object)) {
-    if (value === undefined) continue
-    result[param as keyof Styles[K]] = value
-  }
+  merge(result, userStyle)
   return result
 }
 

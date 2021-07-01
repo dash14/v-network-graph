@@ -329,7 +329,13 @@ export default defineComponent({
       // link幅とgap幅がノードの大きさを超えていたら集約する
       const linkCount = Object.entries(links).length
       const width = styles.link.width * linkCount + styles.link.gap * (linkCount - 1)
-      return width > styles.node.width
+      let minWidth = 0
+      if (styles.node.shape.type === "circle") {
+        minWidth = styles.node.shape.radius * 2
+      } else {
+        minWidth = Math.min(styles.node.shape.width, styles.node.shape.height)
+      }
+      return width > minWidth
     }
     const checkLinkSummarize = computed(() => {
       return (links: Links) => {

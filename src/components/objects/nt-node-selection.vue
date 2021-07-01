@@ -1,21 +1,21 @@
 <template>
-  <circle
+  <nt-shape
     class="nt-node-selection"
-    :cx="x"
-    :cy="y"
-    :r="radius"
-    :stroke="selectionStyle.color"
-    :stroke-width="strokeWidth"
-    fill="none"
+    :base-x="x"
+    :base-y="y"
+    :styles="styles"
+    :zoom="zoom"
   />
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from "vue"
-import { Position } from "@/common/types"
-import { useNodeStyle, useNodeSelectionStyle, useViewStyle } from "@/composables/style"
+import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
+import { CircleShapeStyle, Position, RectangleShapeStyle, ShapeStyle } from "@/common/types"
+import { useNodeStyle, useNodeSelectionStyle } from "@/composables/style"
+import NtShape from "@/objects/shape.vue"
 
 export default defineComponent({
+  components: { NtShape },
   props: {
     pos: {
       type: Object as PropType<Position>,
@@ -32,18 +32,52 @@ export default defineComponent({
     const y = computed(() => props.pos?.y || 0)
 
     const nodeStyle = useNodeStyle()
-    const viewStyle = useViewStyle()
     const selectionStyle = useNodeSelectionStyle()
-    const radius = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return (nodeStyle.width / 2 + selectionStyle.padding + selectionStyle.width / 2) / z
-    })
-    const strokeWidth = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return selectionStyle.width / z
+    const styles = reactive<ShapeStyle>({} as any)
+
+    watchEffect(() => {
+      const shapeStyle = nodeStyle.shape
+      if (shapeStyle.type === "circle") {
+        const shape: CircleShapeStyle = {
+          type: "circle",
+          radius:
+            shapeStyle.radius +
+            (shapeStyle.stroke?.width ?? 0) / 2 +
+            selectionStyle.padding +
+            selectionStyle.width / 2,
+          color: "none",
+          stroke: {
+            width: selectionStyle.width,
+            color: selectionStyle.color,
+          },
+        }
+        Object.assign(styles, shape)
+      } else {
+        const shape: RectangleShapeStyle = {
+          type: "rect",
+          width:
+            shapeStyle.width +
+            (shapeStyle.stroke?.width ?? 0) +
+            selectionStyle.padding * 2 +
+            selectionStyle.width,
+          height:
+            shapeStyle.height +
+            (shapeStyle.stroke?.width ?? 0) +
+            selectionStyle.padding * 2 +
+            selectionStyle.width,
+          borderRadius:
+            shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + selectionStyle.padding : 0,
+          color: "none",
+          stroke: {
+            width: selectionStyle.width,
+            color: selectionStyle.color,
+          },
+        }
+        Object.assign(styles, shape)
+      }
     })
 
-    return { x, y, selectionStyle, radius, strokeWidth }
+    return { x, y, selectionStyle, styles }
   },
 })
 </script>

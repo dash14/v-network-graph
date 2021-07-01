@@ -1,10 +1,8 @@
 <template>
   <g :transform="`translate(${x} ${y})`">
-    <circle
-      cx="0"
-      cy="0"
-      :r="radius"
-      :fill="style.color"
+    <nt-shape
+      :styles="style.shape"
+      :zoom="zoom"
       :class="{ selectable: style.selectable }"
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
     />
@@ -21,12 +19,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, NodeLabelDirection, Position } from "@/common/types"
 import { useNodeLabelStyle, useNodeStyle, useViewStyle } from "@/composables/style"
 import { useMouseOperation } from "@/composables/mouse"
+import NtShape from "@/objects/shape.vue"
 
 export default defineComponent({
+  components: { NtShape },
   props: {
     id: {
       type: String,
@@ -59,11 +59,6 @@ export default defineComponent({
 
     const { handleNodeMouseDownEvent } = useMouseOperation()
 
-    const radius = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return style.width / 2 / z
-    })
-
     // ラベル
     const fontSize = computed(() => {
       const z = viewStyle.resizeWithZooming ? 1 : props.zoom
@@ -73,6 +68,36 @@ export default defineComponent({
       const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return labelStyle.margin / z
     })
+
+    // 円の場合のラベル位置計算用
+    const labelShiftV = ref(0) // ラベルのシフト量(縦)
+    const labelShiftH = ref(0) // ラベルのシフト量(横)
+    const labelDiagonalShiftV = ref(0) // 斜め方向のシフト量(縦)
+    const labelDiagonalShiftH = ref(0) // 斜め方向のシフト量(横)
+
+    watchEffect(() => {
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
+      if (style.shape.type == "circle") {
+        const radius = style.shape.radius / z
+        const m = radius + labelMargin.value
+        const diagonalMargin = Math.sqrt(m ** 2 / 2)
+        labelShiftV.value = radius + labelMargin.value
+        labelShiftH.value = radius + labelMargin.value
+        labelDiagonalShiftV.value = diagonalMargin
+        labelDiagonalShiftH.value = diagonalMargin
+      } else {
+        const borderRadius = style.shape.borderRadius / z
+        const width = style.shape.width / z
+        const height = style.shape.height / z
+        const m = borderRadius + labelMargin.value
+        const diagonalMargin = Math.sqrt(m ** 2 / 2)
+        labelShiftV.value = height / 2 + labelMargin.value
+        labelShiftH.value = width / 2 + labelMargin.value
+        labelDiagonalShiftV.value = height / 2 - borderRadius + diagonalMargin
+        labelDiagonalShiftH.value = width / 2 - borderRadius + diagonalMargin
+      }
+    })
+
     const textAnchor = computed(() => {
       switch (labelStyle.direction) {
         case NodeLabelDirection.NORTH:
@@ -105,44 +130,40 @@ export default defineComponent({
           return "central"
       }
     })
-    const diagonalMargin = computed(() => {
-      const m = radius.value + labelMargin.value
-      return Math.sqrt(m ** 2 / 2)
-    })
     const labelX = computed(() => {
       switch (labelStyle.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return 0
         case NodeLabelDirection.EAST:
-          return radius.value + labelMargin.value
+          return labelShiftH.value
         case NodeLabelDirection.WEST:
-          return -radius.value - labelMargin.value
+          return -labelShiftH.value
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.SOUTH_EAST:
-          return diagonalMargin.value
+          return labelDiagonalShiftH.value
         case NodeLabelDirection.NORTH_WEST:
         case NodeLabelDirection.SOUTH_WEST:
         default:
-          return -diagonalMargin.value
+          return -labelDiagonalShiftH.value
       }
     })
     const labelY = computed(() => {
       switch (labelStyle.direction) {
         case NodeLabelDirection.NORTH:
-          return -radius.value - labelMargin.value
+          return -labelShiftV.value
         case NodeLabelDirection.SOUTH:
-          return radius.value + labelMargin.value
+          return labelShiftV.value
         case NodeLabelDirection.EAST:
         case NodeLabelDirection.WEST:
           return 0
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.NORTH_WEST:
-          return -diagonalMargin.value
+          return -labelDiagonalShiftV.value
         case NodeLabelDirection.SOUTH_EAST:
         case NodeLabelDirection.SOUTH_WEST:
         default:
-          return diagonalMargin.value
+          return labelDiagonalShiftV.value
       }
     })
 
@@ -153,7 +174,6 @@ export default defineComponent({
       labelStyle,
       label,
       handleNodeMouseDownEvent,
-      radius,
       fontSize,
       textAnchor,
       dominantBaseline,
@@ -165,7 +185,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-circle.selectable {
+.selectable {
   cursor: pointer;
 }
 .dragging circle {

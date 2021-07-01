@@ -5,8 +5,12 @@ export const STYLE_DEFAULT: Styles = {
     resizeWithZooming: false,
   },
   node: {
-    width: 32,
-    color: "#4466cc",
+    shape: {
+      type: "circle",
+      radius: 16,
+      stroke: null,
+      color: "#4466cc"
+    },
     selectable: true,
   },
   nodeLabel: {
