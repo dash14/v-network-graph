@@ -325,8 +325,11 @@ export default defineComponent({
       }
       return map
     })
-    const defaultCheckSummarize = (_links: Links, _styles: Styles) => {
-      return Object.entries(_links).length > 2
+    const defaultCheckSummarize = (links: Links, styles: Styles) => {
+      // link幅とgap幅がノードの大きさを超えていたら集約する
+      const linkCount = Object.entries(links).length
+      const width = styles.link.width * linkCount + styles.link.gap * (linkCount - 1)
+      return width > styles.node.width
     }
     const checkLinkSummarize = computed(() => {
       return (links: Links) => {
