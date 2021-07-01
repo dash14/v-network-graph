@@ -13,7 +13,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
 import { Position } from "../common/types"
-import { useNodeStyle, useNodeSelectionStyle } from "../composables/style"
+import { useNodeStyle, useNodeSelectionStyle, useViewStyle } from "../composables/style"
 
 export default defineComponent({
   props: {
@@ -32,17 +32,18 @@ export default defineComponent({
     const y = computed(() => props.pos?.y || 0)
 
     const nodeStyle = useNodeStyle()
+    const viewStyle = useViewStyle()
     const selectionStyle = useNodeSelectionStyle()
     const radius = computed(() => {
-      const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return (nodeStyle.width / 2 + selectionStyle.padding + selectionStyle.width / 2) / z
     })
     const strokeWidth = computed(() => {
-      const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return selectionStyle.width / z
     })
 
-    return { x, y, nodeStyle, selectionStyle, radius, strokeWidth }
+    return { x, y, selectionStyle, radius, strokeWidth }
   },
 })
 </script>

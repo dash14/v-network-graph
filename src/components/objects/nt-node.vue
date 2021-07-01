@@ -23,7 +23,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
 import { Node, NodeLabelDirection, Position } from "../common/types"
-import { useNodeLabelStyle, useNodeStyle } from "../composables/style"
+import { useNodeLabelStyle, useNodeStyle, useViewStyle } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
 
 export default defineComponent({
@@ -51,6 +51,7 @@ export default defineComponent({
     const y = computed(() => props.pos?.y || 0)
 
     const style = useNodeStyle()
+    const viewStyle = useViewStyle()
     const labelStyle = useNodeLabelStyle()
 
     // TODO: ユーザ定義関数による指定を可能にする
@@ -59,17 +60,17 @@ export default defineComponent({
     const { handleNodeMouseDownEvent } = useMouseOperation()
 
     const radius = computed(() => {
-      const z = style.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return style.width / 2 / z
     })
 
     // ラベル
     const fontSize = computed(() => {
-      const z = style.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return labelStyle.fontSize / z
     })
     const labelMargin = computed(() => {
-      const z = style.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return labelStyle.margin / z
     })
     const textAnchor = computed(() => {

@@ -1,10 +1,12 @@
 import { NodeLabelDirection, Styles } from "../common/types"
 
 export const STYLE_DEFAULT: Styles = {
+  view: {
+    resizeWithZooming: false,
+  },
   node: {
     width: 32,
     color: "#4466cc",
-    resizeWithZooming: false,
     selectable: true,
   },
   nodeLabel: {

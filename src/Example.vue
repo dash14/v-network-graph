@@ -35,16 +35,21 @@
         </div>
       </div>
       <h4>Styles</h4>
-      <h5>Node</h5>
+
+      <h5>View</h5>
       <div class="controls">
         <div class="control">
           <input
-            id="nodeResizeWithZooming"
-            v-model="styles.node.resizeWithZooming"
+            id="viewResizeWithZooming"
+            v-model="styles.view.resizeWithZooming"
             type="checkbox"
           >
-          <label for="nodeResizeWithZooming">Resize with zooming</label>
+          <label for="viewResizeWithZooming">Resize with zooming</label>
         </div>
+      </div>
+
+      <h5>Node</h5>
+      <div class="controls">
         <div class="control slider">
           <label for="nodeSize">Size</label>
           <input

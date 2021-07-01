@@ -70,12 +70,16 @@ export type EventHandler = <T extends keyof Events>(event : T, value: Events[T])
 /* ------------------------------------------ *
  * Styles
  * ------------------------------------------ */
+
+export interface ViewStyle {
+  resizeWithZooming: boolean
+}
+
 /** ノードスタイル */
 export interface NodeStyle {
   width: number
   height?: number
   color: string
-  resizeWithZooming: boolean
   selectable: boolean
 }
 
@@ -113,6 +117,7 @@ export interface LinkStyle {
 }
 
 export interface Styles {
+  view: ViewStyle
   node: NodeStyle
   nodeLabel: NodeLabelStyle
   nodeSelection: NodeSelectionStyle

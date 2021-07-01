@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
-import { useLinkStyle, useNodeStyle } from "../composables/style"
+import { useLinkStyle, useViewStyle } from "../composables/style"
 import { Node, Position } from "../common/types"
 
 function calculateLinePosition(
@@ -87,7 +87,7 @@ export default defineComponent({
   },
   setup(props) {
     const style = useLinkStyle()
-    const nodeStyle = useNodeStyle()
+    const viewStyle = useViewStyle()
 
     const x1 = ref(0)
     const y1 = ref(0)
@@ -95,7 +95,7 @@ export default defineComponent({
     const y2 = ref(0)
 
     watchEffect(() => {
-      const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       if (props.sourceId < props.targetId) {
         [x1.value, y1.value, x2.value, y2.value] = calculateLinePosition(
           props.sourcePos?.x ?? 0,
@@ -124,12 +124,12 @@ export default defineComponent({
     })
 
     const strokeWidth = computed(() => {
-      const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       return style.width / z
     })
 
     const strokeDasharray = computed(() => {
-      const z = nodeStyle.resizeWithZooming ? 1 : props.zoom
+      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       if (z === 1) {
         return style.strokeDasharray
       } else {
