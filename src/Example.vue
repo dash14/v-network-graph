@@ -195,6 +195,16 @@
             <input v-model="styles.link.color" type="input">
           </div>
         </div>
+        <div class="control text">
+          <label for="linkStrokeDasharray">Dasharray</label>
+          <div class="value">
+            <input
+              id="linkStrokeDasharray"
+              v-model="styles.link.strokeDasharray"
+              type="text"
+            >
+          </div>
+        </div>
       </div>
       <h4>Layouts</h4>
       <div class="layouts">
@@ -421,10 +431,21 @@ export default /*#__PURE__*/ defineComponent({
     }
     .value {
       padding-left: 4px;
-      width: 100px;
+      width: 90px;
       input {
         width: 70px;
       }
+    }
+  }
+  .text {
+    label {
+      flex: 1;
+    }
+    .value {
+      width: 160px;
+    }
+    input {
+      width: 80px;
     }
   }
   ul {
