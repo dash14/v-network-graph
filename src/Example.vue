@@ -177,13 +177,13 @@
           <label for="linkWidth">Width</label>
           <input
             id="linkWidth"
-            v-model.number="styles.link.width"
+            v-model.number="styles.link.stroke.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.link.width }}</div>
+          <div class="value">{{ styles.link.stroke.width }}</div>
         </div>
         <div class="control slider">
           <label for="linkGap">Gap</label>
@@ -201,11 +201,11 @@
           <label for="linkColor">Color</label>
           <input
             id="linkColor"
-            v-model="styles.link.color"
+            v-model="styles.link.stroke.color"
             type="color"
           >
           <div class="value">
-            <input v-model="styles.link.color" type="input">
+            <input v-model="styles.link.stroke.color" type="input">
           </div>
         </div>
         <div class="control text">
@@ -213,7 +213,7 @@
           <div class="value">
             <input
               id="linkStrokeDasharray"
-              v-model="styles.link.strokeDasharray"
+              v-model="styles.link.stroke.dasharray"
               type="text"
             >
           </div>

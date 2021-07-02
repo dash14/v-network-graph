@@ -26,10 +26,13 @@ export const STYLE_DEFAULT: Styles = {
     },
   },
   link: {
-    width: 1,
+    stroke: {
+      width: 3,
+      color: "#4466cc",
+      dasharray: "0",
+      linecap: "butt",
+    },
     gap: 3,
-    color: "#4466cc",
     selectable: true,
-    strokeDasharray: "0",
   },
 }

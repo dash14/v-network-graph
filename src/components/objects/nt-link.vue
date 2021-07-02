@@ -2,9 +2,10 @@
   <path
     :class="{ selectable: style.selectable }"
     :d="`M ${x1} ${y1} L ${x2} ${y2}`"
-    :stroke="style.color"
+    :stroke="style.stroke.color"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
+    :stroke-linecap="style.stroke.linecap"
   />
 </template>
 
@@ -101,7 +102,7 @@ export default defineComponent({
           props.i,
           props.count,
           scale.value,
-          style.width,
+          style.stroke.width,
           style.gap
         )
       } else {
@@ -113,21 +114,21 @@ export default defineComponent({
           props.i,
           props.count,
           scale.value,
-          style.width,
+          style.stroke.width,
           style.gap
         )
       }
     })
 
     const strokeWidth = computed(() => {
-      return style.width / scale.value
+      return style.stroke.width / scale.value
     })
 
     const strokeDasharray = computed(() => {
       if (scale.value === 1) {
-        return style.strokeDasharray
+        return style.stroke.dasharray
       } else {
-        return style.strokeDasharray
+        return style.stroke.dasharray
           .split(/\s+/)
           .map(v => parseInt(v) / scale.value)
           .join(" ")
