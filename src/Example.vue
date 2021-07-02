@@ -88,40 +88,40 @@
           <label for="nodeFontSize">Font Size</label>
           <input
             id="nodeFontSize"
-            v-model.number="styles.nodeLabel.fontSize"
+            v-model.number="styles.node.label.fontSize"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.nodeLabel.fontSize }}</div>
+          <div class="value">{{ styles.node.label.fontSize }}</div>
         </div>
         <div class="control slider">
           <label for="nodeLabelMargin">Margin</label>
           <input
             id="nodeLabelMargin"
-            v-model.number="styles.nodeLabel.margin"
+            v-model.number="styles.node.label.margin"
             type="range"
             min="0"
             max="24"
             step="1"
           >
-          <div class="value">{{ styles.nodeLabel.margin }}</div>
+          <div class="value">{{ styles.node.label.margin }}</div>
         </div>
         <div class="control color">
           <label for="nodeLabelColor">Color</label>
           <input
             id="nodeLabelColor"
-            v-model="styles.nodeLabel.color"
+            v-model="styles.node.label.color"
             type="color"
           >
           <div class="value">
-            <input v-model="styles.nodeLabel.color" type="input">
+            <input v-model="styles.node.label.color" type="input">
           </div>
         </div>
         <div class="control">
           <label for="nodeLabelDirection">Direction</label>
-          <select id="nodeLabelDirection" v-model.number="styles.nodeLabel.direction">
+          <select id="nodeLabelDirection" v-model.number="styles.node.label.direction">
             <option value="0">N</option>
             <option value="1">NE</option>
             <option value="2">E</option>
@@ -139,35 +139,35 @@
           <label for="nodeSelectionSize">Border Size</label>
           <input
             id="nodeSelectionSize"
-            v-model.number="styles.nodeSelection.width"
+            v-model.number="styles.node.selection.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.nodeSelection.width }}</div>
+          <div class="value">{{ styles.node.selection.width }}</div>
         </div>
         <div class="control slider">
           <label for="nodeSelectionPadding">Padding</label>
           <input
             id="nodeSelectionPadding"
-            v-model.number="styles.nodeSelection.padding"
+            v-model.number="styles.node.selection.padding"
             type="range"
             min="0"
             max="24"
             step="1"
           >
-          <div class="value">{{ styles.nodeSelection.padding }}</div>
+          <div class="value">{{ styles.node.selection.padding }}</div>
         </div>
         <div class="control color">
           <label for="nodeSelectionColor">Color</label>
           <input
             id="nodeSelectionColor"
-            v-model="styles.nodeSelection.color"
+            v-model="styles.node.selection.color"
             type="color"
           >
           <div class="value">
-            <input v-model="styles.nodeSelection.color" type="input">
+            <input v-model="styles.node.selection.color" type="input">
           </div>
         </div>
       </div>

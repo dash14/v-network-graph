@@ -45,14 +45,6 @@ export function useNodeStyle() {
   return injectStyle("node")
 }
 
-export function useNodeLabelStyle() {
-  return injectStyle("nodeLabel")
-}
-
-export function useNodeSelectionStyle() {
-  return injectStyle("nodeSelection")
-}
-
 export function useLinkStyle() {
   return injectStyle("link")
 }

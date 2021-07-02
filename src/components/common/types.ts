@@ -71,6 +71,8 @@ export type EventHandler = <T extends keyof Events>(event : T, value: Events[T])
  * Styles
  * ------------------------------------------ */
 
+/* Shape style */
+
 export interface StrokeStyle {
   width: number
   color: string
@@ -95,15 +97,20 @@ export interface RectangleShapeStyle extends ShapeStyleBase {
 
 export type ShapeStyle = CircleShapeStyle | RectangleShapeStyle
 
+
+/* Label style */
+
+export interface LabelStyle {
+  fontFamily?: string
+  fontSize: number
+  color: string
+}
+
 export interface ViewStyle {
   resizeWithZooming: boolean
 }
 
-/** ノードスタイル */
-export interface NodeStyle {
-  shape: ShapeStyle
-  selectable: boolean
-}
+/* Node style */
 
 export enum NodeLabelDirection {
   NORTH = 0,
@@ -116,10 +123,7 @@ export enum NodeLabelDirection {
   NORTH_WEST = 7,
 }
 
-export interface NodeLabelStyle {
-  fontFamily: string | undefined
-  fontSize: number
-  color: string
+export interface NodeLabelStyle extends LabelStyle {
   margin: number
   direction: NodeLabelDirection
 }
@@ -129,6 +133,15 @@ export interface NodeSelectionStyle {
   padding: number
   color: string
 }
+
+export interface NodeStyle {
+  shape: ShapeStyle
+  label: NodeLabelStyle
+  selectable: boolean
+  selection: NodeSelectionStyle
+}
+
+/* Link style */
 
 export interface LinkStyle {
   width: number

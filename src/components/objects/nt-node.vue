@@ -7,13 +7,13 @@
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
     />
     <text
-      :font-family="labelStyle.fontFamily"
+      :font-family="style.label.fontFamily"
       :font-size="fontSize"
       :text-anchor="textAnchor"
       :dominant-baseline="dominantBaseline"
       :x="labelX"
       :y="labelY"
-      :fill="labelStyle.color"
+      :fill="style.label.color"
     >{{ label }}</text>
   </g>
 </template>
@@ -21,7 +21,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, NodeLabelDirection, Position } from "@/common/types"
-import { useNodeLabelStyle, useNodeStyle, useViewStyle } from "@/composables/style"
+import { useNodeStyle, useViewStyle } from "@/composables/style"
 import { useMouseOperation } from "@/composables/mouse"
 import NtShape from "@/objects/shape.vue"
 
@@ -52,7 +52,6 @@ export default defineComponent({
 
     const style = useNodeStyle()
     const viewStyle = useViewStyle()
-    const labelStyle = useNodeLabelStyle()
 
     // TODO: ユーザ定義関数による指定を可能にする
     const label = props.node.name ?? props.id
@@ -62,11 +61,11 @@ export default defineComponent({
     // ラベル
     const fontSize = computed(() => {
       const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return labelStyle.fontSize / z
+      return style.label.fontSize / z
     })
     const labelMargin = computed(() => {
       const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return labelStyle.margin / z
+      return style.label.margin / z
     })
 
     // 円の場合のラベル位置計算用
@@ -99,7 +98,7 @@ export default defineComponent({
     })
 
     const textAnchor = computed(() => {
-      switch (labelStyle.direction) {
+      switch (style.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return "middle"
@@ -115,7 +114,7 @@ export default defineComponent({
       }
     })
     const dominantBaseline = computed(() => {
-      switch (labelStyle.direction) {
+      switch (style.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.NORTH_WEST:
@@ -131,7 +130,7 @@ export default defineComponent({
       }
     })
     const labelX = computed(() => {
-      switch (labelStyle.direction) {
+      switch (style.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return 0
@@ -149,7 +148,7 @@ export default defineComponent({
       }
     })
     const labelY = computed(() => {
-      switch (labelStyle.direction) {
+      switch (style.label.direction) {
         case NodeLabelDirection.NORTH:
           return -labelShiftV.value
         case NodeLabelDirection.SOUTH:
@@ -171,7 +170,6 @@ export default defineComponent({
       x,
       y,
       style,
-      labelStyle,
       label,
       handleNodeMouseDownEvent,
       fontSize,
