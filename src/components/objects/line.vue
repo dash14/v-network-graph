@@ -48,7 +48,7 @@ export default defineComponent({
         return props.styles.dasharray
       } else {
         return props.styles.dasharray
-          .split(/\s+/)
+          ?.split(/\s+/)
           .map(v => parseInt(v) / scale.value)
           .join(" ")
       }

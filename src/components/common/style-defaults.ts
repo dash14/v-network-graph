@@ -27,12 +27,33 @@ export const STYLE_DEFAULT: Styles = {
   },
   link: {
     stroke: {
-      width: 3,
+      width: 2,
       color: "#4466cc",
       dasharray: "0",
       linecap: "butt",
     },
     gap: 3,
+    summarized: {
+      label: {
+        fontSize: 10,
+        color: "#4466cc"
+      },
+      shape: {
+        type: "rect",
+        width: 12,
+        height: 12,
+        borderRadius: 3,
+        color: "#ffffff",
+        stroke: {
+          width: 1,
+          color: "#4466cc",
+        }
+      },
+      line: {
+        width: 4,
+        color: "#4466cc"
+      }
+    },
     selectable: true,
   },
 }

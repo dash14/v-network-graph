@@ -76,8 +76,8 @@ export type EventHandler = <T extends keyof Events>(event : T, value: Events[T])
 export interface StrokeStyle {
   width: number
   color: string
-  dasharray: string
-  linecap: "butt" | "round" | "square"
+  dasharray?: string
+  linecap?: "butt" | "round" | "square"
 }
 
 export interface ShapeStyleBase {
@@ -148,6 +148,11 @@ export interface NodeStyle {
 export interface LinkStyle {
   stroke: StrokeStyle
   gap: number
+  summarized: {
+    label: LabelStyle,
+    shape: ShapeStyle,
+    line: StrokeStyle
+  }
   selectable: boolean
 }
 

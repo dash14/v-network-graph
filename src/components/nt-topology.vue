@@ -41,7 +41,11 @@
         <g class="nt-layer-links">
           <template v-for="[key, bundledLinks] in linkMap">
             <template v-if="checkLinkSummarize(bundledLinks)">
-              <text :key="key">summarize: {{ key }}</text>
+              <nt-summarized-link
+                :key="key"
+                :links="bundledLinks"
+                :layouts="currentLayouts.nodes"
+              />
             </template>
             <template
               v-for="(link, id, i) in bundledLinks"
@@ -57,7 +61,6 @@
                 :target-pos="currentLayouts.nodes[link.target]"
                 :i="i"
                 :count="Object.keys(bundledLinks).length"
-                :zoom="realZoomLevel"
               />
             </template>
           </template>
@@ -69,7 +72,6 @@
             v-for="nodeId in currentSelectedNodes"
             :key="nodeId"
             :pos="currentLayouts.nodes[nodeId]"
-            :zoom="realZoomLevel"
           />
         </g>
 
@@ -112,6 +114,7 @@ import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/nt-node.vue"
 import NtNodeSelection from "./objects/nt-node-selection.vue"
 import NtLink from "./objects/nt-link.vue"
+import NtSummarizedLink from "./objects/nt-summarized-link.vue"
 import { provideStyles } from "./composables/style"
 import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
@@ -165,7 +168,7 @@ function propBoundRef<T, K extends keyof T>(
 
 export default defineComponent({
   name: "NtTopology",
-  components: { NtNode, NtNodeSelection, NtLink },
+  components: { NtNode, NtNodeSelection, NtLink, NtSummarizedLink },
   props: {
     layers: {
       type: Object as PropType<{[name: string]: string}>,
@@ -333,7 +336,7 @@ export default defineComponent({
     const defaultCheckSummarize = (links: Links, styles: Styles) => {
       // link幅とgap幅がノードの大きさを超えていたら集約する
       const linkCount = Object.entries(links).length
-      const width = styles.link.width * linkCount + styles.link.gap * (linkCount - 1)
+      const width = styles.link.stroke.width * linkCount + styles.link.gap * (linkCount - 1)
       let minWidth = 0
       if (styles.node.shape.type === "circle") {
         minWidth = styles.node.shape.radius * 2
@@ -415,7 +418,6 @@ export default defineComponent({
       svg,
       show,
       svgPanZoom,
-      realZoomLevel: zoomLevel,
       linkMap,
       checkLinkSummarize,
       backgroundLayers,
