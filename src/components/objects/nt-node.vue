@@ -5,15 +5,14 @@
       :class="{ selectable: style.selectable }"
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
     />
-    <text
-      :font-family="style.label.fontFamily"
-      :font-size="fontSize"
-      :text-anchor="textAnchor"
-      :dominant-baseline="dominantBaseline"
+    <nt-text
+      :text="label"
       :x="labelX"
       :y="labelY"
-      :fill="style.label.color"
-    >{{ label }}</text>
+      :styles="style.label"
+      :text-anchor="textAnchor"
+      :dominant-baseline="dominantBaseline"
+    />
   </g>
 </template>
 
@@ -24,9 +23,10 @@ import { useZoomLevel } from "@/composables/zoom"
 import { useNodeStyle } from "@/composables/style"
 import { useMouseOperation } from "@/composables/mouse"
 import NtShape from "@/objects/shape.vue"
+import NtText from "@/objects/text.vue"
 
 export default defineComponent({
-  components: { NtShape },
+  components: { NtShape, NtText },
   props: {
     id: {
       type: String,
@@ -55,9 +55,6 @@ export default defineComponent({
     const { handleNodeMouseDownEvent } = useMouseOperation()
 
     // ラベル
-    const fontSize = computed(() => {
-      return style.label.fontSize / scale.value
-    })
     const labelMargin = computed(() => {
       return style.label.margin / scale.value
     })
@@ -166,7 +163,6 @@ export default defineComponent({
       style,
       label,
       handleNodeMouseDownEvent,
-      fontSize,
       textAnchor,
       dominantBaseline,
       labelX,
