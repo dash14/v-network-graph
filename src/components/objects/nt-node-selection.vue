@@ -4,7 +4,6 @@
     :base-x="x"
     :base-y="y"
     :styles="shapeStyles"
-    :zoom="zoom"
   />
 </template>
 
@@ -21,10 +20,6 @@ export default defineComponent({
       type: Object as PropType<Position>,
       required: false,
       default: undefined,
-    },
-    zoom: {
-      type: Number,
-      required: true,
     },
   },
   setup(props) {

@@ -81,7 +81,6 @@
             :key="nodeId"
             :node="node"
             :pos="currentLayouts.nodes[nodeId]"
-            :zoom="realZoomLevel"
           />
           <text
             x="0"
@@ -117,6 +116,7 @@ import { provideStyles } from "./composables/style"
 import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
 import { useSvgPanZoom } from "./composables/svg-pan-zoom"
+import { provideZoomLevel } from "./composables/zoom"
 import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
 
@@ -310,6 +310,11 @@ export default defineComponent({
     // 表示スタイル
     // -----------------------------------------------------------------------
     const styles = provideStyles(props.styles)
+
+    // -----------------------------------------------------------------------
+    // ズームレベル/縮尺値
+    // -----------------------------------------------------------------------
+    provideZoomLevel(zoomLevel, styles.view)
 
     // -----------------------------------------------------------------------
     // リンク

@@ -10,7 +10,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
-import { useLinkStyle, useViewStyle } from "@/composables/style"
+import { useZoomLevel } from "@/composables/zoom"
+import { useLinkStyle } from "@/composables/style"
 import { Node, Position } from "@/common/types"
 
 function calculateLinePosition(
@@ -80,14 +81,10 @@ export default defineComponent({
       type: Number,
       default: 1,
     },
-    zoom: {
-      type: Number,
-      required: true,
-    },
   },
   setup(props) {
     const style = useLinkStyle()
-    const viewStyle = useViewStyle()
+    const { scale } = useZoomLevel()
 
     const x1 = ref(0)
     const y1 = ref(0)
@@ -95,7 +92,6 @@ export default defineComponent({
     const y2 = ref(0)
 
     watchEffect(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
       if (props.sourceId < props.targetId) {
         [x1.value, y1.value, x2.value, y2.value] = calculateLinePosition(
           props.sourcePos?.x ?? 0,
@@ -104,7 +100,7 @@ export default defineComponent({
           props.targetPos?.y ?? 0,
           props.i,
           props.count,
-          z,
+          scale.value,
           style.width,
           style.gap
         )
@@ -116,7 +112,7 @@ export default defineComponent({
           props.sourcePos?.y ?? 0,
           props.i,
           props.count,
-          z,
+          scale.value,
           style.width,
           style.gap
         )
@@ -124,18 +120,16 @@ export default defineComponent({
     })
 
     const strokeWidth = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return style.width / z
+      return style.width / scale.value
     })
 
     const strokeDasharray = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      if (z === 1) {
+      if (scale.value === 1) {
         return style.strokeDasharray
       } else {
         return style.strokeDasharray
           .split(/\s+/)
-          .map(v => parseInt(v) / z)
+          .map(v => parseInt(v) / scale.value)
           .join(" ")
       }
     })

@@ -2,7 +2,6 @@
   <g :transform="`translate(${x} ${y})`">
     <nt-shape
       :styles="style.shape"
-      :zoom="zoom"
       :class="{ selectable: style.selectable }"
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
     />
@@ -21,7 +20,8 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, NodeLabelDirection, Position } from "@/common/types"
-import { useNodeStyle, useViewStyle } from "@/composables/style"
+import { useZoomLevel } from "@/composables/zoom"
+import { useNodeStyle } from "@/composables/style"
 import { useMouseOperation } from "@/composables/mouse"
 import NtShape from "@/objects/shape.vue"
 
@@ -41,17 +41,13 @@ export default defineComponent({
       required: false,
       default: undefined,
     },
-    zoom: {
-      type: Number,
-      required: true,
-    },
   },
   setup(props) {
     const x = computed(() => props.pos?.x || 0)
     const y = computed(() => props.pos?.y || 0)
 
     const style = useNodeStyle()
-    const viewStyle = useViewStyle()
+    const { scale } = useZoomLevel()
 
     // TODO: ユーザ定義関数による指定を可能にする
     const label = props.node.name ?? props.id
@@ -60,12 +56,10 @@ export default defineComponent({
 
     // ラベル
     const fontSize = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return style.label.fontSize / z
+      return style.label.fontSize / scale.value
     })
     const labelMargin = computed(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      return style.label.margin / z
+      return style.label.margin / scale.value
     })
 
     // 円の場合のラベル位置計算用
@@ -75,9 +69,9 @@ export default defineComponent({
     const labelDiagonalShiftH = ref(0) // 斜め方向のシフト量(横)
 
     watchEffect(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
+      const s = scale.value
       if (style.shape.type == "circle") {
-        const radius = style.shape.radius / z
+        const radius = style.shape.radius / s
         const m = radius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = radius + labelMargin.value
@@ -85,9 +79,9 @@ export default defineComponent({
         labelDiagonalShiftV.value = diagonalMargin
         labelDiagonalShiftH.value = diagonalMargin
       } else {
-        const borderRadius = style.shape.borderRadius / z
-        const width = style.shape.width / z
-        const height = style.shape.height / z
+        const borderRadius = style.shape.borderRadius / s
+        const width = style.shape.width / s
+        const height = style.shape.height / s
         const m = borderRadius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = height / 2 + labelMargin.value

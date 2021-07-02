@@ -25,7 +25,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { ShapeStyle } from "@/common/types"
-import { useViewStyle } from "@/composables/style"
+import { useZoomLevel } from "@/composables/zoom"
 
 export default defineComponent({
   props: {
@@ -41,13 +41,9 @@ export default defineComponent({
       type: Object as PropType<ShapeStyle>,
       required: true,
     },
-    zoom: {
-      type: Number,
-      required: true,
-    },
   },
   setup(props) {
-    const viewStyle = useViewStyle()
+    const { scale } = useZoomLevel()
 
     const x = ref(props.baseX)
     const y = ref(props.baseY)
@@ -59,18 +55,18 @@ export default defineComponent({
     const borderRadius = ref(0)
 
     watchEffect(() => {
-      const z = viewStyle.resizeWithZooming ? 1 : props.zoom
-      strokeWidth.value = (props.styles.stroke?.width ?? 0) / z
+      const s = scale.value
+      strokeWidth.value = (props.styles.stroke?.width ?? 0) / s
       strokeColor.value = props.styles.stroke?.color ?? "none"
 
       if (props.styles.type === "circle") {
         x.value = props.baseX
         y.value = props.baseY
-        radius.value = props.styles.radius / z
+        radius.value = props.styles.radius / s
       } else {
-        width.value = props.styles.width / z
-        height.value = props.styles.height / z
-        borderRadius.value = props.styles.borderRadius / z
+        width.value = props.styles.width / s
+        height.value = props.styles.height / s
+        borderRadius.value = props.styles.borderRadius / s
         x.value = props.baseX - width.value / 2
         y.value = props.baseY - height.value / 2
       }
