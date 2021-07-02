@@ -1,19 +1,20 @@
 <template>
-  <path
+  <nt-line
     :class="{ selectable: style.selectable }"
-    :d="`M ${x1} ${y1} L ${x2} ${y2}`"
-    :stroke="style.stroke.color"
-    :stroke-width="strokeWidth"
-    :stroke-dasharray="strokeDasharray"
-    :stroke-linecap="style.stroke.linecap"
+    :x1="x1"
+    :y1="y1"
+    :x2="x2"
+    :y2="y2"
+    :styles="style.stroke"
   />
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
+import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "@/composables/zoom"
 import { useLinkStyle } from "@/composables/style"
 import { Node, Position } from "@/common/types"
+import NtLine from "@/objects/line.vue"
 
 function calculateLinePosition(
   x1: number,
@@ -47,6 +48,7 @@ function calculateLinePosition(
 }
 
 export default defineComponent({
+  components: { NtLine },
   props: {
     sourceId: {
       type: String,
@@ -120,22 +122,7 @@ export default defineComponent({
       }
     })
 
-    const strokeWidth = computed(() => {
-      return style.stroke.width / scale.value
-    })
-
-    const strokeDasharray = computed(() => {
-      if (scale.value === 1) {
-        return style.stroke.dasharray
-      } else {
-        return style.stroke.dasharray
-          .split(/\s+/)
-          .map(v => parseInt(v) / scale.value)
-          .join(" ")
-      }
-    })
-
-    return { x1, y1, x2, y2, style, strokeWidth, strokeDasharray }
+    return { x1, y1, x2, y2, style }
   },
 })
 </script>
