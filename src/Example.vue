@@ -119,18 +119,20 @@
             <input v-model="styles.node.label.color" type="input">
           </div>
         </div>
-        <div class="control">
+        <div class="control select">
           <label for="nodeLabelDirection">Direction</label>
-          <select id="nodeLabelDirection" v-model.number="styles.node.label.direction">
-            <option value="0">N</option>
-            <option value="1">NE</option>
-            <option value="2">E</option>
-            <option value="3">SE</option>
-            <option value="4">S</option>
-            <option value="5">SW</option>
-            <option value="6">W</option>
-            <option value="7">NW</option>
-          </select>
+          <div class="value">
+            <select id="nodeLabelDirection" v-model.number="styles.node.label.direction">
+              <option value="0">N</option>
+              <option value="1">NE</option>
+              <option value="2">E</option>
+              <option value="3">SE</option>
+              <option value="4">S</option>
+              <option value="5">SW</option>
+              <option value="6">W</option>
+              <option value="7">NW</option>
+            </select>
+          </div>
         </div>
       </div>
       <h5>Node Selection</h5>
@@ -216,6 +218,16 @@
               v-model="styles.link.stroke.dasharray"
               type="text"
             >
+          </div>
+        </div>
+        <div class="control select">
+          <label for="linkStrokeLinecap">Linecap</label>
+          <div class="value">
+            <select id="linkStrokeLinecap" v-model.number="styles.link.stroke.linecap">
+              <option value="butt">butt</option>
+              <option value="round">round</option>
+              <option value="square">square</option>
+            </select>
           </div>
         </div>
       </div>
@@ -450,7 +462,7 @@ export default /*#__PURE__*/ defineComponent({
       }
     }
   }
-  .text {
+  .text, .select {
     label {
       flex: 1;
     }
@@ -459,6 +471,9 @@ export default /*#__PURE__*/ defineComponent({
     }
     input {
       width: 80px;
+    }
+    select {
+      width: 90px;
     }
   }
   ul {
