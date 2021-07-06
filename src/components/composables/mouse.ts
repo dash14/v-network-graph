@@ -94,7 +94,7 @@ export function provideMouseOperation(
         selectedNodes.splice(0, selectedNodes.length, node)
       }
     }
-    emitter.emit("node:click", node)
+    emitter.emit("node:click", { node, event })
   }
 
   function calculateNodeNewPosition(event: MouseEvent) {
@@ -131,12 +131,13 @@ export function provideMouseOperation(
   }
 
   function handleMouseUpEvent(event: MouseEvent) {
+    const node = state.mouseDownNodeId
     event.preventDefault()
     event.stopPropagation()
     document.removeEventListener("mousemove", handleMouseMoveEvent)
     document.removeEventListener("mouseup", handleMouseUpEvent)
 
-    if (state.mouseDownNodeId === undefined) {
+    if (node === undefined) {
       return
     }
 
@@ -144,12 +145,12 @@ export function provideMouseOperation(
     if (isMoved) {
       const draggingNodes = calculateNodeNewPosition(event)
       emitter.emit("node:dragend", draggingNodes)
-      emitter.emit("node:mouseup", state.mouseDownNodeId)
+      emitter.emit("node:mouseup", { node, event })
       return
     }
 
-    emitter.emit("node:mouseup", state.mouseDownNodeId)
-    handleNodeClickEvent(state.mouseDownNodeId, event)
+    emitter.emit("node:mouseup", { node, event })
+    handleNodeClickEvent(node, event)
   }
 
   function handleNodeMouseDownEvent(node: string, event: MouseEvent) {
@@ -168,7 +169,7 @@ export function provideMouseOperation(
     document.addEventListener("mousemove", handleMouseMoveEvent)
     document.addEventListener("mouseup", handleMouseUpEvent)
     state.moveCounter = 0
-    emitter.emit("node:mousedown", node)
+    emitter.emit("node:mousedown", { node, event })
   }
 
   provide(nodeMouseDownKey, handleNodeMouseDownEvent)

@@ -389,7 +389,6 @@ export default defineComponent({
     )
 
     emitter.on("*", (type, event) => props.eventHandler(type, event))
-    // emitter.on("node:click", node => emit("node:click", node))
 
     // Selection Layer:
     // - selection

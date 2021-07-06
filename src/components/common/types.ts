@@ -52,10 +52,12 @@ export type UserLayouts = { [P in keyof Layouts]?: { [S in keyof Layouts[P]]?: L
  * Events
  * ------------------------------------------ */
 
+export type NodeMouseEvent = { node: string, event: MouseEvent }
+
 export type Events = {
-  "node:click": string,
-  "node:mouseup": string,
-  "node:mousedown": string,
+  "node:click": NodeMouseEvent,
+  "node:mouseup": NodeMouseEvent,
+  "node:mousedown": NodeMouseEvent,
   "node:dragstart": { [name: string]: Position },
   "node:mousemove": { [name: string]: Position },
   "node:dragend": { [name: string]: Position },
