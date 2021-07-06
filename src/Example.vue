@@ -1,4 +1,3 @@
-
 <template>
   <div class="network-topology-sample">
     <div class="control-box">
@@ -27,10 +26,7 @@
         <div>
           <label>Selected Nodes:</label>
           <ul>
-            <li
-              v-for="n in selectedNodes"
-              :key="n"
-            >{{ n }}</li>
+            <li v-for="n in selectedNodes" :key="n">{{ n }}</li>
           </ul>
         </div>
       </div>
@@ -64,21 +60,13 @@
         </div>
         <div class="control color">
           <label for="nodeColor">Color</label>
-          <input
-            id="nodeColor"
-            v-model="styles.node.shape.color"
-            type="color"
-          >
+          <input id="nodeColor" v-model="styles.node.shape.color" type="color">
           <div class="value">
             <input v-model="styles.node.shape.color" type="input">
           </div>
         </div>
         <div class="control">
-          <input
-            id="nodeSelectable"
-            v-model="styles.node.selectable"
-            type="checkbox"
-          >
+          <input id="nodeSelectable" v-model="styles.node.selectable" type="checkbox">
           <label for="nodeSelectable">Selectable</label>
         </div>
       </div>
@@ -110,11 +98,7 @@
         </div>
         <div class="control color">
           <label for="nodeLabelColor">Color</label>
-          <input
-            id="nodeLabelColor"
-            v-model="styles.node.label.color"
-            type="color"
-          >
+          <input id="nodeLabelColor" v-model="styles.node.label.color" type="color">
           <div class="value">
             <input v-model="styles.node.label.color" type="input">
           </div>
@@ -163,11 +147,7 @@
         </div>
         <div class="control color">
           <label for="nodeSelectionColor">Color</label>
-          <input
-            id="nodeSelectionColor"
-            v-model="styles.node.selection.color"
-            type="color"
-          >
+          <input id="nodeSelectionColor" v-model="styles.node.selection.color" type="color">
           <div class="value">
             <input v-model="styles.node.selection.color" type="input">
           </div>
@@ -201,11 +181,7 @@
         </div>
         <div class="control color">
           <label for="linkColor">Color</label>
-          <input
-            id="linkColor"
-            v-model="styles.link.stroke.color"
-            type="color"
-          >
+          <input id="linkColor" v-model="styles.link.stroke.color" type="color">
           <div class="value">
             <input v-model="styles.link.stroke.color" type="input">
           </div>
@@ -213,11 +189,7 @@
         <div class="control text">
           <label for="linkStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input
-              id="linkStrokeDasharray"
-              v-model="styles.link.stroke.dasharray"
-              type="text"
-            >
+            <input id="linkStrokeDasharray" v-model="styles.link.stroke.dasharray" type="text">
           </div>
         </div>
         <div class="control select">
@@ -233,7 +205,7 @@
       </div>
       <h4>Layouts</h4>
       <div class="layouts">
-        <pre>{{ layouts }}</pre>
+        <pre>{{ layoutsText }}</pre>
       </div>
     </div>
     <nt-topology
@@ -271,19 +243,17 @@
       </template>
     </nt-topology>
     <div class="event-logs">
-      <div
-        v-for="log in eventLogs"
-        :key="log"
-      >{{ log }}</div>
+      <div v-for="log in eventLogs" :key="log">{{ log }}</div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from "vue"
+import { defineComponent, reactive, ref, watch } from "vue"
 import NtTopology from "./components/nt-topology.vue"
 import { STYLE_DEFAULT } from "./components/common/style-defaults"
 import { UserLayouts, Nodes, Links, NtLayerPos } from "./components/common/types"
+import throttle from "lodash-es/throttle"
 
 interface SampleData {
   layers: { [name: string]: NtLayerPos }
@@ -292,7 +262,6 @@ interface SampleData {
   nodes: Nodes
   links: Links
   selectedNodes: string[]
-  layouts: UserLayouts
   eventLogs: string[]
 }
 
@@ -312,7 +281,35 @@ export default /*#__PURE__*/ defineComponent({
 
     const styles = reactive(JSON.parse(JSON.stringify(STYLE_DEFAULT)))
 
-    return { topology, fitToContents, center, styles }
+    const layouts = reactive<UserLayouts>({
+      nodes: {
+        node1: {
+          x: 0,
+          y: 0,
+        },
+        node2: {
+          x: 0,
+          y: 100,
+        },
+        node3: {
+          x: 100,
+          y: 0,
+        },
+        node4: {
+          x: 100,
+          y: 100,
+        },
+      },
+    })
+
+    const layoutsText = ref("")
+    watch(
+      () => layouts.nodes,
+      throttle(() => (layoutsText.value = JSON.stringify(layouts, null, 2)), 100),
+      { deep: true, immediate: true }
+    )
+
+    return { topology, fitToContents, center, styles, layouts, layoutsText }
   },
   data(): SampleData {
     return {
@@ -349,26 +346,6 @@ export default /*#__PURE__*/ defineComponent({
         link3: {
           source: "node2",
           target: "node1",
-        },
-      },
-      layouts: {
-        nodes: {
-          node1: {
-            x: 0,
-            y: 0,
-          },
-          node2: {
-            x: 0,
-            y: 100,
-          },
-          node3: {
-            x: 100,
-            y: 0,
-          },
-          node4: {
-            x: 100,
-            y: 100,
-          },
         },
       },
       selectedNodes: ["node1"],
@@ -462,7 +439,8 @@ export default /*#__PURE__*/ defineComponent({
       }
     }
   }
-  .text, .select {
+  .text,
+  .select {
     label {
       flex: 1;
     }

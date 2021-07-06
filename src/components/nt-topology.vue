@@ -109,7 +109,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, nextTick, onMounted, PropType, reactive, Ref, ref, toRef, watch } from "vue"
+import { computed, defineComponent, nextTick, onMounted, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/nt-node.vue"
 import NtNodeSelection from "./objects/nt-node-selection.vue"
@@ -122,6 +122,7 @@ import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
 import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
+import { ForceLayoutHandler } from "./layouts/force"
 
 function propBoundRef<T, K extends keyof T>(
     props: T,
@@ -383,7 +384,7 @@ export default defineComponent({
     emitter.on("node:dragend", _ => (dragging.value = false))
 
     provideMouseOperation(
-      svg, currentLayouts.nodes, zoomLevel,
+      svg, readonly(currentLayouts.nodes), zoomLevel,
       toRef(styles.node, "selectable"), currentSelectedNodes, emitter
     )
 
@@ -411,6 +412,14 @@ export default defineComponent({
       nextTick(() => show.value = true)
 
       // currentMouseMode.value = MouseMode.RANGE_SELECTION
+
+      // force
+      const force = new ForceLayoutHandler(
+        currentLayouts.nodes,
+        props.links,
+        emitter
+      )
+      force.activate()
     })
 
     return {
