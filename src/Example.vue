@@ -204,6 +204,18 @@
         </div>
       </div>
       <h4>Layouts</h4>
+      <div class="controls">
+        <div class="control select">
+          <label for="layoutType">Type</label>
+          <div class="value">
+            <select id="layoutType" v-model="layoutType">
+              <option value="simple">Simple</option>
+              <option value="grid">Grid</option>
+              <option value="force">Force</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div class="layouts">
         <pre>{{ layoutsText }}</pre>
       </div>
@@ -219,6 +231,7 @@
       :links="links"
       :styles="styles"
       :layouts="layouts"
+      :layout-handler="layoutHandler"
       :event-handler="handleEvent"
     >
       <template #layer1>
@@ -249,11 +262,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref, watch } from "vue"
+import { computed, defineComponent, reactive, ref, watch } from "vue"
 import NtTopology from "./components/nt-topology.vue"
 import { STYLE_DEFAULT } from "./components/common/style-defaults"
 import { UserLayouts, Nodes, Links, NtLayerPos } from "./components/common/types"
 import throttle from "lodash-es/throttle"
+import { SimpleLayout } from "@/layouts/simple"
+import { GridLayout } from "@/layouts/grid"
+import { ForceLayout } from "@/layouts/force"
+import { LayoutHandler } from "@/layouts/handler"
 
 interface SampleData {
   layers: { [name: string]: NtLayerPos }
@@ -302,6 +319,17 @@ export default /*#__PURE__*/ defineComponent({
       },
     })
 
+    const layoutType: "simple" | "grid" | "force" = ref("simple")
+    const layoutHandlers: { [name: string]: LayoutHandler } = {
+      "simple": new SimpleLayout(),
+      "grid": new GridLayout(10),
+      "force": new ForceLayout({
+        positionFixedByDrag: false,
+        positionFixedByClickWithAltKey: true
+      })
+    }
+    const layoutHandler = computed(() => layoutHandlers[layoutType.value])
+
     const layoutsText = ref("")
     watch(
       () => layouts.nodes,
@@ -309,7 +337,7 @@ export default /*#__PURE__*/ defineComponent({
       { deep: true, immediate: true }
     )
 
-    return { topology, fitToContents, center, styles, layouts, layoutsText }
+    return { topology, fitToContents, center, styles, layouts, layoutType, layoutHandler, layoutsText }
   },
   data(): SampleData {
     return {
