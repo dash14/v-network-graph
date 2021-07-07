@@ -32,6 +32,14 @@ export interface Link {
 export type Links = { [name: string]: Link }
 
 /* ------------------------------------------ *
+ * Utility
+ * ------------------------------------------ */
+
+type RecursivePartial<T> = {
+  [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+/* ------------------------------------------ *
  * Layouts
  * ------------------------------------------ */
 
@@ -40,25 +48,31 @@ export interface Position {
   y: number
 }
 
-export type NodePositions = { [name: string]: Position }
+interface FixablePosition extends Position {
+  fixed?: boolean
+}
+
+export type NodePositions = { [name: string]: FixablePosition }
 
 export interface Layouts {
   nodes: NodePositions
 }
 /** ユーザ指定用 optionalな指定のためのinterface */
-export type UserLayouts = { [P in keyof Layouts]?: { [S in keyof Layouts[P]]?: Layouts[P][S] } }
+export type UserLayouts = RecursivePartial<Layouts>
 
 /* ------------------------------------------ *
  * Events
  * ------------------------------------------ */
 
+export type NodeMouseEvent = { node: string, event: MouseEvent }
+
 export type Events = {
-  "node:click": string,
-  "node:mouseup": string,
-  "node:mousedown": string,
-  "node:dragstart": string[],
-  "node:mousemove": string[],
-  "node:dragend": string[],
+  "node:click": NodeMouseEvent,
+  "node:mouseup": NodeMouseEvent,
+  "node:mousedown": NodeMouseEvent,
+  "node:dragstart": { [name: string]: Position },
+  "node:mousemove": { [name: string]: Position },
+  "node:dragend": { [name: string]: Position },
   "node:select": string[],
   "view:zoom": number,
   "view:pan": { x: number, y: number },
@@ -66,6 +80,8 @@ export type Events = {
 }
 
 export type EventHandler = <T extends keyof Events>(event : T, value: Events[T]) => void
+export type OnClickHandler = (param: NodeMouseEvent) => void
+export type OnDragHandler = (param: { [name: string]: Position }) => void
 
 /* ------------------------------------------ *
  * Styles
@@ -161,10 +177,6 @@ export interface Styles {
   node: NodeStyle
   link: LinkStyle
 }
-
-type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-};
 
 /** ユーザ指定用 optionalな指定のためのinterface */
 // export type UserStyles = { [P in keyof Styles]?: Partial<Styles[P]> }

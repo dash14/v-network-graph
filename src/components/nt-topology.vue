@@ -109,7 +109,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, nextTick, onMounted, PropType, reactive, Ref, ref, toRef, watch } from "vue"
+import { computed, defineComponent, nextTick, onMounted, onUnmounted, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/nt-node.vue"
 import NtNodeSelection from "./objects/nt-node-selection.vue"
@@ -122,6 +122,8 @@ import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
 import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
+import { SimpleLayout } from "./layouts/simple"
+import { LayoutHandler } from "./layouts/handler"
 
 function propBoundRef<T, K extends keyof T>(
     props: T,
@@ -201,6 +203,10 @@ export default defineComponent({
     layouts: {
       type: Object as PropType<UserLayouts>,
       default: () => ({})
+    },
+    layoutHandler: {
+      type: Object as PropType<LayoutHandler>,
+      default: () => new SimpleLayout()
     },
     styles: {
       type: Object as PropType<UserStyles>,
@@ -353,7 +359,7 @@ export default defineComponent({
 
 
     // -----------------------------------------------------------------------
-    // レイアウト
+    // ノード座標
     // -----------------------------------------------------------------------
     const currentLayouts = reactive<Layouts>({ nodes: {} })
     Object.assign(currentLayouts, props.layouts)
@@ -383,25 +389,40 @@ export default defineComponent({
     emitter.on("node:dragend", _ => (dragging.value = false))
 
     provideMouseOperation(
-      svg, currentLayouts.nodes, zoomLevel,
+      svg, readonly(currentLayouts.nodes), zoomLevel,
       toRef(styles.node, "selectable"), currentSelectedNodes, emitter
     )
 
+    // -----------------------------------------------------------------------
+    // ノードレイアウト
+    // -----------------------------------------------------------------------
+
+    const activateParams = () => ({
+      layouts: currentLayouts.nodes,
+      nodes: props.nodes,
+      links: props.links,
+      emitter,
+      svgPanZoom
+    })
+    onMounted(() => props.layoutHandler.activate(activateParams()))
+    onUnmounted(() => props.layoutHandler.deactivate())
+    watch(() => props.layoutHandler, (newHandler, oldHandler) => {
+      oldHandler.deactivate()
+      newHandler.activate(activateParams())
+    })
+
+    // -----------------------------------------------------------------------
+    // Events
+    // -----------------------------------------------------------------------
+
     emitter.on("*", (type, event) => props.eventHandler(type, event))
-    // emitter.on("node:click", node => emit("node:click", node))
 
     // Selection Layer:
     // - selection
     // - normal
 
 
-
-
     const currentMouseMode = propBoundRef(props, "mouseMode", emit)
-
-    // -----------------------------------------------------------------------
-    // Provides
-    // -----------------------------------------------------------------------
 
     onMounted(() => {
       // 表示直後のzoomレベルを通知する
@@ -456,6 +477,7 @@ svg.nt-canvas {
   }
 }
 
+svg.dragging,
 svg.dragging * {
   cursor: grabbing !important;
 }

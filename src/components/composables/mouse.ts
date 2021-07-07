@@ -7,7 +7,6 @@ import {
   onUnmounted,
   provide,
   Ref,
-  toRef,
 } from "@vue/runtime-core"
 import { Emitter } from "mitt"
 import { Events, NodePositions, nonNull, Position } from "../common/types"
@@ -19,9 +18,21 @@ const nodeMouseDownKey = Symbol("mouseDownOnNode") as InjectionKey<NodeEventHand
 
 const MOVE_DETECTION_THRESHOLD = 3 // ドラッグを開始する感度
 
+interface State {
+  moveCounter: number
+  dragBasePosition: Position
+  nodeBasePositions: { [name: string]: Position },
+  mouseDownNodeId: string | undefined
+}
+
+function _unwrappedNodePosition(nodes: Readonly<NodePositions>, node: string) {
+  const pos = nodes?.[node] ?? { x: 0, y: 0 }
+  return { ...pos } // unwrap reactivity
+}
+
 export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
-  nodePositions: NodePositions,
+  nodePositions: Readonly<NodePositions>,
   zoomLevel: Ref<number>,
   selectable: Ref<boolean>,
   selectedNodes: string[],
@@ -35,36 +46,36 @@ export function provideMouseOperation(
     container.value?.removeEventListener("mousedown", handleContainerMouseDownEvent)
   })
 
-  // mousedown 状態での移動イベント回数を測定し、mouseup 時の
-  // クリック判定に用いる
-  let moveCounter = 0
+  const state: State = {
+    // mousedown 状態での移動イベント回数を測定し、mouseup 時の
+    // クリック判定に用いる
+    moveCounter: 0,
+    dragBasePosition: { x: 0, y: 0 },
+    nodeBasePositions: {},
+    mouseDownNodeId: undefined
+  }
 
   function handleContainerMouseDownEvent(_: MouseEvent) {
-    moveCounter = 0
+    state.moveCounter = 0
     container.value?.addEventListener("mousemove", handleContainerMouseMoveEvent)
     container.value?.addEventListener("mouseup", handleContainerMouseUpEvent)
   }
 
   function handleContainerMouseMoveEvent(_: MouseEvent) {
-    moveCounter++
+    state.moveCounter++
   }
 
   function handleContainerMouseUpEvent(_: MouseEvent) {
     container.value?.removeEventListener("mousemove", handleContainerMouseMoveEvent)
     container.value?.removeEventListener("mouseup", handleContainerMouseUpEvent)
-    if (moveCounter <= MOVE_DETECTION_THRESHOLD) {
+    if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
       // Click container (without mouse move)
       selectedNodes.splice(0, selectedNodes.length)
     }
   }
 
-  const dragBasePosition: Position = { x: 0, y: 0 }
-  let nodeBasePositions: { [name: string]: Position } = {}
-  let currentNodePositions: { [name: string]: Ref<Position> } = {}
-  let mouseDownNodeId: string | undefined = undefined
-
   function handleNodeClickEvent(node: string, event: MouseEvent) {
-    const isMoved = moveCounter > MOVE_DETECTION_THRESHOLD
+    const isMoved = state.moveCounter > MOVE_DETECTION_THRESHOLD
     if (isMoved) {
       return
     }
@@ -83,82 +94,82 @@ export function provideMouseOperation(
         selectedNodes.splice(0, selectedNodes.length, node)
       }
     }
-    emitter.emit("node:click", node)
+    emitter.emit("node:click", { node, event })
+  }
+
+  function calculateNodeNewPosition(event: MouseEvent) {
+    const dx = state.dragBasePosition.x - event.pageX
+    const dy = state.dragBasePosition.y - event.pageY
+    return Object.fromEntries(
+      Object.entries(state.nodeBasePositions).map(([node, pos]) => {
+        return [
+          node,
+          {
+            x: pos.x - dx / zoomLevel.value,
+            y: pos.y - dy / zoomLevel.value,
+          },
+        ]
+      })
+    )
   }
 
   // TODO: Touch対応
   function handleMouseMoveEvent(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    moveCounter++
+    state.moveCounter++
 
-    if (moveCounter <= MOVE_DETECTION_THRESHOLD) {
+    if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
       return
     }
 
-    const draggingNodes = Object.keys(currentNodePositions)
-    if (moveCounter === MOVE_DETECTION_THRESHOLD + 1) {
-      emitter.emit("node:dragstart", draggingNodes)
+    if (state.moveCounter === MOVE_DETECTION_THRESHOLD + 1) {
+      emitter.emit("node:dragstart", state.nodeBasePositions)
     }
-    const dx = dragBasePosition.x - event.pageX
-    const dy = dragBasePosition.y - event.pageY
-    for (const [node, pos] of Object.entries(nodeBasePositions)) {
-      currentNodePositions[node].value = {
-        x: pos.x - dx / zoomLevel.value,
-        y: pos.y - dy / zoomLevel.value,
-      }
-    }
-
+    const draggingNodes = calculateNodeNewPosition(event)
     emitter.emit("node:mousemove", draggingNodes)
   }
 
   function handleMouseUpEvent(event: MouseEvent) {
+    const node = state.mouseDownNodeId
     event.preventDefault()
     event.stopPropagation()
     document.removeEventListener("mousemove", handleMouseMoveEvent)
     document.removeEventListener("mouseup", handleMouseUpEvent)
 
-    if (mouseDownNodeId === undefined) {
+    if (node === undefined) {
       return
     }
 
-    const draggingNodes = Object.keys(currentNodePositions)
-    const isMoved = moveCounter > MOVE_DETECTION_THRESHOLD
+    const isMoved = state.moveCounter > MOVE_DETECTION_THRESHOLD
     if (isMoved) {
+      const draggingNodes = calculateNodeNewPosition(event)
       emitter.emit("node:dragend", draggingNodes)
-      emitter.emit("node:mouseup", mouseDownNodeId)
+      emitter.emit("node:mouseup", { node, event })
       return
     }
 
-    emitter.emit("node:mouseup", mouseDownNodeId)
-    handleNodeClickEvent(mouseDownNodeId, event)
+    emitter.emit("node:mouseup", { node, event })
+    handleNodeClickEvent(node, event)
   }
 
   function handleNodeMouseDownEvent(node: string, event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    dragBasePosition.x = event.pageX
-    dragBasePosition.y = event.pageY
-    mouseDownNodeId = node
+    state.dragBasePosition.x = event.pageX
+    state.dragBasePosition.y = event.pageY
+    state.mouseDownNodeId = node
     if (selectedNodes.includes(node)) {
-      currentNodePositions = Object.fromEntries(
-        selectedNodes.map(n => [n, toRef(nodePositions, n)])
+      state.nodeBasePositions = Object.fromEntries(
+        selectedNodes.map(n => [n, _unwrappedNodePosition(nodePositions, n)])
       )
     } else {
-      currentNodePositions = { [node]: toRef(nodePositions, node) }
+      state.nodeBasePositions = { [node]: _unwrappedNodePosition(nodePositions, node) }
     }
-    for (const pos of Object.values(currentNodePositions)) {
-      if (!pos.value) {
-        pos.value = { x: 0, y: 0 }
-      }
-    }
-    nodeBasePositions = Object.fromEntries(
-      Object.entries(currentNodePositions).map(([n, p]) => [n, { x: p.value.x, y: p.value.y }])
-    )
     document.addEventListener("mousemove", handleMouseMoveEvent)
     document.addEventListener("mouseup", handleMouseUpEvent)
-    moveCounter = 0
-    emitter.emit("node:mousedown", node)
+    state.moveCounter = 0
+    emitter.emit("node:mousedown", { node, event })
   }
 
   provide(nodeMouseDownKey, handleNodeMouseDownEvent)
