@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite --config vite-lib.config.ts build",
+    "build-example": "vue-tsc --noEmit && vite build",
     "serve": "vite preview"
   },
   "dependencies": {
