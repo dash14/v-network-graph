@@ -109,7 +109,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, nextTick, onMounted, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
+import { computed, defineComponent, nextTick, onMounted, onUnmounted, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/nt-node.vue"
 import NtNodeSelection from "./objects/nt-node-selection.vue"
@@ -122,7 +122,8 @@ import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
 import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
-import { ForceLayoutHandler } from "./layouts/force"
+import { SimpleLayoutHandler } from "./layouts/simple"
+import { LayoutHandler } from "./layouts/handler"
 
 function propBoundRef<T, K extends keyof T>(
     props: T,
@@ -202,6 +203,10 @@ export default defineComponent({
     layouts: {
       type: Object as PropType<UserLayouts>,
       default: () => ({})
+    },
+    layoutHandler: {
+      type: Object as PropType<LayoutHandler>,
+      default: () => new SimpleLayoutHandler()
     },
     styles: {
       type: Object as PropType<UserStyles>,
@@ -392,21 +397,26 @@ export default defineComponent({
     // ノードレイアウト
     // -----------------------------------------------------------------------
 
-    // force
-    const force = new ForceLayoutHandler({
-      positionFixedByDrag: false,
-      positionFixedByClickWithAltKey: true
+    props.layoutHandler.activate(currentLayouts.nodes, props.nodes, props.links, emitter)
+    watch(() => props.layoutHandler, (newHandler, oldHandler) => {
+      oldHandler.deactivate()
+      newHandler.activate(currentLayouts.nodes, props.nodes, props.links, emitter)
     })
+    onUnmounted(() => props.layoutHandler.deactivate())
+    // const force = new ForceLayoutHandler({
+    //   positionFixedByDrag: false,
+    //   positionFixedByClickWithAltKey: true
+    // })
 
-
+    // -----------------------------------------------------------------------
+    // Events
+    // -----------------------------------------------------------------------
 
     emitter.on("*", (type, event) => props.eventHandler(type, event))
 
     // Selection Layer:
     // - selection
     // - normal
-
-
 
 
     const currentMouseMode = propBoundRef(props, "mouseMode", emit)
@@ -419,8 +429,6 @@ export default defineComponent({
       nextTick(() => show.value = true)
 
       // currentMouseMode.value = MouseMode.RANGE_SELECTION
-
-      force.activate(currentLayouts.nodes, props.links, emitter)
     })
 
     return {
