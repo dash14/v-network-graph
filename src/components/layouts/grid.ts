@@ -1,8 +1,6 @@
-import { Events, Links, NodePositions, Nodes, OnDragHandler } from "@/common/types"
 import { toRef } from "@vue/reactivity"
-
-import { Emitter } from "mitt"
-import { LayoutHandler } from "./handler"
+import { NodePositions, OnDragHandler } from "@/common/types"
+import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
 const DEFAULT_GRID = 10
 
@@ -15,7 +13,8 @@ export class GridLayout implements LayoutHandler {
 
   constructor(private options: GridLayoutParameters = {}) {}
 
-  activate(layouts: NodePositions, _nodes: Nodes, _links: Links, emitter: Emitter<Events>): void {
+  activate(parameters: LayoutActivateParameters): void {
+    const { layouts, emitter } = parameters
     const onDrag: OnDragHandler = positions => {
       const grid = this.options.grid || DEFAULT_GRID
       for (const [id, pos] of Object.entries(positions)) {

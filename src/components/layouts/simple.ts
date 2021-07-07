@@ -1,13 +1,13 @@
-import { Events, Links, NodePositions, Nodes, OnDragHandler } from "@/common/types"
 import { toRef } from "@vue/reactivity"
+import { NodePositions, OnDragHandler } from "@/common/types"
 
-import { Emitter } from "mitt"
-import { LayoutHandler } from "./handler"
+import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
 export class SimpleLayout implements LayoutHandler {
   private onDeactivate?: () => void
 
-  activate(layouts: NodePositions, _nodes: Nodes, _links: Links, emitter: Emitter<Events>): void {
+  activate(parameters: LayoutActivateParameters): void {
+    const { layouts, emitter } = parameters
     const onDrag: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         const layout = this.getOrCreateNodePosition(layouts, id)

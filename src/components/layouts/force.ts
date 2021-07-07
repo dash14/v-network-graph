@@ -1,14 +1,6 @@
 import { toRef } from "@vue/reactivity"
 import { watch } from "@vue/runtime-core"
-import {
-  Events,
-  Link,
-  Links,
-  NodePositions,
-  Nodes,
-  OnClickHandler,
-  OnDragHandler,
-} from "@/common/types"
+import { Link, Links, NodePositions, OnClickHandler, OnDragHandler } from "@/common/types"
 import {
   forceCenter,
   forceCollide,
@@ -19,8 +11,7 @@ import {
   Simulation,
   SimulationNodeDatum,
 } from "d3-force"
-import { Emitter } from "mitt"
-import { LayoutHandler } from "./handler"
+import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
 export interface ForceNodeDatum extends SimulationNodeDatum {
   id: string
@@ -48,7 +39,8 @@ export class ForceLayout implements LayoutHandler {
 
   constructor(private options: ForceLayoutParameters = {}) {}
 
-  activate(layouts: NodePositions, nodes: Nodes, links: Links, emitter: Emitter<Events>): void {
+  activate(parameters: LayoutActivateParameters): void {
+    const { layouts, nodes, links, emitter } = parameters
     let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts)
 
     const simulation = this.createSimulation(
@@ -148,6 +140,7 @@ export class ForceLayout implements LayoutHandler {
     emitter.on("node:click", onClick)
 
     this.onDeactivate = () => {
+      simulation.stop()
       stopNodeWatch()
       stopLinkWatch()
       emitter.off("node:dragstart", onDrag)

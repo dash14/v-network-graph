@@ -397,12 +397,19 @@ export default defineComponent({
     // ノードレイアウト
     // -----------------------------------------------------------------------
 
-    props.layoutHandler.activate(currentLayouts.nodes, props.nodes, props.links, emitter)
+    const activateParams = () => ({
+      layouts: currentLayouts.nodes,
+      nodes: props.nodes,
+      links: props.links,
+      emitter,
+      svgPanZoom
+    })
+    onMounted(() => props.layoutHandler.activate(activateParams()))
+    onUnmounted(() => props.layoutHandler.deactivate())
     watch(() => props.layoutHandler, (newHandler, oldHandler) => {
       oldHandler.deactivate()
-      newHandler.activate(currentLayouts.nodes, props.nodes, props.links, emitter)
+      newHandler.activate(activateParams())
     })
-    onUnmounted(() => props.layoutHandler.deactivate())
 
     // -----------------------------------------------------------------------
     // Events
