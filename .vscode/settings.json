@@ -1,19 +1,28 @@
 {
-    "eslint.run": "onType",
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
-    },
-    "cSpell.words": [
-        "vite",
-        "vitejs"
-    ],
-    "cSpell.ignorePaths": [
-      ".git",
-      ".vscode",
-      "node_modules",
-      "package.json",
-      "package-lock.json",
-      ".prettierrc",
-      ".eslintrc.js",
-    ]
+  "eslint.run": "onType",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "cSpell.words": ["composables", "vite", "vitejs"],
+  "cSpell.ignorePaths": [
+    ".git",
+    ".vscode",
+    "node_modules",
+    "package.json",
+    "package-lock.json",
+    ".prettierrc",
+    ".eslintrc.js"
+  ],
+  "[typescript]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
