@@ -15,13 +15,17 @@
           >
           <div class="value">{{ zoomLevel.toFixed(1) }}</div>
         </div>
-        <div class="control">
+        <div class="control button">
           <label>Fit to objects</label>
-          <button @click="fitToContents">Run</button>
+          <div class="action">
+            <button @click="fitToContents">Run</button>
+          </div>
         </div>
-        <div class="control">
+        <div class="control button">
           <label>Pan to center</label>
-          <button @click="center">Run</button>
+          <div class="action">
+            <button @click="center">Run</button>
+          </div>
         </div>
         <div>
           <label>Selected Nodes:</label>
@@ -46,6 +50,12 @@
 
       <h5>Node</h5>
       <div class="controls">
+        <div class="control button">
+          <label>Add new node</label>
+          <div class="action">
+            <button @click="addNode">Add</button>
+          </div>
+        </div>
         <div class="control slider">
           <label for="nodeSize">Size</label>
           <input
@@ -155,6 +165,12 @@
       </div>
       <h5>Link</h5>
       <div class="controls">
+        <div class="control button">
+          <label>Add link</label>
+          <div class="action">
+            <button :disabled="selectedNodes.length != 2" @click="addLink">Add</button>
+          </div>
+        </div>
         <div class="control slider">
           <label for="linkWidth">Width</label>
           <input
@@ -319,14 +335,14 @@ export default /*#__PURE__*/ defineComponent({
       },
     })
 
-    const layoutType: "simple" | "grid" | "force" = ref("simple")
+    const layoutType = ref<"simple" | "grid" | "force">("simple")
     const layoutHandlers: { [name: string]: LayoutHandler } = {
-      "simple": new SimpleLayout(),
-      "grid": new GridLayout(10),
-      "force": new ForceLayout({
+      simple: new SimpleLayout(),
+      grid: new GridLayout({ grid: 10 }),
+      force: new ForceLayout({
         positionFixedByDrag: false,
-        positionFixedByClickWithAltKey: true
-      })
+        positionFixedByClickWithAltKey: true,
+      }),
     }
     const layoutHandler = computed(() => layoutHandlers[layoutType.value])
 
@@ -337,7 +353,16 @@ export default /*#__PURE__*/ defineComponent({
       { deep: true, immediate: true }
     )
 
-    return { topology, fitToContents, center, styles, layouts, layoutType, layoutHandler, layoutsText }
+    return {
+      topology,
+      fitToContents,
+      center,
+      styles,
+      layouts,
+      layoutType,
+      layoutHandler,
+      layoutsText,
+    }
   },
   data(): SampleData {
     return {
@@ -389,6 +414,33 @@ export default /*#__PURE__*/ defineComponent({
       }
       this.eventLogs.unshift(`${timestamp} [${type}] ${JSON.stringify(event)}`)
     },
+    addNode() {
+      let nodeId = ""
+      let id = 0
+      do {
+        nodeId = `node${++id}`
+      } while (nodeId in this.nodes)
+
+      // add node
+      this.nodes[nodeId] = {
+        name: `Node ${id}`,
+        type: "router",
+      }
+    },
+    addLink() {
+      if (this.selectedNodes.length !== 2) return
+      let linkId = ""
+      let id = 0
+      do {
+        linkId = `link${++id}`
+      } while (linkId in this.links)
+
+      // add link
+      this.links[linkId] = {
+        source: this.selectedNodes[0],
+        target: this.selectedNodes[1],
+      }
+    },
   },
 })
 </script>
@@ -438,6 +490,14 @@ export default /*#__PURE__*/ defineComponent({
     .value {
       font-size: 84%;
       color: #666;
+    }
+  }
+  .button {
+    label {
+      flex: 1;
+    }
+    .action {
+      width: 160px;
     }
   }
   .slider {
