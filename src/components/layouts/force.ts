@@ -1,5 +1,6 @@
-import { Events, Link, Links, NodePositions, Position } from "@/common/types"
 import { toRef } from "@vue/reactivity"
+import { watch } from "@vue/runtime-core"
+import { Events, Link, Links, NodePositions, Nodes } from "@/common/types"
 import {
   forceCenter,
   forceCollide,
@@ -24,7 +25,7 @@ export interface ForceLinkDatum extends Link {
 export type ForceLinks = ForceLink<SimulationNodeDatum, ForceLinkDatum>
 
 export type CreateSimulationFunction = (
-  nodes: ForceNodeDatum[],
+  nodeLayouts: ForceNodeDatum[],
   links: ForceLinks
 ) => Simulation<ForceNodeDatum, ForceLinkDatum>
 
@@ -43,16 +44,15 @@ export class ForceLayoutHandler implements LayoutHandler {
 
   constructor(private options: ForceLayoutParameters = {}) {}
 
-  activate(layouts: NodePositions, links: Links, emitter: Emitter<Events>): void {
-    const nodes = this.forceLayoutNodes(layouts)
-    const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]))
+  activate(layouts: NodePositions, nodes: Nodes, links: Links, emitter: Emitter<Events>): void {
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts)
 
     const simulation = this.createSimulation(
-      nodes,
+      nodeLayouts,
       forceLink(this.forceLayoutLinks(links)).id((d: any) => d.id)
     )
     simulation.on("tick", () => {
-      for (const node of nodes) {
+      for (const node of nodeLayouts) {
         const layout = layouts?.[node.id]
         if (layout) {
           layout.x = node.x ?? 0
@@ -65,19 +65,19 @@ export class ForceLayoutHandler implements LayoutHandler {
       simulation.alpha(0.3).restart()
     }
 
-    const onDrag: OnDragHandler = (positions: { [name: string]: Position }) => {
+    const onDrag: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
-        const nodePos = nodeMap[id]
+        const nodePos = nodeLayoutMap[id]
         nodePos.fx = pos.x
         nodePos.fy = pos.y
       }
       restartSimulation()
     }
 
-    const onDragEnd: OnDragEndHandler = (positions: { [name: string]: Position }) => {
+    const onDragEnd: OnDragEndHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         const layout = this.getNodeLayout(layouts, id)
-        const nodePos: SimulationNodeDatum = nodeMap?.[id] ?? { x: 0, y: 0 }
+        const nodePos: SimulationNodeDatum = nodeLayoutMap?.[id] ?? { x: 0, y: 0 }
         if (layout.value.fixed || this.options.positionFixedByDrag) {
           nodePos.fx = pos.x
           nodePos.fy = pos.y
@@ -95,10 +95,10 @@ export class ForceLayoutHandler implements LayoutHandler {
     const onClick: OnClickHandler = ({ node, event }) => {
       if (this.options.positionFixedByClickWithAltKey && event.altKey) {
         const layout = this.getNodeLayout(layouts, node)
-        let nodePos: ForceNodeDatum | undefined = nodeMap?.[node]
+        let nodePos: ForceNodeDatum | undefined = nodeLayoutMap?.[node]
         if (!nodePos) {
           nodePos = {id: node, x: 0, y: 0}
-          nodeMap[node] = nodePos
+          nodeLayoutMap[node] = nodePos
         }
 
         if (layout.value.fixed) {
@@ -118,20 +118,32 @@ export class ForceLayoutHandler implements LayoutHandler {
       }
     }
 
+    const stopNodeWatch = watch(() => nodes, () => {
+      ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
+      simulation.nodes(nodeLayouts)
+      restartSimulation()
+    })
+    const stopLinkWatch = watch(() => links, () => {
+      ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
+      simulation.nodes(nodeLayouts)
+      const forceLinks = (simulation.force("link") as any)
+      forceLinks.links(this.forceLayoutLinks(links))
+      restartSimulation()
+    }, { deep: true })
+
     emitter.on("node:dragstart", onDrag)
     emitter.on("node:mousemove", onDrag)
     emitter.on("node:dragend", onDragEnd)
     emitter.on("node:click", onClick)
 
     this.onDeactivate = () => {
+      stopNodeWatch()
+      stopLinkWatch()
       emitter.off("node:dragstart", onDrag)
       emitter.off("node:mousemove", onDrag)
       emitter.off("node:dragend", onDragEnd)
       emitter.off("node:click", onClick)
     }
-
-    // watch -> links
-    // watch -> nodes
   }
 
   deactivate(): void {
@@ -141,13 +153,13 @@ export class ForceLayoutHandler implements LayoutHandler {
   }
 
   private createSimulation(
-    nodes: ForceNodeDatum[],
+    nodeLayouts: ForceNodeDatum[],
     links: ForceLinks
   ): Simulation<ForceNodeDatum, ForceLinkDatum> {
     if (this.options.createSimulation) {
-      return this.options.createSimulation(nodes, links)
+      return this.options.createSimulation(nodeLayouts, links)
     } else {
-      return forceSimulation(nodes)
+      return forceSimulation(nodeLayouts)
       .force("link", links.distance(100))
       .force("charge", forceManyBody())
       .force("collide", forceCollide(50))
@@ -156,15 +168,13 @@ export class ForceLayoutHandler implements LayoutHandler {
     }
   }
 
-  private getNodeLayout(layouts: NodePositions, node: string) {
-    const layout = toRef(layouts, node)
-    if (!layout.value) {
-      layout.value = {x: 0, y: 0}
-    }
-    return layout
+  private buildNodeLayouts(layouts: NodePositions) {
+    const nodeLayouts = this.forceNodeLayouts(layouts)
+    const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
+    return { nodeLayouts, nodeLayoutMap }
   }
 
-  private forceLayoutNodes(layouts: NodePositions): ForceNodeDatum[] {
+  private forceNodeLayouts(layouts: NodePositions): ForceNodeDatum[] {
     return Object.entries(layouts).map(([id, v]) => ({ id, ...v }))
   }
 
@@ -176,5 +186,13 @@ export class ForceLayoutHandler implements LayoutHandler {
       source: v.source,
       target: v.target,
     }))
+  }
+
+  private getNodeLayout(layouts: NodePositions, node: string) {
+    const layout = toRef(layouts, node)
+    if (!layout.value) {
+      layout.value = {x: 0, y: 0}
+    }
+    return layout
   }
 }
