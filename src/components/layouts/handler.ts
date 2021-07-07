@@ -1,7 +1,7 @@
 import { Emitter } from "mitt"
-import { Events, Links, NodePositions } from "../common/types"
+import { Events, Links, NodePositions, Nodes } from "../common/types"
 
 export interface LayoutHandler {
-  activate(layouts: NodePositions, links: Links, emitter: Emitter<Events>): void
+  activate(layouts: NodePositions, nodes: Nodes, links: Links, emitter: Emitter<Events>): void
   deactivate(): void
 }
