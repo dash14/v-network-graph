@@ -354,7 +354,7 @@ export default defineComponent({
 
 
     // -----------------------------------------------------------------------
-    // レイアウト
+    // ノード座標
     // -----------------------------------------------------------------------
     const currentLayouts = reactive<Layouts>({ nodes: {} })
     Object.assign(currentLayouts, props.layouts)
@@ -388,6 +388,18 @@ export default defineComponent({
       toRef(styles.node, "selectable"), currentSelectedNodes, emitter
     )
 
+    // -----------------------------------------------------------------------
+    // ノードレイアウト
+    // -----------------------------------------------------------------------
+
+    // force
+    const force = new ForceLayoutHandler({
+      positionFixedByDrag: false,
+      positionFixedByClickWithAltKey: true
+    })
+
+
+
     emitter.on("*", (type, event) => props.eventHandler(type, event))
 
     // Selection Layer:
@@ -399,10 +411,6 @@ export default defineComponent({
 
     const currentMouseMode = propBoundRef(props, "mouseMode", emit)
 
-    // -----------------------------------------------------------------------
-    // Provides
-    // -----------------------------------------------------------------------
-
     onMounted(() => {
       // 表示直後のzoomレベルを通知する
       emit("update:zoomLevel", svgPanZoom.value?.getZoom())
@@ -412,13 +420,7 @@ export default defineComponent({
 
       // currentMouseMode.value = MouseMode.RANGE_SELECTION
 
-      // force
-      const force = new ForceLayoutHandler(
-        currentLayouts.nodes,
-        props.links,
-        emitter
-      )
-      force.activate()
+      force.activate(currentLayouts.nodes, props.links, emitter)
     })
 
     return {

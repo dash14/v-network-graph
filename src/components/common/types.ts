@@ -32,6 +32,14 @@ export interface Link {
 export type Links = { [name: string]: Link }
 
 /* ------------------------------------------ *
+ * Utility
+ * ------------------------------------------ */
+
+type RecursivePartial<T> = {
+  [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+/* ------------------------------------------ *
  * Layouts
  * ------------------------------------------ */
 
@@ -40,13 +48,17 @@ export interface Position {
   y: number
 }
 
-export type NodePositions = { [name: string]: Position }
+interface FixablePosition extends Position {
+  fixed?: boolean
+}
+
+export type NodePositions = { [name: string]: FixablePosition }
 
 export interface Layouts {
   nodes: NodePositions
 }
 /** ユーザ指定用 optionalな指定のためのinterface */
-export type UserLayouts = { [P in keyof Layouts]?: { [S in keyof Layouts[P]]?: Layouts[P][S] } }
+export type UserLayouts = RecursivePartial<Layouts>
 
 /* ------------------------------------------ *
  * Events
@@ -163,10 +175,6 @@ export interface Styles {
   node: NodeStyle
   link: LinkStyle
 }
-
-type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-};
 
 /** ユーザ指定用 optionalな指定のためのinterface */
 // export type UserStyles = { [P in keyof Styles]?: Partial<Styles[P]> }
