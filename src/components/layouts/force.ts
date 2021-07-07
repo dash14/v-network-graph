@@ -1,6 +1,14 @@
 import { toRef } from "@vue/reactivity"
 import { watch } from "@vue/runtime-core"
-import { Events, Link, Links, NodePositions, Nodes } from "@/common/types"
+import {
+  Events,
+  Link,
+  Links,
+  NodePositions,
+  Nodes,
+  OnClickHandler,
+  OnDragHandler,
+} from "@/common/types"
 import {
   forceCenter,
   forceCollide,
@@ -29,17 +37,13 @@ export type CreateSimulationFunction = (
   links: ForceLinks
 ) => Simulation<ForceNodeDatum, ForceLinkDatum>
 
-type OnClickHandler = (param: Events["node:click"]) => void
-type OnDragHandler = (param: Events["node:mousemove"]) => void
-type OnDragEndHandler = (param: Events["node:dragend"]) => void
-
 export type ForceLayoutParameters = {
   positionFixedByDrag?: boolean
   positionFixedByClickWithAltKey?: boolean
   createSimulation?: CreateSimulationFunction
 }
 
-export class ForceLayoutHandler implements LayoutHandler {
+export class ForceLayout implements LayoutHandler {
   private onDeactivate?: () => void
 
   constructor(private options: ForceLayoutParameters = {}) {}
@@ -74,7 +78,7 @@ export class ForceLayoutHandler implements LayoutHandler {
       restartSimulation()
     }
 
-    const onDragEnd: OnDragEndHandler = positions => {
+    const onDragEnd: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         const layout = this.getNodeLayout(layouts, id)
         const nodePos: SimulationNodeDatum = nodeLayoutMap?.[id] ?? { x: 0, y: 0 }
@@ -97,7 +101,7 @@ export class ForceLayoutHandler implements LayoutHandler {
         const layout = this.getNodeLayout(layouts, node)
         let nodePos: ForceNodeDatum | undefined = nodeLayoutMap?.[node]
         if (!nodePos) {
-          nodePos = {id: node, x: 0, y: 0}
+          nodePos = { id: node, x: 0, y: 0 }
           nodeLayoutMap[node] = nodePos
         }
 
@@ -118,18 +122,25 @@ export class ForceLayoutHandler implements LayoutHandler {
       }
     }
 
-    const stopNodeWatch = watch(() => nodes, () => {
-      ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
-      simulation.nodes(nodeLayouts)
-      restartSimulation()
-    })
-    const stopLinkWatch = watch(() => links, () => {
-      ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
-      simulation.nodes(nodeLayouts)
-      const forceLinks = (simulation.force("link") as any)
-      forceLinks.links(this.forceLayoutLinks(links))
-      restartSimulation()
-    }, { deep: true })
+    const stopNodeWatch = watch(
+      () => nodes,
+      () => {
+        ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
+        simulation.nodes(nodeLayouts)
+        restartSimulation()
+      }
+    )
+    const stopLinkWatch = watch(
+      () => links,
+      () => {
+        ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
+        simulation.nodes(nodeLayouts)
+        const forceLinks = simulation.force("link") as any
+        forceLinks.links(this.forceLayoutLinks(links))
+        restartSimulation()
+      },
+      { deep: true }
+    )
 
     emitter.on("node:dragstart", onDrag)
     emitter.on("node:mousemove", onDrag)
@@ -160,11 +171,11 @@ export class ForceLayoutHandler implements LayoutHandler {
       return this.options.createSimulation(nodeLayouts, links)
     } else {
       return forceSimulation(nodeLayouts)
-      .force("link", links.distance(100))
-      .force("charge", forceManyBody())
-      .force("collide", forceCollide(50))
-      .force("center", forceCenter().strength(0.05))
-      .alphaMin(0.01)
+        .force("link", links.distance(100))
+        .force("charge", forceManyBody())
+        .force("collide", forceCollide(50))
+        .force("center", forceCenter().strength(0.05))
+        .alphaMin(0.01)
     }
   }
 
@@ -191,7 +202,7 @@ export class ForceLayoutHandler implements LayoutHandler {
   private getNodeLayout(layouts: NodePositions, node: string) {
     const layout = toRef(layouts, node)
     if (!layout.value) {
-      layout.value = {x: 0, y: 0}
+      layout.value = { x: 0, y: 0 }
     }
     return layout
   }

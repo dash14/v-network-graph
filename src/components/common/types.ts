@@ -80,6 +80,8 @@ export type Events = {
 }
 
 export type EventHandler = <T extends keyof Events>(event : T, value: Events[T]) => void
+export type OnClickHandler = (param: NodeMouseEvent) => void
+export type OnDragHandler = (param: { [name: string]: Position }) => void
 
 /* ------------------------------------------ *
  * Styles

@@ -122,7 +122,7 @@ import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
 import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
-import { SimpleLayoutHandler } from "./layouts/simple"
+import { SimpleLayout } from "./layouts/simple"
 import { LayoutHandler } from "./layouts/handler"
 
 function propBoundRef<T, K extends keyof T>(
@@ -206,7 +206,7 @@ export default defineComponent({
     },
     layoutHandler: {
       type: Object as PropType<LayoutHandler>,
-      default: () => new SimpleLayoutHandler()
+      default: () => new SimpleLayout()
     },
     styles: {
       type: Object as PropType<UserStyles>,
@@ -403,10 +403,6 @@ export default defineComponent({
       newHandler.activate(currentLayouts.nodes, props.nodes, props.links, emitter)
     })
     onUnmounted(() => props.layoutHandler.deactivate())
-    // const force = new ForceLayoutHandler({
-    //   positionFixedByDrag: false,
-    //   positionFixedByClickWithAltKey: true
-    // })
 
     // -----------------------------------------------------------------------
     // Events
@@ -474,6 +470,7 @@ svg.nt-canvas {
   }
 }
 
+svg.dragging,
 svg.dragging * {
   cursor: grabbing !important;
 }
