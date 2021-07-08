@@ -365,6 +365,17 @@ export default defineComponent({
     Object.assign(currentLayouts, props.layouts)
     watch(() => props.layouts, () => Object.assign(currentLayouts, props.layouts), { deep: true })
     watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
+    watch(
+      () => new Set(Object.keys(props.nodes)),
+      (nodeIdSet) => {
+        // remove a node position that not found in nodes
+        const positions = currentLayouts.nodes
+        const removed = Object.keys(positions).filter(n => !nodeIdSet.has(n))
+        for (const node of removed) {
+          delete positions[node]
+        }
+      }
+    )
 
     // -----------------------------------------------------------------------
     // ノード選択
