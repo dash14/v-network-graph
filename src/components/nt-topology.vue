@@ -412,8 +412,10 @@ export default defineComponent({
       layouts: currentLayouts.nodes,
       nodes: props.nodes,
       links: props.links,
+      styles,
       emitter,
-      svgPanZoom
+      zoomLevel,
+      svgPanZoom,
     })
     onMounted(() => props.layoutHandler.activate(activateParams()))
     onUnmounted(() => props.layoutHandler.deactivate())

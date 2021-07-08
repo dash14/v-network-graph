@@ -48,6 +48,11 @@ export interface Position {
   y: number
 }
 
+export interface Size {
+  width: number
+  height: number
+}
+
 interface FixablePosition extends Position {
   fixed?: boolean
 }
