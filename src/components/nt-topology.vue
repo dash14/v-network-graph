@@ -120,7 +120,7 @@ import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
 import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
-import { EventHandler, Layouts, Links, MouseMode, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
+import { EventHandler, Layouts, Links, MouseMode, nonNull, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
 import type { Nodes } from "./common/types"
 import { SimpleLayout } from "./layouts/simple"
 import { LayoutHandler } from "./layouts/handler"
@@ -323,7 +323,7 @@ export default defineComponent({
     // -----------------------------------------------------------------------
     // ズームレベル/縮尺値
     // -----------------------------------------------------------------------
-    provideZoomLevel(zoomLevel, styles.view)
+    const { scale } = provideZoomLevel(zoomLevel, styles.view)
 
     // -----------------------------------------------------------------------
     // リンク
@@ -414,8 +414,8 @@ export default defineComponent({
       links: props.links,
       styles,
       emitter,
-      zoomLevel,
-      svgPanZoom,
+      scale,
+      svgPanZoom: nonNull(svgPanZoom.value),
     })
     onMounted(() => props.layoutHandler.activate(activateParams()))
     onUnmounted(() => props.layoutHandler.deactivate())

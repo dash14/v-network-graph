@@ -9,8 +9,8 @@ export interface LayoutActivateParameters {
   links: Links
   styles: Styles
   emitter: Emitter<Events>
-  zoomLevel: Ref<number>
-  svgPanZoom: Ref<SvgPanZoomInstance | undefined>
+  scale: Ref<number>
+  svgPanZoom: SvgPanZoomInstance
 }
 
 export interface LayoutHandler {

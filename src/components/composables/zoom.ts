@@ -9,13 +9,14 @@ interface ZoomProvides {
 const zoomLevelKey = Symbol("zoomLevel") as InjectionKey<ZoomProvides>
 
 export function provideZoomLevel(zoomLevel: Ref<number>, viewStyle: ViewStyle) {
-  // event bus
+  const scale = computed(() => {
+    return viewStyle.resizeWithZooming ? 1 : zoomLevel.value
+  })
   provide(zoomLevelKey, {
     zoomLevel,
-    scale: computed(() => {
-      return viewStyle.resizeWithZooming ? 1 : zoomLevel.value
-    })
+    scale
   })
+  return { scale }
 }
 
 export function useZoomLevel(): ZoomProvides {
