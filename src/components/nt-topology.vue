@@ -1,8 +1,5 @@
 <template>
-  <div
-    ref="container"
-    class="nt-canvas"
-  >
+  <div ref="container" class="nt-canvas">
     <svg
       ref="svg"
       class="nt-canvas"
@@ -18,11 +15,7 @@
         <!-- background -->
         <template v-if="backgroundLayers.length > 0">
           <g class="nt-layer-background">
-            <slot
-              v-for="layerName in backgroundLayers"
-              :key="layerName"
-              :name="layerName"
-            >
+            <slot v-for="layerName in backgroundLayers" :key="layerName" :name="layerName">
               <text
                 x="0"
                 y="30"
@@ -47,11 +40,7 @@
                 :layouts="currentLayouts.nodes"
               />
             </template>
-            <template
-              v-for="(link, id, i) in bundledLinks"
-              v-else
-              :key="`${id}`"
-            >
+            <template v-for="(link, id, i) in bundledLinks" v-else :key="`${id}`">
               <nt-link
                 :source-id="link.source"
                 :target-id="link.target"
@@ -109,7 +98,20 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, nextTick, onMounted, onUnmounted, PropType, reactive, readonly, Ref, ref, toRef, watch } from "vue"
+import {
+  computed,
+  defineComponent,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  PropType,
+  reactive,
+  readonly,
+  Ref,
+  ref,
+  toRef,
+  watch,
+} from "vue"
 import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/nt-node.vue"
 import NtNodeSelection from "./objects/nt-node-selection.vue"
@@ -120,17 +122,27 @@ import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
 import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
-import { EventHandler, Layouts, Links, MouseMode, nonNull, NtLayerPos, Styles, UserLayouts, UserStyles } from "./common/types"
+import {
+  EventHandler,
+  Layouts,
+  Links,
+  MouseMode,
+  nonNull,
+  NtLayerPos,
+  Styles,
+  UserLayouts,
+  UserStyles,
+} from "./common/types"
 import type { Nodes } from "./common/types"
 import { SimpleLayout } from "./layouts/simple"
 import { LayoutHandler } from "./layouts/handler"
 
 function propBoundRef<T, K extends keyof T>(
-    props: T,
-    name: K,
-    emit: any,
-    // filter?: (arg: T[K]) => T[K]
-  ) : Ref<T[K]> {
+  props: T,
+  name: K,
+  emit: any
+  // filter?: (arg: T[K]) => T[K]
+): Ref<T[K]> {
   // 必ずpropsで渡されるとは限らない(emitしても書き換わらない)ため、
   // 自身での管理用に常にrefを保持する
 
@@ -154,11 +166,14 @@ function propBoundRef<T, K extends keyof T>(
 
   // } else {
   const prop = ref<T[K]>(props[name]) as Ref<T[K]>
-  watch(() => props[name], v => {
-    if (!isEqual(v, prop.value)) {
-      prop.value = v
+  watch(
+    () => props[name],
+    v => {
+      if (!isEqual(v, prop.value)) {
+        prop.value = v
+      }
     }
-  })
+  )
   watch(prop, v => {
     if (!isEqual(v, props[name])) {
       emit(`update:${name}`, v)
@@ -167,66 +182,69 @@ function propBoundRef<T, K extends keyof T>(
   return prop
 }
 
-
 export default defineComponent({
   name: "NtTopology",
   components: { NtNode, NtNodeSelection, NtLink, NtSummarizedLink },
   props: {
     layers: {
-      type: Object as PropType<{[name: string]: string}>,
-      default: () => ({})
+      type: Object as PropType<{ [name: string]: string }>,
+      default: () => ({}),
     },
     zoomLevel: {
       type: Number,
-      default: 1
+      default: 1,
     },
     maxZoomLevel: {
       type: Number,
-      default: 16
+      default: 16,
     },
     mouseMode: {
       type: String as PropType<MouseMode | string>,
-      default: MouseMode.NORMAL
+      default: MouseMode.NORMAL,
     },
     nodes: {
       type: Object as PropType<Nodes>,
-      default: () => ({})
+      default: () => ({}),
     },
     links: {
       type: Object as PropType<Links>,
-      default: () => ({})
+      default: () => ({}),
     },
     selectedNodes: {
       type: Array as PropType<string[]>,
-      default: () => []
+      default: () => [],
     },
     layouts: {
       type: Object as PropType<UserLayouts>,
-      default: () => ({})
+      default: () => ({}),
     },
     layoutHandler: {
       type: Object as PropType<LayoutHandler>,
-      default: () => new SimpleLayout()
+      default: () => new SimpleLayout(),
     },
     styles: {
       type: Object as PropType<UserStyles>,
-      default: () => ({})
+      default: () => ({}),
     },
     eventHandler: {
       // 多量のイベントが発行されるため、開発ツールのイベントログを汚さないよう
       // 指定した関数にイベントを流しこむ設計とする.
       type: Function as PropType<EventHandler>,
-      default: () => ((_e: any, _v: any) => {})
-    }
+      default: () => (_e: any, _v: any) => {},
+    },
   },
   emits: [
-    "update:zoomLevel", "update:maxZoomLevel",
-    "update:mouseMode", "update:selectedNodes",
+    "update:zoomLevel",
+    "update:maxZoomLevel",
+    "update:mouseMode",
+    "update:selectedNodes",
     "update:layouts",
   ],
   setup(props, { emit }) {
     const backgroundLayers = computed(() => {
-      return Object.entries(props.layers).filter(v => v[1] == NtLayerPos.BACKGROUND).map(v => v[0])
+      return Object.entries(props.layers)
+        .filter(v => v[1] == NtLayerPos.BACKGROUND)
+        .map(v => v[0])
     })
 
     // -----------------------------------------------------------------------
@@ -254,28 +272,29 @@ export default defineComponent({
 
     // SVG の pan / zoom
     const { svgPanZoom } = useSvgPanZoom(svg, {
-        viewportSelector: ".nt-viewport",
-        minZoom: 0.1,
-        maxZoom: props.maxZoomLevel,
-        fit: true,
-        center: true,
-        onZoom: _ => {
-          zoomLevel.value = svgPanZoom.value?.getSizes().realZoom ?? 1
-          emitter.emit("view:zoom", zoomLevel.value)
-        },
-        onPan: p => emitter.emit("view:pan", p),
-        customEventsHandler: {
-          init: () => resizeObserver.observe(container.value as HTMLDivElement),
-          haltEventListeners: [],
-          destroy: () => resizeObserver.disconnect()
-        }
+      viewportSelector: ".nt-viewport",
+      minZoom: 0.1,
+      maxZoom: props.maxZoomLevel,
+      fit: true,
+      center: true,
+      onZoom: _ => {
+        zoomLevel.value = svgPanZoom.value?.getSizes().realZoom ?? 1
+        emitter.emit("view:zoom", zoomLevel.value)
+      },
+      onPan: p => emitter.emit("view:pan", p),
+      customEventsHandler: {
+        init: () => resizeObserver.observe(container.value as HTMLDivElement),
+        haltEventListeners: [],
+        destroy: () => resizeObserver.disconnect(),
+      },
     })
 
     const applyZoomByAbsoluteZoom = (absoluteZoomLevel: number) => {
       const org = getOriginalZoom()
-      svgPanZoom.value?.setMinZoom(0.1 / org)
-                      .setMaxZoom(props.maxZoomLevel / org)
-                      .zoom(absoluteZoomLevel / org)
+      svgPanZoom.value
+        ?.setMinZoom(0.1 / org)
+        .setMaxZoom(props.maxZoomLevel / org)
+        .zoom(absoluteZoomLevel / org)
     }
 
     onMounted(() => {
@@ -388,8 +407,15 @@ export default defineComponent({
         currentSelectedNodes.splice(0, currentSelectedNodes.length, ...filtered)
       }
     }
-    watch(() => props.selectedNodes, v => updateSelectNodes(v), { immediate: true })
-    watch(() => props.nodes, () => updateSelectNodes(currentSelectedNodes))
+    watch(
+      () => props.selectedNodes,
+      v => updateSelectNodes(v),
+      { immediate: true }
+    )
+    watch(
+      () => props.nodes,
+      () => updateSelectNodes(currentSelectedNodes)
+    )
     watch(currentSelectedNodes, () => {
       emit("update:selectedNodes", currentSelectedNodes)
       emitter.emit("node:select", currentSelectedNodes)
@@ -400,8 +426,12 @@ export default defineComponent({
     emitter.on("node:dragend", _ => (dragging.value = false))
 
     provideMouseOperation(
-      svg, readonly(currentLayouts.nodes), zoomLevel,
-      toRef(styles.node, "selectable"), currentSelectedNodes, emitter
+      svg,
+      readonly(currentLayouts.nodes),
+      zoomLevel,
+      toRef(styles.node, "selectable"),
+      currentSelectedNodes,
+      emitter
     )
 
     // -----------------------------------------------------------------------
@@ -419,10 +449,13 @@ export default defineComponent({
     })
     onMounted(() => props.layoutHandler.activate(activateParams()))
     onUnmounted(() => props.layoutHandler.deactivate())
-    watch(() => props.layoutHandler, (newHandler, oldHandler) => {
-      oldHandler.deactivate()
-      newHandler.activate(activateParams())
-    })
+    watch(
+      () => props.layoutHandler,
+      (newHandler, oldHandler) => {
+        oldHandler.deactivate()
+        newHandler.activate(activateParams())
+      }
+    )
 
     // -----------------------------------------------------------------------
     // Events
@@ -434,7 +467,6 @@ export default defineComponent({
     // - selection
     // - normal
 
-
     const currentMouseMode = propBoundRef(props, "mouseMode", emit)
 
     onMounted(() => {
@@ -442,7 +474,7 @@ export default defineComponent({
       emit("update:zoomLevel", svgPanZoom.value?.getZoom())
 
       // svgの表示開始
-      nextTick(() => show.value = true)
+      nextTick(() => (show.value = true))
 
       // currentMouseMode.value = MouseMode.RANGE_SELECTION
     })
