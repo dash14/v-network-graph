@@ -107,7 +107,6 @@ import {
   PropType,
   reactive,
   readonly,
-  Ref,
   ref,
   toRef,
   watch,
@@ -136,51 +135,7 @@ import {
 import type { Nodes } from "./common/types"
 import { SimpleLayout } from "./layouts/simple"
 import { LayoutHandler } from "./layouts/handler"
-
-function propBoundRef<T, K extends keyof T>(
-  props: T,
-  name: K,
-  emit: any
-  // filter?: (arg: T[K]) => T[K]
-): Ref<T[K]> {
-  // 必ずpropsで渡されるとは限らない(emitしても書き換わらない)ため、
-  // 自身での管理用に常にrefを保持する
-
-  // if (filter) {
-  //   // writable computed を使用する案もあるが、Vue 3 では
-  //   // 配列の要素変更が通知されない挙動があるため避ける.
-  //   const prop = ref<T[K]>(filter(props[name])) as Ref<T[K]>
-  //   watch(() => props[name], v => {
-  //     const filtered = filter(v)
-  //     if (!isEqual(filtered, prop.value)) {
-  //       prop.value = filtered
-  //     }
-  //   })
-  //   watch(prop, v => {
-  //     const filtered = filter(v)
-  //     if (!isEqual(filtered, props[name])) {
-  //       emit(`update:${name}`, filtered)
-  //     }
-  //   })
-  //   return prop
-
-  // } else {
-  const prop = ref<T[K]>(props[name]) as Ref<T[K]>
-  watch(
-    () => props[name],
-    v => {
-      if (!isEqual(v, prop.value)) {
-        prop.value = v
-      }
-    }
-  )
-  watch(prop, v => {
-    if (!isEqual(v, props[name])) {
-      emit(`update:${name}`, v)
-    }
-  })
-  return prop
-}
+import { bindProp, bindPropKeyArray } from "./common/props"
 
 export default defineComponent({
   name: "NtTopology",
@@ -260,7 +215,7 @@ export default defineComponent({
     const svg = ref<SVGElement>()
     const show = ref<boolean>(false)
 
-    const zoomLevel = propBoundRef(props, "zoomLevel", emit)
+    const zoomLevel = bindProp(props, "zoomLevel", emit)
     const resizeObserver = new ResizeObserver(() => {
       svgPanZoom.value?.resize()
     })
@@ -308,7 +263,7 @@ export default defineComponent({
       applyZoomByAbsoluteZoom(value)
     })
 
-    const maxZoomLevel = propBoundRef(props, "maxZoomLevel", emit)
+    const maxZoomLevel = bindProp(props, "maxZoomLevel", emit)
     watch(maxZoomLevel, value => svgPanZoom.value?.setMaxZoom(value))
 
     // 中心位置や拡大率の認識がずれることがあるため
@@ -347,6 +302,7 @@ export default defineComponent({
     // -----------------------------------------------------------------------
     // リンク
     // -----------------------------------------------------------------------
+
     // リンクの配置用中間マップの生成
     const linkMap = computed(() => {
       const map = new Map<string, Links>()
@@ -383,7 +339,13 @@ export default defineComponent({
     // ノード関連のState
     // -----------------------------------------------------------------------
     const currentLayouts = reactive<Layouts>({ nodes: {} })
-    const currentSelectedNodes = reactive<string[]>([])
+    const currentSelectedNodes = bindPropKeyArray(
+      props,
+      "selectedNodes",
+      props.nodes,
+      emit,
+    )
+    watch(currentSelectedNodes, nodes => emitter.emit("node:select", nodes))
 
     // -----------------------------------------------------------------------
     // ノード座標
@@ -404,29 +366,17 @@ export default defineComponent({
           delete positions[node]
         }
         // remove nodes in selected nodes
-        updateSelectNodes(currentSelectedNodes)
+        const filtered = currentSelectedNodes.filter(n => nodeIdSet.has(n))
+        if (!isEqual(filtered, currentSelectedNodes)) {
+          currentSelectedNodes.splice(0, currentSelectedNodes.length, ...filtered)
+        }
       }
     )
 
     // -----------------------------------------------------------------------
     // ノード選択
     // -----------------------------------------------------------------------
-    const nodeIdExistenceFilter = (n: string) => n in props.nodes
-    const updateSelectNodes = (source: string[]) => {
-      const filtered = source.filter(nodeIdExistenceFilter)
-      if (!isEqual(filtered, currentSelectedNodes)) {
-        currentSelectedNodes.splice(0, currentSelectedNodes.length, ...filtered)
-      }
-    }
-    watch(
-      () => props.selectedNodes,
-      v => updateSelectNodes(v),
-      { immediate: true }
-    )
-    watch(currentSelectedNodes, () => {
-      emit("update:selectedNodes", currentSelectedNodes)
-      emitter.emit("node:select", currentSelectedNodes)
-    })
+
     // - ドラッグ時のポインター変更
     const dragging = ref<boolean>(false)
     emitter.on("node:dragstart", _ => (dragging.value = true))
@@ -474,7 +424,7 @@ export default defineComponent({
     // - selection
     // - normal
 
-    const currentMouseMode = propBoundRef(props, "mouseMode", emit)
+    const currentMouseMode = bindProp(props, "mouseMode", emit)
 
     onMounted(() => {
       // 表示直後のzoomレベルを通知する
