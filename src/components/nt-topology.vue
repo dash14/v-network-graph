@@ -351,6 +351,9 @@ export default defineComponent({
     const linkMap = computed(() => {
       const map = new Map<string, Links>()
       for (const [id, link] of Object.entries(props.links)) {
+        if (!(link.source in props.nodes && link.target in props.nodes)) {
+          continue
+        }
         const key = [link.source, link.target].sort().join("<=>")
         const values = map.get(key) || {}
         values[id] = link
@@ -376,23 +379,32 @@ export default defineComponent({
       }
     })
 
+    // -----------------------------------------------------------------------
+    // ノード関連のState
+    // -----------------------------------------------------------------------
+    const currentLayouts = reactive<Layouts>({ nodes: {} })
+    const currentSelectedNodes = reactive<string[]>([])
 
     // -----------------------------------------------------------------------
     // ノード座標
     // -----------------------------------------------------------------------
-    const currentLayouts = reactive<Layouts>({ nodes: {} })
-    Object.assign(currentLayouts, props.layouts)
-    watch(() => props.layouts, () => Object.assign(currentLayouts, props.layouts), { deep: true })
+    watch(
+      () => props.layouts,
+      () => Object.assign(currentLayouts, props.layouts),
+      { deep: true, immediate: true }
+    )
     watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
     watch(
       () => new Set(Object.keys(props.nodes)),
-      (nodeIdSet) => {
-        // remove a node position that not found in nodes
+      nodeIdSet => {
+        // remove node positions that not found in nodes
         const positions = currentLayouts.nodes
         const removed = Object.keys(positions).filter(n => !nodeIdSet.has(n))
         for (const node of removed) {
           delete positions[node]
         }
+        // remove nodes in selected nodes
+        updateSelectNodes(currentSelectedNodes)
       }
     )
 
@@ -400,7 +412,6 @@ export default defineComponent({
     // ノード選択
     // -----------------------------------------------------------------------
     const nodeIdExistenceFilter = (n: string) => n in props.nodes
-    const currentSelectedNodes = reactive<string[]>([])
     const updateSelectNodes = (source: string[]) => {
       const filtered = source.filter(nodeIdExistenceFilter)
       if (!isEqual(filtered, currentSelectedNodes)) {
@@ -411,10 +422,6 @@ export default defineComponent({
       () => props.selectedNodes,
       v => updateSelectNodes(v),
       { immediate: true }
-    )
-    watch(
-      () => props.nodes,
-      () => updateSelectNodes(currentSelectedNodes)
     )
     watch(currentSelectedNodes, () => {
       emit("update:selectedNodes", currentSelectedNodes)

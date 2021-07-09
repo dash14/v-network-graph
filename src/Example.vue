@@ -51,9 +51,10 @@
       <h5>Node</h5>
       <div class="controls">
         <div class="control button">
-          <label>Add new node</label>
+          <label>Add/Remove node</label>
           <div class="action">
             <button @click="addNode">Add</button>
+            <button :disabled="selectedNodes.length == 0" @click="removeNode">Remove</button>
           </div>
         </div>
         <div class="control slider">
@@ -427,6 +428,17 @@ export default /*#__PURE__*/ defineComponent({
         type: "router",
       }
     },
+    removeNode() {
+      if (this.selectedNodes.length === 0) return
+      const removeNodes = [ ...this.selectedNodes ]
+      removeNodes.forEach(id => delete this.nodes[id])
+
+      // remove connected links
+      Object.entries(this.links)
+        .filter(([_, link]) => !(link.source in this.nodes && link.target in this.nodes))
+        .map(([id, _]) => id)
+        .forEach(id => delete this.links[id])
+    },
     addLink() {
       if (this.selectedNodes.length !== 2) return
       let linkId = ""
@@ -498,6 +510,9 @@ export default /*#__PURE__*/ defineComponent({
     }
     .action {
       width: 160px;
+      button {
+        margin-right: 10px;
+      }
     }
   }
   .slider {
