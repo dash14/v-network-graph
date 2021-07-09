@@ -58,7 +58,7 @@ export class ForceLayout implements LayoutHandler {
     })
 
     const restartSimulation = () => {
-      simulation.alpha(0.3).restart()
+      simulation.alpha(0.1).restart()
     }
 
     const onDrag: OnDragHandler = positions => {
@@ -126,6 +126,9 @@ export class ForceLayout implements LayoutHandler {
 
         ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
         simulation.nodes(nodeLayouts)
+        // ノードを入れ替えるとリンク情報も途切れてしまうため再投入する
+        const forceLinks = simulation.force("link") as any
+        forceLinks.links(this.forceLayoutLinks(links))
         restartSimulation()
       }
     )
@@ -171,7 +174,7 @@ export class ForceLayout implements LayoutHandler {
       return forceSimulation(nodeLayouts)
         .force("link", links.distance(100))
         .force("charge", forceManyBody())
-        .force("collide", forceCollide(50))
+        .force("collide", forceCollide(50).strength(0.2))
         .force("center", forceCenter().strength(0.05))
         .alphaMin(0.01)
     }
