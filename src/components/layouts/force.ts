@@ -40,7 +40,7 @@ export class ForceLayout implements LayoutHandler {
   constructor(private options: ForceLayoutParameters = {}) {}
 
   activate(parameters: LayoutActivateParameters): void {
-    const { layouts, nodes, links, emitter } = parameters
+    const { layouts, nodes, links, emitter, svgPanZoom } = parameters
     let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts)
 
     const simulation = this.createSimulation(
@@ -115,8 +115,15 @@ export class ForceLayout implements LayoutHandler {
     }
 
     const stopNodeWatch = watch(
-      () => nodes,
-      () => {
+      () => Object.keys(nodes),
+      (nodeIds) => {
+        // set new node's position to center of the view
+        const newNodes = nodeIds.filter(n => !(n in layouts))
+        const area = svgPanZoom.getViewArea()
+        for (const nodeId of newNodes) {
+          layouts[nodeId] = { ...area.center }
+        }
+
         ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
         simulation.nodes(nodeLayouts)
         restartSimulation()
@@ -125,8 +132,6 @@ export class ForceLayout implements LayoutHandler {
     const stopLinkWatch = watch(
       () => links,
       () => {
-        ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
-        simulation.nodes(nodeLayouts)
         const forceLinks = simulation.force("link") as any
         forceLinks.links(this.forceLayoutLinks(links))
         restartSimulation()
