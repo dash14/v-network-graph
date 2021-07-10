@@ -6,11 +6,11 @@ export enum NtLayerPos {
   NOTIFICATIONS = "notifications",
 }
 
-/** マウスモード */
-export enum MouseMode {
-  NORMAL = "normal",
-  RANGE_SELECTION = "range-selection",
-}
+// /** マウスモード */
+// export enum MouseMode {
+//   NORMAL = "normal",
+//   RANGE_SELECTION = "range-selection",
+// }
 
 /** ノード */
 export interface Node {

@@ -247,7 +247,6 @@
     <nt-topology
       ref="topology"
       v-model:zoomLevel="zoomLevel"
-      v-model:mouseMode="mouseMode"
       v-model:selectedNodes="selectedNodes"
       v-model:selectedLinks="selectedLinks"
       class="topology"
@@ -300,7 +299,6 @@ import { LayoutHandler } from "@/layouts/handler"
 interface SampleData {
   layers: { [name: string]: NtLayerPos }
   zoomLevel: number
-  mouseMode: string
   nodes: Nodes
   links: Links
   selectedNodes: string[]
@@ -378,7 +376,6 @@ export default /*#__PURE__*/ defineComponent({
     return {
       layers: { layer1: NtLayerPos.BACKGROUND, layer2: NtLayerPos.BACKGROUND },
       zoomLevel: 1,
-      mouseMode: "normal",
       nodes: {
         node1: {
           name: "Node 1",

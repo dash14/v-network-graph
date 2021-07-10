@@ -126,7 +126,6 @@ import {
   EventHandler,
   Layouts,
   Links,
-  MouseMode,
   nonNull,
   NtLayerPos,
   Styles,
@@ -154,10 +153,10 @@ export default defineComponent({
       type: Number,
       default: 16,
     },
-    mouseMode: {
-      type: String as PropType<MouseMode | string>,
-      default: MouseMode.NORMAL,
-    },
+    // mouseMode: {
+    //   type: String as PropType<MouseMode | string>,
+    //   default: MouseMode.NORMAL,
+    // },
     nodes: {
       type: Object as PropType<Nodes>,
       default: () => ({}),
@@ -196,7 +195,7 @@ export default defineComponent({
   emits: [
     "update:zoomLevel",
     "update:maxZoomLevel",
-    "update:mouseMode",
+    // "update:mouseMode",
     "update:selectedNodes",
     "update:selectedLinks",
     "update:layouts",
@@ -425,11 +424,7 @@ export default defineComponent({
 
     emitter.on("*", (type, event) => props.eventHandler(type, event))
 
-    // Selection Layer:
-    // - selection
-    // - normal
-
-    const currentMouseMode = bindProp(props, "mouseMode", emit)
+    // const currentMouseMode = bindProp(props, "mouseMode", emit)
 
     onMounted(() => {
       // 表示直後のzoomレベルを通知する
@@ -455,7 +450,6 @@ export default defineComponent({
       center,
 
       // properties
-      currentMouseMode,
       currentSelectedNodes,
       currentSelectedLinks,
       dragging,
