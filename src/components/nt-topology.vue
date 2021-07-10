@@ -205,20 +205,22 @@ export default defineComponent({
     "update:layouts",
   ],
   setup(props, { emit }) {
+    // Event Bus
+    const emitter = provideEventEmitter()
+    emitter.on("*", (type, event) => props.eventHandler(type, event))
+
+    // Style settings
+    const styles = provideStyles(props.styles)
+
+    // Background layers
     const backgroundLayers = computed(() => {
       return Object.entries(props.layers)
-        .filter(v => v[1] == NtLayerPos.BACKGROUND)
-        .map(v => v[0])
+        .filter(([_, type]) => type == NtLayerPos.BACKGROUND)
+        .map(([name, _]) => name)
     })
 
     // -----------------------------------------------------------------------
-    // 初期化処理
-    // -----------------------------------------------------------------------
-
-    const { emitter } = provideEventEmitter()
-
-    // -----------------------------------------------------------------------
-    // SVG領域
+    // SVG
     // -----------------------------------------------------------------------
     const container = ref<HTMLDivElement>()
     const svg = ref<SVGElement>()
@@ -233,7 +235,7 @@ export default defineComponent({
       svgPanZoom.value?.resize()
     })
 
-    // SVG の pan / zoom
+    // SVG pan / zoom
     const { svgPanZoom } = useSvgPanZoom(svg, {
       viewportSelector: ".nt-viewport",
       minZoom: props.minZoomLevel, // temporary
@@ -263,19 +265,22 @@ export default defineComponent({
       )
     }
 
-    onMounted(() => {
-      const initialZoomLevel = props.zoomLevel
-      // zoom初期値の反映
-      applyAbsoluteZoomLevel(initialZoomLevel)
-      panToCenter()
-    })
-
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
     watch(() => [props.minZoomLevel, props.maxZoomLevel], _ => {
       applyAbsoluteZoomLevel(zoomLevel.value)
     })
 
-    // 中心位置や拡大率の認識がずれることがあるため
+    // Provide zoom level / scaling parameter
+    const { scale } = provideZoomLevel(zoomLevel, styles.view)
+
+    onMounted(() => {
+      // apply initial zoom level
+      const initialZoomLevel = props.zoomLevel
+      applyAbsoluteZoomLevel(initialZoomLevel)
+      panToCenter()
+    })
+
+    // 中心位置や拡大率の認識がずれることがあるための対処
     const updateBorderBox = (callback: () => void) => {
       svgPanZoom.value?.updateBBox()
       nextTick(callback)
@@ -297,17 +302,7 @@ export default defineComponent({
     }
 
     // -----------------------------------------------------------------------
-    // 表示スタイル
-    // -----------------------------------------------------------------------
-    const styles = provideStyles(props.styles)
-
-    // -----------------------------------------------------------------------
-    // ズームレベル/縮尺値
-    // -----------------------------------------------------------------------
-    const { scale } = provideZoomLevel(zoomLevel, styles.view)
-
-    // -----------------------------------------------------------------------
-    // リンク
+    // Links
     // -----------------------------------------------------------------------
 
     // リンクの配置用中間マップの生成
@@ -315,6 +310,7 @@ export default defineComponent({
       const map = new Map<string, Links>()
       for (const [id, link] of Object.entries(props.links)) {
         if (!(link.source in props.nodes && link.target in props.nodes)) {
+          // reject if no node ID is found on the nodes
           continue
         }
         const key = [link.source, link.target].sort().join("<=>")
@@ -343,24 +339,25 @@ export default defineComponent({
     })
 
     // -----------------------------------------------------------------------
-    // ノード/リンク関連のState
+    // States of selected nodes/links
     // -----------------------------------------------------------------------
-    const currentLayouts = reactive<Layouts>({ nodes: {} })
     const currentSelectedNodes = bindPropKeyArray(props, "selectedNodes", props.nodes, emit)
     watch(currentSelectedNodes, nodes => emitter.emit("node:select", nodes))
 
     const currentSelectedLinks = bindPropKeyArray(props, "selectedLinks", props.links, emit)
     watch(currentSelectedLinks, links => emitter.emit("link:select", links))
 
-    // -----------------------------------------------------------------------
-    // ノード座標
-    // -----------------------------------------------------------------------
+    const currentLayouts = reactive<Layouts>({ nodes: {} })
+
+    // two-way binding
     watch(
       () => props.layouts,
       () => Object.assign(currentLayouts, props.layouts),
       { deep: true, immediate: true }
     )
     watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
+
+    // handle increase/decrease nodes
     watch(
       () => new Set(Object.keys(props.nodes)),
       nodeIdSet => {
@@ -379,10 +376,10 @@ export default defineComponent({
     )
 
     // -----------------------------------------------------------------------
-    // ノード選択
+    // Mouse processing
     // -----------------------------------------------------------------------
 
-    // - ドラッグ時のポインター変更
+    // mouse pointer change on dragging
     const dragging = ref<boolean>(false)
     emitter.on("node:dragstart", _ => (dragging.value = true))
     emitter.on("node:dragend", _ => (dragging.value = false))
@@ -398,16 +395,16 @@ export default defineComponent({
     )
 
     // -----------------------------------------------------------------------
-    // ノードレイアウト
+    // Node layout handler
     // -----------------------------------------------------------------------
 
     const activateParams = () => ({
       layouts: currentLayouts.nodes,
-      nodes: props.nodes,
-      links: props.links,
-      styles,
+      nodes: readonly(props.nodes),
+      links: readonly(props.links),
+      styles: readonly(styles),
+      scale: readonly(scale),
       emitter,
-      scale,
       svgPanZoom: nonNull(svgPanZoom.value),
     })
     onMounted(() => props.layoutHandler.activate(activateParams()))
@@ -424,42 +421,31 @@ export default defineComponent({
     // Events
     // -----------------------------------------------------------------------
 
-    emitter.on("*", (type, event) => props.eventHandler(type, event))
-
-    // const currentMouseMode = bindProp(props, "mouseMode", emit)
-
     onMounted(() => {
-      // 表示直後のzoomレベルを通知する
-      emit("update:zoomLevel", svgPanZoom.value?.getZoom())
-
       // svgの表示開始
       nextTick(() => (show.value = true))
-
-      // currentMouseMode.value = MouseMode.RANGE_SELECTION
     })
 
     return {
+      // html ref
       container,
       svg,
       show,
-      svgPanZoom,
+
+      // properties
       linkMap,
       checkLinkSummarize,
       backgroundLayers,
+      currentSelectedNodes,
+      currentSelectedLinks,
+      dragging,
+      currentLayouts,
 
       // methods
       fitToContents,
       panToCenter,
-
-      // properties
-      currentSelectedNodes,
-      currentSelectedLinks,
-      dragging,
-
-      // temporary
-      currentLayouts,
     }
-  },
+  }
 })
 </script>
 
