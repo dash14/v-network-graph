@@ -1,4 +1,4 @@
-import { NodeLabelDirection, Styles } from "../common/types"
+import { NodeLabelDirection, Styles } from "../common/styles"
 
 export const STYLE_DEFAULT: Styles = {
   view: {

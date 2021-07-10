@@ -9,7 +9,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
-import { CircleShapeStyle, Position, RectangleShapeStyle, ShapeStyle } from "@/common/types"
+import { Position } from "@/common/types"
+import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/styles"
 import { useNodeStyle } from "@/composables/style"
 import NtShape from "@/objects/shape.vue"
 

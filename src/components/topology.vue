@@ -100,42 +100,24 @@
 </template>
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  nextTick,
-  onMounted,
-  onUnmounted,
-  PropType,
-  reactive,
-  readonly,
-  ref,
-  watch,
-} from "vue"
+import { defineComponent, PropType, reactive, readonly, ref } from "vue"
+import { computed, nextTick, onMounted, onUnmounted, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import NtNode from "./objects/node.vue"
 import NtNodeSelection from "./objects/node-selection.vue"
 import NtLink from "./objects/link.vue"
 import NtSummarizedLink from "./objects/summarized-link.vue"
+import { bindProp, bindPropKeyArray } from "./common/props"
 import { provideStyles } from "./composables/style"
 import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
 import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
-import {
-  EventHandler,
-  Layouts,
-  Links,
-  nonNull,
-  NtLayerPos,
-  Styles,
-  UserLayouts,
-  UserStyles,
-} from "./common/types"
-import type { Nodes } from "./common/types"
+import { EventHandler, Layouts, Nodes, Links, NtLayerPos, UserLayouts } from "./common/types"
+import { nonNull } from "./common/types"
+import { Styles, UserStyles } from "./common/styles"
 import { SimpleLayout } from "./layouts/simple"
 import { LayoutHandler } from "./layouts/handler"
-import { bindProp, bindPropKeyArray } from "./common/props"
 
 export default defineComponent({
   name: "NtTopology",
@@ -157,10 +139,6 @@ export default defineComponent({
       type: Number,
       default: 16,
     },
-    // mouseMode: {
-    //   type: String as PropType<MouseMode | string>,
-    //   default: MouseMode.NORMAL,
-    // },
     nodes: {
       type: Object as PropType<Nodes>,
       default: () => ({}),
@@ -199,7 +177,6 @@ export default defineComponent({
   emits: [
     "update:zoomLevel",
     "update:maxZoomLevel",
-    // "update:mouseMode",
     "update:selectedNodes",
     "update:selectedLinks",
     "update:layouts",
@@ -267,9 +244,12 @@ export default defineComponent({
     }
 
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
-    watch(() => [props.minZoomLevel, props.maxZoomLevel], _ => {
-      applyAbsoluteZoomLevel(zoomLevel.value)
-    })
+    watch(
+      () => [props.minZoomLevel, props.maxZoomLevel],
+      _ => {
+        applyAbsoluteZoomLevel(zoomLevel.value)
+      }
+    )
 
     // Provide zoom level / scaling parameter
     const { scale } = provideZoomLevel(zoomLevel, styles.view)
@@ -446,7 +426,7 @@ export default defineComponent({
       fitToContents,
       panToCenter,
     }
-  }
+  },
 })
 </script>
 

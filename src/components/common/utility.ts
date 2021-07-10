@@ -1,4 +1,5 @@
-import { Node, NodeStyle, Position, Size } from "./types"
+import { Node, Position, Size } from "./types"
+import { NodeStyle } from "./styles"
 
 export function getNodeSize(_node: Node, style: NodeStyle, scale: number): Size {
   const shape = style.shape
@@ -19,7 +20,7 @@ export function areNodesCollision(
   nodePos: Position,
   nodeSize: Size,
   targetNodePos: Position,
-  targetNodeSize: Size,
+  targetNodeSize: Size
 ): boolean {
   // x方向の衝突チェック
   const distanceX = Math.abs(nodePos.x - targetNodePos.x)

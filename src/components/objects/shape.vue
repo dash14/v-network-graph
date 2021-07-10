@@ -24,7 +24,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import { ShapeStyle } from "@/common/types"
+import { ShapeStyle } from "@/common/styles"
 import { useZoomLevel } from "@/composables/zoom"
 
 export default defineComponent({

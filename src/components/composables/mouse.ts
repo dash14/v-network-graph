@@ -2,15 +2,8 @@
 
 import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref } from "@vue/runtime-core"
 import { Emitter } from "mitt"
-import {
-  Events,
-  NodePositions,
-  nonNull,
-  Position,
-  Reactive,
-  ReadonlyRef,
-  Styles,
-} from "../common/types"
+import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from "@/common/types"
+import { Styles } from "@/common/styles"
 
 type NodeEventHandler = (node: string, event: MouseEvent) => void
 type LinkEventHandler = (link: string, event: MouseEvent) => void

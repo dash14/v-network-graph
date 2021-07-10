@@ -1,5 +1,6 @@
 
-import { nonNull, Styles, UserStyles } from "../common/types"
+import { nonNull } from "@/common/types"
+import { Styles, UserStyles } from "@/common/styles"
 import { STYLE_DEFAULT } from "../common/style-defaults"
 import { inject, provide, reactive, watch } from "@vue/runtime-core"
 import cloneDeep from "lodash-es/cloneDeep"
