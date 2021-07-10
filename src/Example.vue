@@ -313,7 +313,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, reactive, ref, watch } from "vue"
-import NtTopology from "./components/nt-topology.vue"
+import NtTopology from "./components/topology.vue"
 import { STYLE_DEFAULT } from "./components/common/style-defaults"
 import { UserLayouts, Nodes, Links, NtLayerPos } from "./components/common/types"
 import throttle from "lodash-es/throttle"
