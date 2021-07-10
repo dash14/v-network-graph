@@ -9,11 +9,35 @@
             id="zoomLevel"
             v-model.number="zoomLevel"
             type="range"
-            min="0.1"
-            max="16"
+            :min="minZoomLevel"
+            :max="maxZoomLevel"
             step="0.1"
           >
           <div class="value">{{ zoomLevel.toFixed(1) }}</div>
+        </div>
+        <div class="control slider">
+          <label for="minZoomLevel">Min Zoom</label>
+          <input
+            id="minZoomLevel"
+            v-model.number="minZoomLevel"
+            type="range"
+            min="0.1"
+            :max="maxZoomLevel"
+            step="0.1"
+          >
+          <div class="value">{{ minZoomLevel.toFixed(1) }}</div>
+        </div>
+        <div class="control slider">
+          <label for="maxZoomLevel">Max Zoom</label>
+          <input
+            id="maxZoomLevel"
+            v-model.number="maxZoomLevel"
+            type="range"
+            :min="minZoomLevel > 5 ? minZoomLevel : 5"
+            max="32"
+            step="0.1"
+          >
+          <div class="value">{{ maxZoomLevel.toFixed(1) }}</div>
         </div>
         <div class="control button">
           <label>Fit to objects</label>
@@ -246,9 +270,11 @@
     </div>
     <nt-topology
       ref="topology"
-      v-model:zoomLevel="zoomLevel"
-      v-model:selectedNodes="selectedNodes"
-      v-model:selectedLinks="selectedLinks"
+      v-model:zoom-level="zoomLevel"
+      v-model:selected-nodes="selectedNodes"
+      v-model:selected-links="selectedLinks"
+      :min-zoom-level="minZoomLevel"
+      :max-zoom-level="maxZoomLevel"
       class="topology"
       :layers="layers"
       :nodes="nodes"
@@ -299,6 +325,8 @@ import { LayoutHandler } from "@/layouts/handler"
 interface SampleData {
   layers: { [name: string]: NtLayerPos }
   zoomLevel: number
+  minZoomLevel: number
+  maxZoomLevel: number
   nodes: Nodes
   links: Links
   selectedNodes: string[]
@@ -376,6 +404,8 @@ export default /*#__PURE__*/ defineComponent({
     return {
       layers: { layer1: NtLayerPos.BACKGROUND, layer2: NtLayerPos.BACKGROUND },
       zoomLevel: 1,
+      minZoomLevel: 0.1,
+      maxZoomLevel: 16,
       nodes: {
         node1: {
           name: "Node 1",

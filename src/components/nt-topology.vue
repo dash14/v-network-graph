@@ -224,7 +224,11 @@ export default defineComponent({
     const svg = ref<SVGElement>()
     const show = ref<boolean>(false)
 
-    const zoomLevel = bindProp(props, "zoomLevel", emit)
+    const zoomLevel = bindProp(props, "zoomLevel", emit, v => {
+      if (v < props.minZoomLevel) return props.minZoomLevel
+      if (v > props.maxZoomLevel) return props.maxZoomLevel
+      return v
+    })
     const resizeObserver = new ResizeObserver(() => {
       svgPanZoom.value?.resize()
     })
@@ -232,23 +236,23 @@ export default defineComponent({
     // SVG の pan / zoom
     const { svgPanZoom } = useSvgPanZoom(svg, {
       viewportSelector: ".nt-viewport",
-      minZoom: 0.1,
-      maxZoom: props.maxZoomLevel,
+      minZoom: props.minZoomLevel, // temporary
+      maxZoom: props.maxZoomLevel, // temporary
       fit: true,
       center: true,
       onZoom: _ => {
-        zoomLevel.value = svgPanZoom.value?.getSizes().realZoom ?? 1
+        zoomLevel.value = svgPanZoom.value?.getRealZoom() ?? 1
         emitter.emit("view:zoom", zoomLevel.value)
       },
       onPan: p => emitter.emit("view:pan", p),
       customEventsHandler: {
-        init: () => resizeObserver.observe(container.value as HTMLDivElement),
+        init: () => resizeObserver.observe(nonNull(container.value)),
         haltEventListeners: [],
         destroy: () => resizeObserver.disconnect(),
       },
     })
 
-    const applyZoomByAbsoluteZoom = (absoluteZoomLevel: number) => {
+    const applyAbsoluteZoomLevel = (absoluteZoomLevel: number) => {
       svgPanZoom.value?.applyAbsoluteZoomLevel(
         absoluteZoomLevel,
         props.minZoomLevel,
@@ -259,23 +263,19 @@ export default defineComponent({
     onMounted(() => {
       const initialZoomLevel = props.zoomLevel
       // zoom初期値の反映
-      applyZoomByAbsoluteZoom(initialZoomLevel)
-      center()
+      applyAbsoluteZoomLevel(initialZoomLevel)
+      panToCenter()
     })
 
-    watch(zoomLevel, value => {
-      applyZoomByAbsoluteZoom(value)
+    watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
+    watch(() => [props.minZoomLevel, props.maxZoomLevel], _ => {
+      applyAbsoluteZoomLevel(zoomLevel.value)
     })
-
-    const maxZoomLevel = bindProp(props, "maxZoomLevel", emit)
-    watch(maxZoomLevel, value => svgPanZoom.value?.setMaxZoom(value))
 
     // 中心位置や拡大率の認識がずれることがあるため
     const updateBorderBox = (callback: () => void) => {
       svgPanZoom.value?.updateBBox()
-      nextTick(() => {
-        callback()
-      })
+      nextTick(callback)
     }
 
     // SVG 領域にコンテンツの内容がfitするように拡大・縮小する
@@ -287,7 +287,7 @@ export default defineComponent({
     }
 
     // SVG 領域の中央にコンテンツを配置する
-    const center = () => {
+    const panToCenter = () => {
       updateBorderBox(() => {
         svgPanZoom.value?.center()
       })
@@ -446,7 +446,7 @@ export default defineComponent({
 
       // methods
       fitToContents,
-      center,
+      panToCenter,
 
       // properties
       currentSelectedNodes,

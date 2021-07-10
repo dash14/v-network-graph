@@ -1,17 +1,41 @@
 import { reactive, ref, Ref } from "@vue/reactivity"
-import { watch } from "@vue/runtime-core"
+import { computed, watch } from "@vue/runtime-core"
 import isEqual from "lodash-es/isEqual"
 
 export function bindProp<T, K extends keyof T>(
   props: T,
   name: K,
-  emit: any
-  // filter?: (arg: T[K]) => T[K]
+  emit: any,
+  filter?: (arg: T[K]) => T[K]
 ): Ref<T[K]> {
   // two-way bindingの紐付けを構築する.
 
   // 必ずpropsで渡されるとは限らない(emitしても書き換わらない)ため、
   // 自身での管理用に常にrefを保持する
+
+  if (filter) {
+    const prop = ref<T[K]>(filter(props[name])) as Ref<T[K]>
+    const wrapper = computed({
+      get: () => prop.value,
+      set(v) {
+        const filtered = filter(v)
+        if (!isEqual(filtered, prop.value)) {
+          prop.value = filtered
+          emit(`update:${name}`, filtered)
+        }
+      }
+    })
+    watch(() => props[name], v => {
+      const filtered = filter(v)
+      if (!isEqual(filtered, prop.value)) {
+        prop.value = filtered
+      }
+      if (!isEqual(filtered, props[name])) {
+        emit(`update:${name}`, filtered)
+      }
+    })
+    return wrapper
+  }
 
   // if (filter) {
   //   // writable computed を使用する案もあるが、Vue 3 では

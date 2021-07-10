@@ -19,6 +19,7 @@ interface ViewArea {
 export interface SvgPanZoomInstance extends SvgPanZoom.Instance {
   fitToContents(): SvgPanZoomInstance
   getViewArea(): ViewArea
+  getRealZoom(): number
   applyAbsoluteZoomLevel(zoomLevel: number, minZoomLevel: number, maxZoomLevel: number): void
 }
 
@@ -57,12 +58,15 @@ export function useSvgPanZoom(svg: Ref<SVGElement | undefined>, options?: SvgPan
         },
       }
     }
+    instance.value.getRealZoom = function () {
+      return this.getSizes().realZoom
+    }
     instance.value.applyAbsoluteZoomLevel = function (
       zoomLevel: number,
       minZoomLevel: number,
       maxZoomLevel: number
     ) {
-      const realZoom = this.getSizes().realZoom
+      const realZoom = this.getRealZoom()
       const relativeZoom = this.getZoom()
       const originalZoom = realZoom / relativeZoom
 
