@@ -5,7 +5,8 @@
     :y1="y1"
     :x2="x2"
     :y2="y2"
-    :styles="style.stroke"
+    :styles="selected ? style.selected : style.stroke"
+    @mousedown.prevent.stop="handleLinkMouseDownEvent(id, $event)"
   />
 </template>
 
@@ -15,6 +16,7 @@ import { useZoomLevel } from "@/composables/zoom"
 import { useLinkStyle } from "@/composables/style"
 import { Node, Position } from "@/common/types"
 import NtLine from "@/objects/line.vue"
+import { useMouseOperation } from "@/composables/mouse"
 
 function calculateLinePosition(
   x1: number,
@@ -50,6 +52,10 @@ function calculateLinePosition(
 export default defineComponent({
   components: { NtLine },
   props: {
+    id: {
+      type: String,
+      required: true,
+    },
     sourceId: {
       type: String,
       required: true,
@@ -84,10 +90,15 @@ export default defineComponent({
       type: Number,
       default: 1,
     },
+    selected: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props) {
     const style = useLinkStyle()
     const { scale } = useZoomLevel()
+    const { handleLinkMouseDownEvent } = useMouseOperation()
 
     const x1 = ref(0)
     const y1 = ref(0)
@@ -122,7 +133,7 @@ export default defineComponent({
       }
     })
 
-    return { x1, y1, x2, y2, style }
+    return { handleLinkMouseDownEvent, x1, y1, x2, y2, style }
   },
 })
 </script>
@@ -136,4 +147,3 @@ path.selectable {
   cursor: pointer;
 }
 </style>
-

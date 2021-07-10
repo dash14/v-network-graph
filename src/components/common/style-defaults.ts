@@ -9,7 +9,7 @@ export const STYLE_DEFAULT: Styles = {
       type: "circle",
       radius: 16,
       stroke: null,
-      color: "#4466cc"
+      color: "#4466cc",
     },
     label: {
       fontFamily: undefined,
@@ -22,7 +22,7 @@ export const STYLE_DEFAULT: Styles = {
     selection: {
       width: 4,
       padding: 3,
-      color: "#cccc0088",
+      color: "#eebb00",
     },
   },
   link: {
@@ -36,7 +36,7 @@ export const STYLE_DEFAULT: Styles = {
     summarized: {
       label: {
         fontSize: 10,
-        color: "#4466cc"
+        color: "#4466cc",
       },
       shape: {
         type: "rect",
@@ -47,13 +47,19 @@ export const STYLE_DEFAULT: Styles = {
         stroke: {
           width: 1,
           color: "#4466cc",
-        }
+        },
       },
       line: {
         width: 4,
-        color: "#4466cc"
-      }
+        color: "#4466cc",
+      },
     },
     selectable: true,
+    selected: {
+      width: 3,
+      color: "#dd8800",
+      dasharray: "3 5",
+      linecap: "round",
+    },
   },
 }

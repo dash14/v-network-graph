@@ -1,18 +1,25 @@
 // 選択状態とマウス操作を担当する機能
 
-import {
-  inject,
-  InjectionKey,
-  onMounted,
-  onUnmounted,
-  provide,
-  Ref,
-} from "@vue/runtime-core"
+import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref } from "@vue/runtime-core"
 import { Emitter } from "mitt"
-import { Events, NodePositions, nonNull, Position } from "../common/types"
+import {
+  Events,
+  NodePositions,
+  nonNull,
+  Position,
+  Reactive,
+  ReadonlyRef,
+  Styles,
+} from "../common/types"
 
 type NodeEventHandler = (node: string, event: MouseEvent) => void
-const nodeMouseDownKey = Symbol("mouseDownOnNode") as InjectionKey<NodeEventHandler>
+type LinkEventHandler = (link: string, event: MouseEvent) => void
+
+interface MouseEventHandlers {
+  handleNodeMouseDownEvent: NodeEventHandler
+  handleLinkMouseDownEvent: LinkEventHandler
+}
+const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
 // MEMO: ノード選択との連携、複数選択してムーブなど
 
@@ -21,21 +28,23 @@ const MOVE_DETECTION_THRESHOLD = 3 // ドラッグを開始する感度
 interface State {
   moveCounter: number
   dragBasePosition: Position
-  nodeBasePositions: { [name: string]: Position },
+  nodeBasePositions: { [name: string]: Position }
   mouseDownNodeId: string | undefined
+  mouseDownLinkId: string | undefined
 }
 
-function _unwrappedNodePosition(nodes: Readonly<NodePositions>, node: string) {
-  const pos = nodes?.[node] ?? { x: 0, y: 0 }
+function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
+  const pos = nodes[node] ?? { x: 0, y: 0 }
   return { ...pos } // unwrap reactivity
 }
 
 export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
   nodePositions: Readonly<NodePositions>,
-  zoomLevel: Ref<number>,
-  selectable: Ref<boolean>,
-  selectedNodes: string[],
+  zoomLevel: ReadonlyRef<number>,
+  styles: Readonly<Styles>,
+  selectedNodes: Reactive<string[]>,
+  selectedLinks: Reactive<string[]>,
   emitter: Emitter<Events>
 ): void {
   onMounted(() => {
@@ -52,7 +61,8 @@ export function provideMouseOperation(
     moveCounter: 0,
     dragBasePosition: { x: 0, y: 0 },
     nodeBasePositions: {},
-    mouseDownNodeId: undefined
+    mouseDownNodeId: undefined,
+    mouseDownLinkId: undefined,
   }
 
   function handleContainerMouseDownEvent(_: MouseEvent) {
@@ -71,15 +81,23 @@ export function provideMouseOperation(
     if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
       // Click container (without mouse move)
       selectedNodes.splice(0, selectedNodes.length)
+      selectedLinks.splice(0, selectedLinks.length)
     }
   }
+
+  // -----------------------------------------------------------------------
+  // Event handler for nodes
+  // -----------------------------------------------------------------------
 
   function handleNodeClickEvent(node: string, event: MouseEvent) {
     const isMoved = state.moveCounter > MOVE_DETECTION_THRESHOLD
     if (isMoved) {
       return
     }
-    if (selectable.value) {
+
+    selectedLinks.splice(0, selectedLinks.length)
+
+    if (styles.node.selectable) {
       if (event.shiftKey) {
         // 複数選択
         const index = selectedNodes.indexOf(node)
@@ -114,7 +132,7 @@ export function provideMouseOperation(
   }
 
   // TODO: Touch対応
-  function handleMouseMoveEvent(event: MouseEvent) {
+  function handleNodeMouseMoveEvent(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
     state.moveCounter++
@@ -130,13 +148,13 @@ export function provideMouseOperation(
     emitter.emit("node:mousemove", draggingNodes)
   }
 
-  function handleMouseUpEvent(event: MouseEvent) {
-    const node = state.mouseDownNodeId
+  function handleNodeMouseUpEvent(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    document.removeEventListener("mousemove", handleMouseMoveEvent)
-    document.removeEventListener("mouseup", handleMouseUpEvent)
+    document.removeEventListener("mousemove", handleNodeMouseMoveEvent)
+    document.removeEventListener("mouseup", handleNodeMouseUpEvent)
 
+    const node = state.mouseDownNodeId
     if (node === undefined) {
       return
     }
@@ -161,22 +179,68 @@ export function provideMouseOperation(
     state.mouseDownNodeId = node
     if (selectedNodes.includes(node)) {
       state.nodeBasePositions = Object.fromEntries(
-        selectedNodes.map(n => [n, _unwrappedNodePosition(nodePositions, n)])
+        selectedNodes.map(n => [n, _unwrapNodePosition(nodePositions, n)])
       )
     } else {
-      state.nodeBasePositions = { [node]: _unwrappedNodePosition(nodePositions, node) }
+      state.nodeBasePositions = { [node]: _unwrapNodePosition(nodePositions, node) }
     }
-    document.addEventListener("mousemove", handleMouseMoveEvent)
-    document.addEventListener("mouseup", handleMouseUpEvent)
+    document.addEventListener("mousemove", handleNodeMouseMoveEvent)
+    document.addEventListener("mouseup", handleNodeMouseUpEvent)
     state.moveCounter = 0
     emitter.emit("node:mousedown", { node, event })
   }
 
-  provide(nodeMouseDownKey, handleNodeMouseDownEvent)
+  // -----------------------------------------------------------------------
+  // Event handler for links
+  // -----------------------------------------------------------------------
+
+  function handleLinkMouseDownEvent(link: string, event: MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    state.mouseDownLinkId = link
+    document.addEventListener("mouseup", handleLinkMouseUpEvent)
+  }
+
+  function handleLinkMouseUpEvent(event: MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    document.removeEventListener("mouseup", handleLinkMouseUpEvent)
+
+    const link = state.mouseDownLinkId
+    if (link === undefined) {
+      return
+    }
+
+    handleLinkClickEvent(link, event)
+  }
+
+  function handleLinkClickEvent(link: string, event: MouseEvent) {
+    selectedNodes.splice(0, selectedNodes.length)
+
+    if (styles.link.selectable) {
+      if (event.shiftKey) {
+        // 複数選択
+        const index = selectedLinks.indexOf(link)
+        if (index >= 0) {
+          selectedLinks.splice(index, 1)
+        } else {
+          selectedLinks.push(link)
+        }
+      } else {
+        // クリック操作: 選択中のリンクをクリックされたリンク1つにする
+        selectedLinks.splice(0, selectedLinks.length, link)
+      }
+    }
+    emitter.emit("link:click", { link, event })
+  }
+
+  provide(mouseEventHandlersKey, {
+    handleNodeMouseDownEvent,
+    handleLinkMouseDownEvent,
+  })
 }
 
-export function useMouseOperation() {
-  return {
-    handleNodeMouseDownEvent: nonNull(inject(nodeMouseDownKey)),
-  }
+export function useMouseOperation(): MouseEventHandlers {
+  return nonNull(inject(mouseEventHandlersKey))
 }

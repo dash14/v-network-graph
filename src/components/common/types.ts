@@ -39,6 +39,12 @@ type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
+export type Reactive<T> = T
+
+export interface ReadonlyRef<T> {
+  readonly value: T;
+}
+
 /* ------------------------------------------ *
  * Layouts
  * ------------------------------------------ */
@@ -70,6 +76,7 @@ export type UserLayouts = RecursivePartial<Layouts>
  * ------------------------------------------ */
 
 export type NodeMouseEvent = { node: string, event: MouseEvent }
+export type LinkMouseEvent = { link: string, event: MouseEvent }
 
 export type Events = {
   "node:click": NodeMouseEvent,
@@ -79,6 +86,8 @@ export type Events = {
   "node:mousemove": { [name: string]: Position },
   "node:dragend": { [name: string]: Position },
   "node:select": string[],
+  "link:click": LinkMouseEvent,
+  "link:select": string[],
   "view:zoom": number,
   "view:pan": { x: number, y: number },
   "view:fit": undefined,
@@ -175,6 +184,7 @@ export interface LinkStyle {
     line: StrokeStyle
   }
   selectable: boolean
+  selected: StrokeStyle
 }
 
 export interface Styles {

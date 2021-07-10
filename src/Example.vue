@@ -219,6 +219,12 @@
             </select>
           </div>
         </div>
+        <div>
+          <label>Selected Links:</label>
+          <ul>
+            <li v-for="n in selectedLinks" :key="n">{{ n }}</li>
+          </ul>
+        </div>
       </div>
       <h4>Layouts</h4>
       <div class="controls">
@@ -242,6 +248,7 @@
       v-model:zoomLevel="zoomLevel"
       v-model:mouseMode="mouseMode"
       v-model:selectedNodes="selectedNodes"
+      v-model:selectedLinks="selectedLinks"
       class="topology"
       :layers="layers"
       :nodes="nodes"
@@ -296,6 +303,7 @@ interface SampleData {
   nodes: Nodes
   links: Links
   selectedNodes: string[]
+  selectedLinks: string[]
   eventLogs: string[]
 }
 
@@ -403,6 +411,7 @@ export default /*#__PURE__*/ defineComponent({
         },
       },
       selectedNodes: ["node1"],
+      selectedLinks: [],
       eventLogs: [],
     }
   },

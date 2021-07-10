@@ -42,6 +42,7 @@
             </template>
             <template v-for="(link, id, i) in bundledLinks" v-else :key="`${id}`">
               <nt-link
+                :id="id.toString()"
                 :source-id="link.source"
                 :target-id="link.target"
                 :source-node="nodes[link.source]"
@@ -50,6 +51,7 @@
                 :target-pos="currentLayouts.nodes[link.target]"
                 :i="i"
                 :count="Object.keys(bundledLinks).length"
+                :selected="currentSelectedLinks.includes(id.toString())"
               />
             </template>
           </template>
@@ -108,7 +110,6 @@ import {
   reactive,
   readonly,
   ref,
-  toRef,
   watch,
 } from "vue"
 import isEqual from "lodash-es/isEqual"
@@ -169,6 +170,10 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    selectedLinks: {
+      type: Array as PropType<string[]>,
+      default: () => [],
+    },
     layouts: {
       type: Object as PropType<UserLayouts>,
       default: () => ({}),
@@ -193,6 +198,7 @@ export default defineComponent({
     "update:maxZoomLevel",
     "update:mouseMode",
     "update:selectedNodes",
+    "update:selectedLinks",
     "update:layouts",
   ],
   setup(props, { emit }) {
@@ -336,16 +342,14 @@ export default defineComponent({
     })
 
     // -----------------------------------------------------------------------
-    // ノード関連のState
+    // ノード/リンク関連のState
     // -----------------------------------------------------------------------
     const currentLayouts = reactive<Layouts>({ nodes: {} })
-    const currentSelectedNodes = bindPropKeyArray(
-      props,
-      "selectedNodes",
-      props.nodes,
-      emit,
-    )
+    const currentSelectedNodes = bindPropKeyArray(props, "selectedNodes", props.nodes, emit)
     watch(currentSelectedNodes, nodes => emitter.emit("node:select", nodes))
+
+    const currentSelectedLinks = bindPropKeyArray(props, "selectedLinks", props.links, emit)
+    watch(currentSelectedLinks, links => emitter.emit("link:select", links))
 
     // -----------------------------------------------------------------------
     // ノード座標
@@ -385,9 +389,10 @@ export default defineComponent({
     provideMouseOperation(
       svg,
       readonly(currentLayouts.nodes),
-      zoomLevel,
-      toRef(styles.node, "selectable"),
+      readonly(zoomLevel),
+      readonly(styles),
       currentSelectedNodes,
+      currentSelectedLinks,
       emitter
     )
 
@@ -452,6 +457,7 @@ export default defineComponent({
       // properties
       currentMouseMode,
       currentSelectedNodes,
+      currentSelectedLinks,
       dragging,
 
       // temporary
