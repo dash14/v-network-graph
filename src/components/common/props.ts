@@ -2,10 +2,10 @@ import { reactive, ref, Ref } from "@vue/reactivity"
 import { computed, watch } from "@vue/runtime-core"
 import isEqual from "lodash-es/isEqual"
 
-export function bindProp<T, K extends keyof T>(
+export function bindProp<T, K extends string & keyof T>(
   props: T,
   name: K,
-  emit: any,
+  emit: (event: `update:${K}`, ...args: any[]) => void,
   filter?: (arg: T[K]) => T[K]
 ): Ref<T[K]> {
   // two-way bindingの紐付けを構築する.
@@ -37,25 +37,6 @@ export function bindProp<T, K extends keyof T>(
     return wrapper
   }
 
-  // if (filter) {
-  //   // writable computed を使用する案もあるが、Vue 3 では
-  //   // 配列の要素変更が通知されない挙動があるため避ける.
-  //   const prop = ref<T[K]>(filter(props[name])) as Ref<T[K]>
-  //   watch(() => props[name], v => {
-  //     const filtered = filter(v)
-  //     if (!isEqual(filtered, prop.value)) {
-  //       prop.value = filtered
-  //     }
-  //   })
-  //   watch(prop, v => {
-  //     const filtered = filter(v)
-  //     if (!isEqual(filtered, props[name])) {
-  //       emit(`update:${name}`, filtered)
-  //     }
-  //   })
-  //   return prop
-
-  // } else {
   const prop = ref<T[K]>(props[name]) as Ref<T[K]>
   watch(
     () => props[name],
@@ -73,11 +54,16 @@ export function bindProp<T, K extends keyof T>(
   return prop
 }
 
-export function bindPropKeyArray<T, K extends T[K] extends string[] ? keyof T : never>(
+type KeysOfType<Obj, Val> = {
+  [K in keyof Obj]-?: Obj[K] extends Val ? K : never
+}[keyof Obj];
+
+//export function bindPropKeyArray<T, K extends string & keyof T>(
+export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
   props: T,
   name: K,
   sourceObject: { [name: string]: any },
-  emit: any
+  emit: (event: `update:${K}`, ...args: any[]) => void
 ) {
   // 指定propの双方向バインディングを生成する.
   // 指定propがオブジェクトのキーを示すことを前提とする.
@@ -85,7 +71,9 @@ export function bindPropKeyArray<T, K extends T[K] extends string[] ? keyof T : 
   watch(
     () => props[name],
     () => {
-      const filtered = (props[name] as unknown as string[]).filter(n => n in sourceObject)
+      // 型チェックで string[] だと認識してくれないため一旦 any を介する
+      const prop: string[] = props[name] as any
+      const filtered = prop.filter(n => n in sourceObject)
       if (!isEqual(filtered, bound)) {
         bound.splice(0, bound.length, ...filtered)
       }
