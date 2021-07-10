@@ -345,7 +345,7 @@ export default /*#__PURE__*/ defineComponent({
     }
 
     const center = () => {
-      topology.value?.center()
+      topology.value?.panToCenter()
     }
 
     const styles = reactive(JSON.parse(JSON.stringify(STYLE_DEFAULT)))
