@@ -402,9 +402,20 @@ export default defineComponent({
     // Events
     // -----------------------------------------------------------------------
 
+    const preventDefault = (event: MouseEvent) => event.preventDefault()
+
     onMounted(() => {
+      // Prevent pinch-in/out zooming of the entire page.
+      // The svg-pan-zoom's event listeners set the "passive: true" option
+      // to improve drag performance.
+      container.value?.addEventListener("wheel", preventDefault, { passive: false })
+
       // svgの表示開始
       nextTick(() => (show.value = true))
+    })
+
+    onUnmounted(() => {
+      container.value?.removeEventListener("wheel", preventDefault)
     })
 
     return {
