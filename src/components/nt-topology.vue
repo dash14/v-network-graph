@@ -241,8 +241,11 @@ export default defineComponent({
       fit: true,
       center: true,
       onZoom: _ => {
-        zoomLevel.value = svgPanZoom.value?.getRealZoom() ?? 1
-        emitter.emit("view:zoom", zoomLevel.value)
+        const z = svgPanZoom.value?.getRealZoom() ?? 1
+        if (Math.abs(zoomLevel.value - z) >= 1.0e-6) {
+          zoomLevel.value = z
+          emitter.emit("view:zoom", z)
+        }
       },
       onPan: p => emitter.emit("view:pan", p),
       customEventsHandler: {
