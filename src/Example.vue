@@ -167,9 +167,10 @@
       <h5>Link</h5>
       <div class="controls">
         <div class="control button">
-          <label>Add link</label>
+          <label>Add/Remove</label>
           <div class="action">
             <button :disabled="selectedNodes.length != 2" @click="addLink">Add</button>
+            <button :disabled="selectedLinks.length == 0" @click="removeLink">Remove</button>
           </div>
         </div>
         <div class="control slider">
@@ -462,6 +463,11 @@ export default /*#__PURE__*/ defineComponent({
         target: this.selectedNodes[1],
       }
     },
+    removeLink() {
+      if (this.selectedLinks.length === 0) return
+      const removeLinks = [ ...this.selectedLinks ]
+      removeLinks.forEach(id => delete this.links[id])
+    }
   },
 })
 </script>
