@@ -242,6 +242,7 @@ export default defineComponent({
       maxZoom: props.maxZoomLevel, // temporary
       fit: true,
       center: true,
+      preventMouseEventsDefault: false, // for event listen option: { passive: true }
       onZoom: _ => {
         const z = svgPanZoom.value?.getRealZoom() ?? 1
         if (Math.abs(zoomLevel.value - z) >= 1.0e-6) {
