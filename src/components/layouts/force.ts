@@ -1,19 +1,10 @@
 import { toRef } from "@vue/reactivity"
 import { watch } from "@vue/runtime-core"
 import { Link, Links, NodePositions, OnClickHandler, OnDragHandler } from "@/common/types"
-import {
-  forceCenter,
-  forceCollide,
-  ForceLink,
-  forceLink,
-  forceManyBody,
-  forceSimulation,
-  Simulation,
-  SimulationNodeDatum,
-} from "d3-force"
+import * as d3 from "d3-force"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
-export interface ForceNodeDatum extends SimulationNodeDatum {
+export interface ForceNodeDatum extends d3.SimulationNodeDatum {
   id: string
 }
 
@@ -21,12 +12,12 @@ export interface ForceLinkDatum extends Link {
   index: number
 }
 
-export type ForceLinks = ForceLink<SimulationNodeDatum, ForceLinkDatum>
+export type ForceLinks = d3.ForceLink<d3.SimulationNodeDatum, ForceLinkDatum>
 
 export type CreateSimulationFunction = (
   nodeLayouts: ForceNodeDatum[],
   links: ForceLinks
-) => Simulation<ForceNodeDatum, ForceLinkDatum>
+) => d3.Simulation<ForceNodeDatum, ForceLinkDatum>
 
 export type ForceLayoutParameters = {
   positionFixedByDrag?: boolean
@@ -45,7 +36,7 @@ export class ForceLayout implements LayoutHandler {
 
     const simulation = this.createSimulation(
       nodeLayouts,
-      forceLink(this.forceLayoutLinks(links)).id((d: any) => d.id)
+      d3.forceLink(this.forceLayoutLinks(links)).id((d: any) => d.id)
     )
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
@@ -73,7 +64,7 @@ export class ForceLayout implements LayoutHandler {
     const onDragEnd: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         const layout = this.getNodeLayout(layouts, id)
-        const nodePos: SimulationNodeDatum = nodeLayoutMap?.[id] ?? { x: 0, y: 0 }
+        const nodePos: d3.SimulationNodeDatum = nodeLayoutMap?.[id] ?? { x: 0, y: 0 }
         if (layout.value.fixed || this.options.positionFixedByDrag) {
           nodePos.fx = pos.x
           nodePos.fy = pos.y
@@ -167,15 +158,15 @@ export class ForceLayout implements LayoutHandler {
   private createSimulation(
     nodeLayouts: ForceNodeDatum[],
     links: ForceLinks
-  ): Simulation<ForceNodeDatum, ForceLinkDatum> {
+  ): d3.Simulation<ForceNodeDatum, ForceLinkDatum> {
     if (this.options.createSimulation) {
       return this.options.createSimulation(nodeLayouts, links)
     } else {
-      return forceSimulation(nodeLayouts)
+      return d3.forceSimulation(nodeLayouts)
         .force("link", links.distance(100))
-        .force("charge", forceManyBody())
-        .force("collide", forceCollide(50).strength(0.2))
-        .force("center", forceCenter().strength(0.05))
+        .force("charge", d3.forceManyBody())
+        .force("collide", d3.forceCollide(50).strength(0.2))
+        .force("center", d3.forceCenter().strength(0.05))
         .alphaMin(0.01)
     }
   }
