@@ -21,7 +21,7 @@ export function bindProp<T, K extends string & keyof T>(
         const filtered = filter(v)
         if (!isEqual(filtered, prop.value)) {
           prop.value = filtered
-          emit(`update:${name}`, filtered)
+          emit(`update:${name}` as const, filtered)
         }
       }
     })
@@ -31,7 +31,7 @@ export function bindProp<T, K extends string & keyof T>(
         prop.value = filtered
       }
       if (!isEqual(filtered, props[name])) {
-        emit(`update:${name}`, filtered)
+        emit(`update:${name}` as const, filtered)
       }
     })
     return wrapper
@@ -48,7 +48,7 @@ export function bindProp<T, K extends string & keyof T>(
   )
   watch(prop, v => {
     if (!isEqual(v, props[name])) {
-      emit(`update:${name}`, v)
+      emit(`update:${name}` as const, v)
     }
   })
   return prop
@@ -82,7 +82,7 @@ export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
   )
   watch(bound, v => {
     if (!isEqual(props[name], bound)) {
-      emit(`update:${name}`, v)
+      emit(`update:${name}` as const, v)
     }
   })
   return bound
