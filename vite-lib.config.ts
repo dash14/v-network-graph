@@ -5,6 +5,8 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
+    target: "es2015",
+    minify: "terser",
     lib: {
       entry: path.resolve(__dirname, 'src/entry.ts'),
       name: 'v-topology'
