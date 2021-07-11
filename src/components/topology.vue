@@ -1,8 +1,8 @@
 <template>
-  <div ref="container" class="nt-canvas">
+  <div ref="container" class="v-canvas">
     <svg
       ref="svg"
-      class="nt-canvas"
+      class="v-canvas"
       :class="{ show, dragging }"
       width="500"
       height="500"
@@ -11,10 +11,10 @@
       <!-- outside of viewport -->
 
       <!-- viewport: pan/zoom の対象領域 -->
-      <g class="nt-viewport">
+      <g class="v-viewport">
         <!-- background -->
         <template v-if="backgroundLayers.length > 0">
-          <g class="nt-layer-background">
+          <g class="v-layer-background">
             <slot v-for="layerName in backgroundLayers" :key="layerName" :name="layerName">
               <text
                 x="0"
@@ -31,17 +31,17 @@
         </template>
 
         <!-- links -->
-        <g class="nt-layer-links">
+        <g class="v-layer-links">
           <template v-for="[key, bundledLinks] in linkMap">
             <template v-if="checkLinkSummarize(bundledLinks)">
-              <nt-summarized-link
+              <v-summarized-link
                 :key="key"
                 :links="bundledLinks"
                 :layouts="currentLayouts.nodes"
               />
             </template>
             <template v-for="(link, id, i) in bundledLinks" v-else :key="`${id}`">
-              <nt-link
+              <v-link
                 :id="id.toString()"
                 :source-id="link.source"
                 :target-id="link.target"
@@ -58,8 +58,8 @@
         </g>
 
         <!-- node selections -->
-        <g class="nt-layer-nodes-selections">
-          <nt-node-selection
+        <g class="v-layer-nodes-selections">
+          <v-node-selection
             v-for="nodeId in currentSelectedNodes"
             :key="nodeId"
             :pos="currentLayouts.nodes[nodeId]"
@@ -67,8 +67,8 @@
         </g>
 
         <!-- nodes -->
-        <g class="nt-layer-nodes">
-          <nt-node
+        <g class="v-layer-nodes">
+          <v-node
             v-for="(node, nodeId) in nodes"
             :id="nodeId.toString()"
             :key="nodeId"
@@ -103,25 +103,25 @@
 import { defineComponent, PropType, reactive, readonly, ref } from "vue"
 import { computed, nextTick, onMounted, onUnmounted, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
-import NtNode from "./objects/node.vue"
-import NtNodeSelection from "./objects/node-selection.vue"
-import NtLink from "./objects/link.vue"
-import NtSummarizedLink from "./objects/summarized-link.vue"
 import { bindProp, bindPropKeyArray } from "./common/props"
 import { provideStyles } from "./composables/style"
 import { provideMouseOperation } from "./composables/mouse"
 import { provideEventEmitter } from "./composables/event-emitter"
 import { useSvgPanZoom } from "./composables/svg-pan-zoom"
 import { provideZoomLevel } from "./composables/zoom"
-import { EventHandler, Layouts, Nodes, Links, NtLayerPos, UserLayouts } from "./common/types"
+import { EventHandler, Layouts, Nodes, Links, LayerPos, UserLayouts } from "./common/types"
 import { nonNull } from "./common/types"
 import { Styles, UserStyles } from "./common/styles"
 import { SimpleLayout } from "./layouts/simple"
 import { LayoutHandler } from "./layouts/handler"
+import VNode from "./objects/node.vue"
+import VNodeSelection from "./objects/node-selection.vue"
+import VLink from "./objects/link.vue"
+import VSummarizedLink from "./objects/summarized-link.vue"
 
 export default defineComponent({
-  name: "NtTopology",
-  components: { NtNode, NtNodeSelection, NtLink, NtSummarizedLink },
+  name: "VTopology",
+  components: { VNode, VNodeSelection, VLink, VSummarizedLink },
   props: {
     layers: {
       type: Object as PropType<{ [name: string]: string }>,
@@ -192,7 +192,7 @@ export default defineComponent({
     // Background layers
     const backgroundLayers = computed(() => {
       return Object.entries(props.layers)
-        .filter(([_, type]) => type == NtLayerPos.BACKGROUND)
+        .filter(([_, type]) => type == LayerPos.BACKGROUND)
         .map(([name, _]) => name)
     })
 
@@ -214,7 +214,7 @@ export default defineComponent({
 
     // SVG pan / zoom
     const { svgPanZoom } = useSvgPanZoom(svg, {
-      viewportSelector: ".nt-viewport",
+      viewportSelector: ".v-viewport",
       minZoom: props.minZoomLevel, // temporary
       maxZoom: props.maxZoomLevel, // temporary
       fit: true,
@@ -442,13 +442,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-div.nt-canvas {
+div.v-canvas {
   padding: 0;
   position: relative;
   width: 100%;
   height: 100%;
 }
-svg.nt-canvas {
+svg.v-canvas {
   width: 100%;
   height: 100%;
   // svgPanZoomライブラリが有効になるまでの乱れへの対応

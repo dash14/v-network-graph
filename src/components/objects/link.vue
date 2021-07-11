@@ -1,5 +1,5 @@
 <template>
-  <nt-line
+  <v-line
     :class="{ selectable: style.selectable }"
     :x1="x1"
     :y1="y1"
@@ -15,8 +15,8 @@ import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "@/composables/zoom"
 import { useLinkStyle } from "@/composables/style"
 import { Node, Position } from "@/common/types"
-import NtLine from "@/objects/line.vue"
 import { useMouseOperation } from "@/composables/mouse"
+import VLine from "@/objects/line.vue"
 
 function calculateLinePosition(
   x1: number,
@@ -50,7 +50,7 @@ function calculateLinePosition(
 }
 
 export default defineComponent({
-  components: { NtLine },
+  components: { VLine },
   props: {
     id: {
       type: String,

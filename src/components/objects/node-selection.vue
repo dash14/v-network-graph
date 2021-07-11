@@ -1,6 +1,6 @@
 <template>
-  <nt-shape
-    class="nt-node-selection"
+  <v-shape
+    class="v-node-selection"
     :base-x="x"
     :base-y="y"
     :styles="shapeStyles"
@@ -12,10 +12,10 @@ import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/styles"
 import { useNodeStyle } from "@/composables/style"
-import NtShape from "@/objects/shape.vue"
+import VShape from "@/objects/shape.vue"
 
 export default defineComponent({
-  components: { NtShape },
+  components: { VShape },
   props: {
     pos: {
       type: Object as PropType<Position>,
@@ -78,7 +78,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.nt-node-selection {
+.v-node-selection {
   pointer-events: none;
 }
 </style>

@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/entry.ts'),
-      name: 'NtTopology'
+      name: 'v-topology'
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled

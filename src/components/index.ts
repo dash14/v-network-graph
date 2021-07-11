@@ -1,5 +1,5 @@
-export { default as NtNode } from './objects/node.vue';
-export { default as NtNodeSelection } from './objects/node-selection.vue';
-export { default as NtLink } from './objects/link.vue';
-export { default as NtSummarizedLink } from './objects/summarized-link.vue';
-export { default as NtTopology } from './topology.vue';
+export { default as VNode } from './objects/node.vue';
+export { default as VNodeSelection } from './objects/node-selection.vue';
+export { default as VLink } from './objects/link.vue';
+export { default as VSummarizedLink } from './objects/summarized-link.vue';
+export { default as VTopology } from './topology.vue';

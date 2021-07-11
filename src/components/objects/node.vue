@@ -1,11 +1,11 @@
 <template>
   <g :transform="`translate(${x} ${y})`">
-    <nt-shape
+    <v-shape
       :styles="style.shape"
       :class="{ selectable: style.selectable }"
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
     />
-    <nt-text
+    <v-text
       :text="label"
       :x="labelX"
       :y="labelY"
@@ -23,11 +23,11 @@ import { NodeLabelDirection } from "@/common/styles"
 import { useZoomLevel } from "@/composables/zoom"
 import { useNodeStyle } from "@/composables/style"
 import { useMouseOperation } from "@/composables/mouse"
-import NtShape from "@/objects/shape.vue"
-import NtText from "@/objects/text.vue"
+import VShape from "@/objects/shape.vue"
+import VText from "@/objects/text.vue"
 
 export default defineComponent({
-  components: { NtShape, NtText },
+  components: { VShape, VText },
   props: {
     id: {
       type: String,

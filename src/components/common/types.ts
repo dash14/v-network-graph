@@ -1,6 +1,6 @@
 
 /** レイヤ位置 */
-export enum NtLayerPos {
+export enum LayerPos {
   BACKGROUND = "background",
   PATHS = "paths",
   NOTIFICATIONS = "notifications",

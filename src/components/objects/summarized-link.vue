@@ -1,18 +1,18 @@
 <template>
   <g :class="{ selectable: style.selectable }">
-    <nt-line
+    <v-line
       :x1="pos.x1"
       :y1="pos.y1"
       :x2="pos.x2"
       :y2="pos.y2"
       :styles="style.summarized.line"
     />
-    <nt-shape
+    <v-shape
       :base-x="centerPos.x"
       :base-y="centerPos.y"
       :styles="style.summarized.shape"
     />
-    <nt-text
+    <v-text
       :text="Object.keys(links).length.toString()"
       :x="centerPos.x"
       :y="centerPos.y"
@@ -26,14 +26,14 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import NtLine from "@/objects/line.vue"
-import NtShape from "@/objects/shape.vue"
-import NtText from "@/objects/text.vue"
 import { Links, NodePositions } from "@/common/types";
 import { useLinkStyle } from "@/composables/style";
+import VLine from "@/objects/line.vue"
+import VShape from "@/objects/shape.vue"
+import VText from "@/objects/text.vue"
 
 export default defineComponent({
-  components: { NtLine, NtShape, NtText },
+  components: { VLine, VShape, VText },
   props: {
     links: {
       type: Object as PropType<Links>,

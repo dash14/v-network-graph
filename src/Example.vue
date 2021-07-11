@@ -268,7 +268,7 @@
         <pre>{{ layoutsText }}</pre>
       </div>
     </div>
-    <nt-topology
+    <v-topology
       ref="topology"
       v-model:zoom-level="zoomLevel"
       v-model:selected-nodes="selectedNodes"
@@ -304,7 +304,7 @@
           dominant-baseline="text-before-edge"
         >Layer2 OK???</text>
       </template>
-    </nt-topology>
+    </v-topology>
     <div class="event-logs">
       <div v-for="log in eventLogs" :key="log">{{ log }}</div>
     </div>
@@ -313,9 +313,9 @@
 
 <script lang="ts">
 import { computed, defineComponent, reactive, ref, watch } from "vue"
-import NtTopology from "./components/topology.vue"
+import VTopology from "./components/topology.vue"
 import { STYLE_DEFAULT } from "./components/common/style-defaults"
-import { UserLayouts, Nodes, Links, NtLayerPos } from "./components/common/types"
+import { UserLayouts, Nodes, Links, LayerPos } from "./components/common/types"
 import throttle from "lodash-es/throttle"
 import { SimpleLayout } from "@/layouts/simple"
 import { GridLayout } from "@/layouts/grid"
@@ -323,7 +323,7 @@ import { ForceLayout } from "@/layouts/force"
 import { LayoutHandler } from "@/layouts/handler"
 
 interface SampleData {
-  layers: { [name: string]: NtLayerPos }
+  layers: { [name: string]: LayerPos }
   zoomLevel: number
   minZoomLevel: number
   maxZoomLevel: number
@@ -336,7 +336,7 @@ interface SampleData {
 
 export default /*#__PURE__*/ defineComponent({
   name: "NetworkTopologySample", // vue component name
-  components: { NtTopology },
+  components: { VTopology },
   setup() {
     const topology = ref()
 
@@ -402,7 +402,7 @@ export default /*#__PURE__*/ defineComponent({
   },
   data(): SampleData {
     return {
-      layers: { layer1: NtLayerPos.BACKGROUND, layer2: NtLayerPos.BACKGROUND },
+      layers: { layer1: LayerPos.BACKGROUND, layer2: LayerPos.BACKGROUND },
       zoomLevel: 1,
       minZoomLevel: 0.1,
       maxZoomLevel: 16,

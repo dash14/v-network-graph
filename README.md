@@ -1,4 +1,7 @@
-# nt-topology: The Topology library for the Vue
+# v-topology
+
+An interactive SVG based topology/graph visualize component for Vue3.
+
 
 ## Build
 
