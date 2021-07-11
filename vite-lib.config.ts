@@ -22,12 +22,14 @@ export default defineConfig({
           vue: 'Vue'
         }
       }
-    }
+    },
+    sourcemap: true
   },
   resolve: {
     alias: [
       { find: '@/', replacement: '/src/components/' }
     ]
   },
+  publicDir: false,
   plugins: [vue()]
 })
