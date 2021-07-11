@@ -32,7 +32,7 @@
 
         <!-- links -->
         <g class="v-layer-links">
-          <template v-for="[key, bundledLinks] in linkMap">
+          <template v-for="[key, bundledLinks] in Array.from(linkMap)">
             <template v-if="checkLinkSummarize(bundledLinks)">
               <v-summarized-link
                 :key="key"
