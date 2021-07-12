@@ -13,7 +13,7 @@
       :styles="style.summarized.shape"
     />
     <v-text
-      :text="Object.keys(links).length.toString()"
+      :text="Object.keys(edges).length.toString()"
       :x="centerPos.x"
       :y="centerPos.y"
       :styles="style.summarized.label"
@@ -26,8 +26,8 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import { Links, NodePositions } from "@/common/types";
-import { useLinkStyle } from "@/composables/style";
+import { Edges, NodePositions } from "@/common/types";
+import { useEdgeStyle } from "@/composables/style";
 import VLine from "@/components/line.vue"
 import VShape from "@/components/shape.vue"
 import VText from "@/components/text.vue"
@@ -35,8 +35,8 @@ import VText from "@/components/text.vue"
 export default defineComponent({
   components: { VLine, VShape, VText },
   props: {
-    links: {
-      type: Object as PropType<Links>,
+    edges: {
+      type: Object as PropType<Edges>,
       required: true,
     },
     layouts: {
@@ -45,19 +45,19 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const style = useLinkStyle()
+    const style = useEdgeStyle()
 
-    // 指定されたlinksは同一ペアのため、最初の1つを取得して描画する
+    // 指定されたedgesは同一ペアのため、最初の1つを取得して描画する
     const pos = ref({ x1: 0, y1: 0, x2: 0, y2: 0 })
     const centerPos = ref({ x: 0, y: 0 })
 
     watchEffect(() => {
-      const link = props.links[Object.keys(props.links)[0]]
+      const edge = props.edges[Object.keys(props.edges)[0]]
       pos.value = {
-        x1: props.layouts[link.source].x ?? 0,
-        y1: props.layouts[link.source].y ?? 0,
-        x2: props.layouts[link.target].x ?? 0,
-        y2: props.layouts[link.target].y ?? 0
+        x1: props.layouts[edge.source].x ?? 0,
+        y1: props.layouts[edge.source].y ?? 0,
+        x2: props.layouts[edge.target].x ?? 0,
+        y2: props.layouts[edge.target].y ?? 0
       }
       centerPos.value = {
         x: (pos.value.x1 + pos.value.x2) / 2,

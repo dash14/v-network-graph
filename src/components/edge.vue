@@ -6,14 +6,14 @@
     :x2="x2"
     :y2="y2"
     :styles="selected ? style.selected : style.stroke"
-    @mousedown.prevent.stop="handleLinkMouseDownEvent(id, $event)"
+    @mousedown.prevent.stop="handleEdgeMouseDownEvent(id, $event)"
   />
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "@/composables/zoom"
-import { useLinkStyle } from "@/composables/style"
+import { useEdgeStyle } from "@/composables/style"
 import { Node, Position } from "@/common/types"
 import { useMouseOperation } from "@/composables/mouse"
 import VLine from "@/components/line.vue"
@@ -96,9 +96,9 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const style = useLinkStyle()
+    const style = useEdgeStyle()
     const { scale } = useZoomLevel()
-    const { handleLinkMouseDownEvent } = useMouseOperation()
+    const { handleEdgeMouseDownEvent } = useMouseOperation()
 
     const x1 = ref(0)
     const y1 = ref(0)
@@ -133,7 +133,7 @@ export default defineComponent({
       }
     })
 
-    return { handleLinkMouseDownEvent, x1, y1, x2, y2, style }
+    return { handleEdgeMouseDownEvent, x1, y1, x2, y2, style }
   },
 })
 </script>

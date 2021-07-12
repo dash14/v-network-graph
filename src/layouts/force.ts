@@ -1,6 +1,6 @@
 import { toRef } from "@vue/reactivity"
 import { watch } from "@vue/runtime-core"
-import { Link, Links, NodePositions, OnClickHandler, OnDragHandler } from "@/common/types"
+import { Edge, Edges, NodePositions, OnClickHandler, OnDragHandler } from "@/common/types"
 import * as d3 from "d3-force"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
@@ -8,16 +8,16 @@ export interface ForceNodeDatum extends d3.SimulationNodeDatum {
   id: string
 }
 
-export interface ForceLinkDatum extends Link {
+export interface ForceEdgeDatum extends Edge {
   index: number
 }
 
-export type ForceLinks = d3.ForceLink<d3.SimulationNodeDatum, ForceLinkDatum>
+export type ForceEdges = d3.ForceLink<d3.SimulationNodeDatum, ForceEdgeDatum>
 
 export type CreateSimulationFunction = (
   nodeLayouts: ForceNodeDatum[],
-  links: ForceLinks
-) => d3.Simulation<ForceNodeDatum, ForceLinkDatum>
+  edges: ForceEdges
+) => d3.Simulation<ForceNodeDatum, ForceEdgeDatum>
 
 export type ForceLayoutParameters = {
   positionFixedByDrag?: boolean
@@ -31,12 +31,12 @@ export class ForceLayout implements LayoutHandler {
   constructor(private options: ForceLayoutParameters = {}) {}
 
   activate(parameters: LayoutActivateParameters): void {
-    const { layouts, nodes, links, emitter, svgPanZoom } = parameters
+    const { layouts, nodes, edges, emitter, svgPanZoom } = parameters
     let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts)
 
     const simulation = this.createSimulation(
       nodeLayouts,
-      d3.forceLink(this.forceLayoutLinks(links)).id((d: any) => d.id)
+      d3.forceLink(this.forceLayoutEdges(edges)).id((d: any) => d.id)
     )
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
@@ -118,16 +118,16 @@ export class ForceLayout implements LayoutHandler {
         ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
         simulation.nodes(nodeLayouts)
         // ノードを入れ替えるとリンク情報も途切れてしまうため再投入する
-        const forceLinks = simulation.force("link") as any
-        forceLinks.links(this.forceLayoutLinks(links))
+        const forceEdges = simulation.force("edge") as any
+        forceEdges.edges(this.forceLayoutEdges(edges))
         restartSimulation()
       }
     )
-    const stopLinkWatch = watch(
-      () => links,
+    const stopEdgeWatch = watch(
+      () => edges,
       () => {
-        const forceLinks = simulation.force("link") as any
-        forceLinks.links(this.forceLayoutLinks(links))
+        const forceEdges = simulation.force("edge") as any
+        forceEdges.edges(this.forceLayoutEdges(edges))
         restartSimulation()
       },
       { deep: true }
@@ -141,7 +141,7 @@ export class ForceLayout implements LayoutHandler {
     this.onDeactivate = () => {
       simulation.stop()
       stopNodeWatch()
-      stopLinkWatch()
+      stopEdgeWatch()
       emitter.off("node:dragstart", onDrag)
       emitter.off("node:mousemove", onDrag)
       emitter.off("node:dragend", onDragEnd)
@@ -157,13 +157,13 @@ export class ForceLayout implements LayoutHandler {
 
   private createSimulation(
     nodeLayouts: ForceNodeDatum[],
-    links: ForceLinks
-  ): d3.Simulation<ForceNodeDatum, ForceLinkDatum> {
+    edges: ForceEdges
+  ): d3.Simulation<ForceNodeDatum, ForceEdgeDatum> {
     if (this.options.createSimulation) {
-      return this.options.createSimulation(nodeLayouts, links)
+      return this.options.createSimulation(nodeLayouts, edges)
     } else {
       return d3.forceSimulation(nodeLayouts)
-        .force("link", links.distance(100))
+        .force("edge", edges.distance(100))
         .force("charge", d3.forceManyBody())
         .force("collide", d3.forceCollide(50).strength(0.2))
         .force("center", d3.forceCenter().strength(0.05))
@@ -181,10 +181,10 @@ export class ForceLayout implements LayoutHandler {
     return Object.entries(layouts).map(([id, v]) => ({ id, ...v }))
   }
 
-  private forceLayoutLinks(links: Links): ForceLinkDatum[] {
-    // d3-forceによってlink内のsource/targetがNodeDatumオブジェクトに
+  private forceLayoutEdges(edges: Edges): ForceEdgeDatum[] {
+    // d3-forceによってedge内のsource/targetがNodeDatumオブジェクトに
     // 置き換えられてしまうため、独自のリンクオブジェクトを構築する.
-    return Object.values(links).map((v, index) => ({
+    return Object.values(edges).map((v, index) => ({
       index,
       source: v.source,
       target: v.target,

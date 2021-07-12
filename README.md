@@ -10,7 +10,7 @@ An interactive SVG based topology/graph visualize component for Vue3.
 * Pan and zoom viewport
 * Drag nodes
 * Multiple node selection
-* Multiple link selection
+* Multiple edge selection
 * Various events
 
 ## Demo

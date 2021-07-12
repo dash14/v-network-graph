@@ -17,13 +17,13 @@ export interface Node {
 export type Nodes = { [name: string]: Node }
 
 /* リンク */
-export interface Link {
+export interface Edge {
   source: string
   target: string
 }
 
 /* リンク群 */
-export type Links = { [name: string]: Link }
+export type Edges = { [name: string]: Edge }
 
 /* ------------------------------------------ *
  * Utility
@@ -77,7 +77,7 @@ export type UserLayouts = RecursivePartial<Layouts>
  * ------------------------------------------ */
 
 export type NodeMouseEvent = { node: string, event: MouseEvent }
-export type LinkMouseEvent = { link: string, event: MouseEvent }
+export type EdgeMouseEvent = { edge: string, event: MouseEvent }
 
 export type Events = {
   "node:click": NodeMouseEvent,
@@ -87,8 +87,8 @@ export type Events = {
   "node:mousemove": { [name: string]: Position },
   "node:dragend": { [name: string]: Position },
   "node:select": string[],
-  "link:click": LinkMouseEvent,
-  "link:select": string[],
+  "edge:click": EdgeMouseEvent,
+  "edge:select": string[],
   "view:zoom": number,
   "view:pan": { x: number, y: number },
   "view:fit": undefined,

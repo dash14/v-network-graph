@@ -46,6 +46,6 @@ export function useNodeStyle() {
   return injectStyle("node")
 }
 
-export function useLinkStyle() {
-  return injectStyle("link")
+export function useEdgeStyle() {
+  return injectStyle("edge")
 }

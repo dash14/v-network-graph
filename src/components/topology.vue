@@ -30,28 +30,28 @@
           </g>
         </template>
 
-        <!-- links -->
-        <g class="v-layer-links">
-          <template v-for="[key, bundledLinks] in Array.from(linkMap)">
-            <template v-if="checkLinkSummarize(bundledLinks)">
-              <v-summarized-link
+        <!-- edges -->
+        <g class="v-layer-edges">
+          <template v-for="[key, bundledEdges] in Array.from(edgeMap)">
+            <template v-if="checkEdgeSummarize(bundledEdges)">
+              <v-summarized-edge
                 :key="key"
-                :links="bundledLinks"
+                :edges="bundledEdges"
                 :layouts="currentLayouts.nodes"
               />
             </template>
-            <template v-for="(link, id, i) in bundledLinks" v-else :key="`${id}`">
-              <v-link
+            <template v-for="(edge, id, i) in bundledEdges" v-else :key="`${id}`">
+              <v-edge
                 :id="id.toString()"
-                :source-id="link.source"
-                :target-id="link.target"
-                :source-node="nodes[link.source]"
-                :target-node="nodes[link.target]"
-                :source-pos="currentLayouts.nodes[link.source]"
-                :target-pos="currentLayouts.nodes[link.target]"
+                :source-id="edge.source"
+                :target-id="edge.target"
+                :source-node="nodes[edge.source]"
+                :target-node="nodes[edge.target]"
+                :source-pos="currentLayouts.nodes[edge.source]"
+                :target-pos="currentLayouts.nodes[edge.target]"
                 :i="i"
-                :count="Object.keys(bundledLinks).length"
-                :selected="currentSelectedLinks.includes(id.toString())"
+                :count="Object.keys(bundledEdges).length"
+                :selected="currentSelectedEdges.includes(id.toString())"
               />
             </template>
           </template>
@@ -89,7 +89,7 @@
 
         <!-- node range selections -->
 
-        <!-- link labels -->
+        <!-- edge labels -->
 
         <!-- node labels -->
 
@@ -109,19 +109,19 @@ import { provideMouseOperation } from "@/composables/mouse"
 import { provideEventEmitter } from "@/composables/event-emitter"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
 import { provideZoomLevel } from "@/composables/zoom"
-import { EventHandler, Layouts, Nodes, Links, LayerPos, UserLayouts } from "@/common/types"
+import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "@/common/types"
 import { nonNull } from "@/common/types"
 import { Styles, UserStyles } from "@/common/styles"
 import { SimpleLayout } from "@/layouts/simple"
 import { LayoutHandler } from "@/layouts/handler"
 import VNode from "./node.vue"
 import VNodeSelection from "./node-selection.vue"
-import VLink from "./link.vue"
-import VSummarizedLink from "./summarized-link.vue"
+import VEdge from "./edge.vue"
+import VSummarizedEdge from "./summarized-edge.vue"
 
 export default defineComponent({
   name: "VTopology",
-  components: { VNode, VNodeSelection, VLink, VSummarizedLink },
+  components: { VNode, VNodeSelection, VEdge, VSummarizedEdge },
   props: {
     layers: {
       type: Object as PropType<{ [name: string]: string }>,
@@ -143,15 +143,15 @@ export default defineComponent({
       type: Object as PropType<Nodes>,
       default: () => ({}),
     },
-    links: {
-      type: Object as PropType<Links>,
+    edges: {
+      type: Object as PropType<Edges>,
       default: () => ({}),
     },
     selectedNodes: {
       type: Array as PropType<string[]>,
       default: () => [],
     },
-    selectedLinks: {
+    selectedEdges: {
       type: Array as PropType<string[]>,
       default: () => [],
     },
@@ -178,7 +178,7 @@ export default defineComponent({
     "update:zoomLevel",
     "update:maxZoomLevel",
     "update:selectedNodes",
-    "update:selectedLinks",
+    "update:selectedEdges",
     "update:layouts",
   ],
   setup(props, { emit }) {
@@ -283,28 +283,28 @@ export default defineComponent({
     }
 
     // -----------------------------------------------------------------------
-    // Links
+    // Edges
     // -----------------------------------------------------------------------
 
     // リンクの配置用中間マップの生成
-    const linkMap = computed(() => {
-      const map = new Map<string, Links>()
-      for (const [id, link] of Object.entries(props.links)) {
-        if (!(link.source in props.nodes && link.target in props.nodes)) {
+    const edgeMap = computed(() => {
+      const map = new Map<string, Edges>()
+      for (const [id, edge] of Object.entries(props.edges)) {
+        if (!(edge.source in props.nodes && edge.target in props.nodes)) {
           // reject if no node ID is found on the nodes
           continue
         }
-        const key = [link.source, link.target].sort().join("<=>")
+        const key = [edge.source, edge.target].sort().join("<=>")
         const values = map.get(key) || {}
-        values[id] = link
+        values[id] = edge
         map.set(key, values)
       }
       return map
     })
-    const defaultCheckSummarize = (links: Links, styles: Styles) => {
-      // link幅とgap幅がノードの大きさを超えていたら集約する
-      const linkCount = Object.entries(links).length
-      const width = styles.link.stroke.width * linkCount + styles.link.gap * (linkCount - 1)
+    const defaultCheckSummarize = (edges: Edges, styles: Styles) => {
+      // edge幅とgap幅がノードの大きさを超えていたら集約する
+      const edgeCount = Object.entries(edges).length
+      const width = styles.edge.stroke.width * edgeCount + styles.edge.gap * (edgeCount - 1)
       let minWidth = 0
       if (styles.node.shape.type === "circle") {
         minWidth = styles.node.shape.radius * 2
@@ -313,20 +313,20 @@ export default defineComponent({
       }
       return width > minWidth
     }
-    const checkLinkSummarize = computed(() => {
-      return (links: Links) => {
-        return defaultCheckSummarize(links, styles)
+    const checkEdgeSummarize = computed(() => {
+      return (edges: Edges) => {
+        return defaultCheckSummarize(edges, styles)
       }
     })
 
     // -----------------------------------------------------------------------
-    // States of selected nodes/links
+    // States of selected nodes/edges
     // -----------------------------------------------------------------------
     const currentSelectedNodes = bindPropKeyArray(props, "selectedNodes", props.nodes, emit)
     watch(currentSelectedNodes, nodes => emitter.emit("node:select", nodes))
 
-    const currentSelectedLinks = bindPropKeyArray(props, "selectedLinks", props.links, emit)
-    watch(currentSelectedLinks, links => emitter.emit("link:select", links))
+    const currentSelectedEdges = bindPropKeyArray(props, "selectedEdges", props.edges, emit)
+    watch(currentSelectedEdges, edges => emitter.emit("edge:select", edges))
 
     const currentLayouts = reactive<Layouts>({ nodes: {} })
 
@@ -371,7 +371,7 @@ export default defineComponent({
       readonly(zoomLevel),
       readonly(styles),
       currentSelectedNodes,
-      currentSelectedLinks,
+      currentSelectedEdges,
       emitter
     )
 
@@ -382,7 +382,7 @@ export default defineComponent({
     const activateParams = () => ({
       layouts: currentLayouts.nodes,
       nodes: readonly(props.nodes),
-      links: readonly(props.links),
+      edges: readonly(props.edges),
       styles: readonly(styles),
       scale: readonly(scale),
       emitter,
@@ -425,11 +425,11 @@ export default defineComponent({
       show,
 
       // properties
-      linkMap,
-      checkLinkSummarize,
+      edgeMap,
+      checkEdgeSummarize,
       backgroundLayers,
       currentSelectedNodes,
-      currentSelectedLinks,
+      currentSelectedEdges,
       dragging,
       currentLayouts,
 

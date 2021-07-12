@@ -25,7 +25,7 @@ export const STYLE_DEFAULT: Styles = {
       color: "#eebb00",
     },
   },
-  link: {
+  edge: {
     stroke: {
       width: 2,
       color: "#4466cc",

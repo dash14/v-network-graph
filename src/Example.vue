@@ -188,56 +188,56 @@
           </div>
         </div>
       </div>
-      <h5>Link</h5>
+      <h5>Edge</h5>
       <div class="controls">
         <div class="control button">
           <label>Add/Remove</label>
           <div class="action">
-            <button :disabled="selectedNodes.length != 2" @click="addLink">Add</button>
-            <button :disabled="selectedLinks.length == 0" @click="removeLink">Remove</button>
+            <button :disabled="selectedNodes.length != 2" @click="addEdge">Add</button>
+            <button :disabled="selectedEdges.length == 0" @click="removeEdge">Remove</button>
           </div>
         </div>
         <div class="control slider">
-          <label for="linkWidth">Width</label>
+          <label for="edgeWidth">Width</label>
           <input
-            id="linkWidth"
-            v-model.number="styles.link.stroke.width"
+            id="edgeWidth"
+            v-model.number="styles.edge.stroke.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.link.stroke.width }}</div>
+          <div class="value">{{ styles.edge.stroke.width }}</div>
         </div>
         <div class="control slider">
-          <label for="linkGap">Gap</label>
+          <label for="edgeGap">Gap</label>
           <input
-            id="linkGap"
-            v-model.number="styles.link.gap"
+            id="edgeGap"
+            v-model.number="styles.edge.gap"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.link.gap }}</div>
+          <div class="value">{{ styles.edge.gap }}</div>
         </div>
         <div class="control color">
-          <label for="linkColor">Color</label>
-          <input id="linkColor" v-model="styles.link.stroke.color" type="color">
+          <label for="edgeColor">Color</label>
+          <input id="edgeColor" v-model="styles.edge.stroke.color" type="color">
           <div class="value">
-            <input v-model="styles.link.stroke.color" type="input">
+            <input v-model="styles.edge.stroke.color" type="input">
           </div>
         </div>
         <div class="control text">
-          <label for="linkStrokeDasharray">Dasharray</label>
+          <label for="edgeStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input id="linkStrokeDasharray" v-model="styles.link.stroke.dasharray" type="text">
+            <input id="edgeStrokeDasharray" v-model="styles.edge.stroke.dasharray" type="text">
           </div>
         </div>
         <div class="control select">
-          <label for="linkStrokeLinecap">Linecap</label>
+          <label for="edgeStrokeLinecap">Linecap</label>
           <div class="value">
-            <select id="linkStrokeLinecap" v-model.number="styles.link.stroke.linecap">
+            <select id="edgeStrokeLinecap" v-model.number="styles.edge.stroke.linecap">
               <option value="butt">butt</option>
               <option value="round">round</option>
               <option value="square">square</option>
@@ -245,9 +245,9 @@
           </div>
         </div>
         <div>
-          <label>Selected Links:</label>
+          <label>Selected Edges:</label>
           <ul>
-            <li v-for="n in selectedLinks" :key="n">{{ n }}</li>
+            <li v-for="n in selectedEdges" :key="n">{{ n }}</li>
           </ul>
         </div>
       </div>
@@ -272,13 +272,13 @@
       ref="topology"
       v-model:zoom-level="zoomLevel"
       v-model:selected-nodes="selectedNodes"
-      v-model:selected-links="selectedLinks"
+      v-model:selected-edges="selectedEdges"
       :min-zoom-level="minZoomLevel"
       :max-zoom-level="maxZoomLevel"
       class="topology"
       :layers="layers"
       :nodes="nodes"
-      :links="links"
+      :edges="edges"
       :styles="styles"
       :layouts="layouts"
       :layout-handler="layoutHandler"
@@ -316,7 +316,7 @@ import { computed, defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
 import VTopology from "./components/topology.vue"
 import { STYLE_DEFAULT } from "./common/style-defaults"
-import { UserLayouts, Nodes, Links, LayerPos } from "./common/types"
+import { UserLayouts, Nodes, Edges, LayerPos } from "./common/types"
 import { SimpleLayout } from "./layouts/simple"
 import { GridLayout } from "./layouts/grid"
 import { ForceLayout } from "./layouts/force"
@@ -328,9 +328,9 @@ interface SampleData {
   minZoomLevel: number
   maxZoomLevel: number
   nodes: Nodes
-  links: Links
+  edges: Edges
   selectedNodes: string[]
-  selectedLinks: string[]
+  selectedEdges: string[]
   eventLogs: string[]
 }
 
@@ -424,22 +424,22 @@ export default /*#__PURE__*/ defineComponent({
           type: "router",
         },
       },
-      links: {
-        link1: {
+      edges: {
+        edge1: {
           source: "node1",
           target: "node2",
         },
-        link2: {
+        edge2: {
           source: "node2",
           target: "node3",
         },
-        link3: {
+        edge3: {
           source: "node2",
           target: "node1",
         },
       },
       selectedNodes: ["node1"],
-      selectedLinks: [],
+      selectedEdges: [],
       eventLogs: [],
     }
   },
@@ -470,30 +470,30 @@ export default /*#__PURE__*/ defineComponent({
       const removeNodes = [ ...this.selectedNodes ]
       removeNodes.forEach(id => delete this.nodes[id])
 
-      // remove connected links
-      Object.entries(this.links)
-        .filter(([_, link]) => !(link.source in this.nodes && link.target in this.nodes))
+      // remove connected edges
+      Object.entries(this.edges)
+        .filter(([_, edge]) => !(edge.source in this.nodes && edge.target in this.nodes))
         .map(([id, _]) => id)
-        .forEach(id => delete this.links[id])
+        .forEach(id => delete this.edges[id])
     },
-    addLink() {
+    addEdge() {
       if (this.selectedNodes.length !== 2) return
-      let linkId = ""
+      let edgeId = ""
       let id = 0
       do {
-        linkId = `link${++id}`
-      } while (linkId in this.links)
+        edgeId = `edge${++id}`
+      } while (edgeId in this.edges)
 
-      // add link
-      this.links[linkId] = {
+      // add edge
+      this.edges[edgeId] = {
         source: this.selectedNodes[0],
         target: this.selectedNodes[1],
       }
     },
-    removeLink() {
-      if (this.selectedLinks.length === 0) return
-      const removeLinks = [ ...this.selectedLinks ]
-      removeLinks.forEach(id => delete this.links[id])
+    removeEdge() {
+      if (this.selectedEdges.length === 0) return
+      const removeEdges = [ ...this.selectedEdges ]
+      removeEdges.forEach(id => delete this.edges[id])
     }
   },
 })

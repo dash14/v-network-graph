@@ -6,11 +6,11 @@ import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from 
 import { Styles } from "@/common/styles"
 
 type NodeEventHandler = (node: string, event: MouseEvent) => void
-type LinkEventHandler = (link: string, event: MouseEvent) => void
+type EdgeEventHandler = (edge: string, event: MouseEvent) => void
 
 interface MouseEventHandlers {
   handleNodeMouseDownEvent: NodeEventHandler
-  handleLinkMouseDownEvent: LinkEventHandler
+  handleEdgeMouseDownEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
@@ -23,7 +23,7 @@ interface State {
   dragBasePosition: Position
   nodeBasePositions: { [name: string]: Position }
   mouseDownNodeId: string | undefined
-  mouseDownLinkId: string | undefined
+  mouseDownEdgeId: string | undefined
 }
 
 function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
@@ -37,7 +37,7 @@ export function provideMouseOperation(
   zoomLevel: ReadonlyRef<number>,
   styles: Readonly<Styles>,
   selectedNodes: Reactive<string[]>,
-  selectedLinks: Reactive<string[]>,
+  selectedEdges: Reactive<string[]>,
   emitter: Emitter<Events>
 ): void {
   onMounted(() => {
@@ -55,7 +55,7 @@ export function provideMouseOperation(
     dragBasePosition: { x: 0, y: 0 },
     nodeBasePositions: {},
     mouseDownNodeId: undefined,
-    mouseDownLinkId: undefined,
+    mouseDownEdgeId: undefined,
   }
 
   function handleContainerMouseDownEvent(_: MouseEvent) {
@@ -74,7 +74,7 @@ export function provideMouseOperation(
     if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
       // Click container (without mouse move)
       selectedNodes.splice(0, selectedNodes.length)
-      selectedLinks.splice(0, selectedLinks.length)
+      selectedEdges.splice(0, selectedEdges.length)
     }
   }
 
@@ -88,7 +88,7 @@ export function provideMouseOperation(
       return
     }
 
-    selectedLinks.splice(0, selectedLinks.length)
+    selectedEdges.splice(0, selectedEdges.length)
 
     if (styles.node.selectable) {
       if (event.shiftKey) {
@@ -184,53 +184,53 @@ export function provideMouseOperation(
   }
 
   // -----------------------------------------------------------------------
-  // Event handler for links
+  // Event handler for edges
   // -----------------------------------------------------------------------
 
-  function handleLinkMouseDownEvent(link: string, event: MouseEvent) {
+  function handleEdgeMouseDownEvent(edge: string, event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
 
-    state.mouseDownLinkId = link
-    document.addEventListener("mouseup", handleLinkMouseUpEvent)
+    state.mouseDownEdgeId = edge
+    document.addEventListener("mouseup", handleEdgeMouseUpEvent)
   }
 
-  function handleLinkMouseUpEvent(event: MouseEvent) {
+  function handleEdgeMouseUpEvent(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    document.removeEventListener("mouseup", handleLinkMouseUpEvent)
+    document.removeEventListener("mouseup", handleEdgeMouseUpEvent)
 
-    const link = state.mouseDownLinkId
-    if (link === undefined) {
+    const edge = state.mouseDownEdgeId
+    if (edge === undefined) {
       return
     }
 
-    handleLinkClickEvent(link, event)
+    handleEdgeClickEvent(edge, event)
   }
 
-  function handleLinkClickEvent(link: string, event: MouseEvent) {
+  function handleEdgeClickEvent(edge: string, event: MouseEvent) {
     selectedNodes.splice(0, selectedNodes.length)
 
-    if (styles.link.selectable) {
+    if (styles.edge.selectable) {
       if (event.shiftKey) {
         // 複数選択
-        const index = selectedLinks.indexOf(link)
+        const index = selectedEdges.indexOf(edge)
         if (index >= 0) {
-          selectedLinks.splice(index, 1)
+          selectedEdges.splice(index, 1)
         } else {
-          selectedLinks.push(link)
+          selectedEdges.push(edge)
         }
       } else {
         // クリック操作: 選択中のリンクをクリックされたリンク1つにする
-        selectedLinks.splice(0, selectedLinks.length, link)
+        selectedEdges.splice(0, selectedEdges.length, edge)
       }
     }
-    emitter.emit("link:click", { link, event })
+    emitter.emit("edge:click", { edge, event })
   }
 
   provide(mouseEventHandlersKey, {
     handleNodeMouseDownEvent,
-    handleLinkMouseDownEvent,
+    handleEdgeMouseDownEvent,
   })
 }
 

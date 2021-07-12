@@ -71,9 +71,9 @@ export interface NodeStyle {
   selection: NodeSelectionStyle
 }
 
-/* Link style */
+/* Edge style */
 
-export interface LinkStyle {
+export interface EdgeStyle {
   stroke: StrokeStyle
   gap: number
   summarized: {
@@ -88,7 +88,7 @@ export interface LinkStyle {
 export interface Styles {
   view: ViewStyle
   node: NodeStyle
-  link: LinkStyle
+  edge: EdgeStyle
 }
 
 /** ユーザ指定用 optionalな指定のためのinterface */
