@@ -17,8 +17,8 @@ export default install
 // each can be registered via Vue.component()
 export * from "./components/index"
 
-export { STYLE_DEFAULT } from "./components/common/style-defaults"
-export { SimpleLayout } from "./components/layouts/simple"
-export { GridLayout } from "./components/layouts/grid"
-export { ForceLayout } from "./components/layouts/force"
-export type { LayoutHandler } from "./components/layouts/handler"
+export { STYLE_DEFAULT } from "./common/style-defaults"
+export { SimpleLayout } from "./layouts/simple"
+export { GridLayout } from "./layouts/grid"
+export { ForceLayout } from "./layouts/force"
+export type { LayoutHandler } from "./layouts/handler"

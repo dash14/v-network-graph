@@ -16,7 +16,7 @@ import { useZoomLevel } from "@/composables/zoom"
 import { useLinkStyle } from "@/composables/style"
 import { Node, Position } from "@/common/types"
 import { useMouseOperation } from "@/composables/mouse"
-import VLine from "@/objects/line.vue"
+import VLine from "@/components/line.vue"
 
 function calculateLinePosition(
   x1: number,

@@ -28,9 +28,9 @@
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { Links, NodePositions } from "@/common/types";
 import { useLinkStyle } from "@/composables/style";
-import VLine from "@/objects/line.vue"
-import VShape from "@/objects/shape.vue"
-import VText from "@/objects/text.vue"
+import VLine from "@/components/line.vue"
+import VShape from "@/components/shape.vue"
+import VText from "@/components/text.vue"
 
 export default defineComponent({
   components: { VLine, VShape, VText },

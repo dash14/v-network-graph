@@ -313,14 +313,14 @@
 
 <script lang="ts">
 import { computed, defineComponent, reactive, ref, watch } from "vue"
-import VTopology from "./components/topology.vue"
-import { STYLE_DEFAULT } from "./components/common/style-defaults"
-import { UserLayouts, Nodes, Links, LayerPos } from "./components/common/types"
 import throttle from "lodash-es/throttle"
-import { SimpleLayout } from "@/layouts/simple"
-import { GridLayout } from "@/layouts/grid"
-import { ForceLayout } from "@/layouts/force"
-import { LayoutHandler } from "@/layouts/handler"
+import VTopology from "./components/topology.vue"
+import { STYLE_DEFAULT } from "./common/style-defaults"
+import { UserLayouts, Nodes, Links, LayerPos } from "./common/types"
+import { SimpleLayout } from "./layouts/simple"
+import { GridLayout } from "./layouts/grid"
+import { ForceLayout } from "./layouts/force"
+import { LayoutHandler } from "./layouts/handler"
 
 interface SampleData {
   layers: { [name: string]: LayerPos }

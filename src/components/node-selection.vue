@@ -12,7 +12,7 @@ import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/styles"
 import { useNodeStyle } from "@/composables/style"
-import VShape from "@/objects/shape.vue"
+import VShape from "@/components/shape.vue"
 
 export default defineComponent({
   components: { VShape },

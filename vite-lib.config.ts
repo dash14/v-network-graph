@@ -27,7 +27,7 @@ export default defineConfig({
   },
   resolve: {
     alias: [
-      { find: '@/', replacement: '/src/components/' }
+      { find: '@/', replacement: '/src/' }
     ]
   },
   publicDir: false,
