@@ -9,7 +9,7 @@ export default defineConfig({
     minify: "terser",
     lib: {
       entry: path.resolve(__dirname, 'src/entry.ts'),
-      name: 'v-topology'
+      name: 'v-network-graph'
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled

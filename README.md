@@ -1,6 +1,6 @@
-# v-topology
+# v-network-graph
 
-An interactive SVG based topology/graph visualize component for Vue3.
+An interactive SVG based network-graph visualize component for Vue3.
 
 ## Features
 
@@ -20,7 +20,7 @@ WIP
 ## Installation
 
 ```
-$ npm install v-topology
+$ npm install v-network-graph
 ```
 
 ## Usage

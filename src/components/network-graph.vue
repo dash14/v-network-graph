@@ -120,7 +120,6 @@ import VEdge from "./edge.vue"
 import VSummarizedEdge from "./summarized-edge.vue"
 
 export default defineComponent({
-  name: "VTopology",
   components: { VNode, VNodeSelection, VEdge, VSummarizedEdge },
   props: {
     layers: {

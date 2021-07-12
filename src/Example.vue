@@ -1,5 +1,5 @@
 <template>
-  <div class="network-topology-sample">
+  <div class="network-graph-sample">
     <div class="control-box">
       <h4>Control</h4>
       <div class="controls">
@@ -268,14 +268,14 @@
         <pre>{{ layoutsText }}</pre>
       </div>
     </div>
-    <v-topology
-      ref="topology"
+    <v-network-graph
+      ref="graph"
       v-model:zoom-level="zoomLevel"
       v-model:selected-nodes="selectedNodes"
       v-model:selected-edges="selectedEdges"
       :min-zoom-level="minZoomLevel"
       :max-zoom-level="maxZoomLevel"
-      class="topology"
+      class="network-graph"
       :layers="layers"
       :nodes="nodes"
       :edges="edges"
@@ -304,7 +304,7 @@
           dominant-baseline="text-before-edge"
         >Layer2 OK???</text>
       </template>
-    </v-topology>
+    </v-network-graph>
     <div class="event-logs">
       <div v-for="log in eventLogs" :key="log">{{ log }}</div>
     </div>
@@ -314,7 +314,7 @@
 <script lang="ts">
 import { computed, defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
-import VTopology from "./components/topology.vue"
+import VNetworkGraph from "./components/network-graph.vue"
 import { STYLE_DEFAULT } from "./common/style-defaults"
 import { UserLayouts, Nodes, Edges, LayerPos } from "./common/types"
 import { SimpleLayout } from "./layouts/simple"
@@ -335,17 +335,17 @@ interface SampleData {
 }
 
 export default /*#__PURE__*/ defineComponent({
-  name: "NetworkTopologySample", // vue component name
-  components: { VTopology },
+  name: "NetworkGraphSample", // vue component name
+  components: { VNetworkGraph },
   setup() {
-    const topology = ref()
+    const graph = ref()
 
     const fitToContents = () => {
-      topology.value?.fitToContents()
+      graph.value?.fitToContents()
     }
 
     const center = () => {
-      topology.value?.panToCenter()
+      graph.value?.panToCenter()
     }
 
     const styles = reactive(JSON.parse(JSON.stringify(STYLE_DEFAULT)))
@@ -390,7 +390,7 @@ export default /*#__PURE__*/ defineComponent({
     )
 
     return {
-      topology,
+      graph,
       fitToContents,
       center,
       styles,
@@ -500,7 +500,7 @@ export default /*#__PURE__*/ defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.network-topology-sample {
+.network-graph-sample {
   position: relative;
   display: flex;
   flex-direction: row;
@@ -614,7 +614,7 @@ export default /*#__PURE__*/ defineComponent({
     }
   }
 }
-.topology {
+.network-graph {
   flex: 1;
   height: 100%;
 }
