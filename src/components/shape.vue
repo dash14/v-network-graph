@@ -31,11 +31,11 @@ export default defineComponent({
   props: {
     baseX: {
       type: Number,
-      default: 0
+      default: 0,
     },
     baseY: {
       type: Number,
-      default: 0
+      default: 0,
     },
     styles: {
       type: Object as PropType<ShapeStyle>,
@@ -80,7 +80,7 @@ export default defineComponent({
       radius,
       width,
       height,
-      borderRadius
+      borderRadius,
     }
   },
 })

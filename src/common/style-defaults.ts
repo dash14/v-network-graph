@@ -11,6 +11,12 @@ export const STYLE_DEFAULT: Styles = {
       stroke: null,
       color: "#4466cc",
     },
+    hover: {
+      type: "circle",
+      radius: 16,
+      stroke: null,
+      color: "#3355bb",
+    },
     label: {
       fontFamily: undefined,
       fontSize: 10,
@@ -18,7 +24,8 @@ export const STYLE_DEFAULT: Styles = {
       margin: 4,
       direction: NodeLabelDirection.SOUTH,
     },
-    selectable: true,
+    draggable: true,
+    selectable: false,
     selection: {
       width: 4,
       padding: 3,
@@ -29,6 +36,12 @@ export const STYLE_DEFAULT: Styles = {
     stroke: {
       width: 2,
       color: "#4466cc",
+      dasharray: "0",
+      linecap: "butt",
+    },
+    hover: {
+      width: 2,
+      color: "#3355bb",
       dasharray: "0",
       linecap: "butt",
     },

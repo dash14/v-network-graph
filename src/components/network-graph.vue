@@ -54,7 +54,7 @@
         </g>
 
         <!-- node selections -->
-        <g class="v-layer-nodes-selections">
+        <g v-if="styles.node?.selectable" class="v-layer-nodes-selections">
           <v-node-selection
             v-for="nodeId in currentSelectedNodes"
             :key="nodeId"

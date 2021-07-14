@@ -1,9 +1,11 @@
 <template>
   <g :transform="`translate(${x} ${y})`">
     <v-shape
-      :styles="style.shape"
-      :class="{ selectable: style.selectable }"
+      :styles="hover ? style.hover : style.shape"
+      :class="{ draggable: style.draggable, selectable: style.selectable }"
       @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
+      @mouseover="hover = true"
+      @mouseout="hover = false"
     />
     <v-text
       :text="label"
@@ -46,6 +48,7 @@ export default defineComponent({
   setup(props) {
     const x = computed(() => props.pos?.x || 0)
     const y = computed(() => props.pos?.y || 0)
+    const hover = ref(false)
 
     const style = useNodeStyle()
     const { scale } = useZoomLevel()
@@ -161,6 +164,7 @@ export default defineComponent({
     return {
       x,
       y,
+      hover,
       style,
       label,
       handleNodeMouseDownEvent,
@@ -174,10 +178,22 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+$transition: 0.2s linear;
+
+circle,
+rect {
+  pointer-events: none;
+  transition: fill $transition, stroke $transition, stroke-width $transition;
+}
+.draggable,
+.selectable {
+  pointer-events: all;
+}
 .selectable {
   cursor: pointer;
 }
-.dragging circle {
+.dragging circle,
+.dragging rect {
   cursor: inherit;
 }
 text {

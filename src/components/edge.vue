@@ -5,8 +5,10 @@
     :y1="y1"
     :x2="x2"
     :y2="y2"
-    :styles="selected ? style.selected : style.stroke"
+    :styles="selected ? style.selected : hover ? style.hover : style.stroke"
     @mousedown.prevent.stop="handleEdgeMouseDownEvent(id, $event)"
+    @mouseover="hover = true"
+    @mouseout="hover = false"
   />
 </template>
 
@@ -96,6 +98,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const hover = ref(false)
     const style = useEdgeStyle()
     const { scale } = useZoomLevel()
     const { handleEdgeMouseDownEvent } = useMouseOperation()
@@ -133,14 +136,17 @@ export default defineComponent({
       }
     })
 
-    return { handleEdgeMouseDownEvent, x1, y1, x2, y2, style }
+    return { hover, handleEdgeMouseDownEvent, x1, y1, x2, y2, style }
   },
 })
 </script>
 
 <style lang="scss" scoped>
+$transition: 0.1s linear;
+
 path {
   pointer-events: none;
+  transition: stroke $transition, stroke-width $transition;
 }
 path.selectable {
   pointer-events: all;

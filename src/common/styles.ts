@@ -66,7 +66,9 @@ export interface NodeSelectionStyle {
 
 export interface NodeStyle {
   shape: ShapeStyle
+  hover: ShapeStyle
   label: NodeLabelStyle
+  draggable: boolean
   selectable: boolean
   selection: NodeSelectionStyle
 }
@@ -75,6 +77,7 @@ export interface NodeStyle {
 
 export interface EdgeStyle {
   stroke: StrokeStyle
+  hover: StrokeStyle
   gap: number
   summarized: {
     label: LabelStyle
