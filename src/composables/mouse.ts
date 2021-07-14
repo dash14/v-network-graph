@@ -1,6 +1,6 @@
 // 選択状態とマウス操作を担当する機能
 
-import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref } from "@vue/runtime-core"
+import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref } from "vue"
 import { Emitter } from "mitt"
 import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from "../common/types"
 import { Styles } from "../common/styles"

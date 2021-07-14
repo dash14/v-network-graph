@@ -1,5 +1,4 @@
-import { reactive, ref, Ref } from "@vue/reactivity"
-import { computed, watch } from "@vue/runtime-core"
+import { computed, watch, reactive, ref, Ref } from "vue"
 import isEqual from "lodash-es/isEqual"
 
 export function bindProp<T, K extends string & keyof T>(

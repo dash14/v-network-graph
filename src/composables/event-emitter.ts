@@ -1,4 +1,4 @@
-import { provide, inject, InjectionKey } from "@vue/runtime-core"
+import { provide, inject, InjectionKey } from "vue"
 import mitt, { Emitter } from "mitt"
 import { Events, nonNull } from "../common/types"
 

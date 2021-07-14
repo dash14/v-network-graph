@@ -1,5 +1,5 @@
 import { SvgPanZoomInstance } from "../composables/svg-pan-zoom"
-import { Ref } from "@vue/reactivity"
+import { Ref } from "vue"
 import { Emitter } from "mitt"
 import { Events, Edges, NodePositions, Nodes, Reactive } from "../common/types"
 import { Styles } from "../common/styles"

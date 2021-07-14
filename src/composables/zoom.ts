@@ -1,6 +1,6 @@
 import { nonNull } from "../common/types"
 import { ViewStyle } from "../common/styles"
-import { provide, inject, InjectionKey, Ref, computed } from "@vue/runtime-core"
+import { provide, inject, InjectionKey, Ref, computed } from "vue"
 
 interface ZoomProvides {
   zoomLevel: Ref<number>,

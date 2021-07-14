@@ -1,5 +1,4 @@
-import { Ref, toRef } from "@vue/reactivity"
-import { watch } from "@vue/runtime-core"
+import { Ref, toRef, watch } from "vue"
 import { NodePositions, OnDragHandler, Position } from "../common/types"
 import { getNodeSize, areNodesCollision } from "../common/utility"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"

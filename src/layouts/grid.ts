@@ -1,4 +1,4 @@
-import { Ref } from "@vue/reactivity"
+import { Ref } from "vue"
 import { Position } from "../common/types"
 import { SimpleLayout } from "./simple"
 

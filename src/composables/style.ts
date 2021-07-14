@@ -2,7 +2,7 @@
 import { nonNull } from "../common/types"
 import { Styles, UserStyles } from "../common/styles"
 import { STYLE_DEFAULT } from "../common/style-defaults"
-import { inject, provide, reactive, watch } from "@vue/runtime-core"
+import { inject, provide, reactive, watch } from "vue"
 import cloneDeep from "lodash-es/cloneDeep"
 import merge from "lodash-es/merge"
 

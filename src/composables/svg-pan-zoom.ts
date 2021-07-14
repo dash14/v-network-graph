@@ -1,5 +1,4 @@
-import { ref, Ref } from "@vue/reactivity"
-import { onMounted, onUnmounted } from "@vue/runtime-core"
+import { ref, Ref, onMounted, onUnmounted } from "vue"
 import svgPanZoom from "svg-pan-zoom"
 
 import "svg-pan-zoom" // 型情報の再利用のため
