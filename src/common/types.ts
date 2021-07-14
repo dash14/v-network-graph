@@ -10,8 +10,8 @@ export enum LayerPos {
 /** ノード */
 export interface Node {
   name?: string
-  type?: string
   // 任意の内容
+  [x: string]: any
 }
 
 /** ノード群 */
@@ -21,6 +21,8 @@ export type Nodes = { [name: string]: Node }
 export interface Edge {
   source: string
   target: string
+  // 任意の内容
+  [x: string]: any
 }
 
 /* リンク群 */
