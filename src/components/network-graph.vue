@@ -71,16 +71,6 @@
             :node="node"
             :pos="currentLayouts.nodes[nodeId]"
           />
-          <text
-            x="0"
-            y="40"
-            fill="black"
-            font-size="10"
-            text-anchor="start"
-            dominant-baseline="text-before-edge"
-          >
-            Nodes
-          </text>
         </g>
 
         <!-- node range selections -->
