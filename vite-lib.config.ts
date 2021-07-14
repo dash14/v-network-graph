@@ -11,7 +11,7 @@ export default defineConfig({
     target: "es2015",
     minify: "terser",
     lib: {
-      entry: resolvePath('src/entry.ts'),
+      entry: resolvePath('src/entry.esm.ts'),
       name: 'v-network-graph'
     },
     rollupOptions: {
@@ -19,6 +19,7 @@ export default defineConfig({
       // into your library
       external: ['vue'],
       output: {
+        exports: "named",
         dir: resolvePath('dist'),
         // Provide global variables to use in the UMD build
         // for externalized deps
@@ -27,6 +28,7 @@ export default defineConfig({
         }
       }
     },
+    cssCodeSplit: false,
     sourcemap: true
   },
   // resolve: {
