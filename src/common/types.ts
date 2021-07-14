@@ -1,3 +1,4 @@
+import { isReactive } from "@vue/reactivity";
 
 /** レイヤ位置 */
 export enum LayerPos {
@@ -31,9 +32,21 @@ export type Edges = { [name: string]: Edge }
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
-};
+}
 
-export type Reactive<T> = T
+declare class Id<T extends string> {
+  private IDENTITY: T;
+}
+
+export type Reactive<T> = Id<'Reactive'> & T;
+
+export function Reactive<T>(value: T): Reactive<T> {
+  if (!isReactive(value)) {
+    throw new Error("value is not reactive")
+  }
+  return value as Reactive<T>;
+}
+
 
 export interface ReadonlyRef<T> {
   readonly value: T;

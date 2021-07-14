@@ -34,11 +34,7 @@
         <g class="v-layer-edges">
           <template v-for="[key, bundledEdges] in Array.from(edgeMap)">
             <template v-if="checkEdgeSummarize(bundledEdges)">
-              <v-summarized-edge
-                :key="key"
-                :edges="bundledEdges"
-                :layouts="currentLayouts.nodes"
-              />
+              <v-summarized-edge :key="key" :edges="bundledEdges" :layouts="currentLayouts.nodes" />
             </template>
             <template v-for="(edge, id, i) in bundledEdges" v-else :key="`${id}`">
               <v-edge
@@ -110,7 +106,7 @@ import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
 import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
-import { nonNull } from "../common/types"
+import { Reactive, nonNull } from "../common/types"
 import { Styles, UserStyles } from "../common/styles"
 import { SimpleLayout } from "../layouts/simple"
 import { LayoutHandler } from "../layouts/handler"
@@ -379,7 +375,7 @@ export default defineComponent({
     // -----------------------------------------------------------------------
 
     const activateParams = () => ({
-      layouts: currentLayouts.nodes,
+      layouts: Reactive(currentLayouts.nodes),
       nodes: readonly(props.nodes),
       edges: readonly(props.edges),
       styles: readonly(styles),

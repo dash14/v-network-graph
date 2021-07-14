@@ -1,5 +1,6 @@
 import { computed, watch, reactive, ref, Ref } from "vue"
 import isEqual from "lodash-es/isEqual"
+import { Reactive } from "./types"
 
 export function bindProp<T, K extends string & keyof T>(
   props: T,
@@ -63,7 +64,7 @@ export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
   name: K,
   sourceObject: { [name: string]: any },
   emit: (event: `update:${K}`, ...args: any[]) => void
-) {
+): Reactive<string[]> {
   // 指定propの双方向バインディングを生成する.
   // 指定propがオブジェクトのキーを示すことを前提とする.
   const bound = reactive<string[]>([])
@@ -84,5 +85,5 @@ export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
       emit(`update:${name}` as const, v)
     }
   })
-  return bound
+  return Reactive(bound)
 }
