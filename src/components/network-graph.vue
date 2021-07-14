@@ -243,7 +243,6 @@ export default defineComponent({
       // apply initial zoom level
       const initialZoomLevel = props.zoomLevel
       applyAbsoluteZoomLevel(initialZoomLevel)
-      panToCenter()
     })
 
     // 中心位置や拡大率の認識がずれることがあるための対処
@@ -395,8 +394,13 @@ export default defineComponent({
       // to improve drag performance.
       container.value?.addEventListener("wheel", preventDefault, { passive: false })
 
-      // svgの表示開始
-      nextTick(() => (show.value = true))
+      nextTick(() => {
+        // 中央に表示
+        panToCenter()
+
+        // svgの表示開始
+        show.value = true
+      })
     })
 
     onUnmounted(() => {
