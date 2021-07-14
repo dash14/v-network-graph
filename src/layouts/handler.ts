@@ -1,8 +1,8 @@
-import { SvgPanZoomInstance } from "@/composables/svg-pan-zoom"
+import { SvgPanZoomInstance } from "../composables/svg-pan-zoom"
 import { Ref } from "@vue/reactivity"
 import { Emitter } from "mitt"
-import { Events, Edges, NodePositions, Nodes, Reactive } from "@/common/types"
-import { Styles } from "@/common/styles"
+import { Events, Edges, NodePositions, Nodes, Reactive } from "../common/types"
+import { Styles } from "../common/styles"
 
 export interface LayoutActivateParameters {
   layouts: Reactive<NodePositions>

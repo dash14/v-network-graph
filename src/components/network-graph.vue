@@ -103,17 +103,17 @@
 import { defineComponent, PropType, reactive, readonly, ref } from "vue"
 import { computed, nextTick, onMounted, onUnmounted, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
-import { bindProp, bindPropKeyArray } from "@/common/props"
-import { provideStyles } from "@/composables/style"
-import { provideMouseOperation } from "@/composables/mouse"
-import { provideEventEmitter } from "@/composables/event-emitter"
-import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
-import { provideZoomLevel } from "@/composables/zoom"
-import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "@/common/types"
-import { nonNull } from "@/common/types"
-import { Styles, UserStyles } from "@/common/styles"
-import { SimpleLayout } from "@/layouts/simple"
-import { LayoutHandler } from "@/layouts/handler"
+import { bindProp, bindPropKeyArray } from "../common/props"
+import { provideStyles } from "../composables/style"
+import { provideMouseOperation } from "../composables/mouse"
+import { provideEventEmitter } from "../composables/event-emitter"
+import { useSvgPanZoom } from "../composables/svg-pan-zoom"
+import { provideZoomLevel } from "../composables/zoom"
+import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
+import { nonNull } from "../common/types"
+import { Styles, UserStyles } from "../common/styles"
+import { SimpleLayout } from "../layouts/simple"
+import { LayoutHandler } from "../layouts/handler"
 import VNode from "./node.vue"
 import VNodeSelection from "./node-selection.vue"
 import VEdge from "./edge.vue"
@@ -228,7 +228,7 @@ export default defineComponent({
       },
       onPan: p => emitter.emit("view:pan", p),
       customEventsHandler: {
-        init: () => resizeObserver.observe(nonNull(container.value)),
+        init: () => resizeObserver.observe(nonNull(container.value, "svg-pan-zoom container")),
         haltEventListeners: [],
         destroy: () => resizeObserver.disconnect(),
       },

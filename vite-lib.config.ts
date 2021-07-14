@@ -29,11 +29,11 @@ export default defineConfig({
     },
     sourcemap: true
   },
-  resolve: {
-    alias: [
-      { find: '@/', replacement: '/src/' }
-    ]
-  },
+  // resolve: {
+  //   alias: [
+  //     { find: '@/', replacement: '/src/' }
+  //   ]
+  // },
   publicDir: false,
   plugins: [
     vue(),

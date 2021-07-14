@@ -26,11 +26,11 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import { Edges, NodePositions } from "@/common/types";
-import { useEdgeStyle } from "@/composables/style";
-import VLine from "@/components/line.vue"
-import VShape from "@/components/shape.vue"
-import VText from "@/components/text.vue"
+import { Edges, NodePositions } from "../common/types";
+import { useEdgeStyle } from "../composables/style";
+import VLine from "../components/line.vue"
+import VShape from "../components/shape.vue"
+import VText from "../components/text.vue"
 
 export default defineComponent({
   components: { VLine, VShape, VText },

@@ -18,13 +18,13 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
-import { Node, Position } from "@/common/types"
-import { NodeLabelDirection } from "@/common/styles"
-import { useZoomLevel } from "@/composables/zoom"
-import { useNodeStyle } from "@/composables/style"
-import { useMouseOperation } from "@/composables/mouse"
-import VShape from "@/components/shape.vue"
-import VText from "@/components/text.vue"
+import { Node, Position } from "../common/types"
+import { NodeLabelDirection } from "../common/styles"
+import { useZoomLevel } from "../composables/zoom"
+import { useNodeStyle } from "../composables/style"
+import { useMouseOperation } from "../composables/mouse"
+import VShape from "../components/shape.vue"
+import VText from "../components/text.vue"
 
 export default defineComponent({
   components: { VShape, VText },

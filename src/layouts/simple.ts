@@ -1,7 +1,7 @@
 import { Ref, toRef } from "@vue/reactivity"
 import { watch } from "@vue/runtime-core"
-import { NodePositions, OnDragHandler, Position } from "@/common/types"
-import { getNodeSize, areNodesCollision } from "@/common/utility"
+import { NodePositions, OnDragHandler, Position } from "../common/types"
+import { getNodeSize, areNodesCollision } from "../common/utility"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
 const NEW_NODE_POSITION_MARGIN = 20

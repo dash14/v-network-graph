@@ -12,11 +12,11 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import { useZoomLevel } from "@/composables/zoom"
-import { useEdgeStyle } from "@/composables/style"
-import { Node, Position } from "@/common/types"
-import { useMouseOperation } from "@/composables/mouse"
-import VLine from "@/components/line.vue"
+import { useZoomLevel } from "../composables/zoom"
+import { useEdgeStyle } from "../composables/style"
+import { Node, Position } from "../common/types"
+import { useMouseOperation } from "../composables/mouse"
+import VLine from "../components/line.vue"
 
 function calculateLinePosition(
   x1: number,

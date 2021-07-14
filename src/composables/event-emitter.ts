@@ -1,6 +1,6 @@
 import { provide, inject, InjectionKey } from "@vue/runtime-core"
 import mitt, { Emitter } from "mitt"
-import { Events, nonNull } from "@/common/types"
+import { Events, nonNull } from "../common/types"
 
 const eventEmitterKey = Symbol("emitter") as InjectionKey<Emitter<Events>>
 

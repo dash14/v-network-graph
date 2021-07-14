@@ -10,8 +10,8 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
-import { StrokeStyle } from "@/common/styles"
-import { useZoomLevel } from "@/composables/zoom"
+import { StrokeStyle } from "../common/styles"
+import { useZoomLevel } from "../composables/zoom"
 
 export default defineComponent({
   props: {

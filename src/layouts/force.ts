@@ -1,6 +1,6 @@
 import { toRef } from "@vue/reactivity"
 import { watch } from "@vue/runtime-core"
-import { Edge, Edges, NodePositions, OnClickHandler, OnDragHandler } from "@/common/types"
+import { Edge, Edges, NodePositions, OnClickHandler, OnDragHandler } from "../common/types"
 import * as d3 from "d3-force"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
