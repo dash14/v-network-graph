@@ -35,7 +35,7 @@ export function provideStyles(styles: UserStyles) {
 }
 
 function injectStyle<T extends keyof Styles>(key: T) {
-  return nonNull(inject(injectionKeys[key])) as Styles[T]
+  return nonNull(inject(injectionKeys[key]), `Styles(${key})`) as Styles[T]
 }
 
 export function useViewStyle() {

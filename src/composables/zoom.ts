@@ -21,5 +21,5 @@ export function provideZoomLevel(zoomLevel: Ref<number>, viewStyle: ViewStyle) {
 }
 
 export function useZoomLevel(): ZoomProvides {
-  return nonNull(inject(zoomLevelKey))
+  return nonNull(inject(zoomLevelKey), "zoomLevel")
 }

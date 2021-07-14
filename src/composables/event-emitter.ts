@@ -13,6 +13,6 @@ export function provideEventEmitter(): Emitter<Events> {
 
 export function useEventEmitter() {
   return {
-    emitter: nonNull(inject(eventEmitterKey)),
+    emitter: nonNull(inject(eventEmitterKey), "event emitter"),
   }
 }

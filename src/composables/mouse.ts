@@ -235,5 +235,5 @@ export function provideMouseOperation(
 }
 
 export function useMouseOperation(): MouseEventHandlers {
-  return nonNull(inject(mouseEventHandlersKey))
+  return nonNull(inject(mouseEventHandlersKey), "mouseEventHandlers")
 }
