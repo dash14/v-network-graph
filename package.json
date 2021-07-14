@@ -1,6 +1,6 @@
 {
   "name": "v-network-graph",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "license": "MIT",
   "files": [
     "dist"
@@ -22,21 +22,21 @@
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^8.2.1",
-    "@types/d3-force": "^3.0.1",
+    "@types/d3-force": "^3.0.3",
     "@types/lodash-es": "^4.17.4",
-    "@types/node": "^15.12.5",
-    "@typescript-eslint/eslint-plugin": "^4.28.1",
-    "@typescript-eslint/parser": "^4.28.1",
-    "@vitejs/plugin-vue": "^1.2.3",
-    "@vue/compiler-sfc": "^3.0.5",
-    "eslint": "^7.29.0",
+    "@types/node": "^16.3.2",
+    "@typescript-eslint/eslint-plugin": "^4.28.3",
+    "@typescript-eslint/parser": "^4.28.3",
+    "@vitejs/plugin-vue": "^1.2.5",
+    "@vue/compiler-sfc": "^3.1.4",
+    "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-vue": "^7.12.1",
-    "sass": "^1.35.1",
-    "typescript": "^4.3.2",
-    "vite": "^2.3.8",
-    "vue-tsc": "^0.0.24"
+    "eslint-plugin-vue": "^7.13.0",
+    "sass": "^1.35.2",
+    "typescript": "^4.3.5",
+    "vite": "^2.4.2",
+    "vue-tsc": "^0.0.26"
   },
   "exports": {
     ".": {
