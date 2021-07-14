@@ -17,46 +17,47 @@ export class SimpleLayout implements LayoutHandler {
       }
     }
 
-    const stopNodeWatch = watch(
-      () => Object.keys(nodes),
-      (nodeIds) => {
-        // decide new node's position
-        const newNodes = nodeIds.filter(n => !(n in layouts))
-        const area = svgPanZoom.getViewArea()
-        const s = scale.value
-        for (const nodeId of newNodes) {
-          const node = nodes[nodeId]
-          const nodeSize = getNodeSize(node, styles.node, s)
-          const candidate = { ...area.center }
-          for (;;) {
-            let collision = false
-            for (const [id, pos] of Object.entries(layouts)) {
-              if (nodeId === id) continue
-              const targetNode = nodes[id]
-              if (!targetNode) continue
-              const targetNodeSize = getNodeSize(targetNode, styles.node, s)
-              collision = areNodesCollision(candidate, nodeSize, pos, targetNodeSize)
-              if (collision) {
-                break
-              }
-            }
+    const setNewNodePositions = (nodeIds: string[]) => {
+      // decide new node's position
+      const newNodes = nodeIds.filter(n => !(n in layouts))
+      const area = svgPanZoom.getViewArea()
+      const s = scale.value
+      for (const nodeId of newNodes) {
+        const node = nodes[nodeId]
+        const nodeSize = getNodeSize(node, styles.node, s)
+        const candidate = { ...area.center }
+        for (;;) {
+          let collision = false
+          for (const [id, pos] of Object.entries(layouts)) {
+            if (nodeId === id) continue
+            const targetNode = nodes[id]
+            if (!targetNode) continue
+            const targetNodeSize = getNodeSize(targetNode, styles.node, s)
+            collision = areNodesCollision(candidate, nodeSize, pos, targetNodeSize)
             if (collision) {
-              // Slide the width of one node + margin in the horizontal direction.
-              // If it reaches the edge of the display area, it moves downward.
-              candidate.x += nodeSize.width + NEW_NODE_POSITION_MARGIN / s
-              if (candidate.x + nodeSize.width / 2 > area.box.right) {
-                candidate.x = area.center.x
-                candidate.y += nodeSize.height + NEW_NODE_POSITION_MARGIN / s
-              }
-            } else {
               break
             }
           }
-          const layout = this.getOrCreateNodePosition(layouts, nodeId)
-          this.setNodePosition(layout, candidate)
+          if (collision) {
+            // Slide the width of one node + margin in the horizontal direction.
+            // If it reaches the edge of the display area, it moves downward.
+            candidate.x += nodeSize.width + NEW_NODE_POSITION_MARGIN / s
+            if (candidate.x + nodeSize.width / 2 > area.box.right) {
+              candidate.x = area.center.x
+              candidate.y += nodeSize.height + NEW_NODE_POSITION_MARGIN / s
+            }
+          } else {
+            break
+          }
         }
+        const layout = this.getOrCreateNodePosition(layouts, nodeId)
+        this.setNodePosition(layout, candidate)
       }
-    )
+    }
+
+    setNewNodePositions(Object.keys(nodes))
+    const stopNodeWatch = watch(() => Object.keys(nodes), setNewNodePositions)
+
     emitter.on("node:dragstart", onDrag)
     emitter.on("node:mousemove", onDrag)
     emitter.on("node:dragend", onDrag)
