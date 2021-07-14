@@ -43,6 +43,7 @@
     ".": {
       "import": "./dist/v-network-graph.es.js",
       "require": "./dist/v-network-graph.umd.js"
-    }
+    },
+    "./style.css": "./dist/style.css"
   }
 }
