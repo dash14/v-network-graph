@@ -1,5 +1,5 @@
 <template>
-  <div ref="container" class="v-canvas">
+  <div ref="container" class="v-network-graph">
     <svg
       ref="svg"
       class="v-canvas"
@@ -442,7 +442,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-div.v-canvas {
+.v-network-graph {
   padding: 0;
   position: relative;
   width: 100%;
