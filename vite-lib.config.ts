@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import typescript from '@rollup/plugin-typescript'
-import path from 'path'
+import { defineConfig } from "vite"
+import vue from "@vitejs/plugin-vue"
+import dts from "vite-plugin-dts"
+import path from "path"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
@@ -11,36 +11,34 @@ export default defineConfig({
     target: "es2015",
     minify: "terser",
     lib: {
-      entry: resolvePath('src/index.ts'),
-      name: 'v-network-graph'
+      entry: resolvePath("src/index.ts"),
+      name: "v-network-graph",
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ['vue'],
+      external: ["vue"],
       output: {
         exports: "named",
-        dir: resolvePath('lib'),
+        dir: resolvePath("lib"),
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
-          vue: 'Vue'
-        }
-      }
+          vue: "Vue",
+        },
+      },
     },
     cssCodeSplit: false,
-    sourcemap: true
+    sourcemap: true,
   },
   publicDir: false,
   plugins: [
     vue(),
-    typescript({
-      target: 'es2020',
-      rootDir: resolvePath('src'),
-      declaration: true,
-      declarationDir: resolvePath('lib'),
-      exclude: resolvePath('node_modules/**'),
-      allowSyntheticDefaultImports: true
-    })
-  ]
+    dts({
+      compilerOptions: {
+        rootDir: resolvePath("src")
+      },
+      outputDir: resolvePath("lib/types"),
+    }),
+  ],
 })
