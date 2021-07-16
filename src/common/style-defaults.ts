@@ -1,6 +1,8 @@
+import { DeepReadonly } from "vue"
 import { NodeLabelDirection, Styles } from "./styles"
+import cloneDeep from "lodash-es/cloneDeep"
 
-export const STYLE_DEFAULT: Styles = {
+export const STYLE_DEFAULT: DeepReadonly<Styles> = {
   view: {
     resizeWithZooming: false,
     panEnabled: true,
@@ -77,4 +79,8 @@ export const STYLE_DEFAULT: Styles = {
       linecap: "round",
     },
   },
+}
+
+export function cloneAllStyleDefaults(): Styles {
+  return cloneDeep(STYLE_DEFAULT) as Styles
 }
