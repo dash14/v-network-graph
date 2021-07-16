@@ -198,6 +198,7 @@ rect {
 }
 text {
   pointer-events: none;
+  user-select: none;
   cursor: default;
 }
 </style>
