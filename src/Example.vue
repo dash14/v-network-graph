@@ -70,12 +70,28 @@
           >
           <label for="viewResizeWithZooming">Resize with zooming</label>
         </div>
+        <div class="control">
+          <input
+            id="viewPanEnabled"
+            v-model="styles.view.panEnabled"
+            type="checkbox"
+          >
+          <label for="viewPanEnabled">Pan Enabled</label>
+        </div>
+        <div class="control">
+          <input
+            id="viewZoomEnabled"
+            v-model="styles.view.zoomEnabled"
+            type="checkbox"
+          >
+          <label for="viewZoomEnabled">Zoom Enabled</label>
+        </div>
       </div>
 
       <h5>Node</h5>
       <div class="controls">
         <div class="control button">
-          <label>Add/Remove node</label>
+          <label>Add/Remove</label>
           <div class="action">
             <button @click="addNode">Add</button>
             <button :disabled="selectedNodes.length == 0" @click="removeNode">Remove</button>

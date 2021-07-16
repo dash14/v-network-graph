@@ -3,6 +3,8 @@ import { NodeLabelDirection, Styles } from "./styles"
 export const STYLE_DEFAULT: Styles = {
   view: {
     resizeWithZooming: false,
+    panEnabled: true,
+    zoomEnabled: true
   },
   node: {
     shape: {

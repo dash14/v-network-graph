@@ -38,6 +38,8 @@ export interface LabelStyle {
 
 export interface ViewStyle {
   resizeWithZooming: boolean
+  panEnabled: true,
+  zoomEnabled: true
 }
 
 /* Node style */

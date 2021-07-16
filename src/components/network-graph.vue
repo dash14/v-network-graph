@@ -205,6 +205,7 @@ export default defineComponent({
       fit: true,
       center: true,
       preventMouseEventsDefault: false, // for event listen option: { passive: true }
+      zoomEnabled: styles.view.zoomEnabled,
       onZoom: _ => {
         const z = svgPanZoom.value?.getRealZoom() ?? 1
         if (Math.abs(zoomLevel.value - z) >= 1.0e-6) {
@@ -212,6 +213,7 @@ export default defineComponent({
           emitter.emit("view:zoom", z)
         }
       },
+      panEnabled: styles.view.panEnabled,
       onPan: p => emitter.emit("view:pan", p),
       customEventsHandler: {
         init: () => resizeObserver.observe(nonNull(container.value, "svg-pan-zoom container")),
@@ -227,6 +229,15 @@ export default defineComponent({
         props.maxZoomLevel
       )
     }
+
+    watch(() => styles.view.panEnabled, v => {
+      if (v) svgPanZoom.value?.enablePan()
+      else svgPanZoom.value?.disablePan()
+    })
+    watch(() => styles.view.zoomEnabled, v => {
+      if (v) svgPanZoom.value?.enableZoom()
+      else svgPanZoom.value?.disableZoom()
+    })
 
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
     watch(
