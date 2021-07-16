@@ -20,7 +20,7 @@ export default defineConfig({
       external: ['vue'],
       output: {
         exports: "named",
-        dir: resolvePath('dist'),
+        dir: resolvePath('lib'),
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
@@ -31,11 +31,6 @@ export default defineConfig({
     cssCodeSplit: false,
     sourcemap: true
   },
-  // resolve: {
-  //   alias: [
-  //     { find: '@/', replacement: '/src/' }
-  //   ]
-  // },
   publicDir: false,
   plugins: [
     vue(),
@@ -43,7 +38,7 @@ export default defineConfig({
       target: 'es2020',
       rootDir: resolvePath('src'),
       declaration: true,
-      declarationDir: resolvePath('dist'),
+      declarationDir: resolvePath('lib'),
       exclude: resolvePath('node_modules/**'),
       allowSyntheticDefaultImports: true
     })

@@ -3,8 +3,10 @@
   "version": "0.0.1-alpha.1",
   "license": "MIT",
   "files": [
-    "dist"
+    "lib"
   ],
+  "main": "./lib/v-network-graph.umd.js",
+  "module": "./lib/v-network-graph.es.js",
   "types": "./lib/index.d.ts",
   "scripts": {
     "dev": "vite",
@@ -40,9 +42,9 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/v-network-graph.es.js",
-      "require": "./dist/v-network-graph.umd.js"
+      "import": "./lib/v-network-graph.es.js",
+      "require": "./lib/v-network-graph.umd.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./lib/style.css"
   }
 }
