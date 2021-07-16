@@ -277,6 +277,9 @@ export default defineComponent({
       })
     }
 
+    const zoomIn = () => { svgPanZoom.value?.zoomIn() }
+    const zoomOut = () => { svgPanZoom.value?.zoomOut() }
+
     // -----------------------------------------------------------------------
     // Edges
     // -----------------------------------------------------------------------
@@ -436,6 +439,8 @@ export default defineComponent({
       // methods
       fitToContents,
       panToCenter,
+      zoomIn,
+      zoomOut
     }
   },
 })
