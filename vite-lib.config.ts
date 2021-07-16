@@ -11,7 +11,7 @@ export default defineConfig({
     target: "es2015",
     minify: "terser",
     lib: {
-      entry: resolvePath('src/entry.esm.ts'),
+      entry: resolvePath('src/index.ts'),
       name: 'v-network-graph'
     },
     rollupOptions: {
