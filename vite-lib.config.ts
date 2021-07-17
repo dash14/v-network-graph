@@ -17,7 +17,7 @@ export default defineConfig({
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ["vue"],
+      external: ["vue", "d3-force"],
       output: {
         exports: "named",
         dir: resolvePath("lib"),
@@ -25,6 +25,7 @@ export default defineConfig({
         // for externalized deps
         globals: {
           vue: "Vue",
+          "d3-force": "d3"
         },
       },
     },
