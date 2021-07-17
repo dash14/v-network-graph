@@ -10,9 +10,12 @@
   "types": "./lib/types/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite --config vite-lib.config.ts build",
-    "build-example": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview"
+    "build": "run-s clean build:tc build:lib",
+    "build:tc": "vue-tsc --noEmit",
+    "build:lib": "vite --config vite-lib.config.ts build",
+    "build:example": "vue-tsc --noEmit && vite build",
+    "serve": "vite preview",
+    "clean": "rimraf lib"
   },
   "devDependencies": {
     "@types/d3-force": "^3.0.3",
@@ -28,6 +31,8 @@
     "eslint-plugin-vue": "^7.13.0",
     "lodash-es": "^4.17.21",
     "mitt": "^3.0.0",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^2.7.1",
     "sass": "^1.35.2",
     "svg-pan-zoom": "^3.6.1",
     "typescript": "^4.3.5",
@@ -36,8 +41,8 @@
     "vue-tsc": "^0.0.26"
   },
   "peerDependencies": {
-    "vue": "^3.1.4",
-    "d3-force": "^3.0.0"
+    "d3-force": "^3.0.0",
+    "vue": "^3.1.4"
   },
   "exports": {
     ".": {
