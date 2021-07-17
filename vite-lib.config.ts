@@ -13,6 +13,7 @@ export default defineConfig({
     lib: {
       entry: resolvePath("src/index.ts"),
       name: "v-network-graph",
+      fileName: "index"
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled

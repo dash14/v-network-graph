@@ -5,8 +5,8 @@
   "files": [
     "lib"
   ],
-  "main": "./lib/v-network-graph.umd.js",
-  "module": "./lib/v-network-graph.es.js",
+  "main": "./lib/index.umd.js",
+  "module": "./lib/index.es.js",
   "types": "./lib/types/index.d.ts",
   "scripts": {
     "dev": "vite",
@@ -41,8 +41,8 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/v-network-graph.es.js",
-      "require": "./lib/v-network-graph.umd.js"
+      "import": "./lib/index.es.js",
+      "require": "./lib/index.umd.js"
     },
     "./style.css": "./lib/style.css"
   }
