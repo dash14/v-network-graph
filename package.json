@@ -35,7 +35,7 @@
     "npm-run-all": "^4.1.5",
     "rimraf": "^2.7.1",
     "sass": "^1.35.2",
-    "svg-pan-zoom": "^3.6.1",
+    "svg-pan-zoom": "github:dash14/svg-pan-zoom#main",
     "typescript": "^4.3.5",
     "vite": "^2.4.2",
     "vite-plugin-dts": "^0.5.2",
@@ -59,8 +59,12 @@
   "types": "./lib/types/index.d.ts",
   "typesVersions": {
     "*": {
-      "lib/types/index.d.ts": [ "lib/types/index.d.ts" ],
-      "*": [ "lib/types/*" ]
+      "lib/types/index.d.ts": [
+        "lib/types/index.d.ts"
+      ],
+      "*": [
+        "lib/types/*"
+      ]
     }
   }
 }
