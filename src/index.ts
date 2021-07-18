@@ -21,11 +21,12 @@ export { cloneAllStyleDefaults } from "./common/style-defaults"
 
 export { SimpleLayout } from "./layouts/simple"
 export { GridLayout } from "./layouts/grid"
-export { ForceLayout } from "./layouts/force"
+// export { ForceLayout } from "./layouts/force"
 export type { LayoutHandler } from "./layouts/handler"
 
 export * from "./common/types"
 export * from "./common/styles"
+
 
 // // iife/cjs usage extends esm default export - so import it all
 // import plugin, * as components from '.';

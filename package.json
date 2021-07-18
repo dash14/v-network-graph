@@ -7,12 +7,13 @@
   ],
   "main": "./lib/index.umd.js",
   "module": "./lib/index.es.js",
-  "types": "./lib/types/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "run-s clean build:tc build:lib",
     "build:tc": "vue-tsc --noEmit",
-    "build:lib": "vite --config vite-lib.config.ts build",
+    "build:lib": "run-p build:lib:*",
+    "build:lib:main": "vite --config vite-lib.config.ts build",
+    "build:lib:force": "vite --config vite-lib-force.config.ts build",
     "build:example": "vue-tsc --noEmit && vite build",
     "serve": "vite preview",
     "clean": "rimraf lib"
@@ -49,6 +50,17 @@
       "import": "./lib/index.es.js",
       "require": "./lib/index.umd.js"
     },
+    "./force-layout": {
+      "import": "./lib/force-layout.es.js",
+      "require": "./lib/force-layout.umd.js"
+    },
     "./style.css": "./lib/style.css"
+  },
+  "types": "./lib/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "lib/types/index.d.ts": [ "lib/types/index.d.ts" ],
+      "*": [ "lib/types/*" ]
+    }
   }
 }
