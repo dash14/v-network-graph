@@ -87,7 +87,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, reactive, readonly, ref } from "vue"
-import { computed, nextTick, onMounted, onUnmounted, watch } from "vue"
+import { computed, nextTick, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import { bindProp, bindPropKeyArray } from "../common/props"
 import { provideStyles } from "../composables/style"
@@ -193,12 +193,9 @@ export default defineComponent({
       if (v > props.maxZoomLevel) return props.maxZoomLevel
       return v
     })
-    const resizeObserver = new ResizeObserver(() => {
-      svgPanZoom.value?.resize()
-    })
 
     // SVG pan / zoom
-    const { svgPanZoom } = useSvgPanZoom(svg, {
+    const { svgPanZoom, onSvgPanZoomMounted, onSvgPanZoomUnmounted } = useSvgPanZoom(svg, {
       viewportSelector: ".v-viewport",
       minZoom: props.minZoomLevel, // temporary
       maxZoom: props.maxZoomLevel, // temporary
@@ -215,11 +212,17 @@ export default defineComponent({
       },
       panEnabled: styles.view.panEnabled,
       onPan: p => emitter.emit("view:pan", p),
-      customEventsHandler: {
-        init: () => resizeObserver.observe(nonNull(container.value, "svg-pan-zoom container")),
-        haltEventListeners: [],
-        destroy: () => resizeObserver.disconnect(),
-      },
+    })
+
+    // Observe container resizing
+    const resizeObserver = new ResizeObserver(() => {
+      svgPanZoom.value?.resize()
+    })
+    onSvgPanZoomMounted(() => {
+      resizeObserver.observe(nonNull(container.value, "svg-pan-zoom container"))
+    })
+    onSvgPanZoomUnmounted(() => {
+      resizeObserver.disconnect()
     })
 
     const applyAbsoluteZoomLevel = (absoluteZoomLevel: number) => {
@@ -250,7 +253,7 @@ export default defineComponent({
     // Provide zoom level / scaling parameter
     const { scale } = provideZoomLevel(zoomLevel, styles.view)
 
-    onMounted(() => {
+    onSvgPanZoomMounted(() => {
       // apply initial zoom level
       const initialZoomLevel = props.zoomLevel
       applyAbsoluteZoomLevel(initialZoomLevel)
@@ -386,8 +389,8 @@ export default defineComponent({
       emitter,
       svgPanZoom: nonNull(svgPanZoom.value),
     })
-    onMounted(() => props.layoutHandler.activate(activateParams()))
-    onUnmounted(() => props.layoutHandler.deactivate())
+    onSvgPanZoomMounted(() => props.layoutHandler.activate(activateParams()))
+    onSvgPanZoomUnmounted(() => props.layoutHandler.deactivate())
     watch(
       () => props.layoutHandler,
       (newHandler, oldHandler) => {
@@ -402,7 +405,7 @@ export default defineComponent({
 
     const preventDefault = (event: MouseEvent) => event.preventDefault()
 
-    onMounted(() => {
+    onSvgPanZoomMounted(() => {
       // Prevent pinch-in/out zooming of the entire page.
       // The svg-pan-zoom's event listeners set the "passive: true" option
       // to improve drag performance.
@@ -417,7 +420,7 @@ export default defineComponent({
       })
     })
 
-    onUnmounted(() => {
+    onSvgPanZoomUnmounted(() => {
       container.value?.removeEventListener("wheel", preventDefault)
     })
 
@@ -440,7 +443,7 @@ export default defineComponent({
       fitToContents,
       panToCenter,
       zoomIn,
-      zoomOut
+      zoomOut,
     }
   },
 })
