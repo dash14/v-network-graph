@@ -27,7 +27,6 @@ export default defineConfig({
         globals: {
           vue: "Vue",
         },
-        inlineDynamicImports: true // for importing svg-pan-zoom
       },
     },
     cssCodeSplit: false,

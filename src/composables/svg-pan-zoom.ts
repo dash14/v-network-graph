@@ -1,5 +1,5 @@
 import { ref, Ref, onMounted, onUnmounted } from "vue"
-import * as SvgPanZoom from "../external/svg-pan-zoom-types"
+import svgPanZoom, * as SvgPanZoom from "svg-pan-zoom"
 import { nonNull } from "../common/types"
 
 interface Box {
@@ -98,9 +98,7 @@ export function useSvgPanZoom(svg: Ref<SVGElement | undefined>, options?: SvgPan
     unmountedCallbacks.length = 0 // clear
   }
 
-  onMounted(async () => {
-    const svgPanZoom = (await import("svg-pan-zoom")).default
-
+  onMounted(() => {
     // hook init/destroy custom events
     if (options?.customEventsHandler) {
       const userInit = options.customEventsHandler.init
