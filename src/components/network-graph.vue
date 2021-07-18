@@ -455,6 +455,7 @@ export default defineComponent({
   position: relative;
   width: 100%;
   height: 100%;
+  user-select: none;
 }
 svg.v-canvas {
   width: 100%;
