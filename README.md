@@ -1,4 +1,4 @@
-# v-network-graph
+# (WIP) v-network-graph
 
 An interactive SVG based network-graph visualize component for Vue3.
 
