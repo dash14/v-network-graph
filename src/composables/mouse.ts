@@ -243,7 +243,7 @@ export function provideMouseOperation(
       emitter.emit("node:dragstart", draggingNodes)
     }
     const draggingNodes = _calculateNodeNewPosition(pointerState, event)
-    emitter.emit("node:mousemove", draggingNodes)
+    emitter.emit("node:pointermove", draggingNodes)
   }
 
   function handleNodePointerCancelEvent(event: PointerEvent) {
@@ -269,7 +269,7 @@ export function provideMouseOperation(
       })
       emitter.emit("node:dragend", draggingNodes)
     }
-    emitter.emit("node:mouseup", { node, event })
+    emitter.emit("node:pointerup", { node, event })
     // no click event
 
     // reset state
@@ -296,9 +296,9 @@ export function provideMouseOperation(
     if (isMoved) {
       const draggingNodes = _calculateNodeNewPosition(pointerState, event)
       emitter.emit("node:dragend", draggingNodes)
-      emitter.emit("node:mouseup", { node, event })
+      emitter.emit("node:pointerup", { node, event })
     } else {
-      emitter.emit("node:mouseup", { node, event })
+      emitter.emit("node:pointerup", { node, event })
       handleNodeClickEvent(node, event)
     }
 
@@ -347,7 +347,7 @@ export function provideMouseOperation(
       }
     }
 
-    emitter.emit("node:mousedown", { node, event })
+    emitter.emit("node:pointerdown", { node, event })
   }
 
   // -----------------------------------------------------------------------

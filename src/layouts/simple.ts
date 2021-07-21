@@ -59,13 +59,13 @@ export class SimpleLayout implements LayoutHandler {
     const stopNodeWatch = watch(() => Object.keys(nodes), setNewNodePositions)
 
     emitter.on("node:dragstart", onDrag)
-    emitter.on("node:mousemove", onDrag)
+    emitter.on("node:pointermove", onDrag)
     emitter.on("node:dragend", onDrag)
 
     this.onDeactivate = () => {
       stopNodeWatch()
       emitter.off("node:dragstart", onDrag)
-      emitter.off("node:mousemove", onDrag)
+      emitter.off("node:pointermove", onDrag)
       emitter.off("node:dragend", onDrag)
     }
   }

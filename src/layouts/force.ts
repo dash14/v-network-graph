@@ -133,7 +133,7 @@ export class ForceLayout implements LayoutHandler {
     )
 
     emitter.on("node:dragstart", onDrag)
-    emitter.on("node:mousemove", onDrag)
+    emitter.on("node:pointermove", onDrag)
     emitter.on("node:dragend", onDragEnd)
     emitter.on("node:click", onClick)
 
@@ -142,7 +142,7 @@ export class ForceLayout implements LayoutHandler {
       stopNodeWatch()
       stopEdgeWatch()
       emitter.off("node:dragstart", onDrag)
-      emitter.off("node:mousemove", onDrag)
+      emitter.off("node:pointermove", onDrag)
       emitter.off("node:dragend", onDragEnd)
       emitter.off("node:click", onClick)
     }

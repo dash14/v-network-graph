@@ -91,18 +91,18 @@ export type UserLayouts = RecursivePartial<Layouts>
  * Events
  * ------------------------------------------ */
 
-export type NodeMouseEvent = { node: string, event: MouseEvent }
-export type EdgeMouseEvent = { edge: string, event: MouseEvent }
+export type NodePointerEvent = { node: string, event: MouseEvent }
+export type EdgePointerEvent = { edge: string, event: MouseEvent }
 
 export type Events = {
-  "node:click": NodeMouseEvent,
-  "node:mouseup": NodeMouseEvent,
-  "node:mousedown": NodeMouseEvent,
+  "node:click": NodePointerEvent,
+  "node:pointerup": NodePointerEvent,
+  "node:pointerdown": NodePointerEvent,
   "node:dragstart": { [name: string]: Position },
-  "node:mousemove": { [name: string]: Position },
+  "node:pointermove": { [name: string]: Position },
   "node:dragend": { [name: string]: Position },
   "node:select": string[],
-  "edge:click": EdgeMouseEvent,
+  "edge:click": EdgePointerEvent,
   "edge:select": string[],
   "view:zoom": number,
   "view:pan": { x: number, y: number },
@@ -110,5 +110,5 @@ export type Events = {
 }
 
 export type EventHandler = <T extends keyof Events>(event : T, value: Events[T]) => void
-export type OnClickHandler = (param: NodeMouseEvent) => void
+export type OnClickHandler = (param: NodePointerEvent) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void
