@@ -277,6 +277,7 @@ export function provideMouseOperation(
     entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
+    emitter.emit("view:mode", "default")
   }
 
   function handleNodePointerUpEvent(event: PointerEvent) {
@@ -308,6 +309,7 @@ export function provideMouseOperation(
       entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
+      emitter.emit("view:mode", "default")
     } else {
       _updateFollowNodes(pointerState)
     }
@@ -319,6 +321,7 @@ export function provideMouseOperation(
 
     if (state.pointers.size == 0) {
       // Add event listeners
+      emitter.emit("view:mode", "node")
       entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
         document.addEventListener(ev, handler)
       })

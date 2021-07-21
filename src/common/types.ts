@@ -104,6 +104,7 @@ export type Events = {
   "node:select": string[],
   "edge:click": EdgePointerEvent,
   "edge:select": string[],
+  "view:mode": "default" | "node" | "edge",
   "view:zoom": number,
   "view:pan": { x: number, y: number },
   "view:fit": undefined,

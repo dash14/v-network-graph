@@ -365,6 +365,15 @@ export default defineComponent({
     const dragging = ref<boolean>(false)
     emitter.on("node:dragstart", _ => (dragging.value = true))
     emitter.on("node:dragend", _ => (dragging.value = false))
+    emitter.on("view:mode", mode => {
+      if (!styles.view.panEnabled) return
+      // avoid panning when using nodes and edges with multi-touch
+      if (mode === "default") {
+        svgPanZoom.value?.enablePan()
+      } else {
+        svgPanZoom.value?.disablePan()
+      }
+    })
 
     provideMouseOperation(
       svg,
