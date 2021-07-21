@@ -102,6 +102,8 @@ export type Events = {
   "node:pointermove": { [name: string]: Position },
   "node:dragend": { [name: string]: Position },
   "node:select": string[],
+  "edge:pointerup": EdgePointerEvent,
+  "edge:pointerdown": EdgePointerEvent,
   "edge:click": EdgePointerEvent,
   "edge:select": string[],
   "view:mode": "default" | "node" | "edge",

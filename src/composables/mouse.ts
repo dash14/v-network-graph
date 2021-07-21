@@ -11,7 +11,7 @@ type EdgeEventHandler = (edge: string, event: MouseEvent) => void
 
 interface MouseEventHandlers {
   handleNodePointerDownEvent: NodeEventHandler
-  handleEdgeMouseDownEvent: EdgeEventHandler
+  handleEdgePointerDownEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
@@ -20,13 +20,18 @@ const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<Mouse
 const MOVE_DETECTION_THRESHOLD = 3 // ドラッグを開始する感度
 
 // state for each pointer of multi touch
-interface PointerState {
+interface NodePointerState {
   pointerId: number // pointer ID provided by the event
-  nodeId: string // grabbing node ID
+  nodeId: string // pointer down node ID
   moveCounter: number // count for pointermove event occurred
   dragBasePosition: Position // drag started position
   nodeBasePosition: Position // node position at drag started
   latestPosition: Position // latest position
+}
+
+interface EdgePointerState {
+  pointerId: number // pointer ID provided by the event
+  edgeId: string // pointer down edge ID
 }
 
 interface State {
@@ -34,12 +39,13 @@ interface State {
     moveCounter: number
     pointerCounter: number
   }
-  pointers: Map<number, PointerState> // <PointerId, ...>
+  nodePointers: Map<number, NodePointerState> // <PointerId, ...>
   follow: {
     followedPointerId: number
     nodeBasePositions: { [name: string]: Position }
   }
-  mouseDownEdgeId: string | undefined
+  edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
+  edgePointerPeekCount: number
 }
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
@@ -75,12 +81,13 @@ export function provideMouseOperation(
       moveCounter: 0,
       pointerCounter: 0,
     },
-    pointers: new Map(),
+    nodePointers: new Map(),
     follow: {
       followedPointerId: -1,
       nodeBasePositions: {},
     },
-    mouseDownEdgeId: undefined,
+    edgePointers: new Map(),
+    edgePointerPeekCount: 0
   }
 
   const containerPointerHandlers = {
@@ -92,6 +99,10 @@ export function provideMouseOperation(
     pointermove: handleNodePointerMoveEvent,
     pointerup: handleNodePointerUpEvent,
     pointercancel: handleNodePointerCancelEvent,
+  }
+  const edgePointerHandlers = {
+    pointerup: handleEdgePointerUpEvent,
+    pointercancel: handleEdgePointerCancelEvent,
   }
 
   function handleContainerPointerDownEvent(_: PointerEvent) {
@@ -128,14 +139,14 @@ export function provideMouseOperation(
   // Event handler for nodes
   // -----------------------------------------------------------------------
 
-  function _updateFollowNodes(pointerState: PointerState) {
+  function _updateFollowNodes(pointerState: NodePointerState) {
     const isFollowed = state.follow.followedPointerId === pointerState.pointerId
     const isSelectedNode = selectedNodes.includes(pointerState.nodeId)
 
-    const removed = !(pointerState.pointerId in state.pointers)
+    const removed = !(pointerState.pointerId in state.nodePointers)
     if ((isFollowed && removed) || (isFollowed && !isSelectedNode)) {
       // selected => unselected
-      const candidate = MapUtil.valueOf(state.pointers).find(p => selectedNodes.includes(p.nodeId))
+      const candidate = MapUtil.valueOf(state.nodePointers).find(p => selectedNodes.includes(p.nodeId))
       if (!candidate) {
         state.follow = { followedPointerId: -1, nodeBasePositions: {} }
         return
@@ -143,7 +154,7 @@ export function provideMouseOperation(
       pointerState = candidate
       state.follow.followedPointerId = pointerState.pointerId
     } else {
-      const followed = state.pointers.get(state.follow.followedPointerId)
+      const followed = state.nodePointers.get(state.follow.followedPointerId)
       if (!followed) {
         state.follow = { followedPointerId: -1, nodeBasePositions: {} }
         return
@@ -154,7 +165,7 @@ export function provideMouseOperation(
     if (isFollowed || isSelectedNode) {
       // reset state for following:
       // followed by selected nodes without user grabs
-      const userGrabs = MapUtil.valueOf(state.pointers).map(n => n.nodeId)
+      const userGrabs = MapUtil.valueOf(state.nodePointers).map(n => n.nodeId)
       state.follow.nodeBasePositions = Object.fromEntries(
         selectedNodes
           .filter(n => !userGrabs.includes(n))
@@ -166,13 +177,13 @@ export function provideMouseOperation(
   }
 
   watch(selectedNodes, () => {
-    const pointerState = state.pointers.get(state.follow.followedPointerId)
+    const pointerState = state.nodePointers.get(state.follow.followedPointerId)
     if (pointerState) {
       _updateFollowNodes(pointerState)
     }
   })
 
-  function _calculateNodeNewPosition(pointerState: PointerState, event: PointerPosition) {
+  function _calculateNodeNewPosition(pointerState: NodePointerState, event: PointerPosition) {
     const dx = pointerState.dragBasePosition.x - event.pageX
     const dy = pointerState.dragBasePosition.y - event.pageY
     const positions =
@@ -200,7 +211,7 @@ export function provideMouseOperation(
 
     if (styles.node.selectable) {
       const isTouchAnySelectedNode =
-        MapUtil.valueOf(state.pointers).filter(
+        MapUtil.valueOf(state.nodePointers).filter(
           p => p.pointerId != event.pointerId && selectedNodes.includes(p.nodeId)
         ).length > 0
       if (event.shiftKey || isTouchAnySelectedNode) {
@@ -223,7 +234,7 @@ export function provideMouseOperation(
     event.preventDefault()
     event.stopPropagation()
 
-    const pointerState = state.pointers.get(event.pointerId)
+    const pointerState = state.nodePointers.get(event.pointerId)
     if (!pointerState) {
       return
     }
@@ -250,29 +261,30 @@ export function provideMouseOperation(
     event.preventDefault()
     event.stopPropagation()
 
-    const pointerState = state.pointers.get(event.pointerId)
+    let pointerState = state.nodePointers.get(event.pointerId)
     if (!pointerState) {
       return
     }
 
-    state.pointers.delete(event.pointerId)
+    for (pointerState of state.nodePointers.values()) {
+      const node = pointerState.nodeId
 
-    const node = pointerState.nodeId
-
-    const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
-    if (isMoved) {
-      // pageX/Y in cancel event are zero => use latest position
-      const draggingNodes = _calculateNodeNewPosition(pointerState, {
-        pointerId: pointerState.pointerId,
-        pageX: pointerState.latestPosition.x,
-        pageY: pointerState.latestPosition.y,
-      })
-      emitter.emit("node:dragend", draggingNodes)
+      const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
+      if (isMoved) {
+        // pageX/Y in cancel event are zero => use latest position
+        const draggingNodes = _calculateNodeNewPosition(pointerState, {
+          pointerId: pointerState.pointerId,
+          pageX: pointerState.latestPosition.x,
+          pageY: pointerState.latestPosition.y,
+        })
+        emitter.emit("node:dragend", draggingNodes)
+      }
+      emitter.emit("node:pointerup", { node, event })
+      // no click event
     }
-    emitter.emit("node:pointerup", { node, event })
-    // no click event
 
     // reset state
+    state.nodePointers.clear()
     state.follow = { followedPointerId: -1, nodeBasePositions: {} }
     entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
@@ -284,12 +296,12 @@ export function provideMouseOperation(
     event.preventDefault()
     event.stopPropagation()
 
-    const pointerState = state.pointers.get(event.pointerId)
+    const pointerState = state.nodePointers.get(event.pointerId)
     if (!pointerState) {
       return
     }
 
-    state.pointers.delete(event.pointerId)
+    state.nodePointers.delete(event.pointerId)
 
     const node = pointerState.nodeId
 
@@ -303,7 +315,7 @@ export function provideMouseOperation(
       handleNodeClickEvent(node, event)
     }
 
-    if (state.pointers.size == 0) {
+    if (state.nodePointers.size == 0) {
       // re-initialize state
       state.follow = { followedPointerId: -1, nodeBasePositions: {} }
       entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
@@ -319,7 +331,11 @@ export function provideMouseOperation(
     event.preventDefault()
     event.stopPropagation()
 
-    if (state.pointers.size == 0) {
+    if (state.edgePointers.size !== 0) {
+      return
+    }
+
+    if (state.nodePointers.size == 0) {
       // Add event listeners
       emitter.emit("view:mode", "node")
       entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
@@ -328,7 +344,7 @@ export function provideMouseOperation(
     }
 
     // Create new pointer state
-    const pointerState: PointerState = {
+    const pointerState: NodePointerState = {
       pointerId: event.pointerId,
       nodeId: node,
       moveCounter: 0,
@@ -336,7 +352,7 @@ export function provideMouseOperation(
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
     }
-    state.pointers.set(event.pointerId, pointerState)
+    state.nodePointers.set(event.pointerId, pointerState)
 
     if (selectedNodes.includes(node)) {
       if (state.follow.followedPointerId < 0) {
@@ -357,32 +373,96 @@ export function provideMouseOperation(
   // Event handler for edges
   // -----------------------------------------------------------------------
 
-  function handleEdgeMouseDownEvent(edge: string, event: MouseEvent) {
+  function handleEdgePointerDownEvent(edge: string, event: PointerEvent) {
     event.preventDefault()
     event.stopPropagation()
 
-    state.mouseDownEdgeId = edge
-    document.addEventListener("pointerup", handleEdgeMouseUpEvent)
-  }
-
-  function handleEdgeMouseUpEvent(event: MouseEvent) {
-    event.preventDefault()
-    event.stopPropagation()
-    document.removeEventListener("pointerup", handleEdgeMouseUpEvent)
-
-    const edge = state.mouseDownEdgeId
-    if (edge === undefined) {
+    if (state.nodePointers.size !== 0) {
       return
     }
 
-    handleEdgeClickEvent(edge, event)
+    if (state.edgePointers.size == 0) {
+      // Add event listeners
+      emitter.emit("view:mode", "edge")
+      entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
+        document.addEventListener(ev, handler)
+      })
+      state.edgePointerPeekCount = 0
+    }
+
+    state.edgePointerPeekCount++
+
+    // Create new pointer state
+    const pointerState: EdgePointerState = {
+      pointerId: event.pointerId,
+      edgeId: edge,
+    }
+    state.edgePointers.set(event.pointerId, pointerState)
+
+    emitter.emit("edge:pointerdown", { edge, event })
   }
 
-  function handleEdgeClickEvent(edge: string, event: MouseEvent) {
+  function handleEdgePointerUpEvent(event: PointerEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const pointerState = state.edgePointers.get(event.pointerId)
+    if (!pointerState) {
+      return
+    }
+
+    state.edgePointers.delete(event.pointerId)
+
+    const edge = pointerState.edgeId
+
+    emitter.emit("edge:pointerup", { edge, event })
+
+    if (state.edgePointers.size > 0 || state.edgePointerPeekCount === 1) {
+      handleEdgeClickEvent(edge, event)
+    }
+
+    if (state.edgePointers.size === 0) {
+      // reset state
+      state.edgePointerPeekCount = 0
+      entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
+        document.removeEventListener(ev, handler)
+      })
+      emitter.emit("view:mode", "default")
+    }
+  }
+
+  function handleEdgePointerCancelEvent(event: PointerEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const pointerState = state.edgePointers.get(event.pointerId)
+    if (!pointerState) {
+      return
+    }
+
+    for (const pointerState of state.edgePointers.values()) {
+      const edge = pointerState.edgeId
+      emitter.emit("edge:pointerup", { edge, event })
+    }
+
+    // reset state
+    state.edgePointers.clear()
+    state.edgePointerPeekCount = 0
+    entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
+      document.removeEventListener(ev, handler)
+    })
+    emitter.emit("view:mode", "default")
+  }
+
+  function handleEdgeClickEvent(edge: string, event: PointerEvent) {
     selectedNodes.splice(0, selectedNodes.length)
 
     if (styles.edge.selectable) {
-      if (event.shiftKey) {
+      const isTouchAnySelectedEdge =
+        MapUtil.valueOf(state.edgePointers).filter(
+          p => p.pointerId != event.pointerId && selectedEdges.includes(p.edgeId)
+        ).length > 0
+      if (event.shiftKey || isTouchAnySelectedEdge) {
         const index = selectedEdges.indexOf(edge)
         if (index >= 0) {
           selectedEdges.splice(index, 1)
@@ -399,7 +479,7 @@ export function provideMouseOperation(
 
   provide(mouseEventHandlersKey, {
     handleNodePointerDownEvent,
-    handleEdgeMouseDownEvent,
+    handleEdgePointerDownEvent,
   })
 }
 

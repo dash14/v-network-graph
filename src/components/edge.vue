@@ -6,9 +6,9 @@
     :x2="x2"
     :y2="y2"
     :styles="selected ? style.selected : hover ? style.hover : style.stroke"
-    @mousedown.prevent.stop="handleEdgeMouseDownEvent(id, $event)"
-    @mouseover="hover = true"
-    @mouseout="hover = false"
+    @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
+    @pointerover="hover = true"
+    @pointerout="hover = false"
   />
 </template>
 
@@ -101,7 +101,7 @@ export default defineComponent({
     const hover = ref(false)
     const style = useEdgeStyle()
     const { scale } = useZoomLevel()
-    const { handleEdgeMouseDownEvent } = useMouseOperation()
+    const { handleEdgePointerDownEvent } = useMouseOperation()
 
     const x1 = ref(0)
     const y1 = ref(0)
@@ -136,7 +136,7 @@ export default defineComponent({
       }
     })
 
-    return { hover, handleEdgeMouseDownEvent, x1, y1, x2, y2, style }
+    return { hover, handleEdgePointerDownEvent, x1, y1, x2, y2, style }
   },
 })
 </script>
