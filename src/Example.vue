@@ -51,12 +51,6 @@
             <button @click="center">Run</button>
           </div>
         </div>
-        <div>
-          <label>Selected Nodes:</label>
-          <ul>
-            <li v-for="n in selectedNodes" :key="n">{{ n }}</li>
-          </ul>
-        </div>
       </div>
       <h4>Styles</h4>
 
@@ -119,6 +113,12 @@
         <div class="control">
           <input id="nodeSelectable" v-model="styles.node.selectable" type="checkbox">
           <label for="nodeSelectable">Selectable</label>
+        </div>
+        <div>
+          <label>Selected Nodes:</label>
+          <ul>
+            <li v-for="n in selectedNodes" :key="n">{{ n }}</li>
+          </ul>
         </div>
       </div>
       <h5>Node Label</h5>
@@ -259,6 +259,10 @@
               <option value="square">square</option>
             </select>
           </div>
+        </div>
+        <div class="control">
+          <input id="edgeSelectable" v-model="styles.edge.selectable" type="checkbox">
+          <label for="edgeSelectable">Selectable</label>
         </div>
         <div>
           <label>Selected Edges:</label>
