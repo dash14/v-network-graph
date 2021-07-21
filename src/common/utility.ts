@@ -1,6 +1,14 @@
 import { Node, Position, Size } from "./types"
 import { NodeStyle } from "./styles"
 
+export function keyOf<T>(obj: T): (keyof T)[] {
+  return Object.keys(obj) as (keyof T)[]
+}
+
+export function entriesOf<T, K extends keyof T>(obj: T): [K, T[K]][] {
+  return Object.entries(obj) as [K, T[K]][]
+}
+
 export function getNodeSize(_node: Node, style: NodeStyle, scale: number): Size {
   const shape = style.shape
   if (shape.type == "circle") {
@@ -30,4 +38,10 @@ export function areNodesCollision(
   const distanceY = Math.abs(nodePos.y - targetNodePos.y)
   const collisionY = distanceY < nodeSize.height / 2 + targetNodeSize.height / 2
   return collisionX && collisionY
+}
+
+export class MapUtil {
+  static valueOf<K, V>(map: Map<K, V>) {
+    return Array.from(map.values())
+  }
 }
