@@ -1,15 +1,15 @@
 // 選択状態とマウス操作を担当する機能
 
-import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref } from "vue"
+import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from "../common/types"
 import { Styles } from "../common/styles"
 
-type NodeEventHandler = (node: string, event: MouseEvent) => void
+type NodeEventHandler = (node: string, event: PointerEvent) => void
 type EdgeEventHandler = (edge: string, event: MouseEvent) => void
 
 interface MouseEventHandlers {
-  handleNodeMouseDownEvent: NodeEventHandler
+  handleNodePointerDownEvent: NodeEventHandler
   handleEdgeMouseDownEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
@@ -18,13 +18,23 @@ const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<Mouse
 
 const MOVE_DETECTION_THRESHOLD = 3 // ドラッグを開始する感度
 
+interface PointerState {
+  pointerId: number // pointer ID provided by the event
+  nodeId: string // grabbing node ID
+  moveCounter: number // count for pointermove event occurred
+  dragBasePosition: Position // drag started position
+  nodeBasePosition: Position // node position at drag started
+  latestPosition: Position // latest position
+}
 interface State {
-  moveCounter: number
-  dragBasePosition: Position
-  nodeBasePositions: { [name: string]: Position }
-  mouseDownNodeId: string | undefined
+  containerMoveCounter: number
+  pointers: Map<number, PointerState> // <PointerId, ...>
+  pointerIdForBoundNodes: number
+  boundNodeBasePositions: { [name: string]: Position }
   mouseDownEdgeId: string | undefined
 }
+
+type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
 
 function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
   const pos = nodes[node] ?? { x: 0, y: 0 }
@@ -41,37 +51,41 @@ export function provideMouseOperation(
   emitter: Emitter<Events>
 ): void {
   onMounted(() => {
-    container.value?.addEventListener("mousedown", handleContainerMouseDownEvent)
+    container.value?.addEventListener("pointerdown", handleContainerPointerDownEvent)
   })
 
   onUnmounted(() => {
-    container.value?.removeEventListener("mousedown", handleContainerMouseDownEvent)
+    container.value?.removeEventListener("pointerdown", handleContainerPointerDownEvent)
   })
 
   const state: State = {
     // mousedown 状態での移動イベント回数を測定し、mouseup 時の
     // クリック判定に用いる
-    moveCounter: 0,
-    dragBasePosition: { x: 0, y: 0 },
-    nodeBasePositions: {},
-    mouseDownNodeId: undefined,
+    containerMoveCounter: 0,
+    pointers: new Map(),
+    pointerIdForBoundNodes: -1,
+    boundNodeBasePositions: {},
     mouseDownEdgeId: undefined,
   }
 
-  function handleContainerMouseDownEvent(_: MouseEvent) {
-    state.moveCounter = 0
-    container.value?.addEventListener("mousemove", handleContainerMouseMoveEvent)
-    container.value?.addEventListener("mouseup", handleContainerMouseUpEvent)
+  function handleContainerPointerDownEvent(_: PointerEvent) {
+    state.containerMoveCounter = 0
+    container.value?.addEventListener("pointermove", handleContainerPointerMoveEvent)
+    container.value?.addEventListener("pointerup", handleContainerPointerUpEvent)
+    container.value?.addEventListener("pointercancel", handleContainerPointerUpEvent)
   }
 
-  function handleContainerMouseMoveEvent(_: MouseEvent) {
-    state.moveCounter++
+  function handleContainerPointerMoveEvent(_: PointerEvent) {
+    state.containerMoveCounter++
   }
 
-  function handleContainerMouseUpEvent(_: MouseEvent) {
-    container.value?.removeEventListener("mousemove", handleContainerMouseMoveEvent)
-    container.value?.removeEventListener("mouseup", handleContainerMouseUpEvent)
-    if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
+  function handleContainerPointerUpEvent(_: PointerEvent) {
+    // TODO: 複数同じイベントがlistenされたらどうなる?
+    container.value?.removeEventListener("pointermove", handleContainerPointerMoveEvent)
+    container.value?.removeEventListener("pointerup", handleContainerPointerUpEvent)
+    container.value?.removeEventListener("pointercancel", handleContainerPointerUpEvent)
+    // TODO: 同時タッチ数に応じて選択解除かどうかを切り替える
+    if (state.containerMoveCounter <= MOVE_DETECTION_THRESHOLD) {
       // Click container (without mouse move)
       selectedNodes.splice(0, selectedNodes.length)
       selectedEdges.splice(0, selectedEdges.length)
@@ -82,16 +96,15 @@ export function provideMouseOperation(
   // Event handler for nodes
   // -----------------------------------------------------------------------
 
-  function handleNodeClickEvent(node: string, event: MouseEvent) {
-    const isMoved = state.moveCounter > MOVE_DETECTION_THRESHOLD
-    if (isMoved) {
-      return
-    }
-
+  function handleNodeClickEvent(node: string, event: PointerEvent) {
     selectedEdges.splice(0, selectedEdges.length)
 
     if (styles.node.selectable) {
-      if (event.shiftKey) {
+      const isTouchAnySelectedNode =
+        Array.from(state.pointers.values()).filter(p => {
+          return p.pointerId != event.pointerId && selectedNodes.includes(p.nodeId)
+        }).length > 0
+      if (event.shiftKey || isTouchAnySelectedNode) {
         // 複数選択
         const index = selectedNodes.indexOf(node)
         // const cloned = [...selectedNodes.value]
@@ -108,16 +121,75 @@ export function provideMouseOperation(
     emitter.emit("node:click", { node, event })
   }
 
-  function calculateNodeNewPosition(event: MouseEvent) {
-    const dx = state.dragBasePosition.x - event.pageX
-    const dy = state.dragBasePosition.y - event.pageY
+  function _updateSelectedNodes(pointerState: PointerState) {
+    // update states
+    const isBound = state.pointerIdForBoundNodes === pointerState.pointerId
+    const isSelectedNode = selectedNodes.includes(pointerState.nodeId)
+    if (!isBound && !isSelectedNode) {
+      return
+    }
+
+    const removed = !(pointerState.pointerId in state.pointers)
+    if ((isBound && removed) || (isBound && !isSelectedNode)) {
+      // selected => unselected
+      const s = Array.from(state.pointers.values()).find(p => selectedNodes.includes(p.nodeId))
+      if (!s) {
+        state.pointerIdForBoundNodes = -1
+        state.boundNodeBasePositions = {}
+        return
+      }
+      pointerState = s
+      state.pointerIdForBoundNodes = pointerState.pointerId
+    } else {
+      const s = state.pointers.get(state.pointerIdForBoundNodes)
+      if (!s) {
+        state.pointerIdForBoundNodes = -1
+        state.boundNodeBasePositions = {}
+        return
+      }
+      pointerState = s
+    }
+
+    // bind selected nodes without user grabs
+    const userGrabs = Array.from(state.pointers.values()).map(n => n.nodeId)
+    state.boundNodeBasePositions = Object.fromEntries(
+      selectedNodes
+        .filter(n => !userGrabs.includes(n))
+        .map(n => [n, _unwrapNodePosition(nodePositions, n)])
+    )
+    pointerState.dragBasePosition = { ...pointerState.latestPosition }
+    pointerState.nodeBasePosition = _unwrapNodePosition(nodePositions, pointerState.nodeId)
+  }
+
+  watch(selectedNodes, () => {
+    const pointerState = state.pointers.get(state.pointerIdForBoundNodes)
+    if (pointerState) {
+      _updateSelectedNodes(pointerState)
+    }
+  })
+
+  function _calculateNodeNewPosition(pointerState: PointerState, event: PointerPosition) {
+    const dx = pointerState.dragBasePosition.x - event.pageX
+    const dy = pointerState.dragBasePosition.y - event.pageY
+
+    const z = zoomLevel.value
+
+    let positions: NodePositions
+    if (state.pointerIdForBoundNodes == pointerState.pointerId) {
+      positions = {
+        [pointerState.nodeId]: pointerState.nodeBasePosition,
+        ...state.boundNodeBasePositions,
+      }
+    } else {
+      positions = { [pointerState.nodeId]: pointerState.nodeBasePosition }
+    }
     return Object.fromEntries(
-      Object.entries(state.nodeBasePositions).map(([node, pos]) => {
+      Object.entries(positions).map(([node, pos]) => {
         return [
           node,
           {
-            x: pos.x - dx / zoomLevel.value,
-            y: pos.y - dy / zoomLevel.value,
+            x: pos.x - dx / z,
+            y: pos.y - dy / z,
           },
         ]
       })
@@ -125,61 +197,132 @@ export function provideMouseOperation(
   }
 
   // TODO: Touch対応
-  function handleNodeMouseMoveEvent(event: MouseEvent) {
+  function handleNodePointerMoveEvent(event: PointerEvent) {
     event.preventDefault()
     event.stopPropagation()
-    state.moveCounter++
 
-    if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
+    const pointerState = state.pointers.get(event.pointerId)
+    if (!pointerState) {
+      return
+    }
+    pointerState.latestPosition = { x: event.pageX, y: event.pageY }
+
+    pointerState.moveCounter++
+
+    if (pointerState.moveCounter <= MOVE_DETECTION_THRESHOLD) {
       return
     }
 
-    if (state.moveCounter === MOVE_DETECTION_THRESHOLD + 1) {
-      emitter.emit("node:dragstart", state.nodeBasePositions)
+    if (pointerState.moveCounter === MOVE_DETECTION_THRESHOLD + 1) {
+      const draggingNodes = _calculateNodeNewPosition(pointerState, {
+        pageX: 0,
+        pageY: 0,
+        pointerId: pointerState.pointerId,
+      })
+      emitter.emit("node:dragstart", draggingNodes)
     }
-    const draggingNodes = calculateNodeNewPosition(event)
+    const draggingNodes = _calculateNodeNewPosition(pointerState, event)
     emitter.emit("node:mousemove", draggingNodes)
   }
 
-  function handleNodeMouseUpEvent(event: MouseEvent) {
+  function handleNodePointerCancelEvent(event: PointerEvent) {
     event.preventDefault()
     event.stopPropagation()
-    document.removeEventListener("mousemove", handleNodeMouseMoveEvent)
-    document.removeEventListener("mouseup", handleNodeMouseUpEvent)
 
-    const node = state.mouseDownNodeId
-    if (node === undefined) {
+    const pointerState = state.pointers.get(event.pointerId)
+    if (!pointerState) {
       return
     }
 
-    const isMoved = state.moveCounter > MOVE_DETECTION_THRESHOLD
+    const node = pointerState.nodeId
+
+    const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
     if (isMoved) {
-      const draggingNodes = calculateNodeNewPosition(event)
+      // pageX/Y of cancel event are zero => use latest position
+      const draggingNodes = _calculateNodeNewPosition(pointerState, {
+        pageX: pointerState.latestPosition.x,
+        pageY: pointerState.latestPosition.y,
+        pointerId: pointerState.pointerId,
+      })
       emitter.emit("node:dragend", draggingNodes)
-      emitter.emit("node:mouseup", { node, event })
-      return
     }
-
     emitter.emit("node:mouseup", { node, event })
-    handleNodeClickEvent(node, event)
+    // No click event
+
+    state.pointers.delete(event.pointerId)
+
+    state.pointerIdForBoundNodes = -1
+    state.boundNodeBasePositions = {}
+    document.removeEventListener("pointermove", handleNodePointerMoveEvent)
+    document.removeEventListener("pointerup", handleNodePointerUpEvent)
+    document.removeEventListener("pointercancel", handleNodePointerCancelEvent)
   }
 
-  function handleNodeMouseDownEvent(node: string, event: MouseEvent) {
+  function handleNodePointerUpEvent(event: PointerEvent) {
     event.preventDefault()
     event.stopPropagation()
-    state.dragBasePosition.x = event.pageX
-    state.dragBasePosition.y = event.pageY
-    state.mouseDownNodeId = node
-    if (selectedNodes.includes(node)) {
-      state.nodeBasePositions = Object.fromEntries(
-        selectedNodes.map(n => [n, _unwrapNodePosition(nodePositions, n)])
-      )
-    } else {
-      state.nodeBasePositions = { [node]: _unwrapNodePosition(nodePositions, node) }
+
+    const pointerState = state.pointers.get(event.pointerId)
+    if (!pointerState) {
+      return
     }
-    document.addEventListener("mousemove", handleNodeMouseMoveEvent)
-    document.addEventListener("mouseup", handleNodeMouseUpEvent)
-    state.moveCounter = 0
+    state.pointers.delete(event.pointerId)
+
+    const node = pointerState.nodeId
+
+    const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
+    if (isMoved) {
+      const draggingNodes = _calculateNodeNewPosition(pointerState, event)
+      emitter.emit("node:dragend", draggingNodes)
+      emitter.emit("node:mouseup", { node, event })
+    } else {
+      emitter.emit("node:mouseup", { node, event })
+      handleNodeClickEvent(node, event)
+    }
+
+    if (state.pointers.size == 0) {
+      state.pointerIdForBoundNodes = -1
+      state.boundNodeBasePositions = {}
+      document.removeEventListener("pointermove", handleNodePointerMoveEvent)
+      document.removeEventListener("pointerup", handleNodePointerUpEvent)
+      document.removeEventListener("pointercancel", handleNodePointerCancelEvent)
+    } else {
+      _updateSelectedNodes(pointerState)
+    }
+  }
+
+  function handleNodePointerDownEvent(node: string, event: PointerEvent) {
+    console.log("down", node, event.pointerId, event.pageX, event.pageY)
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (state.pointers.size == 0) {
+      document.addEventListener("pointermove", handleNodePointerMoveEvent)
+      document.addEventListener("pointerup", handleNodePointerUpEvent)
+      document.addEventListener("pointercancel", handleNodePointerCancelEvent)
+    }
+
+    const pointerState: PointerState = {
+      pointerId: event.pointerId,
+      nodeId: node,
+      moveCounter: 0,
+      nodeBasePosition: _unwrapNodePosition(nodePositions, node),
+      dragBasePosition: { x: event.pageX, y: event.pageY },
+      latestPosition: { x: event.pageX, y: event.pageY },
+    }
+    state.pointers.set(event.pointerId, pointerState)
+
+    if (selectedNodes.includes(node)) {
+      if (state.pointerIdForBoundNodes < 0) {
+        state.pointerIdForBoundNodes = event.pointerId
+        _updateSelectedNodes(pointerState)
+      } else {
+        // remove from bound
+        delete state.boundNodeBasePositions[pointerState.nodeId]
+      }
+    }
+
+    // TODO: event
     emitter.emit("node:mousedown", { node, event })
   }
 
@@ -192,13 +335,13 @@ export function provideMouseOperation(
     event.stopPropagation()
 
     state.mouseDownEdgeId = edge
-    document.addEventListener("mouseup", handleEdgeMouseUpEvent)
+    document.addEventListener("pointerup", handleEdgeMouseUpEvent)
   }
 
   function handleEdgeMouseUpEvent(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    document.removeEventListener("mouseup", handleEdgeMouseUpEvent)
+    document.removeEventListener("pointerup", handleEdgeMouseUpEvent)
 
     const edge = state.mouseDownEdgeId
     if (edge === undefined) {
@@ -229,7 +372,7 @@ export function provideMouseOperation(
   }
 
   provide(mouseEventHandlersKey, {
-    handleNodeMouseDownEvent,
+    handleNodePointerDownEvent,
     handleEdgeMouseDownEvent,
   })
 }

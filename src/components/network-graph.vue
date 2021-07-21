@@ -201,7 +201,6 @@ export default defineComponent({
       maxZoom: props.maxZoomLevel, // temporary
       fit: true,
       center: true,
-      preventMouseEventsDefault: false, // for event listen option: { passive: true }
       zoomEnabled: styles.view.zoomEnabled,
       onZoom: _ => {
         const z = svgPanZoom.value?.getRealZoom() ?? 1
@@ -212,6 +211,7 @@ export default defineComponent({
       },
       panEnabled: styles.view.panEnabled,
       onPan: p => emitter.emit("view:pan", p),
+      usePointerEvents: true
     })
 
     // Observe container resizing

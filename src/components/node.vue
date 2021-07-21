@@ -3,9 +3,9 @@
     <v-shape
       :styles="hover ? style.hover : style.shape"
       :class="{ draggable: style.draggable, selectable: style.selectable }"
-      @mousedown.prevent.stop="handleNodeMouseDownEvent(id, $event)"
-      @mouseover="hover = true"
-      @mouseout="hover = false"
+      @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
+      @pointerover="hover = true"
+      @pointerout="hover = false"
     />
     <v-text
       :text="label"
@@ -56,7 +56,7 @@ export default defineComponent({
     // TODO: ユーザ定義関数による指定を可能にする
     const label = props.node.name ?? props.id
 
-    const { handleNodeMouseDownEvent } = useMouseOperation()
+    const { handleNodePointerDownEvent } = useMouseOperation()
 
     // ラベル
     const labelMargin = computed(() => {
@@ -167,7 +167,7 @@ export default defineComponent({
       hover,
       style,
       label,
-      handleNodeMouseDownEvent,
+      handleNodePointerDownEvent,
       textAnchor,
       dominantBaseline,
       labelX,
