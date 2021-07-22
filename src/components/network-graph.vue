@@ -211,7 +211,6 @@ export default defineComponent({
       },
       panEnabled: styles.view.panEnabled,
       onPan: p => emitter.emit("view:pan", p),
-      usePointerEvents: true
     })
 
     // Observe container resizing
