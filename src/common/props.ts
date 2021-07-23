@@ -1,4 +1,4 @@
-import { computed, watch, reactive, ref, Ref } from "vue"
+import { watch, reactive, ref, Ref } from "vue"
 import isEqual from "lodash-es/isEqual"
 import { Reactive } from "./types"
 
@@ -15,26 +15,20 @@ export function bindProp<T, K extends string & keyof T>(
 
   if (filter) {
     const prop = ref<T[K]>(filter(props[name])) as Ref<T[K]>
-    const wrapper = computed({
-      get: () => prop.value,
-      set(v) {
-        const filtered = filter(v)
-        if (!isEqual(filtered, prop.value)) {
-          prop.value = filtered
-          emit(`update:${name}` as const, filtered)
-        }
-      }
-    })
-    watch(() => props[name], v => {
-      const filtered = filter(v)
+    const update = (filtered: T[K]) => {
       if (!isEqual(filtered, prop.value)) {
         prop.value = filtered
       }
       if (!isEqual(filtered, props[name])) {
         emit(`update:${name}` as const, filtered)
       }
-    })
-    return wrapper
+    }
+    watch(() => filter(prop.value), update)
+    watch(() => props[name],v => update(filter(v)))
+    if (prop.value !== props[name]) {
+      emit(`update:${name}` as const, prop.value)
+    }
+    return prop
   }
 
   const prop = ref<T[K]>(props[name]) as Ref<T[K]>
@@ -56,7 +50,7 @@ export function bindProp<T, K extends string & keyof T>(
 
 type KeysOfType<Obj, Val> = {
   [K in keyof Obj]-?: Obj[K] extends Val ? K : never
-}[keyof Obj];
+}[keyof Obj]
 
 //export function bindPropKeyArray<T, K extends string & keyof T>(
 export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
