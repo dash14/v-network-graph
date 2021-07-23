@@ -2,7 +2,7 @@ import { DeepReadonly } from "vue"
 import { NodeLabelDirection, Configs } from "./configs"
 import cloneDeep from "lodash-es/cloneDeep"
 
-export const STYLE_DEFAULT: DeepReadonly<Configs> = {
+export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
   view: {
     resizeWithZooming: false,
     panEnabled: true,
@@ -82,5 +82,5 @@ export const STYLE_DEFAULT: DeepReadonly<Configs> = {
 }
 
 export function cloneAllConfigDefaults(): Configs {
-  return cloneDeep(STYLE_DEFAULT) as Configs
+  return cloneDeep(CONFIGS_DEFAULT) as Configs
 }

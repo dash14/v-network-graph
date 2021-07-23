@@ -1,19 +1,19 @@
 
 import { nonNull } from "../common/types"
 import { Configs, UserConfigs } from "../common/configs"
-import { STYLE_DEFAULT } from "../common/config-defaults"
+import { CONFIGS_DEFAULT } from "../common/config-defaults"
 import { inject, provide, reactive, watch } from "vue"
 import cloneDeep from "lodash-es/cloneDeep"
 import merge from "lodash-es/merge"
 
 function getObjectStyle<K extends keyof Configs>(style: UserConfigs, key: keyof Configs): Configs[K] {
-  const result = cloneDeep(STYLE_DEFAULT[key]) as Configs[K]
+  const result = cloneDeep(CONFIGS_DEFAULT[key]) as Configs[K]
   const userStyle: UserConfigs[K] = style[key] || {}
   merge(result, userStyle)
   return result
 }
 
-const styleKeys = Object.keys(STYLE_DEFAULT) as (keyof Configs)[]
+const styleKeys = Object.keys(CONFIGS_DEFAULT) as (keyof Configs)[]
 
 const injectionKeys = Object.fromEntries(
   styleKeys.map(k => [k, Symbol(`style:${k}`)])

@@ -1,5 +1,5 @@
 import { Node, Position, Size } from "./types"
-import { NodeStyle } from "./configs"
+import { NodeConfig } from "./configs"
 
 export function keyOf<T>(obj: T): (keyof T)[] {
   return Object.keys(obj) as (keyof T)[]
@@ -9,7 +9,7 @@ export function entriesOf<T, K extends keyof T>(obj: T): [K, T[K]][] {
   return Object.entries(obj) as [K, T[K]][]
 }
 
-export function getNodeSize(_node: Node, style: NodeStyle, scale: number): Size {
+export function getNodeSize(_node: Node, style: NodeConfig, scale: number): Size {
   const shape = style.shape
   if (shape.type == "circle") {
     return {

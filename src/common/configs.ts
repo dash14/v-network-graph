@@ -66,7 +66,7 @@ export interface NodeSelectionStyle {
   color: string
 }
 
-export interface NodeStyle {
+export interface NodeConfig {
   shape: ShapeStyle
   hover: ShapeStyle
   label: NodeLabelStyle
@@ -77,7 +77,7 @@ export interface NodeStyle {
 
 /* Edge style */
 
-export interface EdgeStyle {
+export interface EdgeConfig {
   stroke: StrokeStyle
   hover: StrokeStyle
   gap: number
@@ -92,8 +92,8 @@ export interface EdgeStyle {
 
 export interface Configs {
   view: ViewConfig
-  node: NodeStyle
-  edge: EdgeStyle
+  node: NodeConfig
+  edge: EdgeConfig
 }
 
 /** ユーザ指定用 optionalな指定のためのinterface */
