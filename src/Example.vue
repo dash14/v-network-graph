@@ -158,14 +158,15 @@
           <label for="nodeLabelDirection">Direction</label>
           <div class="value">
             <select id="nodeLabelDirection" v-model.number="configs.node.label.direction">
-              <option value="0">N</option>
-              <option value="1">NE</option>
-              <option value="2">E</option>
-              <option value="3">SE</option>
-              <option value="4">S</option>
-              <option value="5">SW</option>
-              <option value="6">W</option>
-              <option value="7">NW</option>
+              <option value="0">C</option>
+              <option value="1">N</option>
+              <option value="2">NE</option>
+              <option value="3">E</option>
+              <option value="4">SE</option>
+              <option value="5">S</option>
+              <option value="6">SW</option>
+              <option value="7">W</option>
+              <option value="">NW</option>
             </select>
           </div>
         </div>

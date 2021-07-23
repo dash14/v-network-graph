@@ -94,6 +94,7 @@ export default defineComponent({
 
     const textAnchor = computed(() => {
       switch (config.label.direction) {
+        case NodeLabelDirection.CENTER:
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return "middle"
@@ -118,6 +119,7 @@ export default defineComponent({
         case NodeLabelDirection.SOUTH_EAST:
         case NodeLabelDirection.SOUTH_WEST:
           return "hanging"
+        case NodeLabelDirection.CENTER:
         case NodeLabelDirection.EAST:
         case NodeLabelDirection.WEST:
         default:
@@ -126,6 +128,7 @@ export default defineComponent({
     })
     const labelX = computed(() => {
       switch (config.label.direction) {
+        case NodeLabelDirection.CENTER:
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return 0
@@ -148,6 +151,7 @@ export default defineComponent({
           return -labelShiftV.value
         case NodeLabelDirection.SOUTH:
           return labelShiftV.value
+        case NodeLabelDirection.CENTER:
         case NodeLabelDirection.EAST:
         case NodeLabelDirection.WEST:
           return 0
