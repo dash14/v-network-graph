@@ -8,7 +8,8 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
     panEnabled: true,
     zoomEnabled: true,
     minZoomLevel: 0.1,
-    maxZoomLevel: 64
+    maxZoomLevel: 64,
+    onSvgPanZoomInitialized: undefined
   },
   node: {
     shape: {

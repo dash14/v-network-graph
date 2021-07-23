@@ -211,6 +211,7 @@ export default defineComponent({
     })
     onSvgPanZoomMounted(() => {
       resizeObserver.observe(nonNull(container.value, "svg-pan-zoom container"))
+      configs.view.onSvgPanZoomInitialized?.(nonNull(svgPanZoom.value, "svg-pan-zoom instance"))
     })
     onSvgPanZoomUnmounted(() => {
       resizeObserver.disconnect()
