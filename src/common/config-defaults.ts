@@ -73,7 +73,7 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
         color: "#4466cc",
       },
     },
-    selectable: true,
+    selectable: false,
     selected: {
       width: 3,
       color: "#dd8800",

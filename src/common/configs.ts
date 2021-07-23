@@ -73,7 +73,7 @@ export interface NodeConfig {
   hover: ShapeStyle
   label: NodeLabelStyle
   draggable: boolean
-  selectable: boolean
+  selectable: boolean | number
   selection: NodeSelectionStyle
 }
 
@@ -88,7 +88,7 @@ export interface EdgeConfig {
     shape: ShapeStyle
     line: StrokeStyle
   }
-  selectable: boolean
+  selectable: boolean | number
   selected: StrokeStyle
 }
 

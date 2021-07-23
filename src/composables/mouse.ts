@@ -87,7 +87,7 @@ export function provideMouseOperation(
       nodeBasePositions: {},
     },
     edgePointers: new Map(),
-    edgePointerPeekCount: 0
+    edgePointerPeekCount: 0,
   }
 
   const containerPointerHandlers = {
@@ -146,7 +146,9 @@ export function provideMouseOperation(
     const removed = !(pointerState.pointerId in state.nodePointers)
     if ((isFollowed && removed) || (isFollowed && !isSelectedNode)) {
       // selected => unselected
-      const candidate = MapUtil.valueOf(state.nodePointers).find(p => selectedNodes.includes(p.nodeId))
+      const candidate = MapUtil.valueOf(state.nodePointers).find(p =>
+        selectedNodes.includes(p.nodeId)
+      )
       if (!candidate) {
         state.follow = { followedPointerId: -1, nodeBasePositions: {} }
         return
@@ -219,7 +221,12 @@ export function provideMouseOperation(
         const index = selectedNodes.indexOf(node)
         if (index >= 0) {
           selectedNodes.splice(index, 1)
-        } else {
+        } else if (
+          !(
+            typeof configs.node.selectable === "number" &&
+            selectedNodes.length >= configs.node.selectable
+          )
+        ) {
           selectedNodes.push(node)
         }
       } else {
@@ -466,7 +473,12 @@ export function provideMouseOperation(
         const index = selectedEdges.indexOf(edge)
         if (index >= 0) {
           selectedEdges.splice(index, 1)
-        } else {
+        } else if (
+          !(
+            typeof configs.edge.selectable === "number" &&
+            selectedEdges.length >= configs.edge.selectable
+          )
+        ) {
           selectedEdges.push(edge)
         }
       } else {
