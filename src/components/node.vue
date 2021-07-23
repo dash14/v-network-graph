@@ -8,6 +8,7 @@
       @pointerout="hover = false"
     />
     <v-text
+      v-if="label"
       :text="label"
       :x="labelX"
       :y="labelY"
@@ -54,7 +55,12 @@ export default defineComponent({
     const { scale } = useZoomLevel()
 
     // TODO: ユーザ定義関数による指定を可能にする
-    const label = props.node.name ?? props.id
+    const label = computed(() => {
+      if (config.label.visible && config.label.text) {
+        return props.node[config.label.text] ?? false
+      }
+      return false
+    })
 
     const { handleNodePointerDownEvent } = useMouseOperation()
 

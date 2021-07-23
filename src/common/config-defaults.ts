@@ -9,7 +9,7 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
     zoomEnabled: true,
     minZoomLevel: 0.1,
     maxZoomLevel: 64,
-    onSvgPanZoomInitialized: undefined
+    onSvgPanZoomInitialized: undefined,
   },
   node: {
     shape: {
@@ -25,11 +25,13 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
       color: "#3355bb",
     },
     label: {
+      visible: true,
       fontFamily: undefined,
       fontSize: 11,
       color: "#000000",
       margin: 4,
       direction: NodeLabelDirection.SOUTH,
+      text: "name",
     },
     draggable: true,
     selectable: false,

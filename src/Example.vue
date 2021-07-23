@@ -65,19 +65,11 @@
           <label for="viewResizeWithZooming">Resize with zooming</label>
         </div>
         <div class="control">
-          <input
-            id="viewPanEnabled"
-            v-model="configs.view.panEnabled"
-            type="checkbox"
-          >
+          <input id="viewPanEnabled" v-model="configs.view.panEnabled" type="checkbox">
           <label for="viewPanEnabled">Pan Enabled</label>
         </div>
         <div class="control">
-          <input
-            id="viewZoomEnabled"
-            v-model="configs.view.zoomEnabled"
-            type="checkbox"
-          >
+          <input id="viewZoomEnabled" v-model="configs.view.zoomEnabled" type="checkbox">
           <label for="viewZoomEnabled">Zoom Enabled</label>
         </div>
       </div>
@@ -123,6 +115,10 @@
       </div>
       <h5>Node Label</h5>
       <div class="controls">
+        <div class="control">
+          <input id="nodeLabelShow" v-model="configs.node.label.visible" type="checkbox">
+          <label for="nodeLabelShow">Show</label>
+        </div>
         <div class="control slider">
           <label for="nodeFontSize">Font Size</label>
           <input
@@ -482,7 +478,7 @@ export default /*#__PURE__*/ defineComponent({
     },
     removeNode() {
       if (this.selectedNodes.length === 0) return
-      const removeNodes = [ ...this.selectedNodes ]
+      const removeNodes = [...this.selectedNodes]
       removeNodes.forEach(id => delete this.nodes[id])
 
       // remove connected edges
@@ -507,9 +503,9 @@ export default /*#__PURE__*/ defineComponent({
     },
     removeEdge() {
       if (this.selectedEdges.length === 0) return
-      const removeEdges = [ ...this.selectedEdges ]
+      const removeEdges = [...this.selectedEdges]
       removeEdges.forEach(id => delete this.edges[id])
-    }
+    },
   },
 })
 </script>

@@ -61,8 +61,10 @@ export enum NodeLabelDirection {
 }
 
 export interface NodeLabelStyle extends LabelStyle {
+  visible: boolean
   margin: number
   direction: NodeLabelDirection
+  text: string
 }
 
 export interface NodeSelectionStyle {
