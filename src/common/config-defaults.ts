@@ -6,7 +6,9 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
   view: {
     resizeWithZooming: false,
     panEnabled: true,
-    zoomEnabled: true
+    zoomEnabled: true,
+    minZoomLevel: 0.1,
+    maxZoomLevel: 64
   },
   node: {
     shape: {

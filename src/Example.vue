@@ -9,8 +9,8 @@
             id="zoomLevel"
             v-model.number="zoomLevel"
             type="range"
-            :min="minZoomLevel"
-            :max="maxZoomLevel"
+            :min="configs.view.minZoomLevel"
+            :max="configs.view.maxZoomLevel"
             step="0.1"
           >
           <div class="value">{{ zoomLevel.toFixed(1) }}</div>
@@ -19,25 +19,25 @@
           <label for="minZoomLevel">Min Zoom</label>
           <input
             id="minZoomLevel"
-            v-model.number="minZoomLevel"
+            v-model.number="configs.view.minZoomLevel"
             type="range"
             min="0.1"
-            :max="maxZoomLevel"
+            :max="configs.view.maxZoomLevel"
             step="0.1"
           >
-          <div class="value">{{ minZoomLevel.toFixed(1) }}</div>
+          <div class="value">{{ configs.view.minZoomLevel.toFixed(1) }}</div>
         </div>
         <div class="control slider">
           <label for="maxZoomLevel">Max Zoom</label>
           <input
             id="maxZoomLevel"
-            v-model.number="maxZoomLevel"
+            v-model.number="configs.view.maxZoomLevel"
             type="range"
-            :min="minZoomLevel > 5 ? minZoomLevel : 5"
+            :min="configs.view.minZoomLevel > 5 ? configs.view.minZoomLevel : 5"
             max="32"
             step="0.1"
           >
-          <div class="value">{{ maxZoomLevel.toFixed(1) }}</div>
+          <div class="value">{{ configs.view.maxZoomLevel.toFixed(1) }}</div>
         </div>
         <div class="control button">
           <label>Fit to objects</label>
@@ -293,8 +293,6 @@
       v-model:zoom-level="zoomLevel"
       v-model:selected-nodes="selectedNodes"
       v-model:selected-edges="selectedEdges"
-      :min-zoom-level="minZoomLevel"
-      :max-zoom-level="maxZoomLevel"
       class="network-graph"
       :layers="layers"
       :nodes="nodes"
@@ -345,8 +343,6 @@ import { LayoutHandler } from "./layouts/handler"
 interface SampleData {
   layers: { [name: string]: LayerPos }
   zoomLevel: number
-  minZoomLevel: number
-  maxZoomLevel: number
   nodes: Nodes
   edges: Edges
   selectedNodes: string[]
@@ -424,8 +420,6 @@ export default /*#__PURE__*/ defineComponent({
     return {
       layers: { layer1: LayerPos.BACKGROUND, layer2: LayerPos.BACKGROUND },
       zoomLevel: 1,
-      minZoomLevel: 0.1,
-      maxZoomLevel: 16,
       nodes: {
         node1: {
           name: "Node 1",

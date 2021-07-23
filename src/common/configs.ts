@@ -40,6 +40,8 @@ export interface ViewConfig {
   resizeWithZooming: boolean
   panEnabled: true
   zoomEnabled: true
+  minZoomLevel: number
+  maxZoomLevel: number
 }
 
 /* Node style */

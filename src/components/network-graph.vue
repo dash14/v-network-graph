@@ -116,14 +116,6 @@ export default defineComponent({
       type: Number,
       default: 1,
     },
-    minZoomLevel: {
-      type: Number,
-      default: 0.1,
-    },
-    maxZoomLevel: {
-      type: Number,
-      default: 16,
-    },
     nodes: {
       type: Object as PropType<Nodes>,
       default: () => ({}),
@@ -189,16 +181,16 @@ export default defineComponent({
     const show = ref<boolean>(false)
 
     const zoomLevel = bindProp(props, "zoomLevel", emit, v => {
-      if (v < props.minZoomLevel) return props.minZoomLevel
-      if (v > props.maxZoomLevel) return props.maxZoomLevel
+      v = Math.max(v, configs.view.minZoomLevel)
+      v = Math.min(v, configs.view.maxZoomLevel)
       return v
     })
 
     // SVG pan / zoom
     const { svgPanZoom, onSvgPanZoomMounted, onSvgPanZoomUnmounted } = useSvgPanZoom(svg, {
       viewportSelector: ".v-viewport",
-      minZoom: props.minZoomLevel, // temporary
-      maxZoom: props.maxZoomLevel, // temporary
+      minZoom: configs.view.minZoomLevel, // temporary
+      maxZoom: configs.view.maxZoomLevel, // temporary
       fit: true,
       center: true,
       zoomEnabled: configs.view.zoomEnabled,
@@ -227,8 +219,8 @@ export default defineComponent({
     const applyAbsoluteZoomLevel = (absoluteZoomLevel: number) => {
       svgPanZoom.value?.applyAbsoluteZoomLevel(
         absoluteZoomLevel,
-        props.minZoomLevel,
-        props.maxZoomLevel
+        configs.view.minZoomLevel,
+        configs.view.maxZoomLevel
       )
     }
 
@@ -243,7 +235,7 @@ export default defineComponent({
 
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
     watch(
-      () => [props.minZoomLevel, props.maxZoomLevel],
+      () => [configs.view.minZoomLevel, configs.view.maxZoomLevel],
       _ => {
         applyAbsoluteZoomLevel(zoomLevel.value)
       }

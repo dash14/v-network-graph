@@ -82,13 +82,18 @@ const methods: Partial<SvgPanZoomInternal> = {
     return this.getSizes().realZoom
   },
   applyAbsoluteZoomLevel(this: SvgPanZoomInternal, zoomLevel: number, minZoomLevel: number, maxZoomLevel: number) {
+    // normalize
+    const min = Math.min(0.0001, minZoomLevel)
+    const max = Math.max(min, maxZoomLevel)
+    const zoom = Math.max(Math.min(max, zoomLevel), min)
+
     const realZoom = this.getRealZoom()
     const relativeZoom = this.getZoom()
     const originalZoom = realZoom / relativeZoom
 
-    this.setMinZoom(minZoomLevel / originalZoom)
-      .setMaxZoom(maxZoomLevel / originalZoom)
-      .zoom(zoomLevel / originalZoom)
+    this.setMinZoom(min / originalZoom)
+      .setMaxZoom(max / originalZoom)
+      .zoom(zoom / originalZoom)
   },
   isPanEnabled(this: SvgPanZoomInternal) {
     return this._isPanEnabled
