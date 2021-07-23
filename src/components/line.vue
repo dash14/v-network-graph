@@ -1,10 +1,10 @@
 <template>
   <path
     :d="`M ${x1} ${y1} L ${x2} ${y2}`"
-    :stroke="styles.color"
+    :stroke="config.color"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
-    :stroke-linecap="styles.linecap"
+    :stroke-linecap="config.linecap"
   />
 </template>
 
@@ -31,7 +31,7 @@ export default defineComponent({
       type: Number,
       required: true
     },
-    styles: {
+    config: {
       type: Object as PropType<StrokeStyle>,
       required: true,
     },
@@ -40,14 +40,14 @@ export default defineComponent({
     const { scale } = useZoomLevel()
 
     const strokeWidth = computed(() => {
-      return props.styles.width / scale.value
+      return props.config.width / scale.value
     })
 
     const strokeDasharray = computed(() => {
       if (scale.value === 1) {
-        return props.styles.dasharray
+        return props.config.dasharray
       } else {
-        return props.styles.dasharray
+        return props.config.dasharray
           ?.split(/\s+/)
           .map(v => parseInt(v) / scale.value)
           .join(" ")

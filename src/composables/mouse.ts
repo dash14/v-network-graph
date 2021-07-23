@@ -3,7 +3,7 @@
 import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from "../common/types"
-import { Styles } from "../common/styles"
+import { Configs } from "../common/styles"
 import { entriesOf, MapUtil } from "../common/utility"
 
 type NodeEventHandler = (node: string, event: PointerEvent) => void
@@ -59,7 +59,7 @@ export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
   nodePositions: Readonly<NodePositions>,
   zoomLevel: ReadonlyRef<number>,
-  styles: Readonly<Styles>,
+  configs: Readonly<Configs>,
   selectedNodes: Reactive<string[]>,
   selectedEdges: Reactive<string[]>,
   emitter: Emitter<Events>
@@ -209,7 +209,7 @@ export function provideMouseOperation(
   function handleNodeClickEvent(node: string, event: PointerEvent) {
     selectedEdges.splice(0, selectedEdges.length)
 
-    if (styles.node.selectable) {
+    if (configs.node.selectable) {
       const isTouchAnySelectedNode =
         MapUtil.valueOf(state.nodePointers).filter(
           p => p.pointerId != event.pointerId && selectedNodes.includes(p.nodeId)
@@ -457,7 +457,7 @@ export function provideMouseOperation(
   function handleEdgeClickEvent(edge: string, event: PointerEvent) {
     selectedNodes.splice(0, selectedNodes.length)
 
-    if (styles.edge.selectable) {
+    if (configs.edge.selectable) {
       const isTouchAnySelectedEdge =
         MapUtil.valueOf(state.edgePointers).filter(
           p => p.pointerId != event.pointerId && selectedEdges.includes(p.edgeId)

@@ -1,8 +1,8 @@
 <template>
   <g :transform="`translate(${x} ${y})`">
     <v-shape
-      :styles="hover ? style.hover : style.shape"
-      :class="{ draggable: style.draggable, selectable: style.selectable }"
+      :config="hover ? config.hover : config.shape"
+      :class="{ draggable: config.draggable, selectable: config.selectable }"
       @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
       @pointerover="hover = true"
       @pointerout="hover = false"
@@ -11,7 +11,7 @@
       :text="label"
       :x="labelX"
       :y="labelY"
-      :styles="style.label"
+      :config="config.label"
       :text-anchor="textAnchor"
       :dominant-baseline="dominantBaseline"
     />
@@ -23,7 +23,7 @@ import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
 import { NodeLabelDirection } from "../common/styles"
 import { useZoomLevel } from "../composables/zoom"
-import { useNodeStyle } from "../composables/style"
+import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
 import VShape from "../components/shape.vue"
 import VText from "../components/text.vue"
@@ -50,7 +50,7 @@ export default defineComponent({
     const y = computed(() => props.pos?.y || 0)
     const hover = ref(false)
 
-    const style = useNodeStyle()
+    const config = useNodeConfig()
     const { scale } = useZoomLevel()
 
     // TODO: ユーザ定義関数による指定を可能にする
@@ -60,7 +60,7 @@ export default defineComponent({
 
     // ラベル
     const labelMargin = computed(() => {
-      return style.label.margin / scale.value
+      return config.label.margin / scale.value
     })
 
     // 円の場合のラベル位置計算用
@@ -71,8 +71,8 @@ export default defineComponent({
 
     watchEffect(() => {
       const s = scale.value
-      if (style.shape.type == "circle") {
-        const radius = style.shape.radius / s
+      if (config.shape.type == "circle") {
+        const radius = config.shape.radius / s
         const m = radius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = radius + labelMargin.value
@@ -80,9 +80,9 @@ export default defineComponent({
         labelDiagonalShiftV.value = diagonalMargin
         labelDiagonalShiftH.value = diagonalMargin
       } else {
-        const borderRadius = style.shape.borderRadius / s
-        const width = style.shape.width / s
-        const height = style.shape.height / s
+        const borderRadius = config.shape.borderRadius / s
+        const width = config.shape.width / s
+        const height = config.shape.height / s
         const m = borderRadius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = height / 2 + labelMargin.value
@@ -93,7 +93,7 @@ export default defineComponent({
     })
 
     const textAnchor = computed(() => {
-      switch (style.label.direction) {
+      switch (config.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return "middle"
@@ -109,7 +109,7 @@ export default defineComponent({
       }
     })
     const dominantBaseline = computed(() => {
-      switch (style.label.direction) {
+      switch (config.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.NORTH_WEST:
@@ -125,7 +125,7 @@ export default defineComponent({
       }
     })
     const labelX = computed(() => {
-      switch (style.label.direction) {
+      switch (config.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
           return 0
@@ -143,7 +143,7 @@ export default defineComponent({
       }
     })
     const labelY = computed(() => {
-      switch (style.label.direction) {
+      switch (config.label.direction) {
         case NodeLabelDirection.NORTH:
           return -labelShiftV.value
         case NodeLabelDirection.SOUTH:
@@ -165,7 +165,7 @@ export default defineComponent({
       x,
       y,
       hover,
-      style,
+      config,
       label,
       handleNodePointerDownEvent,
       textAnchor,

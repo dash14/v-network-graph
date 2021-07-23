@@ -1,10 +1,10 @@
 <template>
   <circle
-    v-if="styles.type === 'circle'"
+    v-if="config.type === 'circle'"
     :cx="x"
     :cy="y"
     :r="radius"
-    :fill="styles.color"
+    :fill="config.color"
     :stroke="strokeColor"
     :stroke-width="strokeWidth"
   />
@@ -16,7 +16,7 @@
     :height="height"
     :rx="borderRadius"
     :ry="borderRadius"
-    :fill="styles.color"
+    :fill="config.color"
     :stroke="strokeColor"
     :stroke-width="strokeWidth"
   />
@@ -37,7 +37,7 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
-    styles: {
+    config: {
       type: Object as PropType<ShapeStyle>,
       required: true,
     },
@@ -56,17 +56,17 @@ export default defineComponent({
 
     watchEffect(() => {
       const s = scale.value
-      strokeWidth.value = (props.styles.stroke?.width ?? 0) / s
-      strokeColor.value = props.styles.stroke?.color ?? "none"
+      strokeWidth.value = (props.config.stroke?.width ?? 0) / s
+      strokeColor.value = props.config.stroke?.color ?? "none"
 
-      if (props.styles.type === "circle") {
+      if (props.config.type === "circle") {
         x.value = props.baseX
         y.value = props.baseY
-        radius.value = props.styles.radius / s
+        radius.value = props.config.radius / s
       } else {
-        width.value = props.styles.width / s
-        height.value = props.styles.height / s
-        borderRadius.value = props.styles.borderRadius / s
+        width.value = props.config.width / s
+        height.value = props.config.height / s
+        borderRadius.value = props.config.borderRadius / s
         x.value = props.baseX - width.value / 2
         y.value = props.baseY - height.value / 2
       }

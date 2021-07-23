@@ -1,10 +1,10 @@
 <template>
   <text
-    :font-family="styles.fontFamily"
+    :font-family="config.fontFamily"
     :font-size="fontSize"
     :x="x"
     :y="y"
-    :fill="styles.color"
+    :fill="config.color"
   >{{ text }}</text>
 </template>
 
@@ -27,7 +27,7 @@ export default defineComponent({
       type: Number,
       required: true
     },
-    styles: {
+    config: {
       type: Object as PropType<LabelStyle>,
       required: true,
     },
@@ -36,7 +36,7 @@ export default defineComponent({
     const { scale } = useZoomLevel()
 
     const fontSize = computed(() => {
-      return props.styles.fontSize / scale.value
+      return props.config.fontSize / scale.value
     })
 
     return {

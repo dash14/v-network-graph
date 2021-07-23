@@ -1,11 +1,11 @@
 <template>
   <v-line
-    :class="{ selectable: style.selectable }"
+    :class="{ selectable: config.selectable }"
     :x1="x1"
     :y1="y1"
     :x2="x2"
     :y2="y2"
-    :styles="selected ? style.selected : hover ? style.hover : style.stroke"
+    :config="selected ? config.selected : hover ? config.hover : config.stroke"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerover="hover = true"
     @pointerout="hover = false"
@@ -15,7 +15,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "../composables/zoom"
-import { useEdgeStyle } from "../composables/style"
+import { useEdgeConfig } from "../composables/style"
 import { Node, Position } from "../common/types"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "../components/line.vue"
@@ -99,7 +99,7 @@ export default defineComponent({
   },
   setup(props) {
     const hover = ref(false)
-    const style = useEdgeStyle()
+    const config = useEdgeConfig()
     const { scale } = useZoomLevel()
     const { handleEdgePointerDownEvent } = useMouseOperation()
 
@@ -118,8 +118,8 @@ export default defineComponent({
           props.i,
           props.count,
           scale.value,
-          style.stroke.width,
-          style.gap
+          config.stroke.width,
+          config.gap
         )
       } else {
         [x2.value, y2.value, x1.value, y1.value] = calculateLinePosition(
@@ -130,13 +130,13 @@ export default defineComponent({
           props.i,
           props.count,
           scale.value,
-          style.stroke.width,
-          style.gap
+          config.stroke.width,
+          config.gap
         )
       }
     })
 
-    return { hover, handleEdgePointerDownEvent, x1, y1, x2, y2, style }
+    return { hover, handleEdgePointerDownEvent, x1, y1, x2, y2, config }
   },
 })
 </script>

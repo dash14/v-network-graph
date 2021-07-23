@@ -1,5 +1,5 @@
 import { nonNull } from "../common/types"
-import { ViewStyle } from "../common/styles"
+import { ViewConfig } from "../common/styles"
 import { provide, inject, InjectionKey, Ref, computed } from "vue"
 
 interface ZoomProvides {
@@ -9,7 +9,7 @@ interface ZoomProvides {
 
 const zoomLevelKey = Symbol("zoomLevel") as InjectionKey<ZoomProvides>
 
-export function provideZoomLevel(zoomLevel: Ref<number>, viewStyle: ViewStyle) {
+export function provideZoomLevel(zoomLevel: Ref<number>, viewStyle: ViewConfig) {
   const scale = computed(() => {
     return viewStyle.resizeWithZooming ? 1 : zoomLevel.value
   })

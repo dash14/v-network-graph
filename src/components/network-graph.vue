@@ -54,7 +54,7 @@
         </g>
 
         <!-- node selections -->
-        <g v-if="styles.node?.selectable" class="v-layer-nodes-selections">
+        <g v-if="configs.node?.selectable" class="v-layer-nodes-selections">
           <v-node-selection
             v-for="nodeId in currentSelectedNodes"
             :key="nodeId"
@@ -90,14 +90,14 @@ import { defineComponent, PropType, reactive, readonly, ref } from "vue"
 import { computed, nextTick, watch } from "vue"
 import isEqual from "lodash-es/isEqual"
 import { bindProp, bindPropKeyArray } from "../common/props"
-import { provideStyles } from "../composables/style"
+import { provideConfigs } from "../composables/style"
 import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
 import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
 import { Reactive, nonNull } from "../common/types"
-import { Styles, UserStyles } from "../common/styles"
+import { Configs, UserConfigs } from "../common/styles"
 import { SimpleLayout } from "../layouts/simple"
 import { LayoutHandler } from "../layouts/handler"
 import VNode from "./node.vue"
@@ -148,8 +148,8 @@ export default defineComponent({
       type: Object as PropType<LayoutHandler>,
       default: () => new SimpleLayout(),
     },
-    styles: {
-      type: Object as PropType<UserStyles>,
+    configs: {
+      type: Object as PropType<UserConfigs>,
       default: () => ({}),
     },
     eventHandler: {
@@ -172,7 +172,7 @@ export default defineComponent({
     emitter.on("*", (type, event) => props.eventHandler(type, event))
 
     // Style settings
-    const styles = provideStyles(props.styles)
+    const configs = provideConfigs(props.configs)
 
     // Background layers
     const backgroundLayers = computed(() => {
@@ -201,7 +201,7 @@ export default defineComponent({
       maxZoom: props.maxZoomLevel, // temporary
       fit: true,
       center: true,
-      zoomEnabled: styles.view.zoomEnabled,
+      zoomEnabled: configs.view.zoomEnabled,
       onZoom: _ => {
         const z = svgPanZoom.value?.getRealZoom() ?? 1
         if (Math.abs(zoomLevel.value - z) >= 1.0e-6) {
@@ -209,7 +209,7 @@ export default defineComponent({
           emitter.emit("view:zoom", z)
         }
       },
-      panEnabled: styles.view.panEnabled,
+      panEnabled: configs.view.panEnabled,
       onPan: p => emitter.emit("view:pan", p),
     })
 
@@ -232,11 +232,11 @@ export default defineComponent({
       )
     }
 
-    watch(() => styles.view.panEnabled, v => {
+    watch(() => configs.view.panEnabled, v => {
       if (v) svgPanZoom.value?.enablePan()
       else svgPanZoom.value?.disablePan()
     })
-    watch(() => styles.view.zoomEnabled, v => {
+    watch(() => configs.view.zoomEnabled, v => {
       if (v) svgPanZoom.value?.enableZoom()
       else svgPanZoom.value?.disableZoom()
     })
@@ -250,7 +250,7 @@ export default defineComponent({
     )
 
     // Provide zoom level / scaling parameter
-    const { scale } = provideZoomLevel(zoomLevel, styles.view)
+    const { scale } = provideZoomLevel(zoomLevel, configs.view)
 
     onSvgPanZoomMounted(() => {
       // apply initial zoom level
@@ -301,21 +301,21 @@ export default defineComponent({
       }
       return map
     })
-    const defaultCheckSummarize = (edges: Edges, styles: Styles) => {
+    const defaultCheckSummarize = (edges: Edges, configs: Configs) => {
       // edge幅とgap幅がノードの大きさを超えていたら集約する
       const edgeCount = Object.entries(edges).length
-      const width = styles.edge.stroke.width * edgeCount + styles.edge.gap * (edgeCount - 1)
+      const width = configs.edge.stroke.width * edgeCount + configs.edge.gap * (edgeCount - 1)
       let minWidth = 0
-      if (styles.node.shape.type === "circle") {
-        minWidth = styles.node.shape.radius * 2
+      if (configs.node.shape.type === "circle") {
+        minWidth = configs.node.shape.radius * 2
       } else {
-        minWidth = Math.min(styles.node.shape.width, styles.node.shape.height)
+        minWidth = Math.min(configs.node.shape.width, configs.node.shape.height)
       }
       return width > minWidth
     }
     const checkEdgeSummarize = computed(() => {
       return (edges: Edges) => {
-        return defaultCheckSummarize(edges, styles)
+        return defaultCheckSummarize(edges, configs)
       }
     })
 
@@ -366,14 +366,14 @@ export default defineComponent({
     emitter.on("node:dragend", _ => (dragging.value = false))
     emitter.on("view:mode", mode => {
       // avoid pan/zoom when using nodes and edges with multi-touch
-      if (styles.view.panEnabled) {
+      if (configs.view.panEnabled) {
         if (mode === "default") {
           svgPanZoom.value?.enablePan()
         } else {
           svgPanZoom.value?.disablePan()
         }
       }
-      if (styles.view.zoomEnabled) {
+      if (configs.view.zoomEnabled) {
         if (mode === "default") {
           svgPanZoom.value?.enableZoom()
         } else {
@@ -386,7 +386,7 @@ export default defineComponent({
       svg,
       readonly(currentLayouts.nodes),
       readonly(zoomLevel),
-      readonly(styles),
+      readonly(configs),
       currentSelectedNodes,
       currentSelectedEdges,
       emitter
@@ -400,7 +400,7 @@ export default defineComponent({
       layouts: Reactive(currentLayouts.nodes),
       nodes: readonly(props.nodes),
       edges: readonly(props.edges),
-      styles: readonly(styles),
+      configs: readonly(configs),
       scale: readonly(scale),
       emitter,
       svgPanZoom: nonNull(svgPanZoom.value),

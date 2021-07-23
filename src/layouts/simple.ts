@@ -9,7 +9,7 @@ export class SimpleLayout implements LayoutHandler {
   private onDeactivate?: () => void
 
   activate(parameters: LayoutActivateParameters): void {
-    const { layouts, nodes, styles, emitter, scale, svgPanZoom } = parameters
+    const { layouts, nodes, configs, emitter, scale, svgPanZoom } = parameters
     const onDrag: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         const layout = this.getOrCreateNodePosition(layouts, id)
@@ -24,7 +24,7 @@ export class SimpleLayout implements LayoutHandler {
       const s = scale.value
       for (const nodeId of newNodes) {
         const node = nodes[nodeId]
-        const nodeSize = getNodeSize(node, styles.node, s)
+        const nodeSize = getNodeSize(node, configs.node, s)
         const candidate = { ...area.center }
         for (;;) {
           let collision = false
@@ -32,7 +32,7 @@ export class SimpleLayout implements LayoutHandler {
             if (nodeId === id) continue
             const targetNode = nodes[id]
             if (!targetNode) continue
-            const targetNodeSize = getNodeSize(targetNode, styles.node, s)
+            const targetNodeSize = getNodeSize(targetNode, configs.node, s)
             collision = areNodesCollision(candidate, nodeSize, pos, targetNodeSize)
             if (collision) {
               break

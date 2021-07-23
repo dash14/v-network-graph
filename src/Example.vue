@@ -52,14 +52,14 @@
           </div>
         </div>
       </div>
-      <h4>Styles</h4>
+      <h4>Configs</h4>
 
       <h5>View</h5>
       <div class="controls">
         <div class="control">
           <input
             id="viewResizeWithZooming"
-            v-model="styles.view.resizeWithZooming"
+            v-model="configs.view.resizeWithZooming"
             type="checkbox"
           >
           <label for="viewResizeWithZooming">Resize with zooming</label>
@@ -67,7 +67,7 @@
         <div class="control">
           <input
             id="viewPanEnabled"
-            v-model="styles.view.panEnabled"
+            v-model="configs.view.panEnabled"
             type="checkbox"
           >
           <label for="viewPanEnabled">Pan Enabled</label>
@@ -75,7 +75,7 @@
         <div class="control">
           <input
             id="viewZoomEnabled"
-            v-model="styles.view.zoomEnabled"
+            v-model="configs.view.zoomEnabled"
             type="checkbox"
           >
           <label for="viewZoomEnabled">Zoom Enabled</label>
@@ -95,23 +95,23 @@
           <label for="nodeSize">Size</label>
           <input
             id="nodeSize"
-            v-model.number="styles.node.shape.radius"
+            v-model.number="configs.node.shape.radius"
             type="range"
             min="1"
             max="64"
             step="1"
           >
-          <div class="value">{{ styles.node.shape.radius }}</div>
+          <div class="value">{{ configs.node.shape.radius }}</div>
         </div>
         <div class="control color">
           <label for="nodeColor">Color</label>
-          <input id="nodeColor" v-model="styles.node.shape.color" type="color">
+          <input id="nodeColor" v-model="configs.node.shape.color" type="color">
           <div class="value">
-            <input v-model="styles.node.shape.color" type="input">
+            <input v-model="configs.node.shape.color" type="input">
           </div>
         </div>
         <div class="control">
-          <input id="nodeSelectable" v-model="styles.node.selectable" type="checkbox">
+          <input id="nodeSelectable" v-model="configs.node.selectable" type="checkbox">
           <label for="nodeSelectable">Selectable</label>
         </div>
         <div>
@@ -127,37 +127,37 @@
           <label for="nodeFontSize">Font Size</label>
           <input
             id="nodeFontSize"
-            v-model.number="styles.node.label.fontSize"
+            v-model.number="configs.node.label.fontSize"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.node.label.fontSize }}</div>
+          <div class="value">{{ configs.node.label.fontSize }}</div>
         </div>
         <div class="control slider">
           <label for="nodeLabelMargin">Margin</label>
           <input
             id="nodeLabelMargin"
-            v-model.number="styles.node.label.margin"
+            v-model.number="configs.node.label.margin"
             type="range"
             min="0"
             max="24"
             step="1"
           >
-          <div class="value">{{ styles.node.label.margin }}</div>
+          <div class="value">{{ configs.node.label.margin }}</div>
         </div>
         <div class="control color">
           <label for="nodeLabelColor">Color</label>
-          <input id="nodeLabelColor" v-model="styles.node.label.color" type="color">
+          <input id="nodeLabelColor" v-model="configs.node.label.color" type="color">
           <div class="value">
-            <input v-model="styles.node.label.color" type="input">
+            <input v-model="configs.node.label.color" type="input">
           </div>
         </div>
         <div class="control select">
           <label for="nodeLabelDirection">Direction</label>
           <div class="value">
-            <select id="nodeLabelDirection" v-model.number="styles.node.label.direction">
+            <select id="nodeLabelDirection" v-model.number="configs.node.label.direction">
               <option value="0">N</option>
               <option value="1">NE</option>
               <option value="2">E</option>
@@ -176,31 +176,31 @@
           <label for="nodeSelectionSize">Border Size</label>
           <input
             id="nodeSelectionSize"
-            v-model.number="styles.node.selection.width"
+            v-model.number="configs.node.selection.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.node.selection.width }}</div>
+          <div class="value">{{ configs.node.selection.width }}</div>
         </div>
         <div class="control slider">
           <label for="nodeSelectionPadding">Padding</label>
           <input
             id="nodeSelectionPadding"
-            v-model.number="styles.node.selection.padding"
+            v-model.number="configs.node.selection.padding"
             type="range"
             min="0"
             max="24"
             step="1"
           >
-          <div class="value">{{ styles.node.selection.padding }}</div>
+          <div class="value">{{ configs.node.selection.padding }}</div>
         </div>
         <div class="control color">
           <label for="nodeSelectionColor">Color</label>
-          <input id="nodeSelectionColor" v-model="styles.node.selection.color" type="color">
+          <input id="nodeSelectionColor" v-model="configs.node.selection.color" type="color">
           <div class="value">
-            <input v-model="styles.node.selection.color" type="input">
+            <input v-model="configs.node.selection.color" type="input">
           </div>
         </div>
       </div>
@@ -217,43 +217,43 @@
           <label for="edgeWidth">Width</label>
           <input
             id="edgeWidth"
-            v-model.number="styles.edge.stroke.width"
+            v-model.number="configs.edge.stroke.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.edge.stroke.width }}</div>
+          <div class="value">{{ configs.edge.stroke.width }}</div>
         </div>
         <div class="control slider">
           <label for="edgeGap">Gap</label>
           <input
             id="edgeGap"
-            v-model.number="styles.edge.gap"
+            v-model.number="configs.edge.gap"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ styles.edge.gap }}</div>
+          <div class="value">{{ configs.edge.gap }}</div>
         </div>
         <div class="control color">
           <label for="edgeColor">Color</label>
-          <input id="edgeColor" v-model="styles.edge.stroke.color" type="color">
+          <input id="edgeColor" v-model="configs.edge.stroke.color" type="color">
           <div class="value">
-            <input v-model="styles.edge.stroke.color" type="input">
+            <input v-model="configs.edge.stroke.color" type="input">
           </div>
         </div>
         <div class="control text">
           <label for="edgeStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input id="edgeStrokeDasharray" v-model="styles.edge.stroke.dasharray" type="text">
+            <input id="edgeStrokeDasharray" v-model="configs.edge.stroke.dasharray" type="text">
           </div>
         </div>
         <div class="control select">
           <label for="edgeStrokeLinecap">Linecap</label>
           <div class="value">
-            <select id="edgeStrokeLinecap" v-model.number="styles.edge.stroke.linecap">
+            <select id="edgeStrokeLinecap" v-model.number="configs.edge.stroke.linecap">
               <option value="butt">butt</option>
               <option value="round">round</option>
               <option value="square">square</option>
@@ -261,7 +261,7 @@
           </div>
         </div>
         <div class="control">
-          <input id="edgeSelectable" v-model="styles.edge.selectable" type="checkbox">
+          <input id="edgeSelectable" v-model="configs.edge.selectable" type="checkbox">
           <label for="edgeSelectable">Selectable</label>
         </div>
         <div>
@@ -299,7 +299,7 @@
       :layers="layers"
       :nodes="nodes"
       :edges="edges"
-      :styles="styles"
+      :configs="configs"
       :layouts="layouts"
       :layout-handler="layoutHandler"
       :event-handler="handleEvent"
@@ -335,7 +335,7 @@
 import { computed, defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
 import VNetworkGraph from "./components/network-graph.vue"
-import { STYLE_DEFAULT } from "./common/style-defaults"
+import { cloneAllConfigDefaults } from "./common/style-defaults"
 import { UserLayouts, Nodes, Edges, LayerPos } from "./common/types"
 import { SimpleLayout } from "./layouts/simple"
 import { GridLayout } from "./layouts/grid"
@@ -368,7 +368,7 @@ export default /*#__PURE__*/ defineComponent({
       graph.value?.panToCenter()
     }
 
-    const styles = reactive(JSON.parse(JSON.stringify(STYLE_DEFAULT)))
+    const configs = reactive(cloneAllConfigDefaults())
 
     const layouts = reactive<UserLayouts>({
       nodes: {
@@ -413,7 +413,7 @@ export default /*#__PURE__*/ defineComponent({
       graph,
       fitToContents,
       center,
-      styles,
+      configs,
       layouts,
       layoutType,
       layoutHandler,

@@ -3,7 +3,7 @@
     class="v-node-selection"
     :base-x="x"
     :base-y="y"
-    :styles="shapeStyles"
+    :config="shapeConfig"
   />
 </template>
 
@@ -11,7 +11,7 @@
 import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
 import { Position } from "../common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "../common/styles"
-import { useNodeStyle } from "../composables/style"
+import { useNodeConfig } from "../composables/style"
 import VShape from "../components/shape.vue"
 
 export default defineComponent({
@@ -27,52 +27,52 @@ export default defineComponent({
     const x = computed(() => props.pos?.x || 0)
     const y = computed(() => props.pos?.y || 0)
 
-    const style = useNodeStyle()
-    const shapeStyles = reactive<ShapeStyle>({} as any)
+    const config = useNodeConfig()
+    const shapeConfig = reactive<ShapeStyle>({} as any)
 
     watchEffect(() => {
-      const shapeStyle = style.shape
+      const shapeStyle = config.shape
       if (shapeStyle.type === "circle") {
         const shape: CircleShapeStyle = {
           type: "circle",
           radius:
             shapeStyle.radius +
             (shapeStyle.stroke?.width ?? 0) / 2 +
-            style.selection.padding +
-            style.selection.width / 2,
+            config.selection.padding +
+            config.selection.width / 2,
           color: "none",
           stroke: {
-            width: style.selection.width,
-            color: style.selection.color,
+            width: config.selection.width,
+            color: config.selection.color,
           },
         }
-        Object.assign(shapeStyles, shape)
+        Object.assign(shapeConfig, shape)
       } else {
         const shape: RectangleShapeStyle = {
           type: "rect",
           width:
             shapeStyle.width +
             (shapeStyle.stroke?.width ?? 0) +
-            style.selection.padding * 2 +
-            style.selection.width,
+            config.selection.padding * 2 +
+            config.selection.width,
           height:
             shapeStyle.height +
             (shapeStyle.stroke?.width ?? 0) +
-            style.selection.padding * 2 +
-            style.selection.width,
+            config.selection.padding * 2 +
+            config.selection.width,
           borderRadius:
-            shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + style.selection.padding : 0,
+            shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + config.selection.padding : 0,
           color: "none",
           stroke: {
-            width: style.selection.width,
-            color: style.selection.color,
+            width: config.selection.width,
+            color: config.selection.color,
           },
         }
-        Object.assign(shapeStyles, shape)
+        Object.assign(shapeConfig, shape)
       }
     })
 
-    return { x, y, shapeStyles }
+    return { x, y, shapeConfig }
   },
 })
 </script>

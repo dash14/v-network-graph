@@ -36,9 +36,9 @@ export interface LabelStyle {
   color: string
 }
 
-export interface ViewStyle {
+export interface ViewConfig {
   resizeWithZooming: boolean
-  panEnabled: true,
+  panEnabled: true
   zoomEnabled: true
 }
 
@@ -90,12 +90,11 @@ export interface EdgeStyle {
   selected: StrokeStyle
 }
 
-export interface Styles {
-  view: ViewStyle
+export interface Configs {
+  view: ViewConfig
   node: NodeStyle
   edge: EdgeStyle
 }
 
 /** ユーザ指定用 optionalな指定のためのinterface */
-// export type UserStyles = { [P in keyof Styles]?: Partial<Styles[P]> }
-export type UserStyles = RecursivePartial<Styles>
+export type UserConfigs = RecursivePartial<Configs>
