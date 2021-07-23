@@ -10,7 +10,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
-import { LabelStyle } from "../common/styles"
+import { LabelStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 
 export default defineComponent({

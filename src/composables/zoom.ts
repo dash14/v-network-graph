@@ -1,5 +1,5 @@
 import { nonNull } from "../common/types"
-import { ViewConfig } from "../common/styles"
+import { ViewConfig } from "../common/configs"
 import { provide, inject, InjectionKey, Ref, computed } from "vue"
 
 interface ZoomProvides {

@@ -17,7 +17,7 @@ export default install
 // each can be registered via Vue.component()
 export * from "./components/index"
 
-export { cloneAllConfigDefaults } from "./common/style-defaults"
+export { cloneAllConfigDefaults } from "./common/config-defaults"
 
 export { SimpleLayout } from "./layouts/simple"
 export { GridLayout } from "./layouts/grid"
@@ -25,7 +25,7 @@ export { GridLayout } from "./layouts/grid"
 export type { LayoutHandler } from "./layouts/handler"
 
 export * from "./common/types"
-export * from "./common/styles"
+export * from "./common/configs"
 
 
 // // iife/cjs usage extends esm default export - so import it all

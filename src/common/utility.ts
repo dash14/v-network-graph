@@ -1,5 +1,5 @@
 import { Node, Position, Size } from "./types"
-import { NodeStyle } from "./styles"
+import { NodeStyle } from "./configs"
 
 export function keyOf<T>(obj: T): (keyof T)[] {
   return Object.keys(obj) as (keyof T)[]

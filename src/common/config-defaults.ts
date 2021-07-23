@@ -1,5 +1,5 @@
 import { DeepReadonly } from "vue"
-import { NodeLabelDirection, Configs } from "./styles"
+import { NodeLabelDirection, Configs } from "./configs"
 import cloneDeep from "lodash-es/cloneDeep"
 
 export const STYLE_DEFAULT: DeepReadonly<Configs> = {

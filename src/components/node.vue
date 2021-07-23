@@ -21,7 +21,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
-import { NodeLabelDirection } from "../common/styles"
+import { NodeLabelDirection } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"

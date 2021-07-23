@@ -3,7 +3,7 @@
 import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from "../common/types"
-import { Configs } from "../common/styles"
+import { Configs } from "../common/configs"
 import { entriesOf, MapUtil } from "../common/utility"
 
 type NodeEventHandler = (node: string, event: PointerEvent) => void
