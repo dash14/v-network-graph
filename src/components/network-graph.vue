@@ -275,6 +275,27 @@ export default defineComponent({
     const zoomIn = () => { svgPanZoom.value?.zoomIn() }
     const zoomOut = () => { svgPanZoom.value?.zoomOut() }
 
+    const getAsSvg = () => {
+      const element = svg.value
+      const viewport = element?.querySelector(".v-viewport") as SVGGElement
+      if (!element || !viewport) return
+
+      const target = document.createElement("svg")
+      target.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+
+      const box = viewport.getBBox()
+      target.setAttribute("width", box.width.toString())
+      target.setAttribute("height", box.height.toString())
+
+      const v = viewport.cloneNode(true) as SVGGElement
+      v.setAttribute("transform", `translate(${-box.x}, ${-box.y})`)
+      v.removeAttribute("style")
+      target.appendChild(v)
+
+      target.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`)
+      return target.outerHTML
+    }
+
     // -----------------------------------------------------------------------
     // Edges
     // -----------------------------------------------------------------------
@@ -442,6 +463,7 @@ export default defineComponent({
       panToCenter,
       zoomIn,
       zoomOut,
+      getAsSvg,
     }
   },
 })

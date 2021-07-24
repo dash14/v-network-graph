@@ -51,6 +51,12 @@
             <button @click="center">Run</button>
           </div>
         </div>
+        <div class="control button">
+          <label>Download SVG</label>
+          <div class="action">
+            <button @click="downloadAsSvg">Run</button>
+          </div>
+        </div>
       </div>
       <h4>Configs</h4>
 
@@ -361,6 +367,16 @@ export default /*#__PURE__*/ defineComponent({
       graph.value?.panToCenter()
     }
 
+    const downloadAsSvg = () => {
+      const text = graph.value?.getAsSvg()
+      const url = URL.createObjectURL(new Blob([text], {type: "octet/stream"}))
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "network-graph.svg"
+      a.click()
+      window.URL.revokeObjectURL(url)
+    }
+
     const configs = reactive(cloneAllConfigDefaults())
 
     const layouts = reactive<UserLayouts>({
@@ -406,6 +422,7 @@ export default /*#__PURE__*/ defineComponent({
       graph,
       fitToContents,
       center,
+      downloadAsSvg,
       configs,
       layouts,
       layoutType,
