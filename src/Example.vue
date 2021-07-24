@@ -89,7 +89,7 @@
             <button :disabled="selectedNodes.length == 0" @click="removeNode">Remove</button>
           </div>
         </div>
-        <div class="control slider">
+        <div v-if="configs.node.shape.type === 'circle'" class="control slider">
           <label for="nodeSize">Size</label>
           <input
             id="nodeSize"
