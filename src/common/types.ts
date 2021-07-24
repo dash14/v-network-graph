@@ -1,4 +1,4 @@
-import { isReactive } from "@vue/reactivity";
+import { isReactive } from "vue"
 
 /** レイヤ位置 */
 export enum LayerPos {
