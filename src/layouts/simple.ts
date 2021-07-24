@@ -2,6 +2,7 @@ import { Ref, toRef, watch } from "vue"
 import { NodePositions, OnDragHandler, Position } from "../common/types"
 import { getNodeSize, areNodesCollision } from "../common/utility"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
+import round from "lodash-es/round"
 
 const NEW_NODE_POSITION_MARGIN = 20
 
@@ -77,8 +78,8 @@ export class SimpleLayout implements LayoutHandler {
   }
 
   protected setNodePosition(nodeLayout: Ref<Position>, pos: Position) {
-    nodeLayout.value.x = pos.x
-    nodeLayout.value.y = pos.y
+    nodeLayout.value.x = round(pos.x, 3)
+    nodeLayout.value.y = round(pos.y, 3)
   }
 
   private getOrCreateNodePosition(layouts: NodePositions, node: string) {
