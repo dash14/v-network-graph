@@ -4,7 +4,7 @@ import cloneDeep from "lodash-es/cloneDeep"
 
 export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
   view: {
-    resizeWithZooming: false,
+    scalingObjects: false,
     panEnabled: true,
     zoomEnabled: true,
     minZoomLevel: 0.1,

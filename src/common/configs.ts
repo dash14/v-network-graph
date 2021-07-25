@@ -38,7 +38,7 @@ export interface LabelStyle {
 }
 
 export interface ViewConfig {
-  resizeWithZooming: boolean
+  scalingObjects: boolean
   panEnabled: true
   zoomEnabled: true
   minZoomLevel: number

@@ -64,11 +64,11 @@
       <div class="controls">
         <div class="control">
           <input
-            id="viewResizeWithZooming"
-            v-model="configs.view.resizeWithZooming"
+            id="viewScalingObjects"
+            v-model="configs.view.scalingObjects"
             type="checkbox"
           >
-          <label for="viewResizeWithZooming">Resize with zooming</label>
+          <label for="viewScalingObjects">Scaling objects</label>
         </div>
         <div class="control">
           <input id="viewPanEnabled" v-model="configs.view.panEnabled" type="checkbox">
