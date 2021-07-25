@@ -63,11 +63,7 @@
       <h5>View</h5>
       <div class="controls">
         <div class="control">
-          <input
-            id="viewScalingObjects"
-            v-model="configs.view.scalingObjects"
-            type="checkbox"
-          >
+          <input id="viewScalingObjects" v-model="configs.view.scalingObjects" type="checkbox">
           <label for="viewScalingObjects">Scaling objects</label>
         </div>
         <div class="control">
@@ -302,7 +298,6 @@
       :edges="edges"
       :configs="configs"
       :layouts="layouts"
-      :layout-handler="layoutHandler"
       :event-handler="handleEvent"
     >
       <template #layer1>
@@ -369,7 +364,7 @@ export default /*#__PURE__*/ defineComponent({
 
     const downloadAsSvg = () => {
       const text = graph.value?.getAsSvg()
-      const url = URL.createObjectURL(new Blob([text], {type: "octet/stream"}))
+      const url = URL.createObjectURL(new Blob([text], { type: "octet/stream" }))
       const a = document.createElement("a")
       a.href = url
       a.download = "network-graph.svg"
@@ -402,14 +397,16 @@ export default /*#__PURE__*/ defineComponent({
 
     const layoutType = ref<"simple" | "grid" | "force">("simple")
     const layoutHandlers: { [name: string]: LayoutHandler } = {
-      simple: new SimpleLayout(),
+      simple: configs.view.layoutHandler,
       grid: new GridLayout({ grid: 10 }),
       force: new ForceLayout({
         positionFixedByDrag: false,
         positionFixedByClickWithAltKey: true,
       }),
     }
-    const layoutHandler = computed(() => layoutHandlers[layoutType.value])
+    watch(layoutType, type => {
+      configs.view.layoutHandler = layoutHandlers[type]
+    })
 
     const layoutsText = ref("")
     watch(
@@ -426,7 +423,6 @@ export default /*#__PURE__*/ defineComponent({
       configs,
       layouts,
       layoutType,
-      layoutHandler,
       layoutsText,
     }
   },

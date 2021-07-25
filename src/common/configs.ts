@@ -1,4 +1,5 @@
 import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
+import { LayoutHandler } from "../layouts/handler"
 import { RecursivePartial } from "./types"
 
 /* Shape style */
@@ -43,6 +44,7 @@ export interface ViewConfig {
   zoomEnabled: true
   minZoomLevel: number
   maxZoomLevel: number
+  layoutHandler: LayoutHandler
   onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
 }
 

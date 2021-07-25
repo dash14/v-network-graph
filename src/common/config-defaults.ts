@@ -1,5 +1,6 @@
 import { DeepReadonly } from "vue"
 import { NodeLabelDirection, Configs } from "./configs"
+import { SimpleLayout } from "../layouts/simple"
 import cloneDeep from "lodash-es/cloneDeep"
 
 export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
@@ -9,6 +10,7 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
     zoomEnabled: true,
     minZoomLevel: 0.1,
     maxZoomLevel: 64,
+    layoutHandler: new SimpleLayout(),
     onSvgPanZoomInitialized: undefined,
   },
   node: {

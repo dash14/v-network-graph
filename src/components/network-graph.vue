@@ -98,8 +98,6 @@ import { provideZoomLevel } from "../composables/zoom"
 import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
 import { Reactive, nonNull } from "../common/types"
 import { Configs, UserConfigs } from "../common/configs"
-import { SimpleLayout } from "../layouts/simple"
-import { LayoutHandler } from "../layouts/handler"
 import VNode from "./node.vue"
 import VNodeSelection from "./node-selection.vue"
 import VEdge from "./edge.vue"
@@ -135,10 +133,6 @@ export default defineComponent({
     layouts: {
       type: Object as PropType<UserLayouts>,
       default: () => ({}),
-    },
-    layoutHandler: {
-      type: Object as PropType<LayoutHandler>,
-      default: () => new SimpleLayout(),
     },
     configs: {
       type: Object as PropType<UserConfigs>,
@@ -419,10 +413,10 @@ export default defineComponent({
       emitter,
       svgPanZoom: nonNull(svgPanZoom.value),
     })
-    onSvgPanZoomMounted(() => props.layoutHandler.activate(activateParams()))
-    onSvgPanZoomUnmounted(() => props.layoutHandler.deactivate())
+    onSvgPanZoomMounted(() => configs.view.layoutHandler.activate(activateParams()))
+    onSvgPanZoomUnmounted(() => configs.view.layoutHandler.deactivate())
     watch(
-      () => props.layoutHandler,
+      () => configs.view.layoutHandler,
       (newHandler, oldHandler) => {
         oldHandler.deactivate()
         newHandler.activate(activateParams())
