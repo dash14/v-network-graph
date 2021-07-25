@@ -328,12 +328,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref, watch } from "vue"
+import { defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
 import VNetworkGraph from "./components/network-graph.vue"
 import { cloneAllConfigDefaults } from "./common/config-defaults"
 import { UserLayouts, Nodes, Edges, LayerPos } from "./common/types"
-import { SimpleLayout } from "./layouts/simple"
 import { GridLayout } from "./layouts/grid"
 import { ForceLayout } from "./layouts/force"
 import { LayoutHandler } from "./layouts/handler"
