@@ -153,7 +153,7 @@ export class ForceLayout implements LayoutHandler {
         .force("charge", d3.forceManyBody())
         .force("collide", d3.forceCollide(50).strength(0.2))
         .force("center", d3.forceCenter().strength(0.05))
-        .alphaMin(0.01)
+        .alphaMin(0.001)
     }
   }
 
