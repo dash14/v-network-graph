@@ -1,5 +1,6 @@
 import { toRef, watch } from "vue"
-import { Edge, Edges, NodePositions, OnClickHandler, OnDragHandler } from "../common/types"
+import { Edge, Edges, NodePositions, Nodes, Position } from "../common/types"
+import { OnClickHandler, OnDragHandler } from "../common/types"
 import * as d3 from "d3-force"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
@@ -31,7 +32,7 @@ export class ForceLayout implements LayoutHandler {
 
   activate(parameters: LayoutActivateParameters): void {
     const { layouts, nodes, edges, emitter, svgPanZoom } = parameters
-    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts)
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes, layouts, { x: 0, y: 0 })
 
     const simulation = this.createSimulation(
       nodeLayouts,
@@ -104,29 +105,15 @@ export class ForceLayout implements LayoutHandler {
       }
     }
 
-    const stopNodeWatch = watch(
-      () => Object.keys(nodes),
-      (nodeIds) => {
-        // set new node's position to center of the view
-        const newNodes = nodeIds.filter(n => !(n in layouts))
-        const area = svgPanZoom.getViewArea()
-        for (const nodeId of newNodes) {
-          layouts[nodeId] = { ...area.center }
-        }
-
-        ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(layouts))
-        simulation.nodes(nodeLayouts)
-        // ノードを入れ替えるとリンク情報も途切れてしまうため再投入する
-        const forceEdges = simulation.force("edge") as any
-        forceEdges.edges(this.forceLayoutEdges(edges))
-        restartSimulation()
-      }
-    )
-    const stopEdgeWatch = watch(
-      () => edges,
+    const stopNetworkWatch = watch(
+      () => [Object.keys(nodes), edges],
       () => {
-        const forceEdges = simulation.force("edge") as any
-        forceEdges.edges(this.forceLayoutEdges(edges))
+        // set new node's position to center of the view
+        const area = svgPanZoom.getViewArea()
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes, layouts, area.center))
+        simulation.nodes(nodeLayouts)
+        const forceEdges = simulation.force("edge") as d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>
+        forceEdges.links(this.forceLayoutEdges(edges))
         restartSimulation()
       },
       { deep: true }
@@ -139,8 +126,7 @@ export class ForceLayout implements LayoutHandler {
 
     this.onDeactivate = () => {
       simulation.stop()
-      stopNodeWatch()
-      stopEdgeWatch()
+      stopNetworkWatch()
       emitter.off("node:dragstart", onDrag)
       emitter.off("node:pointermove", onDrag)
       emitter.off("node:dragend", onDragEnd)
@@ -161,7 +147,8 @@ export class ForceLayout implements LayoutHandler {
     if (this.options.createSimulation) {
       return this.options.createSimulation(nodeLayouts, edges)
     } else {
-      return d3.forceSimulation(nodeLayouts)
+      return d3
+        .forceSimulation(nodeLayouts)
         .force("edge", edges.distance(100))
         .force("charge", d3.forceManyBody())
         .force("collide", d3.forceCollide(50).strength(0.2))
@@ -170,7 +157,12 @@ export class ForceLayout implements LayoutHandler {
     }
   }
 
-  private buildNodeLayouts(layouts: NodePositions) {
+  private buildNodeLayouts(nodes: Readonly<Nodes>, layouts: NodePositions, newPosition: Position) {
+    const newNodes = Object.keys(nodes).filter(n => !(n in layouts))
+    for (const nodeId of newNodes) {
+      layouts[nodeId] = { ...newPosition }
+    }
+
     const nodeLayouts = this.forceNodeLayouts(layouts)
     const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
     return { nodeLayouts, nodeLayoutMap }
