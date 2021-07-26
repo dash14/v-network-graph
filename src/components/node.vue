@@ -80,7 +80,11 @@ export default defineComponent({
 
     // ラベル
     const labelMargin = computed(() => {
-      return config.label.margin / scale.value
+      if (config.label.direction === NodeLabelDirection.CENTER) {
+        return 0
+      } else {
+        return config.label.margin / scale.value
+      }
     })
 
     // 円の場合のラベル位置計算用
