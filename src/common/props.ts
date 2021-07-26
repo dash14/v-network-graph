@@ -52,16 +52,44 @@ type KeysOfType<Obj, Val> = {
   [K in keyof Obj]-?: Obj[K] extends Val ? K : never
 }[keyof Obj]
 
-//export function bindPropKeyArray<T, K extends string & keyof T>(
-export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
+// export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
+//   props: T,
+//   name: K,
+//   sourceObject: { [name: string]: any },
+//   emit: (event: `update:${K}`, ...args: any[]) => void
+// ): Reactive<string[]> {
+//   // 指定propの双方向バインディングを生成する.
+//   // 指定propがオブジェクトのキーを示すことを前提とする.
+//   const bound = reactive<string[]>([])
+//   watch(
+//     () => props[name],
+//     () => {
+//       // 型チェックで string[] だと認識してくれないため一旦 any を介する
+//       const prop: string[] = props[name] as any
+//       const filtered = prop.filter(n => n in sourceObject)
+//       if (!isEqual(filtered, bound)) {
+//         bound.splice(0, bound.length, ...filtered)
+//       }
+//     },
+//     { immediate: true }
+//   )
+//   watch(bound, v => {
+//     if (!isEqual(props[name], bound)) {
+//       emit(`update:${name}` as const, v)
+//     }
+//   })
+//   return Reactive(bound)
+// }
+
+export function bindPropKeySet<T, K extends string & KeysOfType<T, string[]>>(
   props: T,
   name: K,
   sourceObject: { [name: string]: any },
   emit: (event: `update:${K}`, ...args: any[]) => void
-): Reactive<string[]> {
+): Reactive<Set<string>> {
   // 指定propの双方向バインディングを生成する.
   // 指定propがオブジェクトのキーを示すことを前提とする.
-  const bound = reactive<string[]>([])
+  const bound = reactive<Set<string>>(new Set())
   watch(
     () => props[name],
     () => {
@@ -69,14 +97,16 @@ export function bindPropKeyArray<T, K extends string & KeysOfType<T, string[]>>(
       const prop: string[] = props[name] as any
       const filtered = prop.filter(n => n in sourceObject)
       if (!isEqual(filtered, bound)) {
-        bound.splice(0, bound.length, ...filtered)
+        bound.clear()
+        filtered.forEach(bound.add, bound)
       }
     },
     { immediate: true }
   )
-  watch(bound, v => {
-    if (!isEqual(props[name], bound)) {
-      emit(`update:${name}` as const, v)
+  watch(bound, () => {
+    const array = Array.from(bound)
+    if (!isEqual(props[name], array)) {
+      emit(`update:${name}` as const, array)
     }
   })
   return Reactive(bound)

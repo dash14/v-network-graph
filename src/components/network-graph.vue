@@ -47,7 +47,7 @@
                 :target-pos="currentLayouts.nodes[edge.target]"
                 :i="i"
                 :count="Object.keys(bundledEdges).length"
-                :selected="currentSelectedEdges.includes(id.toString())"
+                :selected="currentSelectedEdges.has(id.toString())"
               />
             </template>
           </template>
@@ -88,8 +88,7 @@
 <script lang="ts">
 import { defineComponent, PropType, reactive, readonly, ref } from "vue"
 import { computed, nextTick, watch } from "vue"
-import isEqual from "lodash-es/isEqual"
-import { bindProp, bindPropKeyArray } from "../common/props"
+import { bindProp, bindPropKeySet } from "../common/props"
 import { provideConfigs } from "../composables/style"
 import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
@@ -330,11 +329,11 @@ export default defineComponent({
     // -----------------------------------------------------------------------
     // States of selected nodes/edges
     // -----------------------------------------------------------------------
-    const currentSelectedNodes = bindPropKeyArray(props, "selectedNodes", props.nodes, emit)
-    watch(currentSelectedNodes, nodes => emitter.emit("node:select", nodes))
+    const currentSelectedNodes = bindPropKeySet(props, "selectedNodes", props.nodes, emit)
+    watch(currentSelectedNodes, nodes => emitter.emit("node:select", Array.from(nodes)))
 
-    const currentSelectedEdges = bindPropKeyArray(props, "selectedEdges", props.edges, emit)
-    watch(currentSelectedEdges, edges => emitter.emit("edge:select", edges))
+    const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", props.edges, emit)
+    watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
     const currentLayouts = reactive<Layouts>({ nodes: {} })
 
@@ -357,10 +356,11 @@ export default defineComponent({
           delete positions[node]
         }
         // remove nodes in selected nodes
-        const filtered = currentSelectedNodes.filter(n => nodeIdSet.has(n))
-        if (!isEqual(filtered, currentSelectedNodes)) {
-          currentSelectedNodes.splice(0, currentSelectedNodes.length, ...filtered)
-        }
+        currentSelectedNodes.forEach(n => {
+          if (!nodeIdSet.has(n)) {
+            currentSelectedNodes.delete(n)
+          }
+        })
       }
     )
 

@@ -60,8 +60,8 @@ export function provideMouseOperation(
   nodePositions: Readonly<NodePositions>,
   zoomLevel: ReadonlyRef<number>,
   configs: Readonly<Configs>,
-  selectedNodes: Reactive<string[]>,
-  selectedEdges: Reactive<string[]>,
+  selectedNodes: Reactive<Set<string>>,
+  selectedEdges: Reactive<Set<string>>,
   emitter: Emitter<Events>
 ): void {
   onMounted(() => {
@@ -129,8 +129,8 @@ export function provideMouseOperation(
       })
       if (state.container.moveCounter <= MOVE_DETECTION_THRESHOLD) {
         // Click container (without mouse move)
-        selectedNodes.splice(0, selectedNodes.length)
-        selectedEdges.splice(0, selectedEdges.length)
+        selectedNodes.clear()
+        selectedEdges.clear()
       }
     }
   }
@@ -141,13 +141,13 @@ export function provideMouseOperation(
 
   function _updateFollowNodes(pointerState: NodePointerState) {
     const isFollowed = state.follow.followedPointerId === pointerState.pointerId
-    const isSelectedNode = selectedNodes.includes(pointerState.nodeId)
+    const isSelectedNode = selectedNodes.has(pointerState.nodeId)
 
     const removed = !(pointerState.pointerId in state.nodePointers)
     if ((isFollowed && removed) || (isFollowed && !isSelectedNode)) {
       // selected => unselected
       const candidate = MapUtil.valueOf(state.nodePointers).find(p =>
-        selectedNodes.includes(p.nodeId)
+        selectedNodes.has(p.nodeId)
       )
       if (!candidate) {
         state.follow = { followedPointerId: -1, nodeBasePositions: {} }
@@ -169,7 +169,7 @@ export function provideMouseOperation(
       // followed by selected nodes without user grabs
       const userGrabs = MapUtil.valueOf(state.nodePointers).map(n => n.nodeId)
       state.follow.nodeBasePositions = Object.fromEntries(
-        selectedNodes
+        Array.from(selectedNodes)
           .filter(n => !userGrabs.includes(n))
           .map(n => [n, _unwrapNodePosition(nodePositions, n)])
       )
@@ -209,29 +209,29 @@ export function provideMouseOperation(
   }
 
   function handleNodeClickEvent(node: string, event: PointerEvent) {
-    selectedEdges.splice(0, selectedEdges.length)
+    selectedEdges.clear()
 
     if (configs.node.selectable) {
       const isTouchAnySelectedNode =
         MapUtil.valueOf(state.nodePointers).filter(
-          p => p.pointerId != event.pointerId && selectedNodes.includes(p.nodeId)
+          p => p.pointerId != event.pointerId && selectedNodes.has(p.nodeId)
         ).length > 0
       if (event.shiftKey || isTouchAnySelectedNode) {
         // select multiple nodes
-        const index = selectedNodes.indexOf(node)
-        if (index >= 0) {
-          selectedNodes.splice(index, 1)
+        if (selectedNodes.has(node)) {
+          selectedNodes.delete(node)
         } else if (
           !(
             typeof configs.node.selectable === "number" &&
-            selectedNodes.length >= configs.node.selectable
+            selectedNodes.size >= configs.node.selectable
           )
         ) {
-          selectedNodes.push(node)
+          selectedNodes.add(node)
         }
       } else {
         // make the selectedNodes the clicked one
-        selectedNodes.splice(0, selectedNodes.length, node)
+        selectedNodes.clear()
+        selectedNodes.add(node)
       }
     }
     emitter.emit("node:click", { node, event })
@@ -361,7 +361,7 @@ export function provideMouseOperation(
     }
     state.nodePointers.set(event.pointerId, pointerState)
 
-    if (selectedNodes.includes(node)) {
+    if (selectedNodes.has(node)) {
       if (state.follow.followedPointerId < 0) {
         // pointer followed by selected nodes
         state.follow.followedPointerId = event.pointerId
@@ -462,28 +462,28 @@ export function provideMouseOperation(
   }
 
   function handleEdgeClickEvent(edge: string, event: PointerEvent) {
-    selectedNodes.splice(0, selectedNodes.length)
+    selectedNodes.clear()
 
     if (configs.edge.selectable) {
       const isTouchAnySelectedEdge =
         MapUtil.valueOf(state.edgePointers).filter(
-          p => p.pointerId != event.pointerId && selectedEdges.includes(p.edgeId)
+          p => p.pointerId != event.pointerId && selectedEdges.has(p.edgeId)
         ).length > 0
       if (event.shiftKey || isTouchAnySelectedEdge) {
-        const index = selectedEdges.indexOf(edge)
-        if (index >= 0) {
-          selectedEdges.splice(index, 1)
+        if (selectedEdges.has(edge)) {
+          selectedEdges.delete(edge)
         } else if (
           !(
             typeof configs.edge.selectable === "number" &&
-            selectedEdges.length >= configs.edge.selectable
+            selectedEdges.size >= configs.edge.selectable
           )
         ) {
-          selectedEdges.push(edge)
+          selectedEdges.add(edge)
         }
       } else {
         // make the selectedEdges the clicked one
-        selectedEdges.splice(0, selectedEdges.length, edge)
+        selectedEdges.clear()
+        selectedEdges.add(edge)
       }
     }
     emitter.emit("edge:click", { edge, event })
