@@ -5,7 +5,7 @@
     :y1="y1"
     :x2="x2"
     :y2="y2"
-    :config="selected ? config.selected : hover ? config.hover : config.stroke"
+    :config="stroke"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerover="hover = true"
     @pointerout="hover = false"
@@ -13,12 +13,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, watchEffect } from "vue"
+import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "../composables/zoom"
 import { useEdgeConfig } from "../composables/style"
 import { Node, Position } from "../common/types"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "../components/line.vue"
+import { StrokeStyle } from "src/common/configs"
 
 function calculateLinePosition(
   x1: number,
@@ -103,6 +104,16 @@ export default defineComponent({
     const { scale } = useZoomLevel()
     const { handleEdgePointerDownEvent } = useMouseOperation()
 
+    const stroke = computed<StrokeStyle>(() => {
+      if (props.selected) {
+        return config.selected
+      } else if (hover.value && config.hover) {
+        return config.hover
+      } else {
+        return config.stroke
+      }
+    })
+
     const x1 = ref(0)
     const y1 = ref(0)
     const x2 = ref(0)
@@ -136,7 +147,7 @@ export default defineComponent({
       }
     })
 
-    return { hover, handleEdgePointerDownEvent, x1, y1, x2, y2, config }
+    return { hover, config, stroke, handleEdgePointerDownEvent, x1, y1, x2, y2 }
   },
 })
 </script>
@@ -145,11 +156,9 @@ export default defineComponent({
 $transition: 0.1s linear;
 
 path {
-  pointer-events: none;
   transition: stroke $transition, stroke-width $transition;
 }
 path.selectable {
-  pointer-events: all;
   cursor: pointer;
 }
 </style>

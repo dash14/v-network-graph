@@ -90,7 +90,8 @@ export interface NodeConfig {
 
 export interface EdgeConfig {
   stroke: StrokeStyle
-  hover: StrokeStyle
+  hover?: StrokeStyle
+  selected: StrokeStyle
   gap: number
   summarized: {
     label: LabelStyle
@@ -98,7 +99,6 @@ export interface EdgeConfig {
     line: StrokeStyle
   }
   selectable: boolean | number
-  selected: StrokeStyle
 }
 
 export interface Configs {
