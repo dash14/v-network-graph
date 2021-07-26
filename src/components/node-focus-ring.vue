@@ -1,6 +1,6 @@
 <template>
   <v-shape
-    class="v-node-selection"
+    class="v-node-focus-ring"
     :base-x="x"
     :base-y="y"
     :config="shapeConfig"
@@ -12,7 +12,7 @@ import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
 import { Position } from "../common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "../common/configs"
 import { useNodeConfig } from "../composables/style"
-import VShape from "../components/shape.vue"
+import VShape from "./shape.vue"
 
 export default defineComponent({
   components: { VShape },
@@ -38,12 +38,12 @@ export default defineComponent({
           radius:
             shapeStyle.radius +
             (shapeStyle.stroke?.width ?? 0) / 2 +
-            config.selection.padding +
-            config.selection.width / 2,
+            config.focusring.padding +
+            config.focusring.width / 2,
           color: "none",
           stroke: {
-            width: config.selection.width,
-            color: config.selection.color,
+            width: config.focusring.width,
+            color: config.focusring.color,
           },
         }
         Object.assign(shapeConfig, shape)
@@ -53,19 +53,19 @@ export default defineComponent({
           width:
             shapeStyle.width +
             (shapeStyle.stroke?.width ?? 0) +
-            config.selection.padding * 2 +
-            config.selection.width,
+            config.focusring.padding * 2 +
+            config.focusring.width,
           height:
             shapeStyle.height +
             (shapeStyle.stroke?.width ?? 0) +
-            config.selection.padding * 2 +
-            config.selection.width,
+            config.focusring.padding * 2 +
+            config.focusring.width,
           borderRadius:
-            shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + config.selection.padding : 0,
+            shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + config.focusring.padding : 0,
           color: "none",
           stroke: {
-            width: config.selection.width,
-            color: config.selection.color,
+            width: config.focusring.width,
+            color: config.focusring.color,
           },
         }
         Object.assign(shapeConfig, shape)
@@ -78,7 +78,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.v-node-selection {
+.v-node-focus-ring {
   pointer-events: none;
 }
 </style>

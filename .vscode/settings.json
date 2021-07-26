@@ -4,7 +4,12 @@
     "source.fixAll.eslint": true
   },
   "volar.tsPlugin": true,
-  "cSpell.words": ["composables", "vite", "vitejs"],
+  "cSpell.words": [
+    "composables",
+    "focusring",
+    "vite",
+    "vitejs"
+  ],
   "cSpell.ignorePaths": [
     ".git",
     ".vscode",

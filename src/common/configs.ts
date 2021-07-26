@@ -69,7 +69,8 @@ export interface NodeLabelStyle extends LabelStyle {
   text: string
 }
 
-export interface NodeSelectionStyle {
+export interface NodeFocusRingStyle {
+  visible: boolean
   width: number
   padding: number
   color: string
@@ -81,7 +82,7 @@ export interface NodeConfig {
   label: NodeLabelStyle
   draggable: boolean
   selectable: boolean | number
-  selection: NodeSelectionStyle
+  focusring: NodeFocusRingStyle
 }
 
 /* Edge style */

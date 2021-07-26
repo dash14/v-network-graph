@@ -1,7 +1,7 @@
 export { default as VShape } from "./shape.vue"
 export { default as VText } from "./text.vue"
 export { default as VNode } from "./node.vue"
-export { default as VNodeSelection } from "./node-selection.vue"
+export { default as VNodeFocusRing } from "./node-focus-ring.vue"
 export { default as VEdge } from "./edge.vue"
 export { default as VSummarizedEdge } from "./summarized-edge.vue"
 export { default as VNetworkGraph } from "./network-graph.vue"

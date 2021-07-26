@@ -54,8 +54,8 @@
         </g>
 
         <!-- node selections -->
-        <g v-if="configs.node?.selectable" class="v-layer-nodes-selections">
-          <v-node-selection
+        <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
+          <v-node-focus-ring
             v-for="nodeId in currentSelectedNodes"
             :key="nodeId"
             :pos="currentLayouts.nodes[nodeId]"
@@ -99,12 +99,12 @@ import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../c
 import { Reactive, nonNull } from "../common/types"
 import { Configs, UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
-import VNodeSelection from "./node-selection.vue"
+import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdge from "./edge.vue"
 import VSummarizedEdge from "./summarized-edge.vue"
 
 export default defineComponent({
-  components: { VNode, VNodeSelection, VEdge, VSummarizedEdge },
+  components: { VNode, VNodeFocusRing, VEdge, VSummarizedEdge },
   props: {
     layers: {
       type: Object as PropType<{ [name: string]: string }>,
@@ -364,6 +364,10 @@ export default defineComponent({
       }
     )
 
+    const visibleNodeFocusRing = computed(() => {
+      return configs.node.selectable && configs.node.focusring.visible
+    })
+
     // -----------------------------------------------------------------------
     // Mouse processing
     // -----------------------------------------------------------------------
@@ -451,6 +455,7 @@ export default defineComponent({
       currentSelectedEdges,
       dragging,
       currentLayouts,
+      visibleNodeFocusRing,
 
       // methods
       fitToContents,

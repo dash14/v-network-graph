@@ -169,37 +169,41 @@
           </div>
         </div>
       </div>
-      <h5>Node Selection</h5>
+      <h5>Node Focus Ring</h5>
       <div class="controls">
+        <div class="control">
+          <input id="nodeFocusRingVisible" v-model="configs.node.focusring.visible" type="checkbox">
+          <label for="nodeFocusRingVisible">Visible</label>
+        </div>
         <div class="control slider">
-          <label for="nodeSelectionSize">Border Size</label>
+          <label for="nodeFocusRingSize">Border Size</label>
           <input
-            id="nodeSelectionSize"
-            v-model.number="configs.node.selection.width"
+            id="nodeFocusRingSize"
+            v-model.number="configs.node.focusring.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ configs.node.selection.width }}</div>
+          <div class="value">{{ configs.node.focusring.width }}</div>
         </div>
         <div class="control slider">
-          <label for="nodeSelectionPadding">Padding</label>
+          <label for="nodeFocusRingPadding">Padding</label>
           <input
-            id="nodeSelectionPadding"
-            v-model.number="configs.node.selection.padding"
+            id="nodeFocusRingPadding"
+            v-model.number="configs.node.focusring.padding"
             type="range"
             min="0"
             max="24"
             step="1"
           >
-          <div class="value">{{ configs.node.selection.padding }}</div>
+          <div class="value">{{ configs.node.focusring.padding }}</div>
         </div>
         <div class="control color">
-          <label for="nodeSelectionColor">Color</label>
-          <input id="nodeSelectionColor" v-model="configs.node.selection.color" type="color">
+          <label for="nodeFocusRingColor">Color</label>
+          <input id="nodeFocusRingColor" v-model="configs.node.focusring.color" type="color">
           <div class="value">
-            <input v-model="configs.node.selection.color" type="input">
+            <input v-model="configs.node.focusring.color" type="input">
           </div>
         </div>
       </div>

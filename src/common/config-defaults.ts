@@ -37,7 +37,8 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
     },
     draggable: true,
     selectable: false,
-    selection: {
+    focusring: {
+      visible: true,
       width: 4,
       padding: 3,
       color: "#eebb00",
