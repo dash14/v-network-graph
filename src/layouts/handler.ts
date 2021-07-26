@@ -2,7 +2,7 @@ import { Ref } from "vue"
 import { Emitter } from "mitt"
 import { Events, Edges, NodePositions, Nodes, Reactive } from "../common/types"
 import { Configs } from "../common/configs"
-import { SvgPanZoomInstance } from "src/utility/svg-pan-zoom-ex"
+import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
 
 export interface LayoutActivateParameters {
   layouts: Reactive<NodePositions>

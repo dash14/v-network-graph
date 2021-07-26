@@ -16,10 +16,10 @@
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "../composables/zoom"
 import { useEdgeConfig } from "../composables/style"
+import { StrokeStyle } from "../common/configs"
 import { Node, Position } from "../common/types"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "../components/line.vue"
-import { StrokeStyle } from "src/common/configs"
 
 function calculateLinePosition(
   x1: number,
