@@ -1,7 +1,7 @@
 <template>
   <g :transform="`translate(${x} ${y})`">
     <v-shape
-      :config="hover ? config.hover : config.shape"
+      :config="shape"
       :class="{ draggable: config.draggable, selectable: config.selectable }"
       @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
       @pointerover="hover = true"
@@ -22,7 +22,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
-import { NodeLabelDirection } from "../common/configs"
+import { NodeLabelDirection, ShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
@@ -45,6 +45,10 @@ export default defineComponent({
       required: false,
       default: undefined,
     },
+    selected: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup(props) {
     const x = computed(() => props.pos?.x || 0)
@@ -53,6 +57,16 @@ export default defineComponent({
 
     const config = useNodeConfig()
     const { scale } = useZoomLevel()
+
+    const shape = computed<ShapeStyle>(() => {
+      if (props.selected && config.selected) {
+        return config.selected
+      } else if (hover.value && config.hover) {
+        return config.hover
+      } else {
+        return config.shape
+      }
+    })
 
     // TODO: ユーザ定義関数による指定を可能にする
     const label = computed(() => {
@@ -77,8 +91,8 @@ export default defineComponent({
 
     watchEffect(() => {
       const s = scale.value
-      if (config.shape.type == "circle") {
-        const radius = config.shape.radius / s
+      if (shape.value.type == "circle") {
+        const radius = shape.value.radius / s
         const m = radius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = radius + labelMargin.value
@@ -86,9 +100,9 @@ export default defineComponent({
         labelDiagonalShiftV.value = diagonalMargin
         labelDiagonalShiftH.value = diagonalMargin
       } else {
-        const borderRadius = config.shape.borderRadius / s
-        const width = config.shape.width / s
-        const height = config.shape.height / s
+        const borderRadius = shape.value.borderRadius / s
+        const width = shape.value.width / s
+        const height = shape.value.height / s
         const m = borderRadius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = height / 2 + labelMargin.value
@@ -176,6 +190,7 @@ export default defineComponent({
       y,
       hover,
       config,
+      shape,
       label,
       handleNodePointerDownEvent,
       textAnchor,
@@ -188,7 +203,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-$transition: 0.2s linear;
+$transition: 0.1s linear;
 
 circle,
 rect {

@@ -78,7 +78,8 @@ export interface NodeFocusRingStyle {
 
 export interface NodeConfig {
   shape: ShapeStyle
-  hover: ShapeStyle
+  hover?: ShapeStyle
+  selected?: ShapeStyle
   label: NodeLabelStyle
   draggable: boolean
   selectable: boolean | number

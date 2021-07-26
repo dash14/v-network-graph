@@ -26,6 +26,7 @@ export const CONFIGS_DEFAULT: DeepReadonly<Configs> = {
       stroke: null,
       color: "#3355bb",
     },
+    selected: undefined,
     label: {
       visible: true,
       fontFamily: undefined,

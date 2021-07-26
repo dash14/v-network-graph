@@ -70,6 +70,7 @@
             :key="nodeId"
             :node="node"
             :pos="currentLayouts.nodes[nodeId]"
+            :selected="currentSelectedNodes.has(nodeId.toString())"
           />
         </g>
 
