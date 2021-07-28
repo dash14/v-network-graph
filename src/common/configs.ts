@@ -8,10 +8,16 @@ type CallableValues<V, T> = {
   [K in keyof V]: CallableValue<V[K], T>
 }
 
-export function getConfig<V, T>(value: CallableValues<V, T>, target: T): V {
-  return Object.fromEntries(
-    Object.entries(value).map(([k, v]) => [k, v instanceof Function ? v(target) : v])
-  ) as V
+export class Config {
+  static value<V, T>(value: CallableValue<V, T>, target: T): V {
+    return value instanceof Function ? value(target) : value
+  }
+
+  static values<V, T>(value: CallableValues<V, T>, target: T): V {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, v instanceof Function ? v(target) : v])
+    ) as V
+  }
 }
 
 /* View configuration */

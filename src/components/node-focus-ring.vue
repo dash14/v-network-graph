@@ -10,7 +10,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
-import { CircleShapeStyle, getConfig, RectangleShapeStyle, ShapeStyle } from "../common/configs"
+import { CircleShapeStyle, Config, RectangleShapeStyle, ShapeStyle } from "../common/configs"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
 import VShape from "./shape.vue"
@@ -43,11 +43,11 @@ export default defineComponent({
 
     const shape = computed<ShapeStyle>(() => {
       if (hoveredNodes.has(props.id) && config.hover) {
-        return getConfig(config.hover, props.node)
+        return Config.values(config.hover, props.node)
       } else if (config.selected) {
-        return getConfig(config.selected, props.node)
+        return Config.values(config.selected, props.node)
       } else {
-        return getConfig(config.shape, props.node)
+        return Config.values(config.shape, props.node)
       }
     })
 

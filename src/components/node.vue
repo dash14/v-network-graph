@@ -22,7 +22,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
-import { getConfig, NodeLabelDirection, ShapeStyle } from "../common/configs"
+import { Config, NodeLabelDirection, ShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
@@ -66,15 +66,14 @@ export default defineComponent({
 
     const shape = computed<ShapeStyle>(() => {
       if (hoveredNodes.has(props.id) && config.hover) {
-        return getConfig(config.hover, props.node)
+        return Config.values(config.hover, props.node)
       } else if (props.selected && config.selected) {
-        return getConfig(config.selected, props.node)
+        return Config.values(config.selected, props.node)
       } else  {
-        return getConfig(config.shape, props.node)
+        return Config.values(config.shape, props.node)
       }
     })
 
-    // TODO: ユーザ定義関数による指定を可能にする
     const label = computed(() => {
       if (config.label.visible && config.label.text) {
         return props.node[config.label.text] ?? false

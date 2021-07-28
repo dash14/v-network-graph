@@ -99,7 +99,7 @@ import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
 import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
 import { Reactive, nonNull } from "../common/types"
-import { Configs, getConfig, UserConfigs } from "../common/configs"
+import { Config, Configs, UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdge from "./edge.vue"
@@ -323,7 +323,7 @@ export default defineComponent({
           .flatMap(e => [props.nodes[e.source], props.nodes[e.target]])
           .filter(v => v)
           .map(node => {
-            const shape = getConfig(configs.node.shape, node)
+            const shape = Config.values(configs.node.shape, node)
             if (shape.type === "circle") {
               return shape.radius * 2
             } else {
