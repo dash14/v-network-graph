@@ -1,6 +1,6 @@
 import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
-import { Node, RecursivePartial } from "./types"
+import { Node, Edge, RecursivePartial } from "./types"
 
 type CallableValue<V, T> = V | ((target: T) => V)
 
@@ -109,9 +109,9 @@ export interface NodeConfig {
 /* Edge style */
 
 export interface EdgeConfig {
-  stroke: StrokeStyle
-  hover?: StrokeStyle
-  selected: StrokeStyle
+  stroke: CallableValues<StrokeStyle, Edge>
+  hover?: CallableValues<StrokeStyle, Edge>
+  selected: CallableValues<StrokeStyle, Edge>
   gap: number
   summarized: {
     label: LabelStyle

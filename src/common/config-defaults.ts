@@ -47,7 +47,7 @@ export function getConfigDefaults(): Configs {
         color: "#eebb00",
       },
     })),
-    edge: {
+    edge: withSelf(self => ({
       stroke: {
         width: 2,
         color: "#4466cc",
@@ -55,10 +55,10 @@ export function getConfigDefaults(): Configs {
         linecap: "butt",
       },
       hover: {
-        width: 2,
+        width: (edge) => Config.value(self.stroke.width, edge) + 1,
         color: "#3355bb",
-        dasharray: "0",
-        linecap: "butt",
+        dasharray: (edge) => Config.value(self.stroke.dasharray, edge),
+        linecap: (edge) => Config.value(self.stroke.linecap, edge),
       },
       gap: 3,
       summarized: {
@@ -84,11 +84,11 @@ export function getConfigDefaults(): Configs {
       },
       selectable: false,
       selected: {
-        width: 3,
+        width: (edge) => Config.value(self.stroke.width, edge) + 1,
         color: "#dd8800",
         dasharray: "3 5",
         linecap: "round",
       },
-    },
+    })),
   }
 }

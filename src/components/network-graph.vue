@@ -33,20 +33,25 @@
         <!-- edges -->
         <g class="v-layer-edges">
           <template v-for="[key, bundledEdges] in Array.from(edgeMap)">
-            <template v-if="checkEdgeSummarize(bundledEdges)">
-              <v-summarized-edge :key="key" :edges="bundledEdges" :layouts="currentLayouts.nodes" />
+            <template v-if="checkEdgeSummarize(bundledEdges.edges)">
+              <v-summarized-edge
+                :key="key"
+                :edges="bundledEdges.edges"
+                :layouts="currentLayouts.nodes"
+              />
             </template>
-            <template v-for="(edge, id, i) in bundledEdges" v-else :key="`${id}`">
+            <template v-for="(layout, id) in bundledEdges.points" v-else :key="`${id}`">
               <v-edge
                 :id="id.toString()"
-                :source-id="edge.source"
-                :target-id="edge.target"
-                :source-node="nodes[edge.source]"
-                :target-node="nodes[edge.target]"
-                :source-pos="currentLayouts.nodes[edge.source]"
-                :target-pos="currentLayouts.nodes[edge.target]"
-                :i="i"
-                :count="Object.keys(bundledEdges).length"
+                :edge="layout.edge"
+                :source-id="layout.edge.source"
+                :target-id="layout.edge.target"
+                :source-node="nodes[layout.edge.source]"
+                :target-node="nodes[layout.edge.target]"
+                :source-pos="currentLayouts.nodes[layout.edge.source]"
+                :target-pos="currentLayouts.nodes[layout.edge.target]"
+                :point="layout.point"
+                :all-width="bundledEdges.allWidth"
                 :selected="currentSelectedEdges.has(id.toString())"
               />
             </template>
@@ -97,13 +102,24 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
+import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts, Edge } from "../common/types"
 import { Reactive, nonNull } from "../common/types"
 import { Config, Configs, UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdge from "./edge.vue"
 import VSummarizedEdge from "./summarized-edge.vue"
+
+interface EdgePoint {
+  edge: Edge
+  point: number
+}
+
+interface EdgeLayout {
+  edges: Edges
+  points: { [name: string]: EdgePoint }
+  allWidth: number
+}
 
 export default defineComponent({
   components: { VNode, VNodeFocusRing, VEdge, VSummarizedEdge },
@@ -298,25 +314,50 @@ export default defineComponent({
 
     // リンクの配置用中間マップの生成
     const edgeMap = computed(() => {
-      const map = new Map<string, Edges>()
+      const map: { [name: string]: Edges } = {}
       for (const [id, edge] of Object.entries(props.edges)) {
         if (!(edge.source in props.nodes && edge.target in props.nodes)) {
           // reject if no node ID is found on the nodes
           continue
         }
         const key = [edge.source, edge.target].sort().join("<=>")
-        const values = map.get(key) || {}
+        const values = map[key] || {}
         values[id] = edge
-        map.set(key, values)
+        map[key] = values
       }
-      return map
+
+      const layouts = new Map<string, EdgeLayout>()
+      for (const [key, edges] of Object.entries(map)) {
+        let next = 0, point = 0
+        const points = Object.fromEntries(
+          Object.entries(edges).map(([key, edge], i) => {
+            const half = Config.value(configs.edge.stroke.width, edge) / 2
+            next += i > 0 ? half : 0
+            point = next
+            next += half + configs.edge.gap
+            return [key, { edge, point }]
+          })
+        )
+        layouts.set(key, {
+          edges,
+          points,
+          allWidth: point,
+        })
+      }
+
+      return layouts
     })
+
     const defaultCheckSummarize = (edges: Edges, configs: Configs) => {
       // edge幅とgap幅がノードの大きさを超えていたら集約する
       const edgeCount = Object.entries(edges).length
       if (edgeCount === 1) return
 
-      const width = configs.edge.stroke.width * edgeCount + configs.edge.gap * (edgeCount - 1)
+      const width =
+        Object.values(edges)
+          .map(e => Config.value(configs.edge.stroke.width, e))
+          .reduce((sum, v) => sum + v, 0) +
+        configs.edge.gap * (edgeCount - 1)
 
       const minWidth = Math.min(
         ...Object.values(edges)
