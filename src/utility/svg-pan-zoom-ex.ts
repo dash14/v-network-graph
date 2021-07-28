@@ -132,8 +132,10 @@ const methods: Partial<SvgPanZoomInternal> = {
   setZoomEnabled(this: SvgPanZoomInternal, enabled: boolean) {
     if (enabled) {
       this.enableZoom()
+      this.enableDblClickZoom()
     } else {
       this.disableZoom()
+      this.disableDblClickZoom()
     }
     return this
   },
@@ -164,6 +166,10 @@ export function createSvgPanZoomEx(
   const userInit = options.customEventsHandler?.init ?? ((_: any) => {})
   const userDestroy = options.customEventsHandler?.destroy ?? ((_: any) => {})
   const haltEventListeners = options.customEventsHandler?.haltEventListeners ?? []
+
+  if (options.mouseWheelZoomEnabled === undefined) {
+    options.mouseWheelZoomEnabled = options.zoomEnabled
+  }
 
   options.customEventsHandler = {
     init: o => {

@@ -207,12 +207,10 @@ export default defineComponent({
     }
 
     watch(() => configs.view.panEnabled, v => {
-      if (v) svgPanZoom.value?.enablePan()
-      else svgPanZoom.value?.disablePan()
+      svgPanZoom.value?.setPanEnabled(v)
     })
     watch(() => configs.view.zoomEnabled, v => {
-      if (v) svgPanZoom.value?.enableZoom()
-      else svgPanZoom.value?.disableZoom()
+      svgPanZoom.value?.setZoomEnabled(v)
     })
 
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
