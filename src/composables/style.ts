@@ -1,41 +1,31 @@
 
 import { nonNull } from "../common/types"
 import { Configs, UserConfigs } from "../common/configs"
-import { CONFIGS_DEFAULT } from "../common/config-defaults"
-import { inject, provide, reactive, watch } from "vue"
-import cloneDeep from "lodash-es/cloneDeep"
+import { getConfigDefaults } from "../common/config-defaults"
+import { inject, InjectionKey, provide, reactive, watch } from "vue"
 import merge from "lodash-es/merge"
 
-function getObjectStyle<K extends keyof Configs>(style: UserConfigs, key: keyof Configs): Configs[K] {
-  const result = cloneDeep(CONFIGS_DEFAULT[key]) as Configs[K]
-  const userStyle: UserConfigs[K] = style[key] || {}
-  merge(result, userStyle)
-  return result
-}
-
-const styleKeys = Object.keys(CONFIGS_DEFAULT) as (keyof Configs)[]
-
-const injectionKeys = Object.fromEntries(
-  styleKeys.map(k => [k, Symbol(`style:${k}`)])
-)
+const injectionKey = Symbol("style") as InjectionKey<Configs>
 
 export function provideConfigs(configs: UserConfigs) {
-  const results: UserConfigs = {}
+  const results: Configs = reactive(getConfigDefaults())
+  const styleKeys = Object.keys(results) as (keyof Configs)[]
   for (const key of styleKeys) {
-    // computed を provide で提供することができないため
-    // 独自に reactive を生成し、変更を追随する.
-    const target = reactive({})
     watch(() => configs[key], () => {
-      Object.assign(target, getObjectStyle(configs, key))
+      merge(results[key], configs[key] || {})
     }, { immediate: true, deep: true })
-    provide(injectionKeys[key], target)
-    results[key] = target
   }
-  return results as Configs
+
+  provide(injectionKey, results)
+  return results
 }
 
 function injectConfig<T extends keyof Configs>(key: T) {
-  return nonNull(inject(injectionKeys[key]), `Configs(${key})`) as Configs[T]
+  return nonNull(inject(injectionKey), `Configs(${key})`)[key]
+}
+
+export function useAllConfigs() {
+  return nonNull(inject(injectionKey))
 }
 
 export function useViewConfig() {

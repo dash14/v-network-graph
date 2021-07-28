@@ -11,6 +11,11 @@ type EdgeEventHandler = (edge: string, event: MouseEvent) => void
 
 interface MouseEventHandlers {
   handleNodePointerDownEvent: NodeEventHandler
+  handleNodePointerOverEvent: NodeEventHandler,
+  handleNodePointerOutEvent: NodeEventHandler,
+  selectedNodes: Reactive<Set<string>>,
+  hoveredNodes: Reactive<Set<string>>,
+  selectedEdges: Reactive<Set<string>>,
   handleEdgePointerDownEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
@@ -44,8 +49,9 @@ interface State {
     followedPointerId: number
     nodeBasePositions: { [name: string]: Position }
   }
+  hoveredNodes: Reactive<Set<string>>
   edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
-  edgePointerPeekCount: number
+  edgePointerPeekCount: number,
 }
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
@@ -86,6 +92,7 @@ export function provideMouseOperation(
       followedPointerId: -1,
       nodeBasePositions: {},
     },
+    hoveredNodes: Reactive(new Set()),
     edgePointers: new Map(),
     edgePointerPeekCount: 0,
   }
@@ -376,6 +383,17 @@ export function provideMouseOperation(
     emitter.emit("node:pointerdown", { node, event })
   }
 
+
+  function handleNodePointerOverEvent(node: string, event: PointerEvent) {
+    state.hoveredNodes.add(node)
+    emitter.emit("node:pointerover", { node, event })
+  }
+
+  function handleNodePointerOutEvent(node: string, event: PointerEvent) {
+    state.hoveredNodes.delete(node)
+    emitter.emit("node:pointerout", { node, event })
+  }
+
   // -----------------------------------------------------------------------
   // Event handler for edges
   // -----------------------------------------------------------------------
@@ -491,6 +509,11 @@ export function provideMouseOperation(
 
   provide(mouseEventHandlersKey, {
     handleNodePointerDownEvent,
+    handleNodePointerOverEvent,
+    handleNodePointerOutEvent,
+    selectedNodes,
+    hoveredNodes: state.hoveredNodes,
+    selectedEdges,
     handleEdgePointerDownEvent,
   })
 }

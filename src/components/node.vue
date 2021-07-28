@@ -4,8 +4,8 @@
       :config="shape"
       :class="{ draggable: config.draggable, selectable: config.selectable }"
       @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
-      @pointerover="hover = true"
-      @pointerout="hover = false"
+      @pointerover.passive="handleNodePointerOverEvent(id, $event)"
+      @pointerout.passive="handleNodePointerOutEvent(id, $event)"
     />
     <v-text
       v-if="label"
@@ -22,7 +22,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
-import { NodeLabelDirection, ShapeStyle } from "../common/configs"
+import { Config, NodeLabelDirection, ShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
@@ -53,30 +53,33 @@ export default defineComponent({
   setup(props) {
     const x = computed(() => props.pos?.x || 0)
     const y = computed(() => props.pos?.y || 0)
-    const hover = ref(false)
 
     const config = useNodeConfig()
     const { scale } = useZoomLevel()
 
+    const {
+      handleNodePointerDownEvent,
+      handleNodePointerOverEvent,
+      handleNodePointerOutEvent,
+      hoveredNodes
+    } = useMouseOperation()
+
     const shape = computed<ShapeStyle>(() => {
-      if (props.selected && config.selected) {
-        return config.selected
-      } else if (hover.value && config.hover) {
-        return config.hover
-      } else {
-        return config.shape
+      if (hoveredNodes.has(props.id) && config.hover) {
+        return Config.values(config.hover, props.node)
+      } else if (props.selected && config.selected) {
+        return Config.values(config.selected, props.node)
+      } else  {
+        return Config.values(config.shape, props.node)
       }
     })
 
-    // TODO: ユーザ定義関数による指定を可能にする
     const label = computed(() => {
       if (config.label.visible && config.label.text) {
         return props.node[config.label.text] ?? false
       }
       return false
     })
-
-    const { handleNodePointerDownEvent } = useMouseOperation()
 
     // ラベル
     const labelMargin = computed(() => {
@@ -192,11 +195,12 @@ export default defineComponent({
     return {
       x,
       y,
-      hover,
       config,
       shape,
       label,
       handleNodePointerDownEvent,
+      handleNodePointerOverEvent,
+      handleNodePointerOutEvent,
       textAnchor,
       dominantBaseline,
       labelX,

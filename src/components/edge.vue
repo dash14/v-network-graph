@@ -16,8 +16,8 @@
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "../composables/zoom"
 import { useEdgeConfig } from "../composables/style"
-import { StrokeStyle } from "../common/configs"
-import { Node, Position } from "../common/types"
+import { Config, StrokeStyle } from "../common/configs"
+import { Edge, Position } from "../common/types"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "../components/line.vue"
 
@@ -26,19 +26,15 @@ function calculateLinePosition(
   y1: number,
   x2: number,
   y2: number,
-  index: number,
-  count: number,
   zoom: number,
-  width: number,
-  gap: number
+  groupWidth: number,
+  pointInGroup: number,
 ) {
   const dx = x2 - x1
   const dy = y2 - y1
 
   // 中央からずれたところを開始位置とするためのずらし幅
-  const interval = width + gap
-  const allWidth = interval * (count - 1)
-  const diff = (interval * index - allWidth / 2) / zoom
+  let diff = (pointInGroup - groupWidth / 2) / zoom
 
   if (dx === 0) {
     return [x1 + diff, y1, x2 + diff, y2]
@@ -47,6 +43,9 @@ function calculateLinePosition(
   } else {
     const slope = dy / dx
     const moveSlope = -1 / slope
+    if (dy < 0) {
+      diff = -diff
+    }
     const diffX = diff / Math.sqrt(1 + Math.pow(moveSlope, 2))
     return [x1 + diffX, y1 + diffX * moveSlope, x2 + diffX, y2 + diffX * moveSlope]
   }
@@ -59,20 +58,8 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    sourceId: {
-      type: String,
-      required: true,
-    },
-    targetId: {
-      type: String,
-      required: true,
-    },
-    sourceNode: {
-      type: Object as PropType<Node>,
-      required: true,
-    },
-    targetNode: {
-      type: Object as PropType<Node>,
+    edge: {
+      type: Object as PropType<Edge>,
       required: true,
     },
     sourcePos: {
@@ -85,13 +72,13 @@ export default defineComponent({
       required: false,
       default: undefined,
     },
-    i: {
+    pointInGroup: {
       type: Number,
-      default: 0,
+      required: true,
     },
-    count: {
+    groupWidth: {
       type: Number,
-      default: 1,
+      required: true,
     },
     selected: {
       type: Boolean,
@@ -106,11 +93,11 @@ export default defineComponent({
 
     const stroke = computed<StrokeStyle>(() => {
       if (props.selected) {
-        return config.selected
+        return Config.values(config.selected, props.edge)
       } else if (hover.value && config.hover) {
-        return config.hover
+        return Config.values(config.hover, props.edge)
       } else {
-        return config.stroke
+        return Config.values(config.stroke, props.edge)
       }
     })
 
@@ -120,17 +107,15 @@ export default defineComponent({
     const y2 = ref(0)
 
     watchEffect(() => {
-      if (props.sourceId < props.targetId) {
+      if (props.edge.source < props.edge.target) {
         [x1.value, y1.value, x2.value, y2.value] = calculateLinePosition(
           props.sourcePos?.x ?? 0,
           props.sourcePos?.y ?? 0,
           props.targetPos?.x ?? 0,
           props.targetPos?.y ?? 0,
-          props.i,
-          props.count,
           scale.value,
-          config.stroke.width,
-          config.gap
+          props.groupWidth,
+          props.pointInGroup
         )
       } else {
         [x2.value, y2.value, x1.value, y1.value] = calculateLinePosition(
@@ -138,11 +123,9 @@ export default defineComponent({
           props.targetPos?.y ?? 0,
           props.sourcePos?.x ?? 0,
           props.sourcePos?.y ?? 0,
-          props.i,
-          props.count,
           scale.value,
-          config.stroke.width,
-          config.gap
+          props.groupWidth,
+          props.pointInGroup
         )
       }
     })

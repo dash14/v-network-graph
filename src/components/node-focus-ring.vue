@@ -9,14 +9,23 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
-import { Position } from "../common/types"
-import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "../common/configs"
+import { Node, Position } from "../common/types"
+import { CircleShapeStyle, Config, RectangleShapeStyle, ShapeStyle } from "../common/configs"
 import { useNodeConfig } from "../composables/style"
+import { useMouseOperation } from "../composables/mouse"
 import VShape from "./shape.vue"
 
 export default defineComponent({
   components: { VShape },
   props: {
+    id: {
+      type: String,
+      required: true,
+    },
+    node: {
+      type: Object as PropType<Node>,
+      required: true,
+    },
     pos: {
       type: Object as PropType<Position>,
       required: false,
@@ -30,8 +39,20 @@ export default defineComponent({
     const config = useNodeConfig()
     const shapeConfig = reactive<ShapeStyle>({} as any)
 
+    const { hoveredNodes } = useMouseOperation()
+
+    const shape = computed<ShapeStyle>(() => {
+      if (hoveredNodes.has(props.id) && config.hover) {
+        return Config.values(config.hover, props.node)
+      } else if (config.selected) {
+        return Config.values(config.selected, props.node)
+      } else {
+        return Config.values(config.shape, props.node)
+      }
+    })
+
     watchEffect(() => {
-      const shapeStyle = config.shape
+      const shapeStyle = shape.value
       if (shapeStyle.type === "circle") {
         const shape: CircleShapeStyle = {
           type: "circle",

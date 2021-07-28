@@ -335,7 +335,7 @@
 import { defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
 import VNetworkGraph from "./components/network-graph.vue"
-import { cloneAllConfigDefaults } from "./common/config-defaults"
+import { getConfigDefaults } from "./common/config-defaults"
 import { UserLayouts, Nodes, Edges, LayerPos } from "./common/types"
 import { GridLayout } from "./layouts/grid"
 import { ForceLayout } from "./layouts/force"
@@ -375,7 +375,7 @@ export default /*#__PURE__*/ defineComponent({
       window.URL.revokeObjectURL(url)
     }
 
-    const configs = reactive(cloneAllConfigDefaults())
+    const configs = reactive(getConfigDefaults())
 
     const layouts = reactive<UserLayouts>({
       nodes: {
