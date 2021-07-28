@@ -15,6 +15,7 @@ interface MouseEventHandlers {
   handleNodePointerOutEvent: NodeEventHandler,
   selectedNodes: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
+  selectedEdges: Reactive<Set<string>>,
   handleEdgePointerDownEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
@@ -512,6 +513,7 @@ export function provideMouseOperation(
     handleNodePointerOutEvent,
     selectedNodes,
     hoveredNodes: state.hoveredNodes,
+    selectedEdges,
     handleEdgePointerDownEvent,
   })
 }

@@ -24,6 +24,10 @@ function injectConfig<T extends keyof Configs>(key: T) {
   return nonNull(inject(injectionKey), `Configs(${key})`)[key]
 }
 
+export function useAllConfigs() {
+  return nonNull(inject(injectionKey))
+}
+
 export function useViewConfig() {
   return injectConfig("view")
 }

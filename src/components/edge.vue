@@ -17,7 +17,7 @@ import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { useZoomLevel } from "../composables/zoom"
 import { useEdgeConfig } from "../composables/style"
 import { Config, StrokeStyle } from "../common/configs"
-import { Edge, Node, Position } from "../common/types"
+import { Edge, Position } from "../common/types"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "../components/line.vue"
 
@@ -27,14 +27,14 @@ function calculateLinePosition(
   x2: number,
   y2: number,
   zoom: number,
-  allWidth: number,
-  point: number,
+  groupWidth: number,
+  pointInGroup: number,
 ) {
   const dx = x2 - x1
   const dy = y2 - y1
 
   // 中央からずれたところを開始位置とするためのずらし幅
-  let diff = (point - allWidth / 2) / zoom
+  let diff = (pointInGroup - groupWidth / 2) / zoom
 
   if (dx === 0) {
     return [x1 + diff, y1, x2 + diff, y2]
@@ -62,22 +62,6 @@ export default defineComponent({
       type: Object as PropType<Edge>,
       required: true,
     },
-    sourceId: {
-      type: String,
-      required: true,
-    },
-    targetId: {
-      type: String,
-      required: true,
-    },
-    sourceNode: {
-      type: Object as PropType<Node>,
-      required: true,
-    },
-    targetNode: {
-      type: Object as PropType<Node>,
-      required: true,
-    },
     sourcePos: {
       type: Object as PropType<Position>,
       required: false,
@@ -88,11 +72,11 @@ export default defineComponent({
       required: false,
       default: undefined,
     },
-    point: {
+    pointInGroup: {
       type: Number,
       required: true,
     },
-    allWidth: {
+    groupWidth: {
       type: Number,
       required: true,
     },
@@ -123,15 +107,15 @@ export default defineComponent({
     const y2 = ref(0)
 
     watchEffect(() => {
-      if (props.sourceId < props.targetId) {
+      if (props.edge.source < props.edge.target) {
         [x1.value, y1.value, x2.value, y2.value] = calculateLinePosition(
           props.sourcePos?.x ?? 0,
           props.sourcePos?.y ?? 0,
           props.targetPos?.x ?? 0,
           props.targetPos?.y ?? 0,
           scale.value,
-          props.allWidth,
-          props.point
+          props.groupWidth,
+          props.pointInGroup
         )
       } else {
         [x2.value, y2.value, x1.value, y1.value] = calculateLinePosition(
@@ -140,8 +124,8 @@ export default defineComponent({
           props.sourcePos?.x ?? 0,
           props.sourcePos?.y ?? 0,
           scale.value,
-          props.allWidth,
-          props.point
+          props.groupWidth,
+          props.pointInGroup
         )
       }
     })

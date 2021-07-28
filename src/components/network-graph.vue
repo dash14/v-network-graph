@@ -32,30 +32,11 @@
 
         <!-- edges -->
         <g class="v-layer-edges">
-          <template v-for="[key, bundledEdges] in Array.from(edgeMap)">
-            <template v-if="checkEdgeSummarize(bundledEdges.edges)">
-              <v-summarized-edge
-                :key="key"
-                :edges="bundledEdges.edges"
-                :layouts="currentLayouts.nodes"
-              />
-            </template>
-            <template v-for="(layout, id) in bundledEdges.points" v-else :key="`${id}`">
-              <v-edge
-                :id="id.toString()"
-                :edge="layout.edge"
-                :source-id="layout.edge.source"
-                :target-id="layout.edge.target"
-                :source-node="nodes[layout.edge.source]"
-                :target-node="nodes[layout.edge.target]"
-                :source-pos="currentLayouts.nodes[layout.edge.source]"
-                :target-pos="currentLayouts.nodes[layout.edge.target]"
-                :point="layout.point"
-                :all-width="bundledEdges.allWidth"
-                :selected="currentSelectedEdges.has(id.toString())"
-              />
-            </template>
-          </template>
+          <v-edge-groups
+            :nodes="nodes"
+            :edges="edges"
+            :node-layouts="currentLayouts.nodes"
+          />
         </g>
 
         <!-- node selections -->
@@ -102,27 +83,15 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts, Edge } from "../common/types"
+import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
 import { Reactive, nonNull } from "../common/types"
-import { Config, Configs, UserConfigs } from "../common/configs"
+import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
-import VEdge from "./edge.vue"
-import VSummarizedEdge from "./summarized-edge.vue"
-
-interface EdgePoint {
-  edge: Edge
-  point: number
-}
-
-interface EdgeLayout {
-  edges: Edges
-  points: { [name: string]: EdgePoint }
-  allWidth: number
-}
+import VEdgeGroups from "./edge-groups.vue"
 
 export default defineComponent({
-  components: { VNode, VNodeFocusRing, VEdge, VSummarizedEdge },
+  components: { VNode, VNodeFocusRing, VEdgeGroups },
   props: {
     layers: {
       type: Object as PropType<{ [name: string]: string }>,
@@ -309,78 +278,6 @@ export default defineComponent({
     }
 
     // -----------------------------------------------------------------------
-    // Edges
-    // -----------------------------------------------------------------------
-
-    // リンクの配置用中間マップの生成
-    const edgeMap = computed(() => {
-      const map: { [name: string]: Edges } = {}
-      for (const [id, edge] of Object.entries(props.edges)) {
-        if (!(edge.source in props.nodes && edge.target in props.nodes)) {
-          // reject if no node ID is found on the nodes
-          continue
-        }
-        const key = [edge.source, edge.target].sort().join("<=>")
-        const values = map[key] || {}
-        values[id] = edge
-        map[key] = values
-      }
-
-      const layouts = new Map<string, EdgeLayout>()
-      for (const [key, edges] of Object.entries(map)) {
-        let next = 0, point = 0
-        const points = Object.fromEntries(
-          Object.entries(edges).map(([key, edge], i) => {
-            const half = Config.value(configs.edge.stroke.width, edge) / 2
-            next += i > 0 ? half : 0
-            point = next
-            next += half + configs.edge.gap
-            return [key, { edge, point }]
-          })
-        )
-        layouts.set(key, {
-          edges,
-          points,
-          allWidth: point,
-        })
-      }
-
-      return layouts
-    })
-
-    const defaultCheckSummarize = (edges: Edges, configs: Configs) => {
-      // edge幅とgap幅がノードの大きさを超えていたら集約する
-      const edgeCount = Object.entries(edges).length
-      if (edgeCount === 1) return
-
-      const width =
-        Object.values(edges)
-          .map(e => Config.value(configs.edge.stroke.width, e))
-          .reduce((sum, v) => sum + v, 0) +
-        configs.edge.gap * (edgeCount - 1)
-
-      const minWidth = Math.min(
-        ...Object.values(edges)
-          .flatMap(e => [props.nodes[e.source], props.nodes[e.target]])
-          .filter(v => v)
-          .map(node => {
-            const shape = Config.values(configs.node.shape, node)
-            if (shape.type === "circle") {
-              return shape.radius * 2
-            } else {
-              return Math.min(shape.width, shape.height)
-            }
-          })
-      )
-      return width > minWidth
-    }
-    const checkEdgeSummarize = computed(() => {
-      return (edges: Edges) => {
-        return defaultCheckSummarize(edges, configs)
-      }
-    })
-
-    // -----------------------------------------------------------------------
     // States of selected nodes/edges
     // -----------------------------------------------------------------------
     const currentSelectedNodes = bindPropKeySet(props, "selectedNodes", props.nodes, emit)
@@ -502,8 +399,6 @@ export default defineComponent({
       show,
 
       // properties
-      edgeMap,
-      checkEdgeSummarize,
       backgroundLayers,
       currentSelectedNodes,
       currentSelectedEdges,
