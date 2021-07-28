@@ -97,7 +97,7 @@ import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
 import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
 import { Reactive, nonNull } from "../common/types"
-import { Configs, UserConfigs } from "../common/configs"
+import { Configs, getConfig, UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdge from "./edge.vue"
@@ -312,13 +312,23 @@ export default defineComponent({
     const defaultCheckSummarize = (edges: Edges, configs: Configs) => {
       // edge幅とgap幅がノードの大きさを超えていたら集約する
       const edgeCount = Object.entries(edges).length
+      if (edgeCount === 1) return
+
       const width = configs.edge.stroke.width * edgeCount + configs.edge.gap * (edgeCount - 1)
-      let minWidth = 0
-      if (configs.node.shape.type === "circle") {
-        minWidth = configs.node.shape.radius * 2
-      } else {
-        minWidth = Math.min(configs.node.shape.width, configs.node.shape.height)
-      }
+
+      const minWidth = Math.min(
+        ...Object.values(edges)
+          .flatMap(e => [props.nodes[e.source], props.nodes[e.target]])
+          .filter(v => v)
+          .map(node => {
+            const shape = getConfig(configs.node.shape, node)
+            if (shape.type === "circle") {
+              return shape.radius * 2
+            } else {
+              return Math.min(shape.width, shape.height)
+            }
+          })
+      )
       return width > minWidth
     }
     const checkEdgeSummarize = computed(() => {

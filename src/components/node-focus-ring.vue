@@ -9,8 +9,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
-import { Position } from "../common/types"
-import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "../common/configs"
+import { CircleShapeStyle, getConfig, RectangleShapeStyle, ShapeStyle } from "../common/configs"
 import { useNodeConfig } from "../composables/style"
 import VShape from "./shape.vue"
 

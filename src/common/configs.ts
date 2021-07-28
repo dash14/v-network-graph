@@ -1,6 +1,30 @@
 import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
-import { RecursivePartial } from "./types"
+import { Node, RecursivePartial } from "./types"
+
+type CallableValue<V, T> = V | ((target: T) => V)
+
+type CallableValues<V, T> = {
+  [K in keyof V]: CallableValue<V[K], T>
+}
+
+export function getConfig<V, T>(value: CallableValues<V, T>, target: T): V {
+  return Object.fromEntries(
+    Object.entries(value).map(([k, v]) => [k, v instanceof Function ? v(target) : v])
+  ) as V
+}
+
+/* View configuration */
+
+export interface ViewConfig {
+  scalingObjects: boolean
+  panEnabled: true
+  zoomEnabled: true
+  minZoomLevel: number
+  maxZoomLevel: number
+  layoutHandler: LayoutHandler
+  onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
+}
 
 /* Shape style */
 
@@ -12,7 +36,7 @@ export interface StrokeStyle {
 }
 
 export interface ShapeStyleBase {
-  stroke?: StrokeStyle | null
+  stroke?: StrokeStyle
   color: string
 }
 
@@ -36,16 +60,6 @@ export interface LabelStyle {
   fontFamily?: string
   fontSize: number
   color: string
-}
-
-export interface ViewConfig {
-  scalingObjects: boolean
-  panEnabled: true
-  zoomEnabled: true
-  minZoomLevel: number
-  maxZoomLevel: number
-  layoutHandler: LayoutHandler
-  onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
 }
 
 /* Node style */
@@ -77,9 +91,9 @@ export interface NodeFocusRingStyle {
 }
 
 export interface NodeConfig {
-  shape: ShapeStyle
-  hover?: ShapeStyle
-  selected?: ShapeStyle
+  shape: CallableValues<ShapeStyle, Node>
+  hover?: CallableValues<ShapeStyle, Node>
+  selected?: CallableValues<ShapeStyle, Node>
   label: NodeLabelStyle
   draggable: boolean
   selectable: boolean | number
@@ -101,11 +115,19 @@ export interface EdgeConfig {
   selectable: boolean | number
 }
 
+/* Configuration */
+
 export interface Configs {
   view: ViewConfig
   node: NodeConfig
   edge: EdgeConfig
 }
 
-/** ユーザ指定用 optionalな指定のためのinterface */
+/** For specification by the user */
 export type UserConfigs = RecursivePartial<Configs>
+
+/** Make a config with self object */
+export function withSelf<T extends {[name: string]: any}>(callback: (self: T) => T): T {
+  const self = {} as T
+  return Object.assign(self, callback(self))
+}

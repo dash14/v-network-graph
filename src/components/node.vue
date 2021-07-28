@@ -22,7 +22,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
 import { Node, Position } from "../common/types"
-import { NodeLabelDirection, ShapeStyle } from "../common/configs"
+import { getConfig, NodeLabelDirection, ShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
@@ -58,13 +58,14 @@ export default defineComponent({
     const config = useNodeConfig()
     const { scale } = useZoomLevel()
 
+
     const shape = computed<ShapeStyle>(() => {
-      if (props.selected && config.selected) {
-        return config.selected
-      } else if (hover.value && config.hover) {
-        return config.hover
-      } else {
-        return config.shape
+      if (hoveredNodes.has(props.id) && config.hover) {
+        return getConfig(config.hover, props.node)
+      } else if (props.selected && config.selected) {
+        return getConfig(config.selected, props.node)
+      } else  {
+        return getConfig(config.shape, props.node)
       }
     })
 
