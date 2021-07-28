@@ -4,8 +4,8 @@
       :config="shape"
       :class="{ draggable: config.draggable, selectable: config.selectable }"
       @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
-      @pointerover.passive="handleNodePointerOverEvent(id, $event)"
-      @pointerout.passive="handleNodePointerOutEvent(id, $event)"
+      @pointerenter.capture="handleNodePointerOverEvent(id, $event)"
+      @pointerleave.capture="handleNodePointerOutEvent(id, $event)"
     />
     <v-text
       v-if="label"

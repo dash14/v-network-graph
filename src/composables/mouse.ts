@@ -50,6 +50,7 @@ interface State {
     nodeBasePositions: { [name: string]: Position }
   }
   hoveredNodes: Reactive<Set<string>>
+  hoveredNodesPre: Set<string> // to keep the hover state while dragging
   edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
   edgePointerPeekCount: number,
 }
@@ -93,6 +94,7 @@ export function provideMouseOperation(
       nodeBasePositions: {},
     },
     hoveredNodes: Reactive(new Set()),
+    hoveredNodesPre: new Set(),
     edgePointers: new Map(),
     edgePointerPeekCount: 0,
   }
@@ -339,6 +341,10 @@ export function provideMouseOperation(
     } else {
       _updateFollowNodes(pointerState)
     }
+
+    // reflect changes while dragging.
+    state.hoveredNodes.clear()
+    state.hoveredNodesPre.forEach(state.hoveredNodes.add, state.hoveredNodes)
   }
 
   function handleNodePointerDownEvent(node: string, event: PointerEvent) {
@@ -385,11 +391,19 @@ export function provideMouseOperation(
 
 
   function handleNodePointerOverEvent(node: string, event: PointerEvent) {
+    state.hoveredNodesPre.add(node)
+    if (state.nodePointers.size > 0) {
+      return // dragging
+    }
     state.hoveredNodes.add(node)
     emitter.emit("node:pointerover", { node, event })
   }
 
   function handleNodePointerOutEvent(node: string, event: PointerEvent) {
+    state.hoveredNodesPre.delete(node)
+    if (state.nodePointers.size > 0) {
+      return // dragging
+    }
     state.hoveredNodes.delete(node)
     emitter.emit("node:pointerout", { node, event })
   }
