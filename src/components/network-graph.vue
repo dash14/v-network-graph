@@ -57,7 +57,9 @@
         <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
           <v-node-focus-ring
             v-for="nodeId in currentSelectedNodes"
+            :id="nodeId"
             :key="nodeId"
+            :node="nodes[nodeId]"
             :pos="currentLayouts.nodes[nodeId]"
           />
         </g>

@@ -1,4 +1,4 @@
-import { isReactive } from "vue"
+import { isReactive, reactive } from "vue"
 
 /** レイヤ位置 */
 export enum LayerPos {
@@ -42,11 +42,13 @@ declare class Id<T extends string> {
 
 export type Reactive<T> = Id<'Reactive'> & T;
 
-export function Reactive<T>(value: T): Reactive<T> {
-  if (!isReactive(value)) {
-    throw new Error("value is not reactive")
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function Reactive<T extends object>(value: T): Reactive<T> {
+  if (isReactive(value)) {
+    return value as Reactive<T>
+  } else {
+    return reactive(value) as Reactive<T>
   }
-  return value as Reactive<T>;
 }
 
 
@@ -91,11 +93,13 @@ export type UserLayouts = RecursivePartial<Layouts>
  * Events
  * ------------------------------------------ */
 
-export type NodePointerEvent = { node: string, event: MouseEvent }
-export type EdgePointerEvent = { edge: string, event: MouseEvent }
+export type NodePointerEvent = { node: string, event: PointerEvent }
+export type EdgePointerEvent = { edge: string, event: PointerEvent }
 
 export type Events = {
   "node:click": NodePointerEvent,
+  "node:pointerover": NodePointerEvent,
+  "node:pointerout": NodePointerEvent,
   "node:pointerup": NodePointerEvent,
   "node:pointerdown": NodePointerEvent,
   "node:dragstart": { [name: string]: Position },

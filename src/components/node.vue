@@ -4,8 +4,8 @@
       :config="shape"
       :class="{ draggable: config.draggable, selectable: config.selectable }"
       @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
-      @pointerover="hover = true"
-      @pointerout="hover = false"
+      @pointerover.passive="handleNodePointerOverEvent(id, $event)"
+      @pointerout.passive="handleNodePointerOutEvent(id, $event)"
     />
     <v-text
       v-if="label"
@@ -53,11 +53,16 @@ export default defineComponent({
   setup(props) {
     const x = computed(() => props.pos?.x || 0)
     const y = computed(() => props.pos?.y || 0)
-    const hover = ref(false)
 
     const config = useNodeConfig()
     const { scale } = useZoomLevel()
 
+    const {
+      handleNodePointerDownEvent,
+      handleNodePointerOverEvent,
+      handleNodePointerOutEvent,
+      hoveredNodes
+    } = useMouseOperation()
 
     const shape = computed<ShapeStyle>(() => {
       if (hoveredNodes.has(props.id) && config.hover) {
@@ -76,8 +81,6 @@ export default defineComponent({
       }
       return false
     })
-
-    const { handleNodePointerDownEvent } = useMouseOperation()
 
     // ラベル
     const labelMargin = computed(() => {
@@ -193,11 +196,12 @@ export default defineComponent({
     return {
       x,
       y,
-      hover,
       config,
       shape,
       label,
       handleNodePointerDownEvent,
+      handleNodePointerOverEvent,
+      handleNodePointerOutEvent,
       textAnchor,
       dominantBaseline,
       labelX,
