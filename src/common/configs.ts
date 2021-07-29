@@ -46,19 +46,32 @@ export interface ShapeStyleBase {
   color: string
 }
 
-export interface CircleShapeStyle extends ShapeStyleBase {
-  type: "circle"
+export type ShapeType = "circle" | "rect"
+
+interface CircleShape extends ShapeStyleBase {
   radius: number
 }
 
-export interface RectangleShapeStyle extends ShapeStyleBase {
-  type: "rect"
+interface RectangleShape extends ShapeStyleBase {
   width: number
   height: number
   borderRadius: number
 }
 
-export type ShapeStyle = CircleShapeStyle | RectangleShapeStyle
+// `Shape` is an object whose fields can change depending on
+// the type value.
+// Normally, Union Types would be used, but in order to minimize
+// the use of type guards when users build and use the configuration,
+// we define it as an object that contains all fields.
+
+type Shape<T extends ShapeType> = {
+  type: T
+} & (T extends "circle" ? CircleShape : Partial<CircleShape>)
+  & (T extends "rect" ? RectangleShape : Partial<RectangleShape>)
+
+export type ShapeStyle = Shape<"circle"> | Shape<"rect">
+export type CircleShapeStyle = Shape<"circle">
+export type RectangleShapeStyle = Shape<"rect">
 
 /* Label style */
 

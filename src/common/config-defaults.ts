@@ -1,4 +1,4 @@
-import { NodeLabelDirection, Configs, withSelf, Config, CircleShapeStyle, RectangleShapeStyle } from "./configs"
+import { NodeLabelDirection, Configs, withSelf, Config } from "./configs"
 import { SimpleLayout } from "../layouts/simple"
 
 export function getConfigDefaults(): Configs {
@@ -21,10 +21,10 @@ export function getConfigDefaults(): Configs {
       },
       hover: {
         type: (node) => Config.value(self.shape.type, node) as any,
-        radius: (node) => (Config.value((self.shape as CircleShapeStyle).radius, node)) + 2,
-        width: (node) => (Config.value((self.shape as RectangleShapeStyle).width, node)) + 2,
-        height: (node) => (Config.value((self.shape as RectangleShapeStyle).height, node)) + 2,
-        borderRadius: (node) => (Config.value((self.shape as RectangleShapeStyle).borderRadius, node)),
+        radius: (node) => Config.value(self.shape.radius, node) ?? 0 + 2,
+        width: (node) => Config.value(self.shape.width, node) ?? 0 + 2,
+        height: (node) => Config.value(self.shape.height, node) ?? 0 + 2,
+        borderRadius: (node) => Config.value(self.shape.borderRadius, node) ?? 0,
         stroke: (node) => Config.value(self.shape.stroke, node),
         color: "#3355bb",
       },
