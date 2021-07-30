@@ -86,7 +86,10 @@ export function getConfigDefaults(): Configs {
       selected: {
         width: (edge) => Config.value(self.stroke.width, edge) + 1,
         color: "#dd8800",
-        dasharray: "3 5",
+        dasharray: (edge) => {
+          const w = Config.value(self.stroke.width, edge)
+          return `${w * 1.5} ${w * 2}`
+        },
         linecap: "round",
       },
     })),
