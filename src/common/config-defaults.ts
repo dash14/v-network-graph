@@ -61,6 +61,7 @@ export function getConfigDefaults(): Configs {
         linecap: (edge) => Config.value(self.stroke.linecap, edge),
       },
       gap: 3,
+      summarize: true,
       summarized: {
         label: {
           fontSize: 10,
@@ -77,8 +78,8 @@ export function getConfigDefaults(): Configs {
             color: "#4466cc",
           },
         },
-        line: {
-          width: 4,
+        stroke: {
+          width: 5,
           color: "#4466cc",
         },
       },

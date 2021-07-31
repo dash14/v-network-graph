@@ -5,7 +5,7 @@
       :y1="pos.y1"
       :x2="pos.x2"
       :y2="pos.y2"
-      :config="config.summarized.line"
+      :config="config.summarized.stroke"
     />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="config.summarized.shape" />
     <v-text

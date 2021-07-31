@@ -133,7 +133,13 @@ export default defineComponent({
 
     const checkEdgeSummarize = computed(() => {
       return (edges: Edges) => {
-        return defaultCheckSummarize(edges, configs)
+        if (configs.edge.summarize instanceof Function) {
+          return configs.edge.summarize(edges, configs)
+        } else if (configs.edge.summarize) {
+            return defaultCheckSummarize(edges, configs)
+        } else {
+          return false
+        }
       }
     })
 
