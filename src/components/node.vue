@@ -61,7 +61,7 @@ export default defineComponent({
       handleNodePointerDownEvent,
       handleNodePointerOverEvent,
       handleNodePointerOutEvent,
-      hoveredNodes
+      hoveredNodes,
     } = useMouseOperation()
 
     const shape = computed<ShapeStyle>(() => {
@@ -69,7 +69,7 @@ export default defineComponent({
         return Config.values(config.hover, props.node)
       } else if (props.selected && config.selected) {
         return Config.values(config.selected, props.node)
-      } else  {
+      } else {
         return Config.values(config.shape, props.node)
       }
     })
@@ -213,10 +213,15 @@ export default defineComponent({
 <style lang="scss" scoped>
 $transition: 0.1s linear;
 
-circle,
+circle {
+  pointer-events: none;
+  transition: fill $transition, stroke $transition, stroke-width $transition,
+  r $transition;
+}
 rect {
   pointer-events: none;
-  transition: fill $transition, stroke $transition, stroke-width $transition;
+  transition: fill $transition, stroke $transition, stroke-width $transition,
+    x $transition, y $transition, width $transition, height $transition;
 }
 .draggable,
 .selectable {
@@ -233,5 +238,6 @@ text {
   pointer-events: none;
   user-select: none;
   cursor: default;
+  transition: x $transition, y $transition;
 }
 </style>
