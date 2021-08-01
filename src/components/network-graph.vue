@@ -187,12 +187,25 @@ export default defineComponent({
     })
 
     // Observe container resizing
+    const rectSize = { width: 0, height: 0 }
     const resizeObserver = new ResizeObserver(() => {
       svgPanZoom.value?.resize()
+      const r = container.value?.getBoundingClientRect()
+      if (r) {
+        const x = -(rectSize.width - r.width) / 2
+        const y = -(rectSize.height - r.height) / 2
+        svgPanZoom.value?.panBy({ x, y })
+        const { width, height } = r
+        Object.assign(rectSize, { width, height })
+      }
     })
     onSvgPanZoomMounted(() => {
-      resizeObserver.observe(nonNull(container.value, "svg-pan-zoom container"))
+      const c = nonNull(container.value, "svg-pan-zoom container")
+      resizeObserver.observe(c)
       configs.view.onSvgPanZoomInitialized?.(nonNull(svgPanZoom.value, "svg-pan-zoom instance"))
+      const r = c.getBoundingClientRect()
+      const { width, height } = r
+      Object.assign(rectSize, { width, height })
     })
     onSvgPanZoomUnmounted(() => {
       resizeObserver.disconnect()
