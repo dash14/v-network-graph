@@ -64,6 +64,7 @@ export default defineComponent({
           color: "none",
           strokeWidth: config.focusring.width,
           strokeColor: config.focusring.color,
+          strokeDasharray: config.focusring.dasharray,
         }
         Object.assign(shapeConfig, shape)
       } else {
@@ -84,6 +85,7 @@ export default defineComponent({
           color: "none",
           strokeWidth: config.focusring.width,
           strokeColor: config.focusring.color,
+          strokeDasharray: config.focusring.dasharray,
         }
         Object.assign(shapeConfig, shape)
       }

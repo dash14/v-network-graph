@@ -102,6 +102,7 @@ export interface NodeFocusRingStyle {
   width: number
   padding: number
   color: string
+  dasharray?: string
 }
 
 export interface NodeConfig {
