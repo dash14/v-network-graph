@@ -109,7 +109,7 @@ export interface NodeConfig {
   shape: CallableValues<ShapeStyle, Node>
   hover?: CallableValues<ShapeStyle, Node>
   selected?: CallableValues<ShapeStyle, Node>
-  label: NodeLabelStyle
+  label: CallableValues<NodeLabelStyle, Node>
   draggable: boolean
   selectable: boolean | number
   focusring: NodeFocusRingStyle

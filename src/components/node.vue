@@ -8,11 +8,11 @@
       @pointerleave.capture="handleNodePointerOutEvent(id, $event)"
     />
     <v-text
-      v-if="label"
-      :text="label"
+      v-if="labelVisibility"
+      :text="labelText"
       :x="labelX"
       :y="labelY"
-      :config="config.label"
+      :config="label"
       :text-anchor="textAnchor"
       :dominant-baseline="dominantBaseline"
     />
@@ -74,19 +74,29 @@ export default defineComponent({
       }
     })
 
-    const label = computed(() => {
-      if (config.label.visible && config.label.text) {
-        return props.node[config.label.text] ?? false
+    const label = computed(() => Config.values(config.label, props.node))
+
+    const labelText = computed<string>(() => {
+      if (config.label.text instanceof Function) {
+        return label.value.text
+      } else {
+        return props.node[label.value.text] ?? ""
+      }
+     })
+
+    const labelVisibility = computed(() => {
+      if (label.value.visible && label.value.text) {
+        return props.node[label.value.text] ?? false
       }
       return false
     })
 
     // ラベル
     const labelMargin = computed(() => {
-      if (config.label.direction === NodeLabelDirection.CENTER) {
+      if (label.value.direction === NodeLabelDirection.CENTER) {
         return 0
       } else {
-        return config.label.margin / scale.value
+        return label.value.margin / scale.value
       }
     })
 
@@ -120,7 +130,7 @@ export default defineComponent({
     })
 
     const textAnchor = computed(() => {
-      switch (config.label.direction) {
+      switch (label.value.direction) {
         case NodeLabelDirection.CENTER:
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
@@ -137,7 +147,7 @@ export default defineComponent({
       }
     })
     const dominantBaseline = computed(() => {
-      switch (config.label.direction) {
+      switch (label.value.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.NORTH_WEST:
@@ -154,7 +164,7 @@ export default defineComponent({
       }
     })
     const labelX = computed(() => {
-      switch (config.label.direction) {
+      switch (label.value.direction) {
         case NodeLabelDirection.CENTER:
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
@@ -173,7 +183,7 @@ export default defineComponent({
       }
     })
     const labelY = computed(() => {
-      switch (config.label.direction) {
+      switch (label.value.direction) {
         case NodeLabelDirection.NORTH:
           return -labelShiftV.value
         case NodeLabelDirection.SOUTH:
@@ -198,6 +208,8 @@ export default defineComponent({
       config,
       shape,
       label,
+      labelVisibility,
+      labelText,
       handleNodePointerDownEvent,
       handleNodePointerOverEvent,
       handleNodePointerOutEvent,
