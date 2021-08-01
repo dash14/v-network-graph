@@ -62,7 +62,11 @@ export default defineComponent({
       strokeWidth.value = props.config.strokeWidth / s
       strokeColor.value = props.config.strokeColor ?? "none"
 
-      if (s === 1 || props.config.strokeDasharray === undefined) {
+      if (
+        s === 1 ||
+        props.config.strokeDasharray === undefined ||
+        props.config.strokeDasharray === "none"
+      ) {
         strokeDasharray.value = props.config.strokeDasharray ?? "none"
       } else {
         strokeDasharray.value = props.config.strokeDasharray
