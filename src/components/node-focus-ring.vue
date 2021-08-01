@@ -97,7 +97,20 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+$transition: 0.1s linear;
+
 .v-node-focus-ring {
   pointer-events: none;
+}
+
+circle {
+  transition: r $transition;
+}
+rect {
+  transition: x $transition, y $transition, width $transition, height $transition;
+}
+.dragging circle,
+.dragging rect {
+  transition: none;
 }
 </style>
