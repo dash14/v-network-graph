@@ -17,7 +17,7 @@ export default install
 // each can be registered via Vue.component()
 export * from "./components/index"
 
-export { getConfigDefaults } from "./common/config-defaults"
+export { getFullConfigs } from "./common/config-defaults"
 
 export { SimpleLayout } from "./layouts/simple"
 export { GridLayout } from "./layouts/grid"
