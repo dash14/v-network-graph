@@ -7,6 +7,7 @@
     :fill="config.color"
     :stroke="strokeColor"
     :stroke-width="strokeWidth"
+    :stroke-dasharray="strokeDasharray"
   />
   <rect
     v-else
@@ -19,6 +20,7 @@
     :fill="config.color"
     :stroke="strokeColor"
     :stroke-width="strokeWidth"
+    :stroke-dasharray="strokeDasharray"
   />
 </template>
 
@@ -49,6 +51,7 @@ export default defineComponent({
     const y = ref(props.baseY)
     const strokeWidth = ref(0)
     const strokeColor = ref("#000000")
+    const strokeDasharray = ref("none")
     const radius = ref(0)
     const width = ref(0)
     const height = ref(0)
@@ -56,8 +59,17 @@ export default defineComponent({
 
     watchEffect(() => {
       const s = scale.value
-      strokeWidth.value = (props.config.stroke?.width ?? 0) / s
-      strokeColor.value = props.config.stroke?.color ?? "none"
+      strokeWidth.value = props.config.strokeWidth / s
+      strokeColor.value = props.config.strokeColor ?? "none"
+
+      if (s === 1 || props.config.strokeDasharray === undefined) {
+        strokeDasharray.value = props.config.strokeDasharray ?? "none"
+      } else {
+        strokeDasharray.value = props.config.strokeDasharray
+          ?.split(/\s+/)
+          .map(v => parseInt(v) / s)
+          .join(" ")
+      }
 
       if (props.config.type === "circle") {
         x.value = props.baseX
@@ -77,6 +89,7 @@ export default defineComponent({
       y,
       strokeWidth,
       strokeColor,
+      strokeDasharray,
       radius,
       width,
       height,

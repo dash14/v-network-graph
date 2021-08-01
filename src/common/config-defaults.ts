@@ -1,5 +1,6 @@
-import { NodeLabelDirection, Configs, withSelf, Config } from "./configs"
+import { NodeLabelDirection, Configs, withSelf, Config, UserConfigs } from "./configs"
 import { SimpleLayout } from "../layouts/simple"
+import merge from "lodash-es/merge"
 
 export function getConfigDefaults(): Configs {
   return {
@@ -16,8 +17,10 @@ export function getConfigDefaults(): Configs {
       shape: {
         type: "circle",
         radius: 16,
-        stroke: undefined,
         color: "#4466cc",
+        strokeWidth: 0,
+        strokeColor: "#000000",
+        strokeDasharray: "none",
       },
       hover: {
         type: (node) => Config.value(self.shape.type, node) as any,
@@ -25,7 +28,9 @@ export function getConfigDefaults(): Configs {
         width: (node) => Config.value(self.shape.width, node) ?? 0 + 2,
         height: (node) => Config.value(self.shape.height, node) ?? 0 + 2,
         borderRadius: (node) => Config.value(self.shape.borderRadius, node) ?? 0,
-        stroke: (node) => Config.value(self.shape.stroke, node),
+        strokeWidth: (node) => Config.value(self.shape.strokeWidth, node),
+        strokeColor: (node) => Config.value(self.shape.strokeColor, node),
+        strokeDasharray: (node) => Config.value(self.shape.strokeDasharray, node),
         color: "#3355bb",
       },
       selected: undefined,
@@ -73,10 +78,8 @@ export function getConfigDefaults(): Configs {
           height: 12,
           borderRadius: 3,
           color: "#ffffff",
-          stroke: {
-            width: 1,
-            color: "#4466cc",
-          },
+          strokeWidth: 1,
+          strokeColor: "#4466cc",
         },
         stroke: {
           width: 5,
@@ -95,4 +98,12 @@ export function getConfigDefaults(): Configs {
       },
     })),
   }
+}
+
+export function getFullConfigs(config?: UserConfigs) {
+  const configs = getConfigDefaults()
+  if (config) {
+    merge(configs, config)
+  }
+  return configs
 }

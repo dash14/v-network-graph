@@ -34,15 +34,10 @@ export interface ViewConfig {
 
 /* Shape style */
 
-export interface StrokeStyle {
-  width: number
-  color: string
-  dasharray?: string
-  linecap?: "butt" | "round" | "square"
-}
-
 export interface ShapeStyleBase {
-  stroke?: StrokeStyle
+  strokeWidth: number
+  strokeColor?: string
+  strokeDasharray?: string
   color: string
 }
 
@@ -120,6 +115,13 @@ export interface NodeConfig {
 }
 
 /* Edge style */
+
+export interface StrokeStyle {
+  width: number
+  color?: string
+  dasharray?: string
+  linecap?: "butt" | "round" | "square"
+}
 
 export interface EdgeConfig {
   stroke: CallableValues<StrokeStyle, Edge>

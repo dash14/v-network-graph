@@ -58,14 +58,12 @@ export default defineComponent({
           type: "circle",
           radius:
             shapeStyle.radius +
-            (shapeStyle.stroke?.width ?? 0) / 2 +
+            (shapeStyle.strokeWidth ?? 0) / 2 +
             config.focusring.padding +
             config.focusring.width / 2,
           color: "none",
-          stroke: {
-            width: config.focusring.width,
-            color: config.focusring.color,
-          },
+          strokeWidth: config.focusring.width,
+          strokeColor: config.focusring.color,
         }
         Object.assign(shapeConfig, shape)
       } else {
@@ -73,21 +71,19 @@ export default defineComponent({
           type: "rect",
           width:
             shapeStyle.width +
-            (shapeStyle.stroke?.width ?? 0) +
+            (shapeStyle.strokeWidth ?? 0) +
             config.focusring.padding * 2 +
             config.focusring.width,
           height:
             shapeStyle.height +
-            (shapeStyle.stroke?.width ?? 0) +
+            (shapeStyle.strokeWidth ?? 0) +
             config.focusring.padding * 2 +
             config.focusring.width,
           borderRadius:
             shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + config.focusring.padding : 0,
           color: "none",
-          stroke: {
-            width: config.focusring.width,
-            color: config.focusring.color,
-          },
+          strokeWidth: config.focusring.width,
+          strokeColor: config.focusring.color,
         }
         Object.assign(shapeConfig, shape)
       }

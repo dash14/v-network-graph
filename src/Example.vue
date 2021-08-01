@@ -104,6 +104,31 @@
             <input v-model="configs.node.shape.color" type="input">
           </div>
         </div>
+        <div class="control slider">
+          <label for="nodeStrokeWidth">Stroke Width</label>
+          <input
+            id="nodeStrokeWidth"
+            v-model.number="configs.node.shape.strokeWidth"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ configs.node.shape.strokeWidth }}</div>
+        </div>
+        <div class="control color">
+          <label for="nodeStrokeColor">Stroke Color</label>
+          <input id="nodeStrokeColor" v-model="configs.node.shape.strokeColor" type="color">
+          <div class="value">
+            <input v-model="configs.node.shape.strokeColor" type="input">
+          </div>
+        </div>
+        <div class="control text">
+          <label for="nodeStrokeDasharray">Dasharray</label>
+          <div class="value">
+            <input id="nodeStrokeDasharray" v-model="configs.node.shape.strokeDasharray" type="text">
+          </div>
+        </div>
         <div class="control">
           <input id="nodeSelectable" v-model="configs.node.selectable" type="checkbox">
           <label for="nodeSelectable">Selectable</label>
