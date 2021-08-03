@@ -20,7 +20,7 @@ export function getConfigDefaults(): Configs {
         color: "#4466cc",
         strokeWidth: 0,
         strokeColor: "#000000",
-        strokeDasharray: "none",
+        strokeDasharray: "0",
       },
       hover: {
         type: (node) => Config.value(self.shape.type, node) as any,
@@ -80,10 +80,13 @@ export function getConfigDefaults(): Configs {
           color: "#ffffff",
           strokeWidth: 1,
           strokeColor: "#4466cc",
+          strokeDasharray: undefined,
         },
         stroke: {
           width: 5,
           color: "#4466cc",
+          dasharray: undefined,
+          linecap: undefined,
         },
       },
       selectable: false,
