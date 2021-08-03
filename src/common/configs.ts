@@ -37,7 +37,7 @@ export interface ViewConfig {
 export interface ShapeStyleBase {
   strokeWidth: number
   strokeColor?: string
-  strokeDasharray?: string
+  strokeDasharray?: string | number
   color: string
 }
 
@@ -102,7 +102,7 @@ export interface NodeFocusRingStyle {
   width: number
   padding: number
   color: string
-  dasharray?: string
+  dasharray?: string | number
 }
 
 export interface NodeConfig<N extends Node = Node> {
@@ -120,7 +120,7 @@ export interface NodeConfig<N extends Node = Node> {
 export interface StrokeStyle {
   width: number
   color?: string
-  dasharray?: string
+  dasharray?: string | number
   linecap?: "butt" | "round" | "square"
   animate: boolean
   animationSpeed: number

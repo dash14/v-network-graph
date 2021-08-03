@@ -44,13 +44,21 @@ export default defineComponent({
     })
 
     const strokeDasharray = computed(() => {
-      if (scale.value === 1) {
-        return props.config.dasharray
-      } else {
-        return props.config.dasharray
-          ?.split(/\s+/)
-          .map(v => parseInt(v) / scale.value)
+      const s = scale.value
+      const dasharray = props.config.dasharray
+      if (
+        s === 1 ||
+        dasharray === undefined ||
+        dasharray === "none"
+      ) {
+        return dasharray ?? 0
+      } else if (typeof dasharray === "string") {
+        return dasharray
+          .split(/\s+/)
+          .map(v => parseInt(v) / s)
           .join(" ")
+      } else {
+        return dasharray / scale.value
       }
     })
 

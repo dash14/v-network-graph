@@ -51,7 +51,7 @@ export default defineComponent({
     const y = ref(props.baseY)
     const strokeWidth = ref(0)
     const strokeColor = ref("#000000")
-    const strokeDasharray = ref("none")
+    const strokeDasharray = ref<string | number>("0")
     const radius = ref(0)
     const width = ref(0)
     const height = ref(0)
@@ -62,17 +62,20 @@ export default defineComponent({
       strokeWidth.value = props.config.strokeWidth / s
       strokeColor.value = props.config.strokeColor ?? "none"
 
+      const dasharray = props.config.strokeDasharray
       if (
         s === 1 ||
-        props.config.strokeDasharray === undefined ||
-        props.config.strokeDasharray === "none"
+        dasharray === undefined ||
+        dasharray === "none"
       ) {
-        strokeDasharray.value = props.config.strokeDasharray ?? "none"
-      } else {
-        strokeDasharray.value = props.config.strokeDasharray
-          ?.split(/\s+/)
+        strokeDasharray.value = dasharray ?? 0
+      } else if (typeof dasharray === "string") {
+        strokeDasharray.value = dasharray
+          .split(/\s+/)
           .map(v => parseInt(v) / s)
           .join(" ")
+      } else {
+        strokeDasharray.value = dasharray / scale.value
       }
 
       if (props.config.type === "circle") {
