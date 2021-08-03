@@ -58,12 +58,16 @@ export function getConfigDefaults(): Configs {
         color: "#4466cc",
         dasharray: "0",
         linecap: "butt",
+        animate: false,
+        animationSpeed: 100,
       },
       hover: {
         width: (edge) => Config.value(self.normal.width, edge) + 1,
         color: "#3355bb",
         dasharray: (edge) => Config.value(self.normal.dasharray, edge),
         linecap: (edge) => Config.value(self.normal.linecap, edge),
+        animate: (edge) => Config.value(self.normal.animate, edge),
+        animationSpeed: (edge) => Config.value(self.normal.animationSpeed, edge),
       },
       selected: {
         width: (edge) => Config.value(self.normal.width, edge) + 1,
@@ -72,7 +76,9 @@ export function getConfigDefaults(): Configs {
           const w = Config.value(self.normal.width, edge)
           return `${w * 1.5} ${w * 2}`
         },
-        linecap: "round",
+        linecap: (edge) => Config.value(self.normal.linecap, edge),
+        animate: (edge) => Config.value(self.normal.animate, edge),
+        animationSpeed: (edge) => Config.value(self.normal.animationSpeed, edge),
       },
       selectable: false,
       gap: 3,
@@ -97,6 +103,8 @@ export function getConfigDefaults(): Configs {
           color: "#4466cc",
           dasharray: undefined,
           linecap: undefined,
+          animate: false,
+          animationSpeed: 100,
         },
       },
     })),

@@ -122,6 +122,8 @@ export interface StrokeStyle {
   color?: string
   dasharray?: string
   linecap?: "butt" | "round" | "square"
+  animate: boolean
+  animationSpeed: number
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {

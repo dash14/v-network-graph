@@ -289,6 +289,22 @@
           </div>
         </div>
         <div class="control">
+          <input id="edgeAnimate" v-model="configs.edge.normal.animate" type="checkbox">
+          <label for="edgeAnimate">Animate</label>
+        </div>
+        <div class="control slider">
+          <label for="edgeSpeed">Speed</label>
+          <input
+            id="edgeSpeed"
+            v-model.number="configs.edge.normal.animationSpeed"
+            type="range"
+            min="10"
+            max="1000"
+            step="10"
+          >
+          <div class="value">{{ configs.edge.normal.animationSpeed }}</div>
+        </div>
+        <div class="control">
           <input id="edgeSelectable" v-model="configs.edge.selectable" type="checkbox">
           <label for="edgeSelectable">Selectable</label>
         </div>
