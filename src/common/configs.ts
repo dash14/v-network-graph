@@ -106,12 +106,12 @@ export interface NodeFocusRingStyle {
 }
 
 export interface NodeConfig<N extends Node = Node> {
-  shape: CallableValues<ShapeStyle, N>
+  normal: CallableValues<ShapeStyle, N>
   hover?: CallableValues<ShapeStyle, N>
   selected?: CallableValues<ShapeStyle, N>
-  label: CallableValues<NodeLabelStyle, N>
   draggable: boolean
   selectable: boolean | number
+  label: CallableValues<NodeLabelStyle, N>
   focusring: NodeFocusRingStyle
 }
 
@@ -125,9 +125,10 @@ export interface StrokeStyle {
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {
-  stroke: CallableValues<StrokeStyle, E>
+  normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
   selected: CallableValues<StrokeStyle, E>
+  selectable: boolean | number
   gap: number
   summarize: boolean | ((edge: Edges, configs: Configs) => boolean)
   summarized: {
@@ -135,7 +136,6 @@ export interface EdgeConfig<E extends Edge = Edge> {
     shape: ShapeStyle
     stroke: StrokeStyle
   }
-  selectable: boolean | number
 }
 
 /* Configuration */

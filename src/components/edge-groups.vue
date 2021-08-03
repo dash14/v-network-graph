@@ -84,7 +84,7 @@ export default defineComponent({
       for (const [key, edges] of Object.entries(map)) {
         let pointInGroup = 0
         const lineHalfWidths = Object.values(edges).map(edge => {
-          return Config.value(configs.edge.stroke.width, edge) / 2
+          return Config.value(configs.edge.normal.width, edge) / 2
         })
         const points = Object.fromEntries(
           Object.entries(edges).map(([key, edge], i) => {
@@ -111,7 +111,7 @@ export default defineComponent({
 
       const width =
         Object.values(edges)
-          .map(e => Config.value(configs.edge.stroke.width, e))
+          .map(e => Config.value(configs.edge.normal.width, e))
           .reduce((sum, v) => sum + v, 0) +
         configs.edge.gap * (edgeCount - 1)
 
@@ -120,7 +120,7 @@ export default defineComponent({
           .flatMap(e => [props.nodes[e.source], props.nodes[e.target]])
           .filter(v => v)
           .map(node => {
-            const shape = Config.values(configs.node.shape, node)
+            const shape = Config.values(configs.node.normal, node)
             if (shape.type === "circle") {
               return shape.radius * 2
             } else {

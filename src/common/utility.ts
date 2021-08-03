@@ -10,7 +10,7 @@ export function entriesOf<T, K extends keyof T>(obj: T): [K, T[K]][] {
 }
 
 export function getNodeSize(node: Node, style: NodeConfig, scale: number): Size {
-  const shape = Config.values(style.shape, node)
+  const shape = Config.values(style.normal, node)
   if (shape.type == "circle") {
     return {
       width: (shape.radius * 2) / scale,

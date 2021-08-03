@@ -85,48 +85,48 @@
             <button :disabled="selectedNodes.length == 0" @click="removeNode">Remove</button>
           </div>
         </div>
-        <div v-if="configs.node.shape.type === 'circle'" class="control slider">
+        <div v-if="configs.node.normal.type === 'circle'" class="control slider">
           <label for="nodeSize">Size</label>
           <input
             id="nodeSize"
-            v-model.number="configs.node.shape.radius"
+            v-model.number="configs.node.normal.radius"
             type="range"
             min="1"
             max="64"
             step="1"
           >
-          <div class="value">{{ configs.node.shape.radius }}</div>
+          <div class="value">{{ configs.node.normal.radius }}</div>
         </div>
         <div class="control color">
           <label for="nodeColor">Color</label>
-          <input id="nodeColor" v-model="configs.node.shape.color" type="color">
+          <input id="nodeColor" v-model="configs.node.normal.color" type="color">
           <div class="value">
-            <input v-model="configs.node.shape.color" type="input">
+            <input v-model="configs.node.normal.color" type="input">
           </div>
         </div>
         <div class="control slider">
           <label for="nodeStrokeWidth">Stroke Width</label>
           <input
             id="nodeStrokeWidth"
-            v-model.number="configs.node.shape.strokeWidth"
+            v-model.number="configs.node.normal.strokeWidth"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ configs.node.shape.strokeWidth }}</div>
+          <div class="value">{{ configs.node.normal.strokeWidth }}</div>
         </div>
         <div class="control color">
           <label for="nodeStrokeColor">Stroke Color</label>
-          <input id="nodeStrokeColor" v-model="configs.node.shape.strokeColor" type="color">
+          <input id="nodeStrokeColor" v-model="configs.node.normal.strokeColor" type="color">
           <div class="value">
-            <input v-model="configs.node.shape.strokeColor" type="input">
+            <input v-model="configs.node.normal.strokeColor" type="input">
           </div>
         </div>
         <div class="control text">
           <label for="nodeStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input id="nodeStrokeDasharray" v-model="configs.node.shape.strokeDasharray" type="text">
+            <input id="nodeStrokeDasharray" v-model="configs.node.normal.strokeDasharray" type="text">
           </div>
         </div>
         <div class="control">
@@ -245,13 +245,13 @@
           <label for="edgeWidth">Width</label>
           <input
             id="edgeWidth"
-            v-model.number="configs.edge.stroke.width"
+            v-model.number="configs.edge.normal.width"
             type="range"
             min="1"
             max="32"
             step="1"
           >
-          <div class="value">{{ configs.edge.stroke.width }}</div>
+          <div class="value">{{ configs.edge.normal.width }}</div>
         </div>
         <div class="control slider">
           <label for="edgeGap">Gap</label>
@@ -267,21 +267,21 @@
         </div>
         <div class="control color">
           <label for="edgeColor">Color</label>
-          <input id="edgeColor" v-model="configs.edge.stroke.color" type="color">
+          <input id="edgeColor" v-model="configs.edge.normal.color" type="color">
           <div class="value">
-            <input v-model="configs.edge.stroke.color" type="input">
+            <input v-model="configs.edge.normal.color" type="input">
           </div>
         </div>
         <div class="control text">
           <label for="edgeStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input id="edgeStrokeDasharray" v-model="configs.edge.stroke.dasharray" type="text">
+            <input id="edgeStrokeDasharray" v-model="configs.edge.normal.dasharray" type="text">
           </div>
         </div>
         <div class="control select">
           <label for="edgeStrokeLinecap">Linecap</label>
           <div class="value">
-            <select id="edgeStrokeLinecap" v-model.number="configs.edge.stroke.linecap">
+            <select id="edgeStrokeLinecap" v-model.number="configs.edge.normal.linecap">
               <option value="butt">butt</option>
               <option value="round">round</option>
               <option value="square">square</option>

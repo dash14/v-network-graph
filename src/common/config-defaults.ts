@@ -14,7 +14,7 @@ export function getConfigDefaults(): Configs {
       onSvgPanZoomInitialized: undefined,
     },
     node: withSelf(self => ({
-      shape: {
+      normal: {
         type: "circle",
         radius: 16,
         color: "#4466cc",
@@ -23,17 +23,19 @@ export function getConfigDefaults(): Configs {
         strokeDasharray: "0",
       },
       hover: {
-        type: (node) => Config.value(self.shape.type, node) as any,
-        radius: (node) => Config.value(self.shape.radius, node) ?? 0 + 2,
-        width: (node) => Config.value(self.shape.width, node) ?? 0 + 2,
-        height: (node) => Config.value(self.shape.height, node) ?? 0 + 2,
-        borderRadius: (node) => Config.value(self.shape.borderRadius, node) ?? 0,
-        strokeWidth: (node) => Config.value(self.shape.strokeWidth, node),
-        strokeColor: (node) => Config.value(self.shape.strokeColor, node),
-        strokeDasharray: (node) => Config.value(self.shape.strokeDasharray, node),
+        type: (node) => Config.value(self.normal.type, node) as any,
+        radius: (node) => Config.value(self.normal.radius, node) ?? 0 + 2,
+        width: (node) => Config.value(self.normal.width, node) ?? 0 + 2,
+        height: (node) => Config.value(self.normal.height, node) ?? 0 + 2,
+        borderRadius: (node) => Config.value(self.normal.borderRadius, node) ?? 0,
+        strokeWidth: (node) => Config.value(self.normal.strokeWidth, node),
+        strokeColor: (node) => Config.value(self.normal.strokeColor, node),
+        strokeDasharray: (node) => Config.value(self.normal.strokeDasharray, node),
         color: "#3355bb",
       },
       selected: undefined,
+      draggable: true,
+      selectable: false,
       label: {
         visible: true,
         fontFamily: undefined,
@@ -43,8 +45,6 @@ export function getConfigDefaults(): Configs {
         direction: NodeLabelDirection.SOUTH,
         text: "name",
       },
-      draggable: true,
-      selectable: false,
       focusring: {
         visible: true,
         width: 4,
@@ -53,18 +53,28 @@ export function getConfigDefaults(): Configs {
       },
     })),
     edge: withSelf(self => ({
-      stroke: {
+      normal: {
         width: 2,
         color: "#4466cc",
         dasharray: "0",
         linecap: "butt",
       },
       hover: {
-        width: (edge) => Config.value(self.stroke.width, edge) + 1,
+        width: (edge) => Config.value(self.normal.width, edge) + 1,
         color: "#3355bb",
-        dasharray: (edge) => Config.value(self.stroke.dasharray, edge),
-        linecap: (edge) => Config.value(self.stroke.linecap, edge),
+        dasharray: (edge) => Config.value(self.normal.dasharray, edge),
+        linecap: (edge) => Config.value(self.normal.linecap, edge),
       },
+      selected: {
+        width: (edge) => Config.value(self.normal.width, edge) + 1,
+        color: "#dd8800",
+        dasharray: (edge) => {
+          const w = Config.value(self.normal.width, edge)
+          return `${w * 1.5} ${w * 2}`
+        },
+        linecap: "round",
+      },
+      selectable: false,
       gap: 3,
       summarize: true,
       summarized: {
@@ -88,16 +98,6 @@ export function getConfigDefaults(): Configs {
           dasharray: undefined,
           linecap: undefined,
         },
-      },
-      selectable: false,
-      selected: {
-        width: (edge) => Config.value(self.stroke.width, edge) + 1,
-        color: "#dd8800",
-        dasharray: (edge) => {
-          const w = Config.value(self.stroke.width, edge)
-          return `${w * 1.5} ${w * 2}`
-        },
-        linecap: "round",
       },
     })),
   }

@@ -70,7 +70,7 @@ export default defineComponent({
       } else if (props.selected && config.selected) {
         return Config.values(config.selected, props.node)
       } else {
-        return Config.values(config.shape, props.node)
+        return Config.values(config.normal, props.node)
       }
     })
 

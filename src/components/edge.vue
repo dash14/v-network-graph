@@ -97,7 +97,7 @@ export default defineComponent({
       } else if (hover.value && config.hover) {
         return Config.values(config.hover, props.edge)
       } else {
-        return Config.values(config.stroke, props.edge)
+        return Config.values(config.normal, props.edge)
       }
     })
 
