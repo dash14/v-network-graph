@@ -10,7 +10,7 @@ export enum LayerPos {
 /** ノード */
 export interface Node {
   name?: string
-  // 任意の内容
+  // any properties
   [x: string]: any
 }
 
@@ -21,7 +21,7 @@ export type Nodes = { [name: string]: Node }
 export interface Edge {
   source: string
   target: string
-  // 任意の内容
+  // any properties
   [x: string]: any
 }
 
@@ -33,8 +33,15 @@ export type Edges = { [name: string]: Edge }
  * ------------------------------------------ */
 
 export type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-}
+  [P in keyof T]?:
+    T[P] extends (infer U)[] ? RecursivePartial<U>[] :
+    T[P] extends ((infer U)[] | undefined) ? RecursivePartial<U>[] :
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    T[P] extends object ? RecursivePartial<T[P]> :
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    T[P] extends (object | undefined) ? RecursivePartial<T[P]> :
+    T[P];
+};
 
 declare class Id<T extends string> {
   private IDENTITY: T;
