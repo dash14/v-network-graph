@@ -379,8 +379,6 @@ export default defineComponent({
       emitter,
       svgPanZoom: nonNull(svgPanZoom.value),
     })
-    onSvgPanZoomMounted(() => configs.view.layoutHandler.activate(activateParams()))
-    onSvgPanZoomUnmounted(() => configs.view.layoutHandler.deactivate())
     watch(
       () => configs.view.layoutHandler,
       (newHandler, oldHandler) => {
@@ -394,14 +392,22 @@ export default defineComponent({
     // -----------------------------------------------------------------------
 
     onSvgPanZoomMounted(() => {
-      nextTick(() => {
-        // 中央に表示
-        panToCenter()
+      updateBorderBox(() => {
+        // pan to center
+        svgPanZoom.value?.center()
 
-        // svgの表示開始
+        // activate layout handler.
+        // (calc the positions of nodes whose positions atr not specified)
+        configs.view.layoutHandler.activate(activateParams())
+
+        // start displaying the svg
         show.value = true
       })
     })
+
+    onSvgPanZoomUnmounted(
+      () => configs.view.layoutHandler.deactivate()
+    )
 
     return {
       // html ref
