@@ -105,11 +105,11 @@ export interface NodeFocusRingStyle {
   dasharray?: string
 }
 
-export interface NodeConfig {
-  shape: CallableValues<ShapeStyle, Node>
-  hover?: CallableValues<ShapeStyle, Node>
-  selected?: CallableValues<ShapeStyle, Node>
-  label: CallableValues<NodeLabelStyle, Node>
+export interface NodeConfig<N extends Node = Node> {
+  shape: CallableValues<ShapeStyle, N>
+  hover?: CallableValues<ShapeStyle, N>
+  selected?: CallableValues<ShapeStyle, N>
+  label: CallableValues<NodeLabelStyle, N>
   draggable: boolean
   selectable: boolean | number
   focusring: NodeFocusRingStyle
@@ -124,10 +124,10 @@ export interface StrokeStyle {
   linecap?: "butt" | "round" | "square"
 }
 
-export interface EdgeConfig {
-  stroke: CallableValues<StrokeStyle, Edge>
-  hover?: CallableValues<StrokeStyle, Edge>
-  selected: CallableValues<StrokeStyle, Edge>
+export interface EdgeConfig<E extends Edge = Edge> {
+  stroke: CallableValues<StrokeStyle, E>
+  hover?: CallableValues<StrokeStyle, E>
+  selected: CallableValues<StrokeStyle, E>
   gap: number
   summarize: boolean | ((edge: Edges, configs: Configs) => boolean)
   summarized: {
@@ -140,14 +140,14 @@ export interface EdgeConfig {
 
 /* Configuration */
 
-export interface Configs {
+export interface Configs<N extends Node = Node, E extends Edge = Edge> {
   view: ViewConfig
-  node: NodeConfig
-  edge: EdgeConfig
+  node: NodeConfig<N>
+  edge: EdgeConfig<E>
 }
 
 /** For specification by the user */
-export type UserConfigs = RecursivePartial<Configs>
+export type UserConfigs<N extends Node = Node, E extends Edge = Edge> = RecursivePartial<Configs<N, E>>
 
 /** Make a config with self object */
 export function withSelf<T extends {[name: string]: any}>(callback: (self: T) => T): T {
