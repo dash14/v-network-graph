@@ -400,8 +400,14 @@ export default defineComponent({
         // (calc the positions of nodes whose positions atr not specified)
         configs.view.layoutHandler.activate(activateParams())
 
-        // start displaying the svg
-        show.value = true
+        nextTick(() => {
+          // The center may change as a result of the position calculation above,
+          // so re-center.
+          panToCenter()
+
+          // start displaying the svg
+          show.value = true
+        })
       })
     })
 
