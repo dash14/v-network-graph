@@ -10,7 +10,7 @@ export interface Node {
   [x: string]: any
 }
 
-export type Nodes = { [name: string]: Node }
+export type Nodes = Record<string, Node>
 
 export interface Edge {
   source: string
@@ -19,13 +19,16 @@ export interface Edge {
   [x: string]: any
 }
 
-export type Edges = { [name: string]: Edge }
+export type Edges = Record<string, Edge>
 
-export enum LayerPos {
-  BACKGROUND = "background",
-  PATHS = "paths",
-  NOTIFICATIONS = "notifications",
-}
+// default layers:
+// - nodes
+// - focus ring
+// - edges
+// - background
+
+export type LayerPosition = "nodes" | "focusring" | "edges" | "background"
+export type Layers = Record<string, LayerPosition>
 
 /* ------------------------------------------ *
  * Layouts

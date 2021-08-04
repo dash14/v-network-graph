@@ -39,7 +39,7 @@
           />
         </g>
 
-        <!-- node selections -->
+        <!-- node selections (focus ring) -->
         <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
           <v-node-focus-ring
             v-for="nodeId in currentSelectedNodes"
@@ -61,14 +61,6 @@
             :selected="currentSelectedNodes.has(nodeId.toString())"
           />
         </g>
-
-        <!-- node range selections -->
-
-        <!-- edge labels -->
-
-        <!-- node labels -->
-
-        <!-- paths -->
       </g>
     </svg>
   </div>
@@ -83,7 +75,7 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandler, Layouts, Nodes, Edges, LayerPos, UserLayouts } from "../common/types"
+import { EventHandler, Layouts, Nodes, Edges, UserLayouts, Layers } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
@@ -93,14 +85,6 @@ import VEdgeGroups from "./edge-groups.vue"
 export default defineComponent({
   components: { VNode, VNodeFocusRing, VEdgeGroups },
   props: {
-    layers: {
-      type: Object as PropType<{ [name: string]: string }>,
-      default: () => ({}),
-    },
-    zoomLevel: {
-      type: Number,
-      default: 1,
-    },
     nodes: {
       type: Object as PropType<Nodes>,
       default: () => ({}),
@@ -108,6 +92,14 @@ export default defineComponent({
     edges: {
       type: Object as PropType<Edges>,
       default: () => ({}),
+    },
+    layouts: {
+      type: Object as PropType<UserLayouts>,
+      default: () => ({}),
+    },
+    zoomLevel: {
+      type: Number,
+      default: 1,
     },
     selectedNodes: {
       type: Array as PropType<string[]>,
@@ -117,12 +109,12 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       default: () => [],
     },
-    layouts: {
-      type: Object as PropType<UserLayouts>,
-      default: () => ({}),
-    },
     configs: {
       type: Object as PropType<UserConfigs>,
+      default: () => ({}),
+    },
+    layers: {
+      type: Object as PropType<Layers>,
       default: () => ({}),
     },
     eventHandler: {
@@ -150,7 +142,7 @@ export default defineComponent({
     // Background layers
     const backgroundLayers = computed(() => {
       return Object.entries(props.layers)
-        .filter(([_, type]) => type == LayerPos.BACKGROUND)
+        .filter(([_, type]) => type === "background")
         .map(([name, _]) => name)
     })
 

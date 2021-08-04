@@ -377,13 +377,13 @@ import { defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
 import VNetworkGraph from "./components/network-graph.vue"
 import { getConfigDefaults } from "./common/config-defaults"
-import { UserLayouts, Nodes, Edges, LayerPos } from "./common/types"
+import { UserLayouts, Nodes, Edges, Layers } from "./common/types"
 import { GridLayout } from "./layouts/grid"
 import { ForceLayout } from "./layouts/force"
 import { LayoutHandler } from "./layouts/handler"
 
 interface SampleData {
-  layers: { [name: string]: LayerPos }
+  layers: Layers
   zoomLevel: number
   nodes: Nodes
   edges: Edges
@@ -472,7 +472,7 @@ export default /*#__PURE__*/ defineComponent({
   },
   data(): SampleData {
     return {
-      layers: { layer1: LayerPos.BACKGROUND, layer2: LayerPos.BACKGROUND },
+      layers: { layer1: "background", layer2: "background" },
       zoomLevel: 1,
       nodes: {
         node1: {
