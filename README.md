@@ -1,4 +1,4 @@
-# (WIP) v-network-graph
+# v-network-graph
 
 An interactive SVG based network-graph visualize component for Vue3.
 
@@ -13,28 +13,27 @@ An interactive SVG based network-graph visualize component for Vue3.
 * Multiple edge selection
 * Various events
 
-## Demo
+## Demo and usage
 
-WIP
+Please see [examples](https://dash14.github.io/v-network-graph/examples/)
 
 ## Installation
 
-```
+Install with npm
+
+```bash
 $ npm install v-network-graph
 ```
 
-## Usage
+and setup via Vue.use()
 
-WIP
+```js
+import VNetworkGraph from 'v-network-graph'
+import 'v-network-graph/style.css'
 
-## Build
-
-```bash
-$ npm run build
+Vue.use(VNetworkGraph)
 ```
 
-## Example
+## License
 
-```bash
-$ npm run dev
-```
+Under the MIT license. See [LICENSE](https://github.com/dash14/v-network-graph/blob/main/LICENSE) file for more details.
