@@ -60,29 +60,36 @@ export type UserLayouts = RecursivePartial<Layouts>
  * Events
  * ------------------------------------------ */
 
-export type NodePointerEvent = { node: string, event: PointerEvent }
-export type EdgePointerEvent = { edge: string, event: PointerEvent }
+export type NodePointerEvent = { node: string; event: PointerEvent }
+export type EdgePointerEvent = { edge: string; event: PointerEvent }
 
 export type Events = {
-  "node:click": NodePointerEvent,
-  "node:pointerover": NodePointerEvent,
-  "node:pointerout": NodePointerEvent,
-  "node:pointerup": NodePointerEvent,
-  "node:pointerdown": NodePointerEvent,
-  "node:dragstart": { [name: string]: Position },
-  "node:pointermove": { [name: string]: Position },
-  "node:dragend": { [name: string]: Position },
-  "node:select": string[],
-  "edge:pointerup": EdgePointerEvent,
-  "edge:pointerdown": EdgePointerEvent,
-  "edge:click": EdgePointerEvent,
-  "edge:select": string[],
-  "view:mode": "default" | "node" | "edge",
-  "view:zoom": number,
-  "view:pan": { x: number, y: number },
-  "view:fit": undefined,
+  "view:load": undefined
+  "view:unload": undefined
+  "view:mode": "default" | "node" | "edge"
+  "view:zoom": number
+  "view:pan": { x: number; y: number }
+  "view:fit": undefined
+  "node:click": NodePointerEvent
+  "node:pointerover": NodePointerEvent
+  "node:pointerout": NodePointerEvent
+  "node:pointerup": NodePointerEvent
+  "node:pointerdown": NodePointerEvent
+  "node:dragstart": { [name: string]: Position }
+  "node:pointermove": { [name: string]: Position }
+  "node:dragend": { [name: string]: Position }
+  "node:select": string[]
+  "edge:pointerup": EdgePointerEvent
+  "edge:pointerdown": EdgePointerEvent
+  "edge:click": EdgePointerEvent
+  "edge:select": string[]
 }
 
-export type EventHandler = <T extends keyof Events>(event : T, value: Events[T]) => void
+export type EventHandlers = {
+ "*"?: <T extends keyof Events>(type: T, event: Events[T]) => void
+} & {
+  [K in keyof Events]?: (event: Events[K]) => void
+}
+
 export type OnClickHandler = (param: NodePointerEvent) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void

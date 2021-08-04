@@ -75,7 +75,7 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandler, Layouts, Nodes, Edges, UserLayouts, Layers } from "../common/types"
+import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, Layers } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
@@ -117,16 +117,17 @@ export default defineComponent({
       type: Object as PropType<Layers>,
       default: () => ({}),
     },
-    eventHandler: {
-      // 多量のイベントが発行されるため、開発ツールのイベントログを汚さないよう
-      // 指定した関数にイベントを流しこむ設計とする.
-      type: Function as PropType<EventHandler>,
-      default: () => (_e: any, _v: any) => {},
+    eventHandlers: {
+      // Since a large number of events will be issued, to avoid
+      // contaminating the event log of the development tools,
+      // events are designed to be notified to a handler function
+      // specified by the user.
+      type: Object as PropType<EventHandlers>,
+      default: () => ({}),
     },
   },
   emits: [
     "update:zoomLevel",
-    "update:maxZoomLevel",
     "update:selectedNodes",
     "update:selectedEdges",
     "update:layouts",
@@ -134,7 +135,9 @@ export default defineComponent({
   setup(props, { emit }) {
     // Event Bus
     const emitter = provideEventEmitter()
-    emitter.on("*", (type, event) => props.eventHandler(type, event))
+    Object.entries(props.eventHandlers).forEach(([type, event]) => {
+      emitter.on(type as any, event as any)
+    })
 
     // Style settings
     const configs = provideConfigs(props.configs)
@@ -397,6 +400,8 @@ export default defineComponent({
           // so re-center.
           panToCenter()
 
+          emitter.emit("view:load")
+
           // start displaying the svg
           show.value = true
         })
@@ -404,7 +409,10 @@ export default defineComponent({
     })
 
     onSvgPanZoomUnmounted(
-      () => configs.view.layoutHandler.deactivate()
+      () => {
+        emitter.emit("view:unload")
+        configs.view.layoutHandler.deactivate()
+      }
     )
 
     return {

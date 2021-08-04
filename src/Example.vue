@@ -343,7 +343,7 @@
       :edges="edges"
       :configs="configs"
       :layouts="layouts"
-      :event-handler="handleEvent"
+      :event-handlers="{ '*': handleEvent }"
     >
       <template #layer1>
         <text
