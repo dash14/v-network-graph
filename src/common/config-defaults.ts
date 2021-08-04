@@ -20,7 +20,7 @@ export function getConfigDefaults(): Configs {
         color: "#4466cc",
         strokeWidth: 0,
         strokeColor: "#000000",
-        strokeDasharray: "0",
+        strokeDasharray: 0,
       },
       hover: {
         type: (node) => Config.value(self.normal.type, node) as any,
@@ -56,7 +56,7 @@ export function getConfigDefaults(): Configs {
       normal: {
         width: 2,
         color: "#4466cc",
-        dasharray: "0",
+        dasharray: 0,
         linecap: "butt",
         animate: false,
         animationSpeed: 100,
