@@ -120,7 +120,7 @@ export interface NodeConfig<N extends Node = Node> {
 
 export interface StrokeStyle {
   width: number
-  color?: string
+  color: string
   dasharray?: string | number
   linecap?: "butt" | "round" | "square"
   animate: boolean
@@ -133,7 +133,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   selected: CallableValues<StrokeStyle, E>
   selectable: boolean | number
   gap: number
-  summarize: boolean | ((edge: Edges, configs: Configs) => boolean)
+  summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
   summarized: {
     label: LabelStyle
     shape: ShapeStyle
