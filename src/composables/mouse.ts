@@ -2,7 +2,8 @@
 
 import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } from "vue"
 import { Emitter } from "mitt"
-import { Events, NodePositions, nonNull, Position, Reactive, ReadonlyRef } from "../common/types"
+import { nonNull, Reactive, ReadonlyRef } from "../common/common"
+import { Events, NodePositions, Position } from "../common/types"
 import { Configs } from "../common/configs"
 import { entriesOf, MapUtil } from "../common/utility"
 

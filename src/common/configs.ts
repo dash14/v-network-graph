@@ -1,6 +1,7 @@
 import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
-import { Node, Edge, RecursivePartial, Edges } from "./types"
+import { RecursivePartial } from "./common"
+import { Node, Edge, Edges } from "./types"
 
 type CallableValue<V, T> = V | ((target: T) => V)
 
