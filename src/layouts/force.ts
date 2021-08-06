@@ -1,22 +1,24 @@
 import { toRef, watch } from "vue"
-import { Edge, Edges, NodePositions, Nodes, Position } from "../common/types"
+import { Edges, NodePositions, Nodes, Position } from "../common/types"
 import { OnClickHandler, OnDragHandler } from "../common/types"
-import * as d3 from "d3-force"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
+import * as d3 from "d3-force"
+
 
 export interface ForceNodeDatum extends d3.SimulationNodeDatum {
   id: string
 }
 
-export interface ForceEdgeDatum extends Edge {
-  index: number
+export interface ForceEdgeDatum {
+  source: string
+  target: string
 }
 
 export type ForceEdges = d3.ForceLink<d3.SimulationNodeDatum, ForceEdgeDatum>
 
-export type CreateSimulationFunction = (
-  nodeLayouts: ForceNodeDatum[],
-  edges: ForceEdges
+type CreateSimulationFunction = (
+  nodes: ForceNodeDatum[],
+  edges: ForceEdgeDatum[]
 ) => d3.Simulation<ForceNodeDatum, ForceEdgeDatum>
 
 export type ForceLayoutParameters = {
@@ -36,7 +38,7 @@ export class ForceLayout implements LayoutHandler {
 
     const simulation = this.createSimulation(
       nodeLayouts,
-      d3.forceLink(this.forceLayoutEdges(edges)).id((d: any) => d.id)
+      this.forceLayoutEdges(edges)
     )
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
@@ -141,15 +143,16 @@ export class ForceLayout implements LayoutHandler {
   }
 
   private createSimulation(
-    nodeLayouts: ForceNodeDatum[],
-    edges: ForceEdges
+    nodes: ForceNodeDatum[],
+    edges: ForceEdgeDatum[]
   ): d3.Simulation<ForceNodeDatum, ForceEdgeDatum> {
     if (this.options.createSimulation) {
-      return this.options.createSimulation(nodeLayouts, edges)
+      return this.options.createSimulation(nodes, edges)
     } else {
+      const forceLink = d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
       return d3
-        .forceSimulation(nodeLayouts)
-        .force("edge", edges.distance(100))
+        .forceSimulation(nodes)
+        .force("edge", forceLink.distance(100))
         .force("charge", d3.forceManyBody())
         .force("collide", d3.forceCollide(50).strength(0.2))
         .force("center", d3.forceCenter().strength(0.05))
@@ -175,8 +178,7 @@ export class ForceLayout implements LayoutHandler {
   private forceLayoutEdges(edges: Edges): ForceEdgeDatum[] {
     // d3-forceによってedge内のsource/targetがNodeDatumオブジェクトに
     // 置き換えられてしまうため、独自のリンクオブジェクトを構築する.
-    return Object.values(edges).map((v, index) => ({
-      index,
+    return Object.values(edges).map(v => ({
       source: v.source,
       target: v.target,
     }))
