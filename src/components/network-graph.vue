@@ -9,26 +9,13 @@
       viewBox="0 0 500 500"
     >
       <!-- outside of viewport -->
+      <slot v-for="layerName in layerDefs['root']" :key="layerName" :name="layerName" />
 
       <!-- viewport: pan/zoom の対象領域 -->
       <g class="v-viewport">
-        <!-- background -->
-        <template v-if="backgroundLayers.length > 0">
-          <g class="v-layer-background">
-            <slot v-for="layerName in backgroundLayers" :key="layerName" :name="layerName">
-              <text
-                x="0"
-                y="30"
-                fill="black"
-                font-size="10"
-                text-anchor="start"
-                dominant-baseline="text-before-edge"
-              >
-                layer {{ layerName }}
-              </text>
-            </slot>
-          </g>
-        </template>
+        <g v-for="layerName in layerDefs['background']" :key="layerName" class="v-layer">
+          <slot :name="layerName" />
+        </g>
 
         <!-- edges -->
         <g class="v-layer-edges">
@@ -37,6 +24,10 @@
             :edges="edges"
             :node-layouts="currentLayouts.nodes"
           />
+        </g>
+
+        <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
+          <slot :name="layerName" />
         </g>
 
         <!-- node selections (focus ring) -->
@@ -50,6 +41,10 @@
           />
         </g>
 
+        <g v-for="layerName in layerDefs['focusring']" :key="layerName" class="v-layer">
+          <slot :name="layerName" />
+        </g>
+
         <!-- nodes -->
         <g class="v-layer-nodes">
           <v-node
@@ -60,6 +55,10 @@
             :pos="currentLayouts.nodes[nodeId]"
             :selected="currentSelectedNodes.has(nodeId.toString())"
           />
+        </g>
+
+        <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
+          <slot :name="layerName" />
         </g>
       </g>
     </svg>
@@ -75,7 +74,7 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, Layers } from "../common/types"
+import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, Layers, LayerPosition } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
@@ -142,11 +141,27 @@ export default defineComponent({
     // Style settings
     const configs = provideConfigs(props.configs)
 
-    // Background layers
-    const backgroundLayers = computed(() => {
-      return Object.entries(props.layers)
-        .filter(([_, type]) => type === "background")
-        .map(([name, _]) => name)
+    // Additional layers
+    const layerDefs = computed(() => {
+      const layers: Record<LayerPosition, string[]> = {
+        "nodes": [],
+        "focusring": [],
+        "edges": [],
+        "background": [],
+        "root": [],
+      }
+      Object.assign(
+        layers,
+        Object.entries(props.layers).reduce((accum, [name, type]) => {
+          if (type in accum) {
+            accum[type].push(name)
+          } else {
+            accum[type] = [name]
+          }
+          return accum
+        }, {} as Record<LayerPosition, string[]>)
+      )
+      return layers
     })
 
     // -----------------------------------------------------------------------
@@ -422,7 +437,7 @@ export default defineComponent({
       show,
 
       // properties
-      backgroundLayers,
+      layerDefs,
       currentSelectedNodes,
       currentSelectedEdges,
       dragging,

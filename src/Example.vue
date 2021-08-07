@@ -347,23 +347,53 @@
     >
       <template #layer1>
         <text
-          x="0"
+          x="200"
           y="0"
           fill="black"
           font-size="10"
           text-anchor="start"
           dominant-baseline="text-before-edge"
-        >Layer1 OK???</text>
+        >Layer1 over root OK???</text>
       </template>
       <template #layer2>
         <text
-          x="0"
-          y="0"
+          x="200"
+          y="20"
           fill="black"
           font-size="10"
           text-anchor="start"
           dominant-baseline="text-before-edge"
-        >Layer2 OK???</text>
+        >Layer2 over background OK???</text>
+      </template>
+      <template #layer3>
+        <text
+          x="200"
+          y="40"
+          fill="black"
+          font-size="10"
+          text-anchor="start"
+          dominant-baseline="text-before-edge"
+        >Layer3 over edge OK???</text>
+      </template>
+      <template #layer4>
+        <text
+          x="200"
+          y="60"
+          fill="black"
+          font-size="10"
+          text-anchor="start"
+          dominant-baseline="text-before-edge"
+        >Layer4 over focusring OK???</text>
+      </template>
+      <template #layer5>
+        <text
+          x="200"
+          y="80"
+          fill="black"
+          font-size="10"
+          text-anchor="start"
+          dominant-baseline="text-before-edge"
+        >Layer5 over nodes OK???</text>
       </template>
     </v-network-graph>
     <div class="event-logs">
@@ -472,7 +502,13 @@ export default /*#__PURE__*/ defineComponent({
   },
   data(): SampleData {
     return {
-      layers: { layer1: "background", layer2: "background" },
+      layers: {
+        layer1: "root",
+        layer2: "background",
+        layer3: "edges",
+        layer4: "focusring",
+        layer5: "nodes"
+      },
       zoomLevel: 1,
       nodes: {
         node1: {

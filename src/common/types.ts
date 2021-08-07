@@ -21,13 +21,7 @@ export interface Edge {
 
 export type Edges = Record<string, Edge>
 
-// default layers:
-// - nodes
-// - focus ring
-// - edges
-// - background
-
-export type LayerPosition = "nodes" | "focusring" | "edges" | "background"
+export type LayerPosition = "nodes" | "focusring" | "edges" | "background" | "root"
 export type Layers = Record<string, LayerPosition>
 
 /* ------------------------------------------ *
