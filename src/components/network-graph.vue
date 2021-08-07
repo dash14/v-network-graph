@@ -9,12 +9,17 @@
       viewBox="0 0 500 500"
     >
       <!-- outside of viewport -->
-      <slot v-for="layerName in layerDefs['root']" :key="layerName" :name="layerName" />
+      <slot
+        v-for="layerName in layerDefs['root']"
+        :key="layerName"
+        :name="layerName"
+        :scale="scale"
+      />
 
       <!-- viewport: pan/zoom の対象領域 -->
       <g class="v-viewport">
         <g v-for="layerName in layerDefs['background']" :key="layerName" class="v-layer">
-          <slot :name="layerName" />
+          <slot :name="layerName" :scale="scale" />
         </g>
 
         <!-- edges -->
@@ -27,7 +32,7 @@
         </g>
 
         <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
-          <slot :name="layerName" />
+          <slot :name="layerName" :scale="scale" />
         </g>
 
         <!-- node selections (focus ring) -->
@@ -42,7 +47,7 @@
         </g>
 
         <g v-for="layerName in layerDefs['focusring']" :key="layerName" class="v-layer">
-          <slot :name="layerName" />
+          <slot :name="layerName" :scale="scale" />
         </g>
 
         <!-- nodes -->
@@ -58,7 +63,7 @@
         </g>
 
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
-          <slot :name="layerName" />
+          <slot :name="layerName" :scale="scale" />
         </g>
       </g>
     </svg>
@@ -442,6 +447,7 @@ export default defineComponent({
 
       // properties
       layerDefs,
+      scale,
       currentSelectedNodes,
       currentSelectedEdges,
       dragging,
