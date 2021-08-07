@@ -225,12 +225,12 @@ export default defineComponent({
 <style lang="scss" scoped>
 $transition: 0.1s linear;
 
-circle {
+.v-shape-circle {
   pointer-events: none;
   transition: fill $transition, stroke $transition, stroke-width $transition,
   r $transition;
 }
-rect {
+.v-shape-rect {
   pointer-events: none;
   transition: fill $transition, stroke $transition, stroke-width $transition,
     x $transition, y $transition, width $transition, height $transition;
@@ -246,7 +246,7 @@ rect {
 .dragging rect {
   cursor: inherit;
 }
-text {
+.v-text {
   pointer-events: none;
   user-select: none;
   cursor: default;

@@ -1,5 +1,6 @@
 <template>
   <text
+    class="v-text"
     :font-family="config.fontFamily"
     :font-size="fontSize"
     :x="x"

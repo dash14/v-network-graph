@@ -103,14 +103,14 @@ $transition: 0.1s linear;
   pointer-events: none;
 }
 
-circle {
+.v-shape-circle {
   transition: r $transition;
 }
-rect {
+.v-shape-rect {
   transition: x $transition, y $transition, width $transition, height $transition;
 }
-.dragging circle,
-.dragging rect {
+.dragging .v-shape-circle,
+.dragging .v-shape-rect {
   transition: none;
 }
 </style>

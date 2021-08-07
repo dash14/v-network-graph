@@ -1,5 +1,6 @@
 <template>
   <path
+    class="v-line"
     :d="`M ${x1} ${y1} L ${x2} ${y2}`"
     :stroke="config.color"
     :stroke-width="strokeWidth"

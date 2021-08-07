@@ -1,6 +1,7 @@
 <template>
   <circle
     v-if="config.type === 'circle'"
+    class="v-shape-circle"
     :cx="x"
     :cy="y"
     :r="radius"
@@ -11,6 +12,7 @@
   />
   <rect
     v-else
+    class="v-shape-rect"
     :x="x"
     :y="y"
     :width="width"

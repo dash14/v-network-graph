@@ -448,7 +448,7 @@ export default defineComponent({
   height: 100%;
   user-select: none;
 }
-svg.v-canvas {
+.v-canvas {
   width: 100%;
   height: 100%;
   // svgPanZoomライブラリが有効になるまでの乱れへの対応
@@ -459,8 +459,8 @@ svg.v-canvas {
   }
 }
 
-svg.dragging,
-svg.dragging * {
+.v-canvas.dragging,
+.v-canvas.dragging * {
   cursor: grabbing !important;
 }
 </style>

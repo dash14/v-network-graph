@@ -142,15 +142,15 @@ export default defineComponent({
 <style lang="scss" scoped>
 $transition: 0.1s linear;
 
-path {
+.v-line {
   transition: stroke $transition, stroke-width $transition;
 }
 
-path.selectable {
+.v-line.selectable {
   cursor: pointer;
 }
 
-path.animate {
+.v-line.animate {
   --animation-speed: 100;
   animation: dash 10s linear infinite;
   stroke-dashoffset: var(--animation-speed);
