@@ -96,7 +96,7 @@ export default defineComponent({
       if (label.value.direction === NodeLabelDirection.CENTER) {
         return 0
       } else {
-        return label.value.margin / scale.value
+        return label.value.margin * scale.value
       }
     })
 
@@ -109,7 +109,7 @@ export default defineComponent({
     watchEffect(() => {
       const s = scale.value
       if (shape.value.type == "circle") {
-        const radius = shape.value.radius / s
+        const radius = shape.value.radius * s
         const m = radius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = radius + labelMargin.value
@@ -117,9 +117,9 @@ export default defineComponent({
         labelDiagonalShiftV.value = diagonalMargin
         labelDiagonalShiftH.value = diagonalMargin
       } else {
-        const borderRadius = shape.value.borderRadius / s
-        const width = shape.value.width / s
-        const height = shape.value.height / s
+        const borderRadius = shape.value.borderRadius * s
+        const width = shape.value.width * s
+        const height = shape.value.height * s
         const m = borderRadius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = height / 2 + labelMargin.value

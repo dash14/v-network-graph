@@ -37,7 +37,7 @@ export default defineComponent({
     const { scale } = useZoomLevel()
 
     const fontSize = computed(() => {
-      return props.config.fontSize / scale.value
+      return props.config.fontSize * scale.value
     })
 
     return {

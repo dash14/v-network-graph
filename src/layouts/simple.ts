@@ -42,10 +42,10 @@ export class SimpleLayout implements LayoutHandler {
           if (collision) {
             // Slide the width of one node + margin in the horizontal direction.
             // If it reaches the edge of the display area, it moves downward.
-            candidate.x += nodeSize.width + NEW_NODE_POSITION_MARGIN / s
+            candidate.x += nodeSize.width + NEW_NODE_POSITION_MARGIN * s
             if (candidate.x + nodeSize.width / 2 > area.box.right) {
               candidate.x = area.center.x
-              candidate.y += nodeSize.height + NEW_NODE_POSITION_MARGIN / s
+              candidate.y += nodeSize.height + NEW_NODE_POSITION_MARGIN * s
             }
           } else {
             break

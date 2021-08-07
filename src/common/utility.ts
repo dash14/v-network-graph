@@ -13,13 +13,13 @@ export function getNodeSize(node: Node, style: NodeConfig, scale: number): Size 
   const shape = Config.values(style.normal, node)
   if (shape.type == "circle") {
     return {
-      width: (shape.radius * 2) / scale,
-      height: (shape.radius * 2) / scale,
+      width: (shape.radius * 2) * scale,
+      height: (shape.radius * 2) * scale,
     }
   } else {
     return {
-      width: shape.width / scale,
-      height: shape.height / scale,
+      width: shape.width * scale,
+      height: shape.height * scale,
     }
   }
 }

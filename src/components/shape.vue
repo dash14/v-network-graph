@@ -61,7 +61,7 @@ export default defineComponent({
 
     watchEffect(() => {
       const s = scale.value
-      strokeWidth.value = props.config.strokeWidth / s
+      strokeWidth.value = props.config.strokeWidth * s
       strokeColor.value = props.config.strokeColor ?? "none"
 
       const dasharray = props.config.strokeDasharray
@@ -74,20 +74,20 @@ export default defineComponent({
       } else if (typeof dasharray === "string") {
         strokeDasharray.value = dasharray
           .split(/\s+/)
-          .map(v => parseInt(v) / s)
+          .map(v => parseInt(v) * s)
           .join(" ")
       } else {
-        strokeDasharray.value = dasharray / scale.value
+        strokeDasharray.value = dasharray * s
       }
 
       if (props.config.type === "circle") {
         x.value = props.baseX
         y.value = props.baseY
-        radius.value = props.config.radius / s
+        radius.value = props.config.radius * s
       } else {
-        width.value = props.config.width / s
-        height.value = props.config.height / s
-        borderRadius.value = props.config.borderRadius / s
+        width.value = props.config.width * s
+        height.value = props.config.height * s
+        borderRadius.value = props.config.borderRadius * s
         x.value = props.baseX - width.value / 2
         y.value = props.baseY - height.value / 2
       }

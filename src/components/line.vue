@@ -41,7 +41,7 @@ export default defineComponent({
     const { scale } = useZoomLevel()
 
     const strokeWidth = computed(() => {
-      return props.config.width / scale.value
+      return props.config.width * scale.value
     })
 
     const strokeDasharray = computed(() => {
@@ -56,10 +56,10 @@ export default defineComponent({
       } else if (typeof dasharray === "string") {
         return dasharray
           .split(/\s+/)
-          .map(v => parseInt(v) / s)
+          .map(v => parseInt(v) * s)
           .join(" ")
       } else {
-        return dasharray / scale.value
+        return dasharray * s
       }
     })
 

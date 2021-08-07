@@ -27,7 +27,7 @@ function calculateLinePosition(
   y1: number,
   x2: number,
   y2: number,
-  zoom: number,
+  scale: number,
   groupWidth: number,
   pointInGroup: number,
 ) {
@@ -35,7 +35,7 @@ function calculateLinePosition(
   const dy = y2 - y1
 
   // 中央からずれたところを開始位置とするためのずらし幅
-  let diff = (pointInGroup - groupWidth / 2) / zoom
+  let diff = (pointInGroup - groupWidth / 2) * scale
 
   if (dx === 0) {
     return [x1 + diff, y1, x2 + diff, y2]
@@ -102,7 +102,7 @@ export default defineComponent({
       }
     })
     const animationSpeed = computed(() => {
-      return stroke.value.animate ? stroke.value.animationSpeed / scale.value : false
+      return stroke.value.animate ? stroke.value.animationSpeed * scale.value : false
     })
 
     const x1 = ref(0)
