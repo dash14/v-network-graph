@@ -395,6 +395,14 @@
           dominant-baseline="text-before-edge"
         >Layer5 over nodes OK???</text>
       </template>
+      <template #worldmap>
+        <image
+          href="worldmap.svg"
+          x="0"
+          y="0"
+          width="1000px"
+        />
+      </template>
     </v-network-graph>
     <div class="event-logs">
       <div v-for="log in eventLogs" :key="log">{{ log }}</div>
@@ -507,7 +515,8 @@ export default /*#__PURE__*/ defineComponent({
         layer2: "background",
         layer3: "edges",
         layer4: "focusring",
-        layer5: "nodes"
+        layer5: "nodes",
+        worldmap: "background"
       },
       zoomLevel: 1,
       nodes: {
