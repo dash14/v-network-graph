@@ -14,9 +14,10 @@ export interface ForceEdgeDatum {
   target: string
 }
 
-export type ForceEdges = d3.ForceLink<d3.SimulationNodeDatum, ForceEdgeDatum>
+type d3Type = typeof d3
 
 type CreateSimulationFunction = (
+  d3: d3Type,
   nodes: ForceNodeDatum[],
   edges: ForceEdgeDatum[]
 ) => d3.Simulation<ForceNodeDatum, ForceEdgeDatum>
@@ -147,7 +148,7 @@ export class ForceLayout implements LayoutHandler {
     edges: ForceEdgeDatum[]
   ): d3.Simulation<ForceNodeDatum, ForceEdgeDatum> {
     if (this.options.createSimulation) {
-      return this.options.createSimulation(nodes, edges)
+      return this.options.createSimulation(d3, nodes, edges)
     } else {
       const forceLink = d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
       return d3
