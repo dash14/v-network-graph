@@ -29,6 +29,7 @@ export interface ViewConfig {
   zoomEnabled: true
   minZoomLevel: number
   maxZoomLevel: number
+  fit: boolean
   layoutHandler: LayoutHandler
   onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
 }

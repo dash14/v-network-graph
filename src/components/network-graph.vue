@@ -407,13 +407,17 @@ export default defineComponent({
         svgPanZoom.value?.center()
 
         // activate layout handler.
-        // (calc the positions of nodes whose positions atr not specified)
+        // (calc the positions of nodes whose positions are not specified)
         configs.view.layoutHandler.activate(activateParams())
 
         nextTick(() => {
           // The center may change as a result of the position calculation above,
           // so re-center.
-          panToCenter()
+          if (configs.view.fit) {
+            fitToContents()
+          } else {
+            panToCenter()
+          }
 
           emitter.emit("view:load")
 
