@@ -238,10 +238,9 @@ $transition: 0.1s linear;
 .draggable,
 .selectable {
   pointer-events: all;
-}
-.selectable {
   cursor: pointer;
 }
+
 .dragging circle,
 .dragging rect {
   cursor: inherit;
