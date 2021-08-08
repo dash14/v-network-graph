@@ -87,3 +87,23 @@ export type EventHandlers = {
 
 export type OnClickHandler = (param: NodePointerEvent) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void
+
+/* ------------------------------------------ *
+ * SVG area
+ * ------------------------------------------ */
+
+export interface Point {
+  x: number
+  y: number
+}
+
+export interface Sizes {
+  width: number
+  height: number
+  viewBox: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+}

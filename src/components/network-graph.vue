@@ -79,7 +79,8 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, Layers, LayerPosition } from "../common/types"
+import { EventHandlers, Layouts, Nodes, Edges, UserLayouts } from "../common/types"
+import { Layers, LayerPosition, Point, Sizes } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
@@ -279,38 +280,6 @@ export default defineComponent({
       })
     }
 
-    const zoomIn = () => { svgPanZoom.value?.zoomIn() }
-    const zoomOut = () => { svgPanZoom.value?.zoomOut() }
-
-    const getAsSvg = () => {
-      const element = svg.value
-      const viewport = element?.querySelector(".v-viewport") as SVGGElement
-
-      const target = document.createElement("svg")
-      target.setAttribute("xmlns", "http://www.w3.org/2000/svg")
-
-      if (viewport) {
-        const box = viewport.getBBox()
-        const svg = {
-          x: Math.floor(box.x) - 10,
-          y: Math.floor(box.y) - 10,
-          width: Math.ceil(box.width) + 20,
-          height: Math.ceil(box.height) + 20
-        }
-        target.setAttribute("width", svg.width.toString())
-        target.setAttribute("height", svg.height.toString())
-
-        const v = viewport.cloneNode(true) as SVGGElement
-        v.setAttribute("transform", `translate(${-svg.x}, ${-svg.y})`)
-        v.removeAttribute("style")
-        target.appendChild(v)
-
-        target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
-      }
-
-      return target.outerHTML
-    }
-
     // -----------------------------------------------------------------------
     // States of selected nodes/edges
     // -----------------------------------------------------------------------
@@ -453,6 +422,9 @@ export default defineComponent({
       svg,
       show,
 
+      // instance
+      svgPanZoom,
+
       // properties
       layerDefs,
       scale,
@@ -465,11 +437,86 @@ export default defineComponent({
       // methods
       fitToContents,
       panToCenter,
-      zoomIn,
-      zoomOut,
-      getAsSvg,
     }
   },
+  methods: {
+    /**
+     * Zoom in
+     */
+    zoomIn() {
+      this.svgPanZoom?.zoomIn()
+    },
+    /**
+     * Zoom out
+     */
+    zoomOut() {
+      this.svgPanZoom?.zoomOut()
+    },
+    /**
+     * Pan to a rendered position
+     * @return {Point} point to pan
+     */
+    panTo(point: Point) {
+      this.svgPanZoom?.pan(point)
+    },
+    /**
+     * Relatively pan the graph by a specified rendered position vector
+     * @return {Point} relative point to pan
+     */
+    panBy(point: Point) {
+      this.svgPanZoom?.panBy(point)
+    },
+    /**
+     * Get pan vector
+     * @return {Point} pan vector
+     */
+    getPan(): Point {
+      return nonNull(this.svgPanZoom).getPan()
+    },
+    /**
+     * Get all calculate svg dimensions
+     */
+    getSizes(): Sizes {
+      const sizes = nonNull(this.svgPanZoom).getSizes()
+      return {
+        width: sizes.width,
+        height: sizes.height,
+        viewBox: sizes.viewBox
+      }
+    },
+    /**
+     * Get graph as SVG text.
+     * @return {string} SVG text
+     */
+    getAsSvg(): string {
+      const element = this.svg
+      const viewport = element?.querySelector(".v-viewport") as SVGGElement
+
+      const target = document.createElement("svg")
+      target.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+
+      if (viewport) {
+        const box = viewport.getBBox()
+        const svg = {
+          x: Math.floor(box.x) - 10,
+          y: Math.floor(box.y) - 10,
+          width: Math.ceil(box.width) + 20,
+          height: Math.ceil(box.height) + 20
+        }
+        target.setAttribute("width", svg.width.toString())
+        target.setAttribute("height", svg.height.toString())
+
+        const v = viewport.cloneNode(true) as SVGGElement
+        v.setAttribute("transform", `translate(${-svg.x}, ${-svg.y})`)
+        v.removeAttribute("style")
+        target.appendChild(v)
+
+        target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
+      }
+
+      return target.outerHTML
+    }
+  }
 })
 </script>
 

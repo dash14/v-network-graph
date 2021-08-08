@@ -46,9 +46,30 @@
           </div>
         </div>
         <div class="control button">
-          <label>Pan to center</label>
+          <label>Zoom</label>
           <div class="action">
-            <button @click="center">Run</button>
+            <button @click="zoomIn">In</button>
+            <button @click="zoomOut">Out</button>
+          </div>
+        </div>
+        <div class="control button">
+          <label>Pan to</label>
+          <div class="action">
+            <button @click="center">center</button>
+            <button @click="panToZero">(0, 0)</button>
+          </div>
+        </div>
+        <div class="control button">
+          <label>Pan by</label>
+          <div class="action">
+            <button @click="panBy">(10, 10)</button>
+          </div>
+        </div>
+        <div class="control button">
+          <label>Get (console)</label>
+          <div class="action">
+            <button @click="getPan">pan</button>
+            <button @click="getSizes">sizes</button>
           </div>
         </div>
         <div class="control button">
@@ -436,24 +457,6 @@ export default /*#__PURE__*/ defineComponent({
   setup() {
     const graph = ref()
 
-    const fitToContents = () => {
-      graph.value?.fitToContents()
-    }
-
-    const center = () => {
-      graph.value?.panToCenter()
-    }
-
-    const downloadAsSvg = () => {
-      const text = graph.value?.getAsSvg()
-      const url = URL.createObjectURL(new Blob([text], { type: "octet/stream" }))
-      const a = document.createElement("a")
-      a.href = url
-      a.download = "network-graph.svg"
-      a.click()
-      window.URL.revokeObjectURL(url)
-    }
-
     const configs = reactive(getConfigDefaults())
 
     const layouts = reactive<UserLayouts>({
@@ -499,9 +502,6 @@ export default /*#__PURE__*/ defineComponent({
 
     return {
       graph,
-      fitToContents,
-      center,
-      downloadAsSvg,
       configs,
       layouts,
       layoutType,
@@ -608,7 +608,40 @@ export default /*#__PURE__*/ defineComponent({
       const removeEdges = [...this.selectedEdges]
       removeEdges.forEach(id => delete this.edges[id])
     },
-  },
+    fitToContents() {
+      this.graph?.fitToContents()
+    },
+    zoomIn() {
+      this.graph?.zoomIn()
+    },
+    zoomOut() {
+      this.graph?.zoomOut()
+    },
+    center() {
+      this.graph?.panToCenter()
+    },
+    panToZero() {
+      this.graph?.panTo({ x: 0, y: 0 })
+    },
+    panBy() {
+      this.graph?.panBy({ x: 10, y: 10 })
+    },
+    getPan() {
+      console.log(this.graph?.getPan())
+    },
+    getSizes() {
+      console.log(this.graph?.getSizes())
+    },
+    downloadAsSvg() {
+      const text = this.graph?.getAsSvg()
+      const url = URL.createObjectURL(new Blob([text], { type: "octet/stream" }))
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "network-graph.svg"
+      a.click()
+      window.URL.revokeObjectURL(url)
+    }
+  }
 })
 </script>
 
