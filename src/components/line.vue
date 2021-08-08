@@ -1,11 +1,12 @@
 <template>
   <path
-    class="v-line"
+    :class="{ 'v-line': true, animate: config.animate }"
     :d="`M ${x1} ${y1} L ${x2} ${y2}`"
     :stroke="config.color"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
     :stroke-linecap="config.linecap"
+    :style="animationSpeed"
   />
 </template>
 
@@ -63,7 +64,25 @@ export default defineComponent({
       }
     })
 
-    return { strokeWidth, strokeDasharray }
+    const animationSpeed = computed(() => {
+      const speed = props.config.animate ? props.config.animationSpeed * scale.value : false
+      return speed ? `--animation-speed:${speed}` : undefined
+    })
+
+    return { strokeWidth, strokeDasharray, animationSpeed }
   },
 })
 </script>
+
+<style scoped>
+.v-line.animate {
+  --animation-speed: 100;
+  animation: dash 10s linear infinite;
+  stroke-dashoffset: var(--animation-speed);
+}
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+</style>

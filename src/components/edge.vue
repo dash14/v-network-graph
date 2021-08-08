@@ -1,12 +1,11 @@
 <template>
   <v-line
-    :class="{ selectable: config.selectable, animate: stroke.animate }"
+    :class="{ selectable: config.selectable }"
     :x1="x1"
     :y1="y1"
     :x2="x2"
     :y2="y2"
     :config="stroke"
-    :style="{ '--animation-speed': animationSpeed }"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerover="hover = true"
     @pointerout="hover = false"
@@ -101,9 +100,6 @@ export default defineComponent({
         return Config.values(config.normal, props.edge)
       }
     })
-    const animationSpeed = computed(() => {
-      return stroke.value.animate ? stroke.value.animationSpeed * scale.value : false
-    })
 
     const x1 = ref(0)
     const y1 = ref(0)
@@ -134,7 +130,7 @@ export default defineComponent({
       }
     })
 
-    return { hover, config, stroke, animationSpeed, handleEdgePointerDownEvent, x1, y1, x2, y2 }
+    return { hover, config, stroke, handleEdgePointerDownEvent, x1, y1, x2, y2 }
   },
 })
 </script>
@@ -148,16 +144,5 @@ $transition: 0.1s linear;
 
 .v-line.selectable {
   cursor: pointer;
-}
-
-.v-line.animate {
-  --animation-speed: 100;
-  animation: dash 10s linear infinite;
-  stroke-dashoffset: var(--animation-speed);
-}
-@keyframes dash {
-  to {
-    stroke-dashoffset: 0;
-  }
 }
 </style>
