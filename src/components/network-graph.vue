@@ -285,21 +285,29 @@ export default defineComponent({
     const getAsSvg = () => {
       const element = svg.value
       const viewport = element?.querySelector(".v-viewport") as SVGGElement
-      if (!element || !viewport) return
 
       const target = document.createElement("svg")
       target.setAttribute("xmlns", "http://www.w3.org/2000/svg")
 
-      const box = viewport.getBBox()
-      target.setAttribute("width", box.width.toString())
-      target.setAttribute("height", box.height.toString())
+      if (viewport) {
+        const box = viewport.getBBox()
+        const svg = {
+          x: Math.floor(box.x) - 10,
+          y: Math.floor(box.y) - 10,
+          width: Math.ceil(box.width) + 20,
+          height: Math.ceil(box.height) + 20
+        }
+        target.setAttribute("width", svg.width.toString())
+        target.setAttribute("height", svg.height.toString())
 
-      const v = viewport.cloneNode(true) as SVGGElement
-      v.setAttribute("transform", `translate(${-box.x}, ${-box.y})`)
-      v.removeAttribute("style")
-      target.appendChild(v)
+        const v = viewport.cloneNode(true) as SVGGElement
+        v.setAttribute("transform", `translate(${-svg.x}, ${-svg.y})`)
+        v.removeAttribute("style")
+        target.appendChild(v)
 
-      target.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`)
+        target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
+      }
+
       return target.outerHTML
     }
 
