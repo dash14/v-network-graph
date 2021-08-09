@@ -5,7 +5,7 @@ An interactive SVG based network-graph visualization component for Vue 3.
 
 <p align="center">
   <br>
-  <img src="./public/logo.png" alt="logo of v-network-graph">
+  <img src="./public/logo.svg" alt="logo of v-network-graph" width="222" height="132">
 </p>
 
 [Live examples](https://dash14.github.io/v-network-graph/examples/)
