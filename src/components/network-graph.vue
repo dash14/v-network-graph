@@ -507,7 +507,7 @@ export default defineComponent({
         target.setAttribute("height", svg.height.toString())
 
         const v = viewport.cloneNode(true) as SVGGElement
-        v.setAttribute("transform", `translate(${-svg.x}, ${-svg.y})`)
+        v.setAttribute("transform", `translate(${-svg.x} ${-svg.y})`)
         v.removeAttribute("style")
         target.appendChild(v)
 
