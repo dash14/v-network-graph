@@ -16,19 +16,30 @@
         :scale="scale"
       />
 
-      <!-- viewport: pan/zoom の対象領域 -->
-      <g class="v-viewport">
+      <!-- background-viewport:
+           area outside the scope of SVG text retrieval but targeted by pan/zoom. -->
+      <v-background-viewport v-if="isShowBackgroundViewport">
         <g v-for="layerName in layerDefs['background']" :key="layerName" class="v-layer">
+          <slot :name="layerName" :scale="scale" />
+        </g>
+
+        <!-- grid -->
+        <v-background-grid v-if="isShowGrid" />
+
+        <g v-for="layerName in layerDefs['grid']" :key="layerName" class="v-layer">
+          <slot :name="layerName" :scale="scale" />
+        </g>
+      </v-background-viewport>
+
+      <!-- viewport: pan/zoom target and within the range of SVG text retrieval. -->
+      <g class="v-viewport">
+        <g v-for="layerName in layerDefs['base']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
 
         <!-- edges -->
         <g class="v-layer-edges">
-          <v-edge-groups
-            :nodes="nodes"
-            :edges="edges"
-            :node-layouts="currentLayouts.nodes"
-          />
+          <v-edge-groups :nodes="nodes" :edges="edges" :node-layouts="currentLayouts.nodes" />
         </g>
 
         <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
@@ -80,16 +91,18 @@ import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandlers, Layouts, Nodes, Edges, UserLayouts } from "../common/types"
+import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, LayerPositions } from "../common/types"
 import { Layers, LayerPosition, Point, Sizes } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
+import VBackgroundViewport from "./background-viewport.vue"
+import VBackgroundGrid from "./background-grid.vue"
 
 export default defineComponent({
-  components: { VNode, VNodeFocusRing, VEdgeGroups },
+  components: { VNode, VNodeFocusRing, VEdgeGroups, VBackgroundViewport, VBackgroundGrid },
   props: {
     nodes: {
       type: Object as PropType<Nodes>,
@@ -150,13 +163,7 @@ export default defineComponent({
 
     // Additional layers
     const layerDefs = computed(() => {
-      const layers: Record<LayerPosition, string[]> = {
-        "nodes": [],
-        "focusring": [],
-        "edges": [],
-        "background": [],
-        "root": [],
-      }
+      const layers = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
       Object.assign(
         layers,
         Object.entries(props.layers).reduce((accum, [name, type]) => {
@@ -168,7 +175,14 @@ export default defineComponent({
           return accum
         }, {} as Record<LayerPosition, string[]>)
       )
-      return layers
+      return layers as Record<LayerPosition, string[]>
+    })
+
+    // Grid layer
+    const isShowGrid = computed(() => configs.view.grid.visible)
+    const isShowBackgroundViewport = computed(() => {
+      const layers = layerDefs.value
+      return isShowGrid.value || layers["background"].length > 0 || layers["grid"].length > 0
     })
 
     // -----------------------------------------------------------------------
@@ -202,6 +216,8 @@ export default defineComponent({
       panEnabled: configs.view.panEnabled,
       onPan: p => emitter.emit("view:pan", p),
     })
+
+    provideContainers({ container, svg, svgPanZoom })
 
     // Observe container resizing
     const rectSize = { width: 0, height: 0 }
@@ -411,12 +427,10 @@ export default defineComponent({
       })
     })
 
-    onSvgPanZoomUnmounted(
-      () => {
-        emitter.emit("view:unload")
-        configs.view.layoutHandler.deactivate()
-      }
-    )
+    onSvgPanZoomUnmounted(() => {
+      emitter.emit("view:unload")
+      configs.view.layoutHandler.deactivate()
+    })
 
     return {
       // html ref
@@ -429,6 +443,8 @@ export default defineComponent({
 
       // properties
       layerDefs,
+      isShowGrid,
+      isShowBackgroundViewport,
       scale,
       currentSelectedNodes,
       currentSelectedEdges,

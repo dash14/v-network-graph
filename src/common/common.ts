@@ -37,7 +37,7 @@ export interface ReadonlyRef<T> {
   readonly value: T
 }
 
-export function nonNull<T>(val?: T, name = "Parameter"): T {
+export function nonNull<T>(val?: T | null, name = "Parameter"): T {
   if (val === undefined || val === null) {
     throw new Error(`${name} is null`)
   }

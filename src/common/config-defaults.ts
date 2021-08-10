@@ -13,6 +13,21 @@ export function getConfigDefaults(): Configs {
       fit: false,
       layoutHandler: new SimpleLayout(),
       onSvgPanZoomInitialized: undefined,
+      grid: {
+        visible: false,
+        interval: 10,
+        thickIncrements: 5,
+        line: {
+          color: "#e0e0e0",
+          strokeWidth: 1,
+          strokeDasharray: 1
+        },
+        thick: {
+          color: "#cccccc",
+          strokeWidth: 1,
+          strokeDasharray: 0
+        }
+      }
     },
     node: withSelf(self => ({
       normal: {

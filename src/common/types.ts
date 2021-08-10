@@ -21,7 +21,23 @@ export interface Edge {
 
 export type Edges = Record<string, Edge>
 
-export type LayerPosition = "nodes" | "focusring" | "edges" | "background" | "root"
+export type LayerPosition =
+  | "nodes"
+  | "focusring"
+  | "edges"
+  | "base"
+  | "grid"
+  | "background"
+  | "root"
+export const LayerPositions: readonly LayerPosition[] = [
+  "nodes",
+  "focusring",
+  "edges",
+  "base",
+  "grid",
+  "background",
+  "root",
+]
 export type Layers = Record<string, LayerPosition>
 
 /* ------------------------------------------ *

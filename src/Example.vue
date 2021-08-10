@@ -336,6 +336,87 @@
           </ul>
         </div>
       </div>
+      <h4>Grid</h4>
+      <div class="controls">
+        <div class="control">
+          <input id="gridShow" v-model="configs.view.grid.visible" type="checkbox">
+          <label for="gridShow">Show</label>
+        </div>
+        <div class="control slider">
+          <label for="gridIntervalX">Interval</label>
+          <input
+            id="gridIntervalX"
+            v-model.number="configs.view.grid.interval"
+            type="range"
+            min="5"
+            max="500"
+            step="5"
+          >
+          <div class="value">{{ configs.view.grid.interval }}</div>
+        </div>
+        <div class="control slider">
+          <label for="gridThickIncrements">Increments</label>
+          <input
+            id="gridThickIncrements"
+            v-model.number="configs.view.grid.thickIncrements"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+          >
+          <div class="value">{{ configs.view.grid.thickIncrements }}</div>
+        </div>
+        <div class="control slider">
+          <label for="gridStrokeWidth">Width</label>
+          <input
+            id="gridStrokeWidth"
+            v-model.number="configs.view.grid.line.strokeWidth"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ configs.view.grid.line.strokeWidth }}</div>
+        </div>
+        <div class="control color">
+          <label for="gridNormalColor">Color</label>
+          <input id="gridNormalColor" v-model="configs.view.grid.line.color" type="color">
+          <div class="value">
+            <input v-model="configs.view.grid.line.color" type="input">
+          </div>
+        </div>
+        <div class="control text">
+          <label for="gridNormalStrokeDasharray">Dasharray</label>
+          <div class="value">
+            <input id="gridNormalStrokeDasharray" v-model="configs.view.grid.line.strokeDasharray" type="text">
+          </div>
+        </div>
+        <div class="control slider">
+          <label for="gridStrokeWidth">Thick Width</label>
+          <input
+            id="gridStrokeWidth"
+            v-model.number="configs.view.grid.thick.strokeWidth"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ configs.view.grid.thick.strokeWidth }}</div>
+        </div>
+        <div class="control color">
+          <label for="gridThickColor">Thick Color</label>
+          <input id="gridThickColor" v-model="configs.view.grid.thick.color" type="color">
+          <div class="value">
+            <input v-model="configs.view.grid.thick.color" type="input">
+          </div>
+        </div>
+        <div class="control text">
+          <label for="gridThickStrokeDasharray">Thick Dasharray</label>
+          <div class="value">
+            <input id="gridThickStrokeDasharray" v-model="configs.view.grid.thick.strokeDasharray" type="text">
+          </div>
+        </div>
+      </div>
       <h4>Layouts</h4>
       <div class="controls">
         <div class="control select">
@@ -516,7 +597,8 @@ export default /*#__PURE__*/ defineComponent({
         layer3: "edges",
         layer4: "focusring",
         layer5: "nodes",
-        worldmap: "background"
+        worldmap: "background",
+        grid: "root"
       },
       zoomLevel: 1,
       nodes: {

@@ -23,6 +23,20 @@ export class Config {
 
 /* View configuration */
 
+export interface GridLine {
+  color: string
+  strokeWidth: number
+  strokeDasharray?: string | number
+}
+
+export interface GridConfig {
+  visible: boolean
+  interval: number
+  thickIncrements: number | false
+  line: GridLine
+  thick: GridLine
+}
+
 export interface ViewConfig {
   scalingObjects: boolean
   panEnabled: true
@@ -32,6 +46,7 @@ export interface ViewConfig {
   fit: boolean
   layoutHandler: LayoutHandler
   onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
+  grid: GridConfig
 }
 
 /* Shape style */
