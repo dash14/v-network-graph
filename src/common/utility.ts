@@ -52,7 +52,7 @@ export function applyScaleToDasharray(dasharray: number | string | undefined, sc
   } else {
     result = dasharray * scale
   }
-  return result ? result : undefined
+  return result && result !== "0" ? result : undefined
 }
 
 export class MapUtil {
