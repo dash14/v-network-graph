@@ -74,6 +74,7 @@
 import { defineComponent, PropType, reactive, readonly, ref } from "vue"
 import { computed, nextTick, watch } from "vue"
 import { bindProp, bindPropKeySet } from "../common/props"
+import { provideContainers } from "../composables/container"
 import { provideConfigs } from "../composables/style"
 import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
