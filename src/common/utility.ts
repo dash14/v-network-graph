@@ -40,6 +40,21 @@ export function areNodesCollision(
   return collisionX && collisionY
 }
 
+export function applyScaleToDasharray(dasharray: number | string | undefined, scale: number) {
+  let result: number | string = 0
+  if (scale === 1 || dasharray === undefined || dasharray === "none") {
+    result = dasharray ?? 0
+  } else if (typeof dasharray === "string") {
+    result = dasharray
+      .split(/\s+/)
+      .map(v => parseInt(v) * scale)
+      .join(" ")
+  } else {
+    result = dasharray * scale
+  }
+  return result ? result : undefined
+}
+
 export class MapUtil {
   static valueOf<K, V>(map: Map<K, V>) {
     return Array.from(map.values())

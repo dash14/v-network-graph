@@ -14,6 +14,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import { StrokeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
+import { applyScaleToDasharray } from "../common/utility"
 
 export default defineComponent({
   props: {
@@ -46,22 +47,7 @@ export default defineComponent({
     })
 
     const strokeDasharray = computed(() => {
-      const s = scale.value
-      const dasharray = props.config.dasharray
-      if (
-        s === 1 ||
-        dasharray === undefined ||
-        dasharray === "none"
-      ) {
-        return dasharray ?? 0
-      } else if (typeof dasharray === "string") {
-        return dasharray
-          .split(/\s+/)
-          .map(v => parseInt(v) * s)
-          .join(" ")
-      } else {
-        return dasharray * s
-      }
+      return applyScaleToDasharray(props.config.dasharray, scale.value)
     })
 
     const animationSpeed = computed(() => {

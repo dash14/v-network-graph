@@ -30,6 +30,7 @@
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { ShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
+import { applyScaleToDasharray } from "../common/utility"
 
 export default defineComponent({
   props: {
@@ -53,7 +54,7 @@ export default defineComponent({
     const y = ref(props.baseY)
     const strokeWidth = ref(0)
     const strokeColor = ref("#000000")
-    const strokeDasharray = ref<string | number>("0")
+    const strokeDasharray = ref<string | number | undefined>(undefined)
     const radius = ref(0)
     const width = ref(0)
     const height = ref(0)
@@ -63,22 +64,7 @@ export default defineComponent({
       const s = scale.value
       strokeWidth.value = props.config.strokeWidth * s
       strokeColor.value = props.config.strokeColor ?? "none"
-
-      const dasharray = props.config.strokeDasharray
-      if (
-        s === 1 ||
-        dasharray === undefined ||
-        dasharray === "none"
-      ) {
-        strokeDasharray.value = dasharray ?? 0
-      } else if (typeof dasharray === "string") {
-        strokeDasharray.value = dasharray
-          .split(/\s+/)
-          .map(v => parseInt(v) * s)
-          .join(" ")
-      } else {
-        strokeDasharray.value = dasharray * s
-      }
+      strokeDasharray.value = applyScaleToDasharray(props.config.strokeDasharray, s)
 
       if (props.config.type === "circle") {
         x.value = props.baseX
