@@ -64,6 +64,7 @@ export type Events = {
   "view:zoom": number
   "view:pan": { x: number; y: number }
   "view:fit": undefined
+  "view:resize": { x: number; y: number; width: number; height: number }
   "node:click": NodePointerEvent
   "node:pointerover": NodePointerEvent
   "node:pointerout": NodePointerEvent
@@ -80,7 +81,7 @@ export type Events = {
 }
 
 export type EventHandlers = {
- "*"?: <T extends keyof Events>(type: T, event: Events[T]) => void
+  "*"?: <T extends keyof Events>(type: T, event: Events[T]) => void
 } & {
   [K in keyof Events]?: (event: Events[K]) => void
 }

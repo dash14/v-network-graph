@@ -213,6 +213,7 @@ export default defineComponent({
         svgPanZoom.value?.panBy({ x, y })
         const { width, height } = r
         Object.assign(rectSize, { width, height })
+        emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
       }
     })
     onSvgPanZoomMounted(() => {
@@ -481,7 +482,7 @@ export default defineComponent({
       return {
         width: sizes.width,
         height: sizes.height,
-        viewBox: sizes.viewBox
+        viewBox: sizes.viewBox,
       }
     },
     /**
@@ -501,7 +502,7 @@ export default defineComponent({
           x: Math.floor(box.x) - 10,
           y: Math.floor(box.y) - 10,
           width: Math.ceil(box.width) + 20,
-          height: Math.ceil(box.height) + 20
+          height: Math.ceil(box.height) + 20,
         }
         target.setAttribute("width", svg.width.toString())
         target.setAttribute("height", svg.height.toString())
@@ -515,8 +516,8 @@ export default defineComponent({
       }
 
       return target.outerHTML
-    }
-  }
+    },
+  },
 })
 </script>
 
