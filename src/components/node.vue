@@ -1,21 +1,43 @@
 <template>
-  <g :transform="`translate(${x} ${y})`">
-    <v-shape
+  <g
+    :transform="`translate(${x} ${y})`"
+    @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
+    @pointerenter.capture="handleNodePointerOverEvent(id, $event)"
+    @pointerleave.capture="handleNodePointerOutEvent(id, $event)"
+  >
+    <slot
+      name="override-node"
+      :node-id="id"
+      :scale="scale"
       :config="shape"
       :class="{ draggable: config.draggable, selectable: config.selectable }"
-      @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
-      @pointerenter.capture="handleNodePointerOverEvent(id, $event)"
-      @pointerleave.capture="handleNodePointerOutEvent(id, $event)"
-    />
-    <v-text
+    >
+      <v-shape
+        :config="shape"
+        :class="{ draggable: config.draggable, selectable: config.selectable }"
+      />
+    </slot>
+    <slot
       v-if="labelVisibility"
+      name="override-node-label"
+      :node-id="id"
+      :scale="scale"
       :text="labelText"
       :x="labelX"
       :y="labelY"
       :config="label"
       :text-anchor="textAnchor"
       :dominant-baseline="dominantBaseline"
-    />
+    >
+      <v-text
+        :text="labelText"
+        :x="labelX"
+        :y="labelY"
+        :config="label"
+        :text-anchor="textAnchor"
+        :dominant-baseline="dominantBaseline"
+      />
+    </slot>
   </g>
 </template>
 
@@ -217,6 +239,7 @@ export default defineComponent({
       dominantBaseline,
       labelX,
       labelY,
+      scale,
     }
   },
 })

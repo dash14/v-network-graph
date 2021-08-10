@@ -70,7 +70,16 @@
             :node="node"
             :pos="currentLayouts.nodes[nodeId]"
             :selected="currentSelectedNodes.has(nodeId.toString())"
-          />
+          >
+            <!-- overide the node -->
+            <template v-if="overrideNodes" #override-node="slotProps">
+              <slot name="override-node" v-bind="slotProps" />
+            </template>
+            <!-- override the node label -->
+            <template v-if="overrideNodeLabels" #override-node-label="slotProps">
+              <slot name="override-node-label" v-bind="slotProps" />
+            </template>
+          </v-node>
         </g>
 
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
@@ -151,7 +160,7 @@ export default defineComponent({
     "update:selectedEdges",
     "update:layouts",
   ],
-  setup(props, { emit }) {
+  setup(props, { emit, slots }) {
     // Event Bus
     const emitter = provideEventEmitter()
     Object.entries(props.eventHandlers).forEach(([type, event]) => {
@@ -184,6 +193,10 @@ export default defineComponent({
       const layers = layerDefs.value
       return isShowGrid.value || layers["background"].length > 0 || layers["grid"].length > 0
     })
+
+    // overrides
+    const overrideNodes = computed(() => "override-node" in slots)
+    const overrideNodeLabels = computed(() => "override-node-label" in slots)
 
     // -----------------------------------------------------------------------
     // SVG
@@ -442,9 +455,12 @@ export default defineComponent({
       svgPanZoom,
 
       // properties
+      slots,
       layerDefs,
       isShowGrid,
       isShowBackgroundViewport,
+      overrideNodes,
+      overrideNodeLabels,
       scale,
       currentSelectedNodes,
       currentSelectedEdges,

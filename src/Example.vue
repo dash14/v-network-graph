@@ -147,7 +147,11 @@
         <div class="control text">
           <label for="nodeStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input id="nodeStrokeDasharray" v-model="configs.node.normal.strokeDasharray" type="text">
+            <input
+              id="nodeStrokeDasharray"
+              v-model="configs.node.normal.strokeDasharray"
+              type="text"
+            >
           </div>
         </div>
         <div class="control">
@@ -218,7 +222,11 @@
       <h5>Node Focus Ring</h5>
       <div class="controls">
         <div class="control">
-          <input id="nodeFocusRingVisible" v-model="configs.node.focusring.visible" type="checkbox">
+          <input
+            id="nodeFocusRingVisible"
+            v-model="configs.node.focusring.visible"
+            type="checkbox"
+          >
           <label for="nodeFocusRingVisible">Visible</label>
         </div>
         <div class="control slider">
@@ -388,7 +396,11 @@
         <div class="control text">
           <label for="gridNormalStrokeDasharray">Dasharray</label>
           <div class="value">
-            <input id="gridNormalStrokeDasharray" v-model="configs.view.grid.line.strokeDasharray" type="text">
+            <input
+              id="gridNormalStrokeDasharray"
+              v-model="configs.view.grid.line.strokeDasharray"
+              type="text"
+            >
           </div>
         </div>
         <div class="control slider">
@@ -413,7 +425,11 @@
         <div class="control text">
           <label for="gridThickStrokeDasharray">Thick Dasharray</label>
           <div class="value">
-            <input id="gridThickStrokeDasharray" v-model="configs.view.grid.thick.strokeDasharray" type="text">
+            <input
+              id="gridThickStrokeDasharray"
+              v-model="configs.view.grid.thick.strokeDasharray"
+              type="text"
+            >
           </div>
         </div>
       </div>
@@ -504,6 +520,26 @@
           y="0"
           width="1000px"
         />
+      </template>
+
+      <!-- Override node -->
+      <template #override-node="{ nodeId, scale, config, ...slotProps }">
+        <g v-if="nodeId == 'node1'" v-bind="slotProps">
+          <circle :r="(config.radius ?? 1) * scale" fill="red" />
+          <circle :r="((config.radius ?? 1) - 4) * scale" fill="white" />
+        </g>
+      </template>
+
+      <!-- Override node label -->
+      <template #override-node-label="{ nodeId, scale, text, textAnchor, dominantBaseline, ...slotProps }">
+        <text
+          v-if="nodeId == 'node1'"
+          v-bind="slotProps"
+          :font-size="18 * scale"
+          :text-anchor="textAnchor"
+          :dominant-baseline="dominantBaseline"
+          fill="red"
+        >{{ text }}</text>
       </template>
     </v-network-graph>
     <div class="event-logs">
@@ -598,7 +634,7 @@ export default /*#__PURE__*/ defineComponent({
         layer4: "focusring",
         layer5: "nodes",
         worldmap: "background",
-        grid: "root"
+        grid: "root",
       },
       zoomLevel: 1,
       nodes: {
@@ -722,8 +758,8 @@ export default /*#__PURE__*/ defineComponent({
       a.download = "network-graph.svg"
       a.click()
       window.URL.revokeObjectURL(url)
-    }
-  }
+    },
+  },
 })
 </script>
 
