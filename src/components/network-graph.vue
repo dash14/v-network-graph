@@ -172,10 +172,15 @@ export default defineComponent({
 
     // Additional layers
     const layerDefs = computed(() => {
+      const definedSlots = new Set(Object.keys(slots))
+      definedSlots.delete("override-node")       // used by node component
+      definedSlots.delete("override-node-label") // used by node component
+
       const layers = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
       Object.assign(
         layers,
         Object.entries(props.layers).reduce((accum, [name, type]) => {
+          definedSlots.delete(name)
           if (type in accum) {
             accum[type].push(name)
           } else {
@@ -184,6 +189,8 @@ export default defineComponent({
           return accum
         }, {} as Record<LayerPosition, string[]>)
       )
+      // The default slot and any slots not defined in the layers into root.
+      layers["root"].push(...definedSlots)
       return layers as Record<LayerPosition, string[]>
     })
 

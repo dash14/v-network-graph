@@ -463,10 +463,19 @@
       :layouts="layouts"
       :event-handlers="{ '*': handleEvent }"
     >
+      <text
+        x="200"
+        y="0"
+        fill="black"
+        font-size="10"
+        text-anchor="start"
+        dominant-baseline="text-before-edge"
+      >Default layer over roo OK???</text>
+
       <template #layer1>
         <text
           x="200"
-          y="0"
+          y="10"
           fill="black"
           font-size="10"
           text-anchor="start"
