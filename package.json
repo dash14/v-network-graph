@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/dash14/v-network-graph.git"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "files": [
     "lib"
