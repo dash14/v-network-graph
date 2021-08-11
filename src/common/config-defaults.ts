@@ -33,6 +33,11 @@ export function getConfigDefaults(): Configs {
       normal: {
         type: "circle",
         radius: 16,
+        // for rect -->
+        width: 32,
+        height: 32,
+        borderRadius: 4,
+        // <-- for rect
         color: "#4466cc",
         strokeWidth: 0,
         strokeColor: "#000000",
@@ -106,6 +111,9 @@ export function getConfigDefaults(): Configs {
         },
         shape: {
           type: "rect",
+          // for circle -->
+          radius: 6,
+          // <-- for circle
           width: 12,
           height: 12,
           borderRadius: 3,

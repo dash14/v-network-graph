@@ -76,14 +76,14 @@ interface RectangleShape extends ShapeStyleBase {
 // the use of type guards when users build and use the configuration,
 // we define it as an object that contains all fields.
 
-type Shape<T extends ShapeType> = {
+type ShapeBase<T extends ShapeType = ShapeType> = {
   type: T
-} & (T extends "circle" ? CircleShape : Partial<CircleShape>)
-  & (T extends "rect" ? RectangleShape : Partial<RectangleShape>)
+}
 
-export type ShapeStyle = Shape<"circle"> | Shape<"rect">
-export type CircleShapeStyle = Shape<"circle">
-export type RectangleShapeStyle = Shape<"rect">
+export type ShapeStyle = ShapeBase & CircleShape & RectangleShape
+export type CircleShapeStyle = ShapeBase<"circle"> & CircleShape
+export type RectangleShapeStyle = ShapeBase<"rect"> & RectangleShape
+export type AnyShapeStyle = CircleShapeStyle | RectangleShapeStyle
 
 /* Label style */
 

@@ -28,7 +28,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import { ShapeStyle } from "../common/configs"
+import { AnyShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { applyScaleToDasharray } from "../common/utility"
 
@@ -43,7 +43,7 @@ export default defineComponent({
       default: 0,
     },
     config: {
-      type: Object as PropType<ShapeStyle>,
+      type: Object as PropType<AnyShapeStyle>,
       required: true,
     },
   },
