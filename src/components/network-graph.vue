@@ -39,7 +39,7 @@
 
         <!-- edges -->
         <g class="v-layer-edges">
-          <v-edge-groups :nodes="nodes" :edges="edges" :node-layouts="currentLayouts.nodes" />
+          <v-edge-groups :node-layouts="currentLayouts.nodes" />
         </g>
 
         <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
@@ -97,6 +97,7 @@ import { bindProp, bindPropKeySet } from "../common/props"
 import { provideContainers } from "../composables/container"
 import { provideConfigs } from "../composables/style"
 import { provideMouseOperation } from "../composables/mouse"
+import { provideEdgePositions } from "../composables/edge"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
@@ -359,6 +360,12 @@ export default defineComponent({
     const visibleNodeFocusRing = computed(() => {
       return configs.node.selectable && configs.node.focusring.visible
     })
+
+    // -----------------------------------------------------------------------
+    // Edge position calcurating
+    // -----------------------------------------------------------------------
+    provideEdgePositions(props.nodes, props.edges, configs, scale)
+
 
     // -----------------------------------------------------------------------
     // Mouse processing

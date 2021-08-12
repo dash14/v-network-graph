@@ -1,10 +1,7 @@
 <template>
   <g :class="{ selectable: config.selectable }">
     <v-line
-      :x1="pos.x1"
-      :y1="pos.y1"
-      :x2="pos.x2"
-      :y2="pos.y2"
+      v-bind="pos"
       :config="config.summarized.stroke"
     />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="config.summarized.shape" />
@@ -23,6 +20,7 @@
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { Edges, NodePositions } from "../common/types"
 import { useEdgeConfig } from "../composables/style"
+import { useEdgePositions } from "../composables/edge"
 import VLine from "../components/line.vue"
 import VShape from "../components/shape.vue"
 import VText from "../components/text.vue"
@@ -41,19 +39,20 @@ export default defineComponent({
   },
   setup(props) {
     const config = useEdgeConfig()
+    const { edgePositions } = useEdgePositions()
 
     // 指定されたedgesは同一ペアのため、最初の1つを取得して描画する
     const pos = ref({ x1: 0, y1: 0, x2: 0, y2: 0 })
     const centerPos = ref({ x: 0, y: 0 })
 
     watchEffect(() => {
+      const edgeId = Object.keys(props.edges)[0]
       const edge = props.edges[Object.keys(props.edges)[0]]
-      pos.value = {
-        x1: props.layouts[edge.source].x ?? 0,
-        y1: props.layouts[edge.source].y ?? 0,
-        x2: props.layouts[edge.target].x ?? 0,
-        y2: props.layouts[edge.target].y ?? 0,
-      }
+      pos.value = edgePositions.value(
+        edgeId,
+        props.layouts[edge.source],
+        props.layouts[edge.target]
+      )
       centerPos.value = {
         x: (pos.value.x1 + pos.value.x2) / 2,
         y: (pos.value.y1 + pos.value.y2) / 2,
