@@ -92,47 +92,47 @@ function calculatePathPoints(
   }
 
   // Generate the `d` attribute of the actual path from the Edge position list.
-  let prevEdge = getEdgePositions(edges[0].edgeId, edgePos[0], directions[0])
-  let prevSlope = getSlope(prevEdge)
-  const points: PositionOrCurve[] = [prevEdge.source]
+  let prev = getEdgePositions(edges[0].edgeId, edgePos[0], directions[0])
+  let prevSlope = getSlope(prev)
+  const points: PositionOrCurve[] = [prev.source]
   for (let i = 1; i < length; i++) {
-    const nextEdge = getEdgePositions(edges[i].edgeId, edgePos[i], directions[i])
-    const nextSlope = getSlope(nextEdge)
+    const next = getEdgePositions(edges[i].edgeId, edgePos[i], directions[i])
+    const nextSlope = getSlope(next)
 
     const node = directions[i] ? edges[i].edge.source : edges[i].edge.target
     const prevNode = directions[i - 1] ? edges[i - 1].edge.target : edges[i - 1].edge.source
 
     if (node !== prevNode) {
       // diconnected edges
-      points.push(prevEdge.target)
+      points.push(prev.target)
       points.push(null)
-      points.push(nextEdge.source)
-      prevEdge = nextEdge
+      points.push(next.source)
+      prev = next
       prevSlope = nextSlope
       continue
     }
 
     const nodePos = nodeLayouts[node] ?? { x: 0, y: 0 }
+    const radius = getNodeRadius(node, nodes, nodeConfig)
+
     if (
-      (state.edgeLayoutPoints[prevEdge.edgeId]?.groupWidth ?? 0) == 0 &&
-      (state.edgeLayoutPoints[nextEdge.edgeId]?.groupWidth ?? 0) == 0
+      (state.edgeLayoutPoints[prev.edgeId]?.groupWidth ?? 0) == 0 &&
+      (state.edgeLayoutPoints[next.edgeId]?.groupWidth ?? 0) == 0
     ) {
       // If there is one edge in both sections:
       if (curveInNode) {
         // Make the curve with the center of the node as the control point.
-        const radius = getNodeRadius(node, nodes, nodeConfig) * scale
+        const r = radius * scale
         // Intersection of a line and the circumference of a circle
-        const cp1 =
-          v2d.getIntersectPointLineAndCircle(prevEdge, true, nodePos, radius) ?? prevEdge.target
-        const cp2 =
-          v2d.getIntersectPointLineAndCircle(nextEdge, false, nodePos, radius) ?? nextEdge.source
+        const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
+        const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
         points.push(cp1)
         points.push([nodePos, nodePos, cp2])
       } else {
         // Connect them at the center of the node.
-        points.push(prevEdge.target)
-        if (!isEqual(prevEdge.target, nextEdge.source)) {
-          points.push(nextEdge.source)
+        points.push(prev.target)
+        if (!isEqual(prev.target, next.source)) {
+          points.push(next.source)
         }
       }
     } else if (
@@ -140,46 +140,57 @@ function calculatePathPoints(
       Math.abs(prevSlope - nextSlope) < EPSILON
     ) {
       // For parallel lines, connect the end points of the lines.
-      points.push(prevEdge.target)
-      points.push(nextEdge.source)
+      const r = Math.max(radius * (2 / 3), radius - 4) * scale
+      const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
+      const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+      if (curveInNode) {
+        points.push(cp1)
+        points.push([prev.target, next.source, cp2])
+      } else {
+        points.push(cp1)
+        points.push(cp2)
+      }
     } else {
       if (curveInNode) {
-        const radius = getNodeRadius(node, nodes, nodeConfig) * scale
+        const r = radius * scale
         // Intersection of a line and the circumference of a circle
-        const cp1 =
-          v2d.getIntersectPointLineAndCircle(prevEdge, true, nodePos, radius) ?? prevEdge.target
-        const cp2 =
-          v2d.getIntersectPointLineAndCircle(nextEdge, false, nodePos, radius) ?? nextEdge.source
+        const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
+        const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
 
         // Is the intersection of the two lines contained in the circle?
-        let cp = v2d.getIntersectionPointOfLines(prevEdge, nextEdge)
+        let cp = v2d.getIntersectionPointOfLines(prev, next)
         if (!v2d.isPointContainedInCircle(cp, nodePos, radius)) {
           // not contained:
           // The intersection of the line from the intersection point to
           // the center of the circle, and the circumference of the circle
           // (with a radius of 2/3) is the control point of the curve.
           const line = { source: cp, target: nodePos }
-          cp = v2d.getIntersectPointLineAndCircle(line, true, nodePos, radius * (2 / 3)) ?? nodePos
+          cp = v2d.getIntersectPointLineAndCircle(line, true, nodePos, r * (2 / 3)) ?? nodePos
         }
         points.push(cp1)
         points.push([cp, cp, cp2])
       } else {
         // Create a path with a point on the circumference
         // (but with a radius of 1/3 for better appearance).
-        const radius = getNodeRadius(node, nodes, nodeConfig) * scale * (1 / 3)
-        const cp1 =
-          v2d.getIntersectPointLineAndCircle(prevEdge, true, nodePos, radius) ?? prevEdge.target
-        const cp2 =
-          v2d.getIntersectPointLineAndCircle(nextEdge, false, nodePos, radius) ?? nextEdge.source
-        points.push(cp1)
-        points.push(cp2)
+        const r = Math.max(radius * (2 / 3), radius - 4) * scale
+
+        // Is the intersection of the two lines contained in the circle?
+        let cp = v2d.getIntersectionPointOfLines(prev, next)
+        if (v2d.isPointContainedInCircle(cp, nodePos, r)) {
+          points.push(cp)
+        } else {
+          const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
+          const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+          points.push(cp1)
+          points.push(cp2)
+        }
       }
     }
 
-    prevEdge = nextEdge
+    prev = next
     prevSlope = nextSlope
   }
-  points.push(prevEdge.target)
+  points.push(prev.target)
 
   return points
 }
