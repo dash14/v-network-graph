@@ -19,15 +19,17 @@ interface EdgeLayoutPoint {
   groupWidth: number
 }
 
-interface State {
+export interface EdgeGroupState {
   edgeLayoutPoints: Record<string, EdgeLayoutPoint>
   edgeGroups: Record<string, EdgeGroup>
   summarizedEdges: Record<string, true>
 }
 
+export type EdgePositionGetter = (edgeId: string, source?: Position, target?: Position) => LinePosition
+
 interface EdgePositionsState {
-  state: State
-  edgePositions: ComputedRef<(edgeId: string, source?: Position, target?: Position) => LinePosition>
+  state: EdgeGroupState
+  edgePositions: ComputedRef<EdgePositionGetter>
 }
 
 // -----------------------------------------------------------------------
@@ -47,7 +49,7 @@ export function provideEdgePositions(
   scale: ComputedRef<number>
 ) {
   // Calculate position map
-  const state = reactive<State>({
+  const state = reactive<EdgeGroupState>({
     edgeLayoutPoints: {},
     edgeGroups: {},
     summarizedEdges: {},
