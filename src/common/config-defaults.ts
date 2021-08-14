@@ -20,14 +20,14 @@ export function getConfigDefaults(): Configs {
         line: {
           color: "#e0e0e0",
           strokeWidth: 1,
-          strokeDasharray: 1
+          strokeDasharray: 1,
         },
         thick: {
           color: "#cccccc",
           strokeWidth: 1,
-          strokeDasharray: 0
-        }
-      }
+          strokeDasharray: 0,
+        },
+      },
     },
     node: withSelf(self => ({
       normal: {
@@ -44,14 +44,14 @@ export function getConfigDefaults(): Configs {
         strokeDasharray: 0,
       },
       hover: {
-        type: (node) => Config.value(self.normal.type, node) as any,
-        radius: (node) => Config.value(self.normal.radius, node) ?? 0 + 2,
-        width: (node) => Config.value(self.normal.width, node) ?? 0 + 2,
-        height: (node) => Config.value(self.normal.height, node) ?? 0 + 2,
-        borderRadius: (node) => Config.value(self.normal.borderRadius, node) ?? 0,
-        strokeWidth: (node) => Config.value(self.normal.strokeWidth, node),
-        strokeColor: (node) => Config.value(self.normal.strokeColor, node),
-        strokeDasharray: (node) => Config.value(self.normal.strokeDasharray, node),
+        type: node => Config.value(self.normal.type, node) as any,
+        radius: node => Config.value(self.normal.radius, node) ?? 0 + 2,
+        width: node => Config.value(self.normal.width, node) ?? 0 + 2,
+        height: node => Config.value(self.normal.height, node) ?? 0 + 2,
+        borderRadius: node => Config.value(self.normal.borderRadius, node) ?? 0,
+        strokeWidth: node => Config.value(self.normal.strokeWidth, node),
+        strokeColor: node => Config.value(self.normal.strokeColor, node),
+        strokeDasharray: node => Config.value(self.normal.strokeDasharray, node),
         color: "#3355bb",
       },
       selected: undefined,
@@ -83,23 +83,23 @@ export function getConfigDefaults(): Configs {
         animationSpeed: 100,
       },
       hover: {
-        width: (edge) => Config.value(self.normal.width, edge) + 1,
+        width: edge => Config.value(self.normal.width, edge) + 1,
         color: "#3355bb",
-        dasharray: (edge) => Config.value(self.normal.dasharray, edge),
-        linecap: (edge) => Config.value(self.normal.linecap, edge),
-        animate: (edge) => Config.value(self.normal.animate, edge),
-        animationSpeed: (edge) => Config.value(self.normal.animationSpeed, edge),
+        dasharray: edge => Config.value(self.normal.dasharray, edge),
+        linecap: edge => Config.value(self.normal.linecap, edge),
+        animate: edge => Config.value(self.normal.animate, edge),
+        animationSpeed: edge => Config.value(self.normal.animationSpeed, edge),
       },
       selected: {
-        width: (edge) => Config.value(self.normal.width, edge) + 1,
+        width: edge => Config.value(self.normal.width, edge) + 1,
         color: "#dd8800",
-        dasharray: (edge) => {
+        dasharray: edge => {
           const w = Config.value(self.normal.width, edge)
           return `${w * 1.5} ${w * 2}`
         },
-        linecap: (edge) => Config.value(self.normal.linecap, edge),
-        animate: (edge) => Config.value(self.normal.animate, edge),
-        animationSpeed: (edge) => Config.value(self.normal.animationSpeed, edge),
+        linecap: edge => Config.value(self.normal.linecap, edge),
+        animate: edge => Config.value(self.normal.animate, edge),
+        animationSpeed: edge => Config.value(self.normal.animationSpeed, edge),
       },
       selectable: false,
       gap: 3,
