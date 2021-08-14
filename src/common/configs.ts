@@ -1,7 +1,7 @@
 import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
 import { RecursivePartial } from "./common"
-import { Node, Edge, Edges } from "./types"
+import { Node, Edge, Edges, Path } from "./types"
 
 type CallableValue<V, T> = V | ((target: T) => V)
 
@@ -157,12 +157,24 @@ export interface EdgeConfig<E extends Edge = Edge> {
   }
 }
 
+/* Path config */
+export interface PathStrokeStyle extends StrokeStyle {
+  linejoin: "miter" | "round" | "bevel"
+}
+
+export interface PathConfig<P extends Path = Path> {
+  visible: boolean
+  clickable: boolean
+  path: CallableValues<PathStrokeStyle, P>
+}
+
 /* Configuration */
 
-export interface Configs<N extends Node = Node, E extends Edge = Edge> {
+export interface Configs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path> {
   view: ViewConfig
   node: NodeConfig<N>
   edge: EdgeConfig<E>
+  path: PathConfig<P>
 }
 
 /** For specification by the user */

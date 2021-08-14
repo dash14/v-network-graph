@@ -21,6 +21,13 @@ export interface Edge {
 
 export type Edges = Record<string, Edge>
 
+export interface LinePosition {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
+
 export type LayerPosition =
   | "nodes"
   | "focusring"
@@ -65,6 +72,18 @@ export interface Layouts {
 }
 /** ユーザ指定用 optionalな指定のためのinterface */
 export type UserLayouts = RecursivePartial<Layouts>
+
+/* ------------------------------------------ *
+ * Paths
+ * ------------------------------------------ */
+
+export interface Path {
+  edges: string[]
+  // any properties
+  [x: string]: any
+}
+
+export type Paths = Path[]
 
 /* ------------------------------------------ *
  * Events

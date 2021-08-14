@@ -132,6 +132,30 @@ export function getConfigDefaults(): Configs {
         },
       },
     })),
+    path: {
+      visible: false,
+      clickable: false,
+      path: {
+        width: 6,
+        color: p => {
+          const list = ["#fc6f0388", "#309fff88", "##ff30c4"]
+          const hash = p.edges
+            .map(s =>
+              s.split("").reduce((a, b) => {
+                a = (a << 5) - a + b.charCodeAt(0)
+                return a & a
+              }, 0)
+            )
+            .reduce((a, b) => a & b, 0)
+          return list[hash % list.length]
+        },
+        dasharray: undefined,
+        linecap: "round",
+        linejoin: "round",
+        animate: false,
+        animationSpeed: 100,
+      },
+    },
   }
 }
 

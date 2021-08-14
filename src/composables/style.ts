@@ -39,3 +39,7 @@ export function useNodeConfig() {
 export function useEdgeConfig() {
   return injectConfig("edge")
 }
+
+export function usePathConfig() {
+  return injectConfig("path")
+}
