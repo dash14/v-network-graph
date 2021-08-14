@@ -679,9 +679,18 @@ export default /*#__PURE__*/ defineComponent({
           source: "node2",
           target: "node1",
         },
+        edge4: {
+          source: "node2",
+          target: "node3",
+        },
+        edge5: {
+          source: "node3",
+          target: "node4",
+        },
       },
       paths: [
-        { edges: ["edge1", "edge2"] }
+        { edges: ["edge1", "edge2"] },
+        { edges: ["edge3", "edge4", "edge5"] }
       ],
       selectedNodes: ["node1"],
       selectedEdges: [],
