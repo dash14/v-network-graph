@@ -229,7 +229,7 @@ function calculateEdgePosition(
       pointInGroup
     )
   } else {
-    [x1, y1, x2, y2] = calculateLinePosition(
+    [x2, y2, x1, y1] = calculateLinePosition(
       target?.x ?? 0,
       target?.y ?? 0,
       source?.x ?? 0,
