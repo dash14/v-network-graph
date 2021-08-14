@@ -378,6 +378,60 @@
             </option>
           </select>
         </div>
+        <div class="control slider">
+          <label for="pathWidth">Width</label>
+          <input
+            id="pathWidth"
+            v-model.number="configs.path.path.width"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ configs.path.path.width }}</div>
+        </div>
+        <div class="control text">
+          <label for="pathDasharray">Dasharray</label>
+          <div class="value">
+            <input id="pathDasharray" v-model="configs.path.path.dasharray" type="text">
+          </div>
+        </div>
+        <div class="control select">
+          <label for="pathLinecap">Linecap</label>
+          <div class="value">
+            <select id="pathLinecap" v-model.number="configs.path.path.linecap">
+              <option value="butt">butt</option>
+              <option value="round">round</option>
+              <option value="square">square</option>
+            </select>
+          </div>
+        </div>
+        <div class="control select">
+          <label for="pathLinejoin">Linejoin</label>
+          <div class="value">
+            <select id="pathLinejoin" v-model.number="configs.path.path.linejoin">
+              <option value="butt">miter</option>
+              <option value="round">round</option>
+              <option value="bevel">bevel</option>
+            </select>
+          </div>
+        </div>
+        <div class="control">
+          <input id="pathAnimate" v-model="configs.path.path.animate" type="checkbox">
+          <label for="pathAnimate">Animate</label>
+        </div>
+        <div class="control slider">
+          <label for="pathSpeed">Speed</label>
+          <input
+            id="pathSpeed"
+            v-model.number="configs.path.path.animationSpeed"
+            type="range"
+            min="10"
+            max="1000"
+            step="10"
+          >
+          <div class="value">{{ configs.path.path.animationSpeed }}</div>
+        </div>
       </div>
       <h4>Grid</h4>
       <div class="controls">
