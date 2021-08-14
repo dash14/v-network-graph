@@ -459,6 +459,7 @@
       :layers="layers"
       :nodes="nodes"
       :edges="edges"
+      :paths="paths"
       :configs="configs"
       :layouts="layouts"
       :event-handlers="{ '*': handleEvent }"
@@ -562,7 +563,7 @@ import { defineComponent, reactive, ref, watch } from "vue"
 import throttle from "lodash-es/throttle"
 import VNetworkGraph from "./components/network-graph.vue"
 import { getConfigDefaults } from "./common/config-defaults"
-import { UserLayouts, Nodes, Edges, Layers } from "./common/types"
+import { UserLayouts, Nodes, Edges, Layers, Paths } from "./common/types"
 import { GridLayout } from "./layouts/grid"
 import { ForceLayout } from "./layouts/force"
 import { LayoutHandler } from "./layouts/handler"
@@ -572,6 +573,7 @@ interface SampleData {
   zoomLevel: number
   nodes: Nodes
   edges: Edges
+  paths: Paths,
   selectedNodes: string[]
   selectedEdges: string[]
   eventLogs: string[]
@@ -678,6 +680,9 @@ export default /*#__PURE__*/ defineComponent({
           target: "node1",
         },
       },
+      paths: [
+        { edges: ["edge1", "edge2"] }
+      ],
       selectedNodes: ["node1"],
       selectedEdges: [],
       eventLogs: [],

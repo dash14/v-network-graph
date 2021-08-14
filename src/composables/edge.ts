@@ -1,7 +1,7 @@
 import { computed, ComputedRef, inject, InjectionKey, provide, reactive, watchEffect } from "vue"
 import { nonNull } from "../common/common"
 import { Config, Configs, EdgeConfig } from "../common/configs"
-import { Edge, Edges, Nodes, Position } from "../common/types"
+import { Edge, Edges, LinePosition, Nodes, Position } from "../common/types"
 
 // -----------------------------------------------------------------------
 // Private type definition
@@ -17,13 +17,6 @@ interface EdgeLayoutPoint {
   edge: Edge
   pointInGroup: number
   groupWidth: number
-}
-
-interface LinePosition {
-  x1: number
-  y1: number
-  x2: number
-  y2: number
 }
 
 interface State {

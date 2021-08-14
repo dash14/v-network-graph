@@ -82,6 +82,13 @@
           </v-node>
         </g>
 
+        <v-paths
+          :paths="paths"
+          :nodes="nodes"
+          :edges="edges"
+          :node-layouts="currentLayouts.nodes"
+        />
+
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
@@ -101,7 +108,7 @@ import { provideEdgePositions } from "../composables/edge"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, LayerPositions } from "../common/types"
+import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, LayerPositions, Paths } from "../common/types"
 import { Layers, LayerPosition, Point, Sizes } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
@@ -110,9 +117,10 @@ import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
 import VBackgroundViewport from "./background-viewport.vue"
 import VBackgroundGrid from "./background-grid.vue"
+import VPaths from "./paths.vue"
 
 export default defineComponent({
-  components: { VNode, VNodeFocusRing, VEdgeGroups, VBackgroundViewport, VBackgroundGrid },
+  components: { VNode, VNodeFocusRing, VEdgeGroups, VBackgroundViewport, VBackgroundGrid, VPaths },
   props: {
     nodes: {
       type: Object as PropType<Nodes>,
@@ -141,6 +149,10 @@ export default defineComponent({
     configs: {
       type: Object as PropType<UserConfigs>,
       default: () => ({}),
+    },
+    paths: {
+      type: Array as PropType<Paths>,
+      default: () => ([]),
     },
     layers: {
       type: Object as PropType<Layers>,

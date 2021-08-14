@@ -1,5 +1,5 @@
 import { Node, Position, Size } from "./types"
-import { Config, NodeConfig } from "./configs"
+import { Config, NodeConfig, ShapeStyle } from "./configs"
 
 export function keyOf<T>(obj: T): (keyof T)[] {
   return Object.keys(obj) as (keyof T)[]
@@ -13,14 +13,45 @@ export function getNodeSize(node: Node, style: NodeConfig, scale: number): Size 
   const shape = Config.values(style.normal, node)
   if (shape.type == "circle") {
     return {
-      width: (shape.radius * 2) * scale,
-      height: (shape.radius * 2) * scale,
+      width: shape.radius * 2 * scale,
+      height: shape.radius * 2 * scale,
     }
   } else {
     return {
       width: shape.width * scale,
       height: shape.height * scale,
     }
+  }
+}
+
+export function getShapeSize(shape: ShapeStyle, scale: number): Size {
+  if (shape.type == "circle") {
+    return {
+      width: shape.radius * 2 * scale,
+      height: shape.radius * 2 * scale,
+    }
+  } else {
+    return {
+      width: shape.width * scale,
+      height: shape.height * scale,
+    }
+  }
+}
+
+export function isPositionInNode(
+  pos: Position,
+  nodePos: Position,
+  shape: ShapeStyle,
+  scale: number,
+  margin: number
+) {
+  if (shape.type === "circle") {
+    const distance = Math.sqrt(Math.pow(nodePos.x - pos.x, 2) + Math.pow(nodePos.y - pos.y, 2))
+    return distance < (shape.radius - margin) * scale
+  } else {
+    const x = Math.abs(nodePos.x - pos.x)
+    const y = Math.abs(nodePos.y - pos.y)
+    return x < (shape.width / 2 - margin) * scale && y < (shape.height / 2 - margin) * scale
   }
 }
 
