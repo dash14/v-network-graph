@@ -13,10 +13,11 @@
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, PropType } from "vue"
+import { computed, defineComponent, PropType } from "vue"
 import { useZoomLevel } from "../composables/zoom"
-import { PathStrokeStyle } from "../common/configs"
-import { Position } from "../common/types"
+import { usePathConfig } from "../composables/style"
+import { Config } from "../common/configs"
+import { Path, Position } from "../common/types"
 import { applyScaleToDasharray } from "../common/utility"
 
 export default defineComponent({
@@ -25,28 +26,33 @@ export default defineComponent({
       type: Array as PropType<Position[]>,
       required: true,
     },
-    config: {
-      type: Object as PropType<PathStrokeStyle>,
+    path: {
+      type: Object as PropType<Path>,
       required: true,
     }
   },
   setup(props) {
     const { scale } = useZoomLevel()
+    const pathConfig = usePathConfig()
 
     const d = computed(() => {
       return "M" + props.points.map(p => `${p.x} ${p.y}`).join(" L ")
     })
 
+    const config = computed(() => {
+      return Config.values(pathConfig.path, props.path)
+    })
+
     const strokeDasharray = computed(() => {
-      return applyScaleToDasharray(props.config.dasharray, scale.value)
+      return applyScaleToDasharray(config.value.dasharray, scale.value)
     })
 
     const animationSpeed = computed(() => {
-      const speed = props.config.animate ? props.config.animationSpeed * scale.value : false
+      const speed = config.value.animate ? config.value.animationSpeed * scale.value : false
       return speed ? `--animation-speed:${speed}` : undefined
     })
 
-    return { d, scale, strokeDasharray, animationSpeed }
+    return { d, scale, config, strokeDasharray, animationSpeed }
   },
 })
 </script>

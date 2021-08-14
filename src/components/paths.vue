@@ -5,7 +5,7 @@
       :key="i"
       :points="calcPathPoints(path)"
       :class="{ clickable: pathConfig.clickable }"
-      :config="getStyleConfig(path.path)"
+      :path="path.path"
     />
   </g>
 </template>
@@ -185,11 +185,7 @@ export default defineComponent({
       )
     })
 
-    const getStyleConfig = computed(() => (path: Path) => {
-      return Config.values(pathConfig.path, path)
-    })
-
-    return { pathConfig, pathList, calcPathPoints, getStyleConfig }
+    return { pathConfig, pathList, calcPathPoints }
   },
 })
 
