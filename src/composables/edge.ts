@@ -133,10 +133,6 @@ function calculateEdgeGroupAndPositions(config: EdgeConfig, nodes: Nodes, edges:
   const edgeLayoutPoints: Record<string, EdgeLayoutPoint> = {}
   const edgeGroups: Record<string, EdgeGroup> = {}
 
-  if (!config.summarize) {
-    return { edgeLayoutPoints, edgeGroups }
-  }
-
   // make edge groups that between same nodes
   const map: Record<string, Edges> = {}
   for (const [id, edge] of Object.entries(edges)) {
