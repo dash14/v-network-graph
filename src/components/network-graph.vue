@@ -83,6 +83,7 @@
         </g>
 
         <v-paths
+          v-if="visiblePaths"
           :paths="paths"
           :nodes="nodes"
           :edges="edges"
@@ -378,6 +379,10 @@ export default defineComponent({
     // -----------------------------------------------------------------------
     provideEdgePositions(props.nodes, props.edges, configs, scale)
 
+    // -----------------------------------------------------------------------
+    // Paths
+    // -----------------------------------------------------------------------
+    const visiblePaths = computed(() => configs.path.visible)
 
     // -----------------------------------------------------------------------
     // Mouse processing
@@ -493,6 +498,7 @@ export default defineComponent({
       dragging,
       currentLayouts,
       visibleNodeFocusRing,
+      visiblePaths,
 
       // methods
       fitToContents,

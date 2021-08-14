@@ -165,6 +165,7 @@ export interface PathStrokeStyle extends StrokeStyle {
 export interface PathConfig<P extends Path = Path> {
   visible: boolean
   clickable: boolean
+  curveInNode: boolean
   path: CallableValues<PathStrokeStyle, P>
 }
 

@@ -344,6 +344,41 @@
           </ul>
         </div>
       </div>
+      <h4>Path</h4>
+      <div class="controls">
+        <div class="control">
+          <input id="pathVisible" v-model="configs.path.visible" type="checkbox">
+          <label for="pathVisible">Visible</label>
+        </div>
+        <div class="control">
+          <input id="pathClickable" v-model="configs.path.clickable" type="checkbox">
+          <label for="pathClickable">Clickable</label>
+        </div>
+        <div class="control">
+          <input id="pathCurveInNode" v-model="configs.path.curveInNode" type="checkbox">
+          <label for="pathCurveInNode">Curve in node</label>
+        </div>
+        <div class="control button">
+          <label>Add/Remove</label>
+          <div class="action">
+            <button :disabled="selectedEdges.length <= 1" @click="addPath">Add</button>
+            <button :disabled="selectedPathItems.length == 0" @click="removePath">Remove</button>
+          </div>
+        </div>
+        <div class="control select-list">
+          <label for="pathList">Paths</label>
+          <select
+            id="pathList"
+            v-model="selectedPathItems"
+            multiple
+            size="4"
+          >
+            <option v-for="(path, i) in paths" :key="i" :value="`${i}`">
+              {{ path.edges.join(" -> ") }}
+            </option>
+          </select>
+        </div>
+      </div>
       <h4>Grid</h4>
       <div class="controls">
         <div class="control">
@@ -576,6 +611,7 @@ interface SampleData {
   paths: Paths,
   selectedNodes: string[]
   selectedEdges: string[]
+  selectedPathItems: string[]
   eventLogs: string[]
 }
 
@@ -694,6 +730,7 @@ export default /*#__PURE__*/ defineComponent({
       ],
       selectedNodes: ["node1"],
       selectedEdges: [],
+      selectedPathItems: [],
       eventLogs: [],
     }
   },
@@ -748,6 +785,16 @@ export default /*#__PURE__*/ defineComponent({
       if (this.selectedEdges.length === 0) return
       const removeEdges = [...this.selectedEdges]
       removeEdges.forEach(id => delete this.edges[id])
+    },
+    addPath() {
+      if (this.selectedEdges.length <= 1) return
+      this.paths.push({
+        edges: [ ...this.selectedEdges ]
+      })
+    },
+    removePath() {
+      const indexes = this.selectedPathItems.map(i => parseInt(i))
+      this.paths = this.paths.filter((_, i) => !indexes.includes(i))
     },
     fitToContents() {
       this.graph?.fitToContents()
@@ -869,6 +916,12 @@ export default /*#__PURE__*/ defineComponent({
       input {
         width: 70px;
       }
+    }
+  }
+  .select-list {
+    flex-direction: column !important;
+    select {
+      overflow-y: auto;
     }
   }
   .text,

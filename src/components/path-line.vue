@@ -17,13 +17,13 @@ import { computed, defineComponent, PropType } from "vue"
 import { useZoomLevel } from "../composables/zoom"
 import { usePathConfig } from "../composables/style"
 import { Config } from "../common/configs"
-import { Path, Position } from "../common/types"
+import { Path, PositionOrCurve } from "../common/types"
 import { applyScaleToDasharray } from "../common/utility"
 
 export default defineComponent({
   props: {
     points: {
-      type: Array as PropType<Position[]>,
+      type: Array as PropType<PositionOrCurve[]>,
       required: true,
     },
     path: {
@@ -36,7 +36,13 @@ export default defineComponent({
     const pathConfig = usePathConfig()
 
     const d = computed(() => {
-      return "M" + props.points.map(p => `${p.x} ${p.y}`).join(" L ")
+      return "M" + props.points.map((p, i) => {
+        if (p instanceof Array) {
+          return `C ${p[0].x} ${p[0].y}, ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}`
+        } else {
+          return `${i !== 0 ? "L " : ""}${p.x} ${p.y}`
+        }
+      }).join(" ")
     })
 
     const config = computed(() => {

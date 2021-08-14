@@ -90,3 +90,39 @@ export function getIntersectPointLineAndCircle(
     return h.add(tv)
   }
 }
+
+/**
+ * Calculate the intersection of two lines.
+ * @param line1 line 1
+ * @param line2 line 2
+ * @returns intersection point
+ */
+export function getIntersectionPointOfLines(line1: Line, line2: Line): Position {
+  const p2 = Victor.fromObject(line2.source)
+  const v = p2.clone().subtract(Victor.fromObject(line1.source))
+
+  const v1 = lineVector(line1)
+  const v2 = lineVector(line2)
+
+  const t2 = v.cross(v1) / v1.cross(v2)
+
+  return p2.add(v2.multiplyScalar(t2)).toObject()
+}
+
+/**
+ * Calculate whether a point is contained in a circle.
+ * @param point point
+ * @param center center of the circle
+ * @param radius radius of the circle
+ * @returns whether point is contained in a circle
+ */
+export function isPointContainedInCircle(
+  point: Position,
+  center: Position,
+  radius: number
+): boolean {
+  const p = Victor.fromObject(point)
+  const c = Victor.fromObject(center)
+  const v = p.subtract(c)
+  return v.lengthSq() < radius * radius
+}
