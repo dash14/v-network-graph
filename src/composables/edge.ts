@@ -249,9 +249,11 @@ function calculateLinePosition(
   let diff = (pointInGroup - groupWidth / 2) * scale
 
   if (dx === 0) {
-    return [x1 + diff, y1, x2 + diff, y2]
+    const sign = dy < 0 ? -1 : 1
+    return [x1 + diff * sign, y1, x2 + diff * sign, y2]
   } else if (dy === 0) {
-    return [x1, y1 + diff, x2, y2 + diff]
+    const sign = dx < 0 ? 1 : -1
+    return [x1, y1 + diff * sign, x2, y2 + diff * sign]
   } else {
     const slope = dy / dx
     const moveSlope = -1 / slope
