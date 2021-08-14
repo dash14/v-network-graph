@@ -86,8 +86,17 @@ export default defineComponent({
       hoveredNodes,
     } = useMouseOperation()
 
+    // for suppress reactive events
+    const isHovered = ref(false)
+    watchEffect(() => {
+      const hovered = hoveredNodes.has(props.id)
+      if (isHovered.value != hovered) {
+        isHovered.value = hovered
+      }
+    })
+
     const shape = computed<ShapeStyle>(() => {
-      if (hoveredNodes.has(props.id) && config.hover) {
+      if (isHovered.value && config.hover) {
         return Config.values(config.hover, props.node)
       } else if (props.selected && config.selected) {
         return Config.values(config.selected, props.node)
