@@ -79,8 +79,8 @@ function calculatePathPoints(
       const target = edges[i].edge.target
       let isForward
       if (i === 0) {
-        const next = [edges[1].edge.source, edges[1].edge.target]
-        isForward = next.includes(target)
+        const nextSlope = [edges[1].edge.source, edges[1].edge.target]
+        isForward = nextSlope.includes(target)
       } else {
         isForward = lastNode === source
       }
@@ -93,15 +93,26 @@ function calculatePathPoints(
 
   // Generate the `d` attribute of the actual path from the Edge position list.
   let prevEdge = getEdgePositions(edges[0].edgeId, edgePos[0], directions[0])
-  let prev = getSlopeAndIntercept(prevEdge)
+  let prevSlope = getSlope(prevEdge)
   const points: PositionOrCurve[] = [prevEdge.source]
   for (let i = 1; i < length; i++) {
     const nextEdge = getEdgePositions(edges[i].edgeId, edgePos[i], directions[i])
-    const next = getSlopeAndIntercept(nextEdge)
+    const nextSlope = getSlope(nextEdge)
 
     const node = directions[i] ? edges[i].edge.source : edges[i].edge.target
-    const nodePos = nodeLayouts[node] ?? { x: 0, y: 0 }
+    const prevNode = directions[i - 1] ? edges[i - 1].edge.target : edges[i - 1].edge.source
 
+    if (node !== prevNode) {
+      // diconnected edges
+      points.push(prevEdge.target)
+      points.push(null)
+      points.push(nextEdge.source)
+      prevEdge = nextEdge
+      prevSlope = nextSlope
+      continue
+    }
+
+    const nodePos = nodeLayouts[node] ?? { x: 0, y: 0 }
     if (
       (state.edgeLayoutPoints[prevEdge.edgeId]?.groupWidth ?? 0) == 0 &&
       (state.edgeLayoutPoints[nextEdge.edgeId]?.groupWidth ?? 0) == 0
@@ -125,8 +136,8 @@ function calculatePathPoints(
         }
       }
     } else if (
-      (!isFinite(prev.slope) && !isFinite(next.slope)) ||
-      Math.abs(prev.slope - next.slope) < EPSILON
+      (!isFinite(prevSlope) && !isFinite(nextSlope)) ||
+      Math.abs(prevSlope - nextSlope) < EPSILON
     ) {
       // For parallel lines, connect the end points of the lines.
       points.push(prevEdge.target)
@@ -166,7 +177,7 @@ function calculatePathPoints(
     }
 
     prevEdge = nextEdge
-    prev = next
+    prevSlope = nextSlope
   }
   points.push(prevEdge.target)
 
@@ -265,14 +276,8 @@ function getEdgePositions(
   }
 }
 
-function getSlopeAndIntercept(pos: EdgePosition) {
-  const slope = (pos.target.y - pos.source.y) / (pos.target.x - pos.source.x)
-  if (slope === Infinity) {
-    return { slope, intercept: Infinity }
-  } else {
-    const intercept = pos.source.y - slope * pos.source.x
-    return { slope, intercept }
-  }
+function getSlope(pos: EdgePosition) {
+  return (pos.target.y - pos.source.y) / (pos.target.x - pos.source.x)
 }
 </script>
 

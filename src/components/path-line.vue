@@ -36,11 +36,16 @@ export default defineComponent({
     const pathConfig = usePathConfig()
 
     const d = computed(() => {
-      return "M" + props.points.map((p, i) => {
-        if (p instanceof Array) {
+      let move = true
+      return props.points.map(p => {
+        if (p === null) {
+          move = true
+        } else if (p instanceof Array) {
           return `C ${p[0].x} ${p[0].y}, ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}`
         } else {
-          return `${i !== 0 ? "L " : ""}${p.x} ${p.y}`
+          const m = move
+          move = false
+          return `${m ? "M " : "L "}${p.x} ${p.y}`
         }
       }).join(" ")
     })
