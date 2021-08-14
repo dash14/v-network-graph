@@ -6,12 +6,14 @@
       :key="`nv${i}`"
       :d="`M ${x} ${v} L ${w} ${v}`"
       v-bind="attrs"
+      style="vector-effect: non-scaling-stroke;"
     />
     <path
       v-for="([i, v, y, h, attrs]) in normalVerticals"
       :key="`nh${i}`"
       :d="`M ${v} ${y} L ${v} ${h}`"
       v-bind="attrs"
+      style="vector-effect: non-scaling-stroke;"
     />
     <!-- thick -->
     <path
@@ -19,12 +21,14 @@
       :key="`tv${i}`"
       :d="`M ${x} ${v} L ${w} ${v}`"
       v-bind="attrs"
+      style="vector-effect: non-scaling-stroke;"
     />
     <path
       v-for="([i, v, y, h, attrs]) in thickVerticals"
       :key="`th${i}`"
       :d="`M ${v} ${y} L ${v} ${h}`"
       v-bind="attrs"
+      style="vector-effect: non-scaling-stroke;"
     />
   </g>
 </template>
@@ -96,8 +100,8 @@ export default defineComponent({
       const normalH: LineDefinitions = []
       const normalV: LineDefinitions = []
 
-      const gi = config.grid.interval
       const s = scale.value
+      const gi = config.grid.interval
       const x = basePoint.value.x * s
       const y = basePoint.value.y * s
       const width = Math.floor(viewport.value.width / gi + 1) * gi
@@ -105,21 +109,21 @@ export default defineComponent({
       const maxWidth = (basePoint.value.x + width) * s
       const maxHeight = (basePoint.value.y + height) * s
       const inc = config.grid.thickIncrements // interval to make the line thicker
-      const normalDasharray = applyScaleToDasharray(config.grid.line.strokeDasharray, s)
-      const thickDasharray = applyScaleToDasharray(config.grid.thick.strokeDasharray, s)
+      const normalDasharray = config.grid.line.strokeDasharray
+      const thickDasharray = config.grid.thick.strokeDasharray
 
       let thickAttrs = {
         stroke: config.grid.thick.color,
-        "stroke-width": config.grid.thick.strokeWidth * s,
+        "stroke-width": config.grid.thick.strokeWidth,
         "stroke-dasharray": thickDasharray,
-        "stroke-dashoffset": thickDasharray ? x : undefined
+        "stroke-dashoffset": thickDasharray ? x / s : undefined
       }
 
       let normalAttrs = {
         stroke: config.grid.line.color,
-        "stroke-width": config.grid.line.strokeWidth * s,
+        "stroke-width": config.grid.line.strokeWidth,
         "stroke-dasharray": normalDasharray,
-        "stroke-dashoffset": normalDasharray ? x : undefined
+        "stroke-dashoffset": normalDasharray ? x / s : undefined
       }
 
       // horizontal lines
@@ -134,10 +138,10 @@ export default defineComponent({
       }
 
       thickAttrs = { ...thickAttrs }
-      thickAttrs["stroke-dashoffset"] = thickDasharray ? y : undefined
+      thickAttrs["stroke-dashoffset"] = thickDasharray ? y / s : undefined
 
       normalAttrs = { ...normalAttrs }
-      normalAttrs["stroke-dashoffset"] = normalDasharray ? y : undefined
+      normalAttrs["stroke-dashoffset"] = normalDasharray ? y / s : undefined
 
       // vertical lines
       const h = (basePoint.value.y + height) * s
