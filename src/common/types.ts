@@ -113,6 +113,7 @@ export type Events = {
   "edge:pointerdown": EdgePointerEvent
   "edge:click": EdgePointerEvent
   "edge:select": string[]
+  "path:click": Path
 }
 
 export type EventHandlers = {

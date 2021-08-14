@@ -6,6 +6,7 @@
       :points="calcPathPoints(path)"
       :class="{ clickable: pathConfig.clickable }"
       :path="path.path"
+      @click.prevent.stop="emitPathClicked(path.path)"
     />
   </g>
 </template>
@@ -17,6 +18,7 @@ import { Path, Paths } from "../common/types"
 import { useNodeConfig, usePathConfig } from "../composables/style"
 import { EdgeGroupState, EdgePositionGetter, useEdgePositions } from "../composables/edge"
 import { useZoomLevel } from "../composables/zoom"
+import { useEventEmitter } from "../composables/event-emitter"
 import { Config, NodeConfig } from "../common/configs"
 import * as v2d from "../common/2d"
 import VPathLine from "./path-line.vue"
@@ -155,8 +157,8 @@ export default defineComponent({
     const { state, edgePositions } = useEdgePositions()
     const pathConfig = usePathConfig()
     const nodeConfig = useNodeConfig()
-
     const { scale } = useZoomLevel()
+    const { emitter } = useEventEmitter()
 
     const pathList = computed(() => {
       const list: PathObject[] = []
@@ -185,7 +187,12 @@ export default defineComponent({
       )
     })
 
-    return { pathConfig, pathList, calcPathPoints }
+    const emitPathClicked = (path: Path) => {
+      if (!pathConfig.clickable) return
+      emitter.emit("path:click", path)
+    }
+
+    return { pathConfig, pathList, calcPathPoints, emitPathClicked }
   },
 })
 
