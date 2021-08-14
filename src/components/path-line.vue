@@ -1,6 +1,6 @@
 <template>
   <path
-    class="v-path-line"
+    :class="{ 'v-path-line': true, animate: config.animate }"
     :d="d"
     fill="none"
     :stroke="config.color"
