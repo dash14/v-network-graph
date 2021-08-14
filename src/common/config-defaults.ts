@@ -138,7 +138,24 @@ export function getConfigDefaults(): Configs {
       path: {
         width: 6,
         color: p => {
-          const list = ["#fc6f0388", "#309fff88", "##ff30c4"]
+          const list = [
+            "#d5000088",
+            "#c5116288",
+            "#aa00ff88",
+            "#6200ea88",
+            "#304ffe88",
+            "#2962ff88",
+            "#0091ea88",
+            "#00b8d488",
+            "#00bfa588",
+            "#00c85388",
+            "#64dd1788",
+            "#aeea0088",
+            "#ffd60088",
+            "#ffab0088",
+            "#ff6d0088",
+            "#dd2c0088",
+          ]
           const hash = p.edges
             .map(s =>
               s.split("").reduce((a, b) => {
@@ -146,7 +163,7 @@ export function getConfigDefaults(): Configs {
                 return a & a
               }, 0)
             )
-            .reduce((a, b) => a & b, 0)
+            .reduce((a, b) => a + b, 0)
           return list[hash % list.length]
         },
         dasharray: undefined,
