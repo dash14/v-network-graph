@@ -154,6 +154,10 @@ export interface EdgeConfig<E extends Edge = Edge> {
     label: LabelStyle
     shape: ShapeStyle
     stroke: StrokeStyle
+  },
+  label: {
+    margin: number
+    padding: number
   }
 }
 

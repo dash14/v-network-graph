@@ -131,6 +131,10 @@ export function getConfigDefaults(): Configs {
           animationSpeed: 100,
         },
       },
+      label: {
+        margin: 4,
+        padding: 10,
+      },
     })),
     path: {
       visible: false,
