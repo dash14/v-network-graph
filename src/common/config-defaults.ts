@@ -165,7 +165,7 @@ export function getConfigDefaults(): Configs {
               }, 0)
             )
             .reduce((a, b) => a + b, 0)
-          return list[hash % list.length]
+          return list[Math.abs(hash) % list.length]
         },
         dasharray: undefined,
         linecap: "round",
