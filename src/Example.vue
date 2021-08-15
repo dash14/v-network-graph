@@ -410,7 +410,7 @@
           <label for="pathLinejoin">Linejoin</label>
           <div class="value">
             <select id="pathLinejoin" v-model.number="configs.path.path.linejoin">
-              <option value="butt">miter</option>
+              <option value="miter">miter</option>
               <option value="round">round</option>
               <option value="bevel">bevel</option>
             </select>
