@@ -124,8 +124,8 @@ function calculatePathPoints(
         // Make the curve with the center of the node as the control point.
         const r = radius * scale
         // Intersection of a line and the circumference of a circle
-        const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-        const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+        const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+        const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
         points.push(cp1)
         points.push([nodePos, nodePos, cp2])
       } else {
@@ -141,8 +141,8 @@ function calculatePathPoints(
     ) {
       // For parallel lines, connect the end points of the lines.
       const r = Math.max(radius * (2 / 3), radius - 4) * scale
-      const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-      const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+      const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+      const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
       if (curveInNode) {
         points.push(cp1)
         points.push([prev.target, next.source, cp2])
@@ -154,8 +154,8 @@ function calculatePathPoints(
       if (curveInNode) {
         const r = radius * scale
         // Intersection of a line and the circumference of a circle
-        const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-        const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+        const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+        const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
 
         // Is the intersection of the two lines contained in the circle?
         let cp = v2d.getIntersectionPointOfLines(prev, next)
@@ -165,7 +165,7 @@ function calculatePathPoints(
           // the center of the circle, and the circumference of the circle
           // (with a radius of 2/3) is the control point of the curve.
           const line = { source: cp, target: nodePos }
-          cp = v2d.getIntersectPointLineAndCircle(line, true, nodePos, r * (2 / 3)) ?? nodePos
+          cp = v2d.getIntersectionOfLineAndCircle(line, true, nodePos, r * (2 / 3)) ?? nodePos
         }
         points.push(cp1)
         points.push([cp, cp, cp2])
@@ -179,8 +179,8 @@ function calculatePathPoints(
         if (v2d.isPointContainedInCircle(cp, nodePos, r)) {
           points.push(cp)
         } else {
-          const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-          const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+          const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+          const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
           points.push(cp1)
           points.push(cp2)
         }

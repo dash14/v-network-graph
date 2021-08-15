@@ -1,39 +1,11 @@
-import Victor from "victor"
 import { AnyShapeStyle, RectangleShapeStyle, StrokeStyle } from "./configs"
 import { LinePosition, Position } from "./types"
 import * as V from "../common/vector"
 import minBy from "lodash-es/minBy"
 
-export interface Line {
+interface Line {
   source: Position
   target: Position
-}
-
-function lineVector(line: Line): Victor {
-  return Victor.fromObject(line.target).subtract(Victor.fromObject(line.source))
-}
-
-/**
- * Calculate the nearest point from a point to a line.
- * @param p point
- * @param line line
- * @returns point on the line
- */
-function getNearestPoint(p: Victor, line: Line): Victor {
-  const n = lineVector(line).normalize()
-
-  // Let `a` be a vector from any one point on a line to a point
-  const lp = Victor.fromObject(line.source)
-  const a = p.clone().subtract(lp)
-
-  // Inner product of `n` and `a`
-  const dot = n.dot(a)
-
-  // The nearest point is the sum of a point on the line and a
-  // vector of n multiplied by dot.
-  const near = lp.add(n.multiplyScalar(dot))
-
-  return near
 }
 
 /**
@@ -44,54 +16,18 @@ function getNearestPoint(p: Victor, line: Line): Victor {
  * @param radius radius of the circle
  * @returns intersection point
  */
-export function getIntersectPointLineAndCircle(
+export function getIntersectionOfLineAndCircle(
   line: Line,
   targetSide: boolean,
   center: Position,
   radius: number
 ): Position | null {
-  // Does the node contain a point?
-  const p = targetSide ? Victor.fromObject(line.target) : Victor.fromObject(line.source)
-  const c = Victor.fromObject(center)
-  const contains = p.subtract(c).lengthSq() < radius * radius
-
-  if (!contains) return null // Not contained.
-
-  // If contained, calculate the intersection point.
-
-  // Find the nearest point `h` between `c` and the line
-  const h = getNearestPoint(c, line)
-
-  // Let `hp` be the vector from `c` to `h`.
-  const hp = h.clone().subtract(c)
-  const hpLen = hp.length()
-
-  // If `hpLen` is larger than the radius of the circle,
-  // there is no intersection.
-  if (radius < hpLen) return null
-
-  // When a straight line and a circle are tangent, `hpLen` is `r`.
-  // Then the point of contact is the nearest point between the
-  // center and the line.
-  if (radius === hpLen) return h.toObject()
-
-  // Let `t` be the distance from `h` to the contact point, and
-  // derive t from the Three Square Theorem.
-  const t = Math.sqrt(radius ** 2 - hpLen ** 2)
-
-  // Let `tv` be the vector of the normalized direction vector of
-  // the line multiplied by t
-  // - intersection point 1：p + tv
-  // - intersection point 2：p - tv
-  const tv = lineVector(line).normalize().multiplyScalar(t)
-
-  // Calculate the addition or subtraction depending on which side
-  // of the line to focus on.
-  if (targetSide) {
-    return h.subtract(tv)
-  } else {
-    return h.add(tv)
-  }
+  return V.getIntersectionOfLineTargetAndCircle(
+    V.Vector.fromObject(targetSide ? line.source : line.target),
+    V.Vector.fromObject(targetSide ? line.target : line.source),
+    V.Vector.fromObject(center),
+    radius
+  )?.toObject() ?? null
 }
 
 /**
@@ -101,15 +37,9 @@ export function getIntersectPointLineAndCircle(
  * @returns intersection point
  */
 export function getIntersectionPointOfLines(line1: Line, line2: Line): Position {
-  const p2 = Victor.fromObject(line2.source)
-  const v = p2.clone().subtract(Victor.fromObject(line1.source))
-
-  const v1 = lineVector(line1)
-  const v2 = lineVector(line2)
-
-  const t2 = v.cross(v1) / v1.cross(v2)
-
-  return p2.add(v2.multiplyScalar(t2)).toObject()
+  const l1 = V.fromPositions(line1.source, line1.target)
+  const l2 = V.fromPositions(line2.source, line2.target)
+  return V.getIntersectionPointOfLines(l1, l2).toObject()
 }
 
 /**
@@ -124,8 +54,8 @@ export function isPointContainedInCircle(
   center: Position,
   radius: number
 ): boolean {
-  const p = Victor.fromObject(point)
-  const c = Victor.fromObject(center)
+  const p = V.Vector.fromObject(point)
+  const c = V.Vector.fromObject(center)
   const v = p.subtract(c)
   return v.lengthSq() < radius * radius
 }
@@ -233,8 +163,8 @@ export function calculateEdgeLabelArea(
   const vMargin = V.Vector.fromArray([-normalized.y, normalized.x]).multiplyScalar(labelMargin)
   let sourceAbove = sv.clone().subtract(vMargin).toObject()
   let sourceBelow = sv.clone().add(vMargin).toObject()
-  let targetAbove = tv.clone().add(vMargin).toObject()
-  let targetBelow = tv.clone().subtract(vMargin).toObject()
+  let targetAbove = tv.clone().subtract(vMargin).toObject()
+  let targetBelow = tv.clone().add(vMargin).toObject()
 
   const angle = line.v.angleDeg()
   if (angle < -90 || angle >= 90) {
