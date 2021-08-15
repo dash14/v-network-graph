@@ -21,9 +21,7 @@ interface MouseEventHandlers {
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
-// MEMO: ノード選択との連携、複数選択してムーブなど
-
-const MOVE_DETECTION_THRESHOLD = 3 // ドラッグを開始する感度
+const MOVE_DETECTION_THRESHOLD = 3 // Sensitivity to start dragging
 
 // state for each pointer of multi touch
 interface NodePointerState {
@@ -83,8 +81,8 @@ export function provideMouseOperation(
   })
 
   const state: State = {
-    // mousedown 状態での移動イベント回数を測定し、mouseup 時の
-    // クリック判定に用いる
+    // measure the number of move events in the pointerdown state
+    // and use it to determine the click when pointerup.
     container: {
       moveCounter: 0,
       pointerCounter: 0,
@@ -130,7 +128,7 @@ export function provideMouseOperation(
     state.container.moveCounter++
   }
 
-  function handleContainerPointerUpEvent(_: PointerEvent) {
+  function handleContainerPointerUpEvent(event: PointerEvent) {
     state.container.pointerCounter--
     if (state.container.pointerCounter === 0) {
       // Remove from event listener
@@ -139,6 +137,9 @@ export function provideMouseOperation(
       })
       if (state.container.moveCounter <= MOVE_DETECTION_THRESHOLD) {
         // Click container (without mouse move)
+        if (event.shiftKey && (selectedNodes.size > 0 || selectedEdges.size > 0)) {
+          return
+        }
         selectedNodes.clear()
         selectedEdges.clear()
       }
@@ -219,6 +220,10 @@ export function provideMouseOperation(
   }
 
   function handleNodeClickEvent(node: string, event: PointerEvent) {
+    if (event.shiftKey && selectedEdges.size > 0) {
+      return
+    }
+
     selectedEdges.clear()
 
     if (configs.node.selectable) {
@@ -495,6 +500,10 @@ export function provideMouseOperation(
   }
 
   function handleEdgeClickEvent(edge: string, event: PointerEvent) {
+    if (event.shiftKey && selectedNodes.size > 0) {
+      return
+    }
+
     selectedNodes.clear()
 
     if (configs.edge.selectable) {
