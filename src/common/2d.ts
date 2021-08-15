@@ -1,7 +1,10 @@
 import Victor from "victor"
-import { Position } from "./types"
+import { AnyShapeStyle, RectangleShapeStyle, StrokeStyle } from "./configs"
+import { LinePosition, Position } from "./types"
+import * as V from "../common/vector"
+import minBy from "lodash-es/minBy"
 
-interface Line {
+export interface Line {
   source: Position
   target: Position
 }
@@ -125,4 +128,122 @@ export function isPointContainedInCircle(
   const c = Victor.fromObject(center)
   const v = p.subtract(c)
   return v.lengthSq() < radius * radius
+}
+
+
+// 角丸四角形に触れないようにするための距離を取得する
+
+function calculateDistanceToAvoidOverlapsWithRect(
+  sourcePos: Position,
+  targetPos: Position, // 対象角丸四角形の位置
+  rect: RectangleShapeStyle,
+  scale: number
+) {
+  const centerLine = V.fromPositions(sourcePos, targetPos)
+  const left = targetPos.x - (rect.width / 2) * scale
+  const top = targetPos.y - (rect.height / 2) * scale
+  const right = targetPos.x + (rect.width / 2) * scale
+  const bottom = targetPos.y + (rect.height / 2) * scale
+  const vertexes = []
+  const borderRadius = rect.borderRadius * scale
+
+  if (borderRadius == 0) {
+    // 矩形の頂点と直線との最近傍点を算出する
+    vertexes.push(
+      V.Vector.fromArray([left, top]),
+      V.Vector.fromArray([left, bottom]),
+      V.Vector.fromArray([right, top]),
+      V.Vector.fromArray([right, bottom]),
+    )
+  } else {
+    // 四隅と角丸ではない直線部分の頂点と、直線との最近傍点を算出する
+    const hypo = borderRadius * Math.sin(Math.PI / 4) // 45deg
+    vertexes.push(
+      V.Vector.fromArray([left + borderRadius, top]),
+      V.Vector.fromArray([left, top + borderRadius]),
+      V.Vector.fromArray([left + borderRadius - hypo, top + borderRadius - hypo]),
+      V.Vector.fromArray([left + borderRadius, bottom]),
+      V.Vector.fromArray([left, bottom - borderRadius]),
+      V.Vector.fromArray([left + borderRadius - hypo, bottom - borderRadius + hypo]),
+      V.Vector.fromArray([right - borderRadius, top]),
+      V.Vector.fromArray([right, top + borderRadius]),
+      V.Vector.fromArray([right - borderRadius + hypo, top + borderRadius - hypo]),
+      V.Vector.fromArray([right - borderRadius, bottom]),
+      V.Vector.fromArray([right, bottom - borderRadius]),
+      V.Vector.fromArray([right - borderRadius + hypo, bottom - borderRadius + hypo]),
+    )
+  }
+  const hits = vertexes.map(p => V.getNearestPoint(p, centerLine))
+  const minP = minBy(hits, p => V.toLineVector(centerLine.source, p).lengthSq()) ?? centerLine.target
+  return V.toLineVector(minP, centerLine.target).length()
+}
+
+export function calculateEdgeLabelArea(
+  linePos: LinePosition,
+  edgeStyle: StrokeStyle,
+  sourceNodePos: Position,
+  targetNodePos: Position,
+  sourceNodeShape: AnyShapeStyle,
+  targetNodeShape: AnyShapeStyle,
+  margin: number,
+  padding: number,
+  scale: number
+) {
+  const line = V.fromLinePosition(linePos)
+  const normalized = line.v.clone().normalize()
+
+  // source side
+  let sv: V.Vector
+  if (sourceNodeShape.type === "circle") {
+    const radius = (sourceNodeShape.radius + padding) * scale
+    const d = normalized.clone().multiplyScalar(radius)
+    sv = line.source.clone().add(d)
+  } else {
+    const m = calculateDistanceToAvoidOverlapsWithRect(
+      targetNodePos,
+      sourceNodePos,
+      sourceNodeShape,
+      scale
+    )
+    const nm = (m / scale + padding) * scale
+    const d = normalized.clone().multiplyScalar(nm)
+    sv = line.source.clone().add(d)
+  }
+
+  // target side
+  let tv: V.Vector
+  if (targetNodeShape.type === "circle") {
+    const radius = (targetNodeShape.radius + padding) * scale
+    const d = normalized.clone().multiplyScalar(radius)
+    tv = line.target.clone().subtract(d)
+  } else {
+    const m = calculateDistanceToAvoidOverlapsWithRect(
+      sourceNodePos,
+      targetNodePos,
+      targetNodeShape,
+      scale
+    )
+    const nm = (m / scale + padding) * scale
+    const d = normalized.clone().multiplyScalar(nm)
+    tv = line.target.clone().subtract(d)
+  }
+
+  // margin for edges
+  const labelMargin = (edgeStyle.width / 2 + margin) * scale
+  const vMargin = V.Vector.fromArray([-normalized.y, normalized.x]).multiplyScalar(labelMargin)
+  let sourceAbove = sv.clone().subtract(vMargin).toObject()
+  let sourceBelow = sv.clone().add(vMargin).toObject()
+  let targetAbove = tv.clone().add(vMargin).toObject()
+  let targetBelow = tv.clone().subtract(vMargin).toObject()
+
+  const angle = line.v.angleDeg()
+  if (angle < -90 || angle >= 90) {
+    // 上下逆転
+    [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove];
+    [targetAbove, targetBelow] = [targetBelow, targetAbove]
+  }
+  return {
+    source: { above: sourceAbove, below: sourceBelow },
+    target: { above: targetAbove, below: targetBelow },
+  }
 }

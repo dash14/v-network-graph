@@ -147,8 +147,11 @@ function calculateEdgeGroupAndPositions(config: EdgeConfig, nodes: Nodes, edges:
   // *Note*: the drawing position of the line is the center of the line.
   const gap = config.gap
   for (const [key, edges] of Object.entries(map)) {
-    if (Object.keys(edges).length <= 1) {
-      const [edgeId, edge] = Object.entries(edges)[0]
+    const edgeLen = Object.keys(edges).length
+    if (edgeLen == 0) continue
+
+    const [edgeId, edge] = Object.entries(edges)[0]
+    if (edgeLen === 1) {
       edgeLayoutPoints[edgeId] = { edge, pointInGroup: 0, groupWidth: 0 }
       edgeGroups[key] = { edges, groupWidth: 0, summarize: false }
     } else {

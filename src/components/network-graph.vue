@@ -46,6 +46,14 @@
           <slot :name="layerName" :scale="scale" />
         </g>
 
+        <!-- edge labels -->
+        <v-edge-labels :nodes="nodes" :node-layouts="currentLayouts.nodes" />
+        <!-- <v-edge-labels v-if="overrideEdgeLabels">
+          <template #default="slotProps">
+            <slot name="edge-label" v-bind="slotProps" />
+          </template>
+        </v-edge-labels> -->
+
         <!-- node selections (focus ring) -->
         <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
           <v-node-focus-ring
@@ -109,19 +117,28 @@ import { provideEdgePositions } from "../composables/edge"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, LayerPositions, Paths } from "../common/types"
-import { Layers, LayerPosition, Point, Sizes } from "../common/types"
+import { EventHandlers, Nodes, Edges, Paths, Layouts, UserLayouts } from "../common/types"
+import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
+import VEdgeLabels from "./edge-labels.vue"
 import VBackgroundViewport from "./background-viewport.vue"
 import VBackgroundGrid from "./background-grid.vue"
 import VPaths from "./paths.vue"
 
 export default defineComponent({
-  components: { VNode, VNodeFocusRing, VEdgeGroups, VBackgroundViewport, VBackgroundGrid, VPaths },
+  components: {
+    VNode,
+    VNodeFocusRing,
+    VEdgeGroups,
+    VEdgeLabels,
+    VBackgroundViewport,
+    VBackgroundGrid,
+    VPaths,
+  },
   props: {
     nodes: {
       type: Object as PropType<Nodes>,
@@ -153,7 +170,7 @@ export default defineComponent({
     },
     paths: {
       type: Array as PropType<Paths>,
-      default: () => ([]),
+      default: () => [],
     },
     layers: {
       type: Object as PropType<Layers>,
@@ -168,12 +185,7 @@ export default defineComponent({
       default: () => ({}),
     },
   },
-  emits: [
-    "update:zoomLevel",
-    "update:selectedNodes",
-    "update:selectedEdges",
-    "update:layouts",
-  ],
+  emits: ["update:zoomLevel", "update:selectedNodes", "update:selectedEdges", "update:layouts"],
   setup(props, { emit, slots }) {
     // Event Bus
     const emitter = provideEventEmitter()
@@ -187,7 +199,7 @@ export default defineComponent({
     // Additional layers
     const layerDefs = computed(() => {
       const definedSlots = new Set(Object.keys(slots))
-      definedSlots.delete("override-node")       // used by node component
+      definedSlots.delete("override-node") // used by node component
       definedSlots.delete("override-node-label") // used by node component
 
       const layers = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
@@ -218,6 +230,7 @@ export default defineComponent({
     // overrides
     const overrideNodes = computed(() => "override-node" in slots)
     const overrideNodeLabels = computed(() => "override-node-label" in slots)
+    const overrideEdgeLabels = computed(() => "edge-label" in slots)
 
     // -----------------------------------------------------------------------
     // SVG
@@ -287,12 +300,18 @@ export default defineComponent({
       )
     }
 
-    watch(() => configs.view.panEnabled, v => {
-      svgPanZoom.value?.setPanEnabled(v)
-    })
-    watch(() => configs.view.zoomEnabled, v => {
-      svgPanZoom.value?.setZoomEnabled(v)
-    })
+    watch(
+      () => configs.view.panEnabled,
+      v => {
+        svgPanZoom.value?.setPanEnabled(v)
+      }
+    )
+    watch(
+      () => configs.view.zoomEnabled,
+      v => {
+        svgPanZoom.value?.setZoomEnabled(v)
+      }
+    )
 
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
     watch(
@@ -492,6 +511,7 @@ export default defineComponent({
       isShowBackgroundViewport,
       overrideNodes,
       overrideNodeLabels,
+      overrideEdgeLabels,
       scale,
       currentSelectedNodes,
       currentSelectedEdges,

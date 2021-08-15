@@ -74,6 +74,21 @@ export interface Layouts {
 export type UserLayouts = RecursivePartial<Layouts>
 
 /* ------------------------------------------ *
+ * Edge labels
+ * ------------------------------------------ */
+
+export interface EdgeLabelArea {
+  source: {
+    above: Position
+    below: Position
+  }
+  target: {
+    above: Position
+    below: Position
+  }
+}
+
+/* ------------------------------------------ *
  * Paths
  * ------------------------------------------ */
 
