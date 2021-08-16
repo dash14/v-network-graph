@@ -21,9 +21,9 @@ import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { Edges, NodePositions } from "../common/types"
 import { useStates } from "../composables/state"
 import { useEdgeConfig } from "../composables/config"
-import VLine from "../components/line.vue"
-import VShape from "../components/shape.vue"
-import VText from "../components/text.vue"
+import VLine from "./line.vue"
+import VShape from "./shape.vue"
+import VText from "./text.vue"
 
 export default defineComponent({
   components: { VLine, VShape, VText },

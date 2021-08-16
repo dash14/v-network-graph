@@ -1,7 +1,7 @@
 <template>
   <template v-for="({ summarize, edges }, key) in edgeGroupStates.edgeGroups">
     <template v-if="summarize">
-      <v-summarized-edge
+      <v-edge-summarized
         :key="key"
         :edges="edges"
         :layouts="layouts.nodes"
@@ -22,10 +22,10 @@
 import { defineComponent } from "vue"
 import { useStates } from "../composables/state"
 import VEdge from "./edge.vue"
-import VSummarizedEdge from "./summarized-edge.vue"
+import VEdgeSummarized from "./edge-summarized.vue"
 
 export default defineComponent({
-  components: { VEdge, VSummarizedEdge },
+  components: { VEdge, VEdgeSummarized },
   setup() {
     const { edgeStates, edgeGroupStates, layouts } = useStates()
 
