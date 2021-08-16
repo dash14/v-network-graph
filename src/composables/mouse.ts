@@ -8,16 +8,19 @@ import { Configs } from "../common/configs"
 import { entriesOf, MapUtil } from "../common/utility"
 
 type NodeEventHandler = (node: string, event: PointerEvent) => void
-type EdgeEventHandler = (edge: string, event: MouseEvent) => void
+type EdgeEventHandler = (edge: string, event: PointerEvent) => void
 
 interface MouseEventHandlers {
-  handleNodePointerDownEvent: NodeEventHandler
-  handleNodePointerOverEvent: NodeEventHandler,
-  handleNodePointerOutEvent: NodeEventHandler,
   selectedNodes: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
-  handleEdgePointerDownEvent: EdgeEventHandler
+  hoveredEdges:  Reactive<Set<string>>,
+  handleNodePointerDownEvent: NodeEventHandler
+  handleNodePointerOverEvent: NodeEventHandler,
+  handleNodePointerOutEvent: NodeEventHandler,
+  handleEdgePointerDownEvent: EdgeEventHandler,
+  handleEdgePointerOverEvent: EdgeEventHandler,
+  handleEdgePointerOutEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
@@ -50,6 +53,7 @@ interface State {
   }
   hoveredNodes: Reactive<Set<string>>
   hoveredNodesPre: Set<string> // to keep the hover state while dragging
+  hoveredEdges: Reactive<Set<string>>
   edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
   edgePointerPeekCount: number,
 }
@@ -69,7 +73,7 @@ export function provideMouseOperation(
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
   emitter: Emitter<Events>
-): void {
+): MouseEventHandlers {
   onMounted(() => {
     container.value?.addEventListener("pointerdown", handleContainerPointerDownEvent, {
       passive: true,
@@ -94,6 +98,7 @@ export function provideMouseOperation(
     },
     hoveredNodes: Reactive(new Set()),
     hoveredNodesPre: new Set(),
+    hoveredEdges: Reactive(new Set()),
     edgePointers: new Map(),
     edgePointerPeekCount: 0,
   }
@@ -243,7 +248,7 @@ export function provideMouseOperation(
         ) {
           selectedNodes.add(node)
         }
-      } else {
+      } else if (!selectedNodes.has(node)) {
         // make the selectedNodes the clicked one
         selectedNodes.clear()
         selectedNodes.add(node)
@@ -531,15 +536,30 @@ export function provideMouseOperation(
     emitter.emit("edge:click", { edge, event })
   }
 
-  provide(mouseEventHandlersKey, {
-    handleNodePointerDownEvent,
-    handleNodePointerOverEvent,
-    handleNodePointerOutEvent,
+  function handleEdgePointerOverEvent(edge: string, event: PointerEvent) {
+    state.hoveredEdges.add(edge)
+    emitter.emit("edge:pointerover", { edge, event })
+  }
+
+  function handleEdgePointerOutEvent(edge: string, event: PointerEvent) {
+    state.hoveredEdges.delete(edge)
+    emitter.emit("edge:pointerout", { edge, event })
+  }
+
+  const provides = {
     selectedNodes,
     hoveredNodes: state.hoveredNodes,
     selectedEdges,
+    hoveredEdges: state.hoveredEdges,
+    handleNodePointerDownEvent,
+    handleNodePointerOverEvent,
+    handleNodePointerOutEvent,
     handleEdgePointerDownEvent,
-  })
+    handleEdgePointerOverEvent,
+    handleEdgePointerOutEvent,
+  }
+  provide(mouseEventHandlersKey, provides)
+  return provides
 }
 
 export function useMouseOperation(): MouseEventHandlers {

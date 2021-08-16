@@ -39,12 +39,19 @@
 
         <!-- edges -->
         <g class="v-layer-edges">
-          <v-edge-groups :node-layouts="currentLayouts.nodes" />
+          <v-edge-groups />
         </g>
 
         <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
+
+        <!-- edge labels -->
+        <v-edge-labels v-if="overrideEdgeLabels">
+          <template #edge-label="slotProps">
+            <slot name="edge-label" v-bind="slotProps" />
+          </template>
+        </v-edge-labels>
 
         <!-- node selections (focus ring) -->
         <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
@@ -52,7 +59,7 @@
             v-for="nodeId in currentSelectedNodes"
             :id="nodeId"
             :key="nodeId"
-            :node="nodes[nodeId]"
+            :state="nodeStates[nodeId]"
             :pos="currentLayouts.nodes[nodeId]"
           />
         </g>
@@ -64,12 +71,11 @@
         <!-- nodes -->
         <g class="v-layer-nodes">
           <v-node
-            v-for="(node, nodeId) in nodes"
+            v-for="(state, nodeId) in nodeStates"
             :id="nodeId.toString()"
             :key="nodeId"
-            :node="node"
+            :state="state"
             :pos="currentLayouts.nodes[nodeId]"
-            :selected="currentSelectedNodes.has(nodeId.toString())"
           >
             <!-- overide the node -->
             <template v-if="overrideNodes" #override-node="slotProps">
@@ -82,13 +88,7 @@
           </v-node>
         </g>
 
-        <v-paths
-          v-if="visiblePaths"
-          :paths="paths"
-          :nodes="nodes"
-          :edges="edges"
-          :node-layouts="currentLayouts.nodes"
-        />
+        <v-paths v-if="visiblePaths" :paths="paths" :edges="edges" />
 
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
@@ -99,29 +99,38 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, reactive, readonly, ref } from "vue"
+import { defineComponent, PropType, readonly, ref } from "vue"
 import { computed, nextTick, watch } from "vue"
 import { bindProp, bindPropKeySet } from "../common/props"
 import { provideContainers } from "../composables/container"
-import { provideConfigs } from "../composables/style"
+import { provideConfigs } from "../composables/config"
+import { provideStates } from "../composables/state"
 import { provideMouseOperation } from "../composables/mouse"
-import { provideEdgePositions } from "../composables/edge"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
-import { EventHandlers, Layouts, Nodes, Edges, UserLayouts, LayerPositions, Paths } from "../common/types"
-import { Layers, LayerPosition, Point, Sizes } from "../common/types"
+import { EventHandlers, Nodes, Edges, Paths, Layouts, UserLayouts } from "../common/types"
+import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
+import VEdgeLabels from "./edge-labels.vue"
 import VBackgroundViewport from "./background-viewport.vue"
 import VBackgroundGrid from "./background-grid.vue"
 import VPaths from "./paths.vue"
 
 export default defineComponent({
-  components: { VNode, VNodeFocusRing, VEdgeGroups, VBackgroundViewport, VBackgroundGrid, VPaths },
+  components: {
+    VNode,
+    VNodeFocusRing,
+    VEdgeGroups,
+    VEdgeLabels,
+    VBackgroundViewport,
+    VBackgroundGrid,
+    VPaths,
+  },
   props: {
     nodes: {
       type: Object as PropType<Nodes>,
@@ -153,7 +162,7 @@ export default defineComponent({
     },
     paths: {
       type: Array as PropType<Paths>,
-      default: () => ([]),
+      default: () => [],
     },
     layers: {
       type: Object as PropType<Layers>,
@@ -168,12 +177,7 @@ export default defineComponent({
       default: () => ({}),
     },
   },
-  emits: [
-    "update:zoomLevel",
-    "update:selectedNodes",
-    "update:selectedEdges",
-    "update:layouts",
-  ],
+  emits: ["update:zoomLevel", "update:selectedNodes", "update:selectedEdges", "update:layouts"],
   setup(props, { emit, slots }) {
     // Event Bus
     const emitter = provideEventEmitter()
@@ -187,7 +191,7 @@ export default defineComponent({
     // Additional layers
     const layerDefs = computed(() => {
       const definedSlots = new Set(Object.keys(slots))
-      definedSlots.delete("override-node")       // used by node component
+      definedSlots.delete("override-node") // used by node component
       definedSlots.delete("override-node-label") // used by node component
 
       const layers = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
@@ -218,6 +222,7 @@ export default defineComponent({
     // overrides
     const overrideNodes = computed(() => "override-node" in slots)
     const overrideNodeLabels = computed(() => "override-node-label" in slots)
+    const overrideEdgeLabels = computed(() => "edge-label" in slots)
 
     // -----------------------------------------------------------------------
     // SVG
@@ -287,12 +292,18 @@ export default defineComponent({
       )
     }
 
-    watch(() => configs.view.panEnabled, v => {
-      svgPanZoom.value?.setPanEnabled(v)
-    })
-    watch(() => configs.view.zoomEnabled, v => {
-      svgPanZoom.value?.setZoomEnabled(v)
-    })
+    watch(
+      () => configs.view.panEnabled,
+      v => {
+        svgPanZoom.value?.setPanEnabled(v)
+      }
+    )
+    watch(
+      () => configs.view.zoomEnabled,
+      v => {
+        svgPanZoom.value?.setZoomEnabled(v)
+      }
+    )
 
     watch(zoomLevel, v => applyAbsoluteZoomLevel(v))
     watch(
@@ -341,7 +352,7 @@ export default defineComponent({
     const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", props.edges, emit)
     watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
-    const currentLayouts = reactive<Layouts>({ nodes: {} })
+    const currentLayouts = Reactive<Layouts>({ nodes: {} })
 
     // two-way binding
     watch(
@@ -351,38 +362,9 @@ export default defineComponent({
     )
     watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
 
-    // handle increase/decrease nodes
-    watch(
-      () => new Set(Object.keys(props.nodes)),
-      nodeIdSet => {
-        // remove node positions that not found in nodes
-        const positions = currentLayouts.nodes
-        const removed = Object.keys(positions).filter(n => !nodeIdSet.has(n))
-        for (const node of removed) {
-          delete positions[node]
-        }
-        // remove nodes in selected nodes
-        currentSelectedNodes.forEach(n => {
-          if (!nodeIdSet.has(n)) {
-            currentSelectedNodes.delete(n)
-          }
-        })
-      }
-    )
-
     const visibleNodeFocusRing = computed(() => {
       return configs.node.selectable && configs.node.focusring.visible
     })
-
-    // -----------------------------------------------------------------------
-    // Edge position calcurating
-    // -----------------------------------------------------------------------
-    provideEdgePositions(props.nodes, props.edges, configs, scale)
-
-    // -----------------------------------------------------------------------
-    // Paths
-    // -----------------------------------------------------------------------
-    const visiblePaths = computed(() => configs.path.visible)
 
     // -----------------------------------------------------------------------
     // Mouse processing
@@ -410,7 +392,8 @@ export default defineComponent({
       }
     })
 
-    provideMouseOperation(
+    // mouse and touch support
+    const { hoveredNodes, hoveredEdges } = provideMouseOperation(
       svg,
       readonly(currentLayouts.nodes),
       readonly(zoomLevel),
@@ -419,6 +402,23 @@ export default defineComponent({
       currentSelectedEdges,
       emitter
     )
+
+    const { nodeStates, edgeStates } = provideStates(
+      readonly(props.nodes),
+      readonly(props.edges),
+      currentSelectedNodes,
+      currentSelectedEdges,
+      hoveredNodes,
+      hoveredEdges,
+      readonly(configs),
+      currentLayouts,
+      scale
+    )
+
+    // -----------------------------------------------------------------------
+    // Paths
+    // -----------------------------------------------------------------------
+    const visiblePaths = computed(() => configs.path.visible)
 
     // -----------------------------------------------------------------------
     // Node layout handler
@@ -492,7 +492,10 @@ export default defineComponent({
       isShowBackgroundViewport,
       overrideNodes,
       overrideNodeLabels,
+      overrideEdgeLabels,
       scale,
+      nodeStates,
+      edgeStates,
       currentSelectedNodes,
       currentSelectedEdges,
       dragging,

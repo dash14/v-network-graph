@@ -8,11 +8,11 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, reactive, ref, watchEffect } from "vue"
-import { Node, Position } from "../common/types"
-import { CircleShapeStyle, Config, RectangleShapeStyle, ShapeStyle } from "../common/configs"
-import { useNodeConfig } from "../composables/style"
-import { useMouseOperation } from "../composables/mouse"
+import { computed, defineComponent, PropType, reactive, watchEffect } from "vue"
+import { Position } from "../common/types"
+import { NodeState } from "../composables/state"
+import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "../common/configs"
+import { useNodeConfig } from "../composables/config"
 import VShape from "./shape.vue"
 
 export default defineComponent({
@@ -22,8 +22,8 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    node: {
-      type: Object as PropType<Node>,
+    state: {
+      type: Object as PropType<NodeState>,
       required: true,
     },
     pos: {
@@ -39,29 +39,8 @@ export default defineComponent({
     const config = useNodeConfig()
     const shapeConfig = reactive<ShapeStyle>({} as any)
 
-    const { hoveredNodes } = useMouseOperation()
-
-    // for suppress reactive events
-    const isHovered = ref(false)
     watchEffect(() => {
-      const hovered = hoveredNodes.has(props.id)
-      if (isHovered.value != hovered) {
-        isHovered.value = hovered
-      }
-    })
-
-    const shape = computed<ShapeStyle>(() => {
-      if (isHovered.value && config.hover) {
-        return Config.values(config.hover, props.node)
-      } else if (config.selected) {
-        return Config.values(config.selected, props.node)
-      } else {
-        return Config.values(config.normal, props.node)
-      }
-    })
-
-    watchEffect(() => {
-      const shapeStyle = shape.value
+      const shapeStyle = props.state.shape
       if (shapeStyle.type === "circle") {
         const shape: CircleShapeStyle = {
           type: "circle",

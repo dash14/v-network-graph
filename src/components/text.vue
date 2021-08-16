@@ -18,15 +18,15 @@ export default defineComponent({
   props: {
     text: {
       type: String,
-      required: true
+      required: true,
     },
     x: {
       type: Number,
-      required: true
+      required: true,
     },
     y: {
       type: Number,
-      required: true
+      required: true,
     },
     config: {
       type: Object as PropType<LabelStyle>,
@@ -40,9 +40,7 @@ export default defineComponent({
       return props.config.fontSize * scale.value
     })
 
-    return {
-      fontSize
-    }
+    return { fontSize }
   },
 })
 </script>

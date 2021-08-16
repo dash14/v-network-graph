@@ -61,17 +61,32 @@ export interface Size {
   height: number
 }
 
-interface FixablePosition extends Position {
+export interface FixablePosition extends Position {
   fixed?: boolean
 }
 
-export type NodePositions = { [name: string]: FixablePosition }
+export type NodePositions = Record<string, FixablePosition>
 
 export interface Layouts {
   nodes: NodePositions
 }
 /** ユーザ指定用 optionalな指定のためのinterface */
 export type UserLayouts = RecursivePartial<Layouts>
+
+/* ------------------------------------------ *
+ * Edge labels
+ * ------------------------------------------ */
+
+export interface EdgeLabelArea {
+  source: {
+    above: Position
+    below: Position
+  }
+  target: {
+    above: Position
+    below: Position
+  }
+}
 
 /* ------------------------------------------ *
  * Paths
@@ -115,6 +130,8 @@ export type Events = {
   "edge:pointerup": EdgePointerEvent
   "edge:pointerdown": EdgePointerEvent
   "edge:click": EdgePointerEvent
+  "edge:pointerover": EdgePointerEvent
+  "edge:pointerout": EdgePointerEvent
   "edge:select": string[]
   "path:click": Path
 }

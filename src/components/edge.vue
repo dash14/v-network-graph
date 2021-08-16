@@ -1,20 +1,19 @@
 <template>
   <v-line
-    v-bind="edgePositions(id, sourcePos, targetPos)"
+    v-bind="state.position"
     :class="{ selectable: config.selectable }"
-    :config="stroke"
+    :config="state.stroke"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
-    @pointerover="hover = true"
-    @pointerout="hover = false"
+    @pointerenter="handleEdgePointerOverEvent(id, $event)"
+    @pointerleave="handleEdgePointerOutEvent(id, $event)"
   />
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref } from "vue"
-import { useEdgeConfig } from "../composables/style"
-import { Config, StrokeStyle } from "../common/configs"
-import { Edge, Position } from "../common/types"
-import { useEdgePositions } from "../composables/edge"
+import { defineComponent, PropType, ref, watchEffect } from "vue"
+import { useEdgeConfig } from "../composables/config"
+import { Position } from "../common/types"
+import { EdgeState } from "../composables/state"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "./line.vue"
 
@@ -25,8 +24,8 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    edge: {
-      type: Object as PropType<Edge>,
+    state: {
+      type: Object as PropType<EdgeState>,
       required: true,
     },
     sourcePos: {
@@ -39,28 +38,31 @@ export default defineComponent({
       required: false,
       default: undefined,
     },
-    selected: {
-      type: Boolean,
-      default: false,
-    },
   },
   setup(props) {
-    const hover = ref(false)
     const config = useEdgeConfig()
-    const { edgePositions } = useEdgePositions()
-    const { handleEdgePointerDownEvent } = useMouseOperation()
+    const {
+      handleEdgePointerDownEvent,
+      handleEdgePointerOverEvent,
+      handleEdgePointerOutEvent,
+      hoveredEdges,
+    } = useMouseOperation()
 
-    const stroke = computed<StrokeStyle>(() => {
-      if (props.selected) {
-        return Config.values(config.selected, props.edge)
-      } else if (hover.value && config.hover) {
-        return Config.values(config.hover, props.edge)
-      } else {
-        return Config.values(config.normal, props.edge)
+    // for suppress reactive events
+    const isHovered = ref(false)
+    watchEffect(() => {
+      const hovered = hoveredEdges.has(props.id)
+      if (isHovered.value != hovered) {
+        isHovered.value = hovered
       }
     })
 
-    return { edgePositions, hover, config, stroke, handleEdgePointerDownEvent }
+    return {
+      config,
+      handleEdgePointerDownEvent,
+      handleEdgePointerOverEvent,
+      handleEdgePointerOutEvent,
+    }
   },
 })
 </script>

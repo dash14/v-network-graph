@@ -344,6 +344,74 @@
           </ul>
         </div>
       </div>
+
+      <h5>Edge Label</h5>
+      <div class="controls">
+        <div class="control slider">
+          <label for="edgeFontSize">Font Size</label>
+          <input
+            id="edgeFontSize"
+            v-model.number="configs.edge.label.fontSize"
+            type="range"
+            min="1"
+            max="32"
+            step="1"
+          >
+          <div class="value">{{ configs.edge.label.fontSize }}</div>
+        </div>
+        <div class="control slider">
+          <label for="edgeLabelMargin">Margin</label>
+          <input
+            id="edgeLabelMargin"
+            v-model.number="configs.edge.label.margin"
+            type="range"
+            min="0"
+            max="24"
+            step="1"
+          >
+          <div class="value">{{ configs.edge.label.margin }}</div>
+        </div>
+        <div class="control slider">
+          <label for="edgeLabelPadding">Padding</label>
+          <input
+            id="edgeLabelPadding"
+            v-model.number="configs.edge.label.padding"
+            type="range"
+            min="0"
+            max="24"
+            step="1"
+          >
+          <div class="value">{{ configs.edge.label.padding }}</div>
+        </div>
+        <div class="control color">
+          <label for="edgeLabelColor">Color</label>
+          <input id="edgeLabelColor" v-model="configs.edge.label.color" type="color">
+          <div class="value">
+            <input v-model="configs.edge.label.color" type="input">
+          </div>
+        </div>
+        <div class="control select">
+          <label for="edgeLabelAlign">Align</label>
+          <div class="value">
+            <select id="edgeLabelAlign" v-model="edgeLabelAlign">
+              <option value="center">center</option>
+              <option value="source">source</option>
+              <option value="target">target</option>
+            </select>
+          </div>
+        </div>
+        <div class="control select">
+          <label for="edgeLabelVerticalAlign">Vertical Align</label>
+          <div class="value">
+            <select id="edgeLabelVerticalAlign" v-model="edgeLabelVerticalAlign">
+              <option value="center">center</option>
+              <option value="above">above</option>
+              <option value="below">below</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <h4>Path</h4>
       <div class="controls">
         <div class="control">
@@ -630,7 +698,9 @@
       </template>
 
       <!-- Override node label -->
-      <template #override-node-label="{ nodeId, scale, text, textAnchor, dominantBaseline, ...slotProps }">
+      <template
+        #override-node-label="{ nodeId, scale, text, textAnchor, dominantBaseline, ...slotProps }"
+      >
         <text
           v-if="nodeId == 'node1'"
           v-bind="slotProps"
@@ -639,6 +709,17 @@
           :dominant-baseline="dominantBaseline"
           fill="red"
         >{{ text }}</text>
+      </template>
+
+      <!-- edge label -->
+      <template #edge-label="{ edgeId, edge, scale, ...slotProps }">
+        <!-- for once it is evaluated. -->
+        <v-edge-label
+          :text="edgeId"
+          :align="edgeLabelAlign"
+          :vertical-align="edgeLabelVerticalAlign"
+          v-bind="slotProps"
+        />
       </template>
     </v-network-graph>
     <div class="event-logs">
@@ -656,13 +737,16 @@ import { UserLayouts, Nodes, Edges, Layers, Paths } from "./common/types"
 import { GridLayout } from "./layouts/grid"
 import { ForceLayout } from "./layouts/force"
 import { LayoutHandler } from "./layouts/handler"
+import VEdgeLabel from "./components/edge-label.vue"
 
 interface SampleData {
   layers: Layers
   zoomLevel: number
   nodes: Nodes
   edges: Edges
-  paths: Paths,
+  paths: Paths
+  edgeLabelAlign: "center" | "source" | "target",
+  edgeLabelVerticalAlign: "center" | "above" | "below",
   selectedNodes: string[]
   selectedEdges: string[]
   selectedPathItems: string[]
@@ -671,7 +755,7 @@ interface SampleData {
 
 export default /*#__PURE__*/ defineComponent({
   name: "NetworkGraphSample", // vue component name
-  components: { VNetworkGraph },
+  components: { VNetworkGraph, VEdgeLabel },
   setup() {
     const graph = ref()
 
@@ -778,10 +862,9 @@ export default /*#__PURE__*/ defineComponent({
           target: "node4",
         },
       },
-      paths: [
-        { edges: ["edge1", "edge2"] },
-        { edges: ["edge3", "edge4", "edge5"] }
-      ],
+      edgeLabelAlign: "center",
+      edgeLabelVerticalAlign: "center",
+      paths: [{ edges: ["edge1", "edge2"] }, { edges: ["edge3", "edge4", "edge5"] }],
       selectedNodes: ["node1"],
       selectedEdges: [],
       selectedPathItems: [],
@@ -843,7 +926,7 @@ export default /*#__PURE__*/ defineComponent({
     addPath() {
       if (this.selectedEdges.length <= 1) return
       this.paths.push({
-        edges: [ ...this.selectedEdges ]
+        edges: [...this.selectedEdges],
       })
     },
     removePath() {
