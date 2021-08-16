@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
-import { useEdgeConfig } from "../composables/style"
+import { useEdgeConfig } from "../composables/config"
 import { Position } from "../common/types"
 import { EdgeState } from "../composables/state"
 import { useMouseOperation } from "../composables/mouse"

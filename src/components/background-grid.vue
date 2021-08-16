@@ -39,8 +39,7 @@ import { useZoomLevel } from "../composables/zoom"
 import { useContainers } from "../composables/container"
 import { useEventEmitter } from "../composables/event-emitter"
 import { Point, Size } from "../common/types"
-import { useViewConfig } from "../composables/style"
-import { applyScaleToDasharray } from "../common/utility"
+import { useViewConfig } from "../composables/config"
 
 // [index, pos, start, end, attrs][]
 type LineDefinitions = [number, number, number, number, Record<string, any>][]

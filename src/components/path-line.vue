@@ -15,7 +15,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
 import { useZoomLevel } from "../composables/zoom"
-import { usePathConfig } from "../composables/style"
+import { usePathConfig } from "../composables/config"
 import { Config } from "../common/configs"
 import { Path, PositionOrCurve } from "../common/types"
 import { applyScaleToDasharray } from "../common/utility"

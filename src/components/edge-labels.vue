@@ -27,7 +27,7 @@ import { computed, defineComponent } from "vue"
 import { Position } from "../common/types"
 import { useStates } from "../composables/state"
 import { AnyShapeStyle, StrokeStyle } from "../common/configs"
-import { useEdgeConfig } from "../composables/style"
+import { useEdgeConfig } from "../composables/config"
 import { useZoomLevel } from "../composables/zoom"
 import * as v2d from "../common/2d"
 
