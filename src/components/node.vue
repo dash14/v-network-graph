@@ -49,8 +49,8 @@ import { NodeLabelDirection } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/config"
 import { useMouseOperation } from "../composables/mouse"
-import VShape from "../components/shape.vue"
-import VText from "../components/text.vue"
+import VShape from "./shape.vue"
+import VText from "./text.vue"
 
 export default defineComponent({
   components: { VShape, VText },
