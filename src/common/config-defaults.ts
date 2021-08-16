@@ -137,6 +137,11 @@ export function getConfigDefaults(): Configs {
         color: "#000000",
         margin: 4,
         padding: 10,
+        background: {
+          color: "#ffffff88",
+          padding: 2,
+          borderRadius: 2,
+        }
       },
     })),
     path: {

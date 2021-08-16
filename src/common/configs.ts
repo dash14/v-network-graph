@@ -149,6 +149,11 @@ export interface StrokeStyle {
 export interface EdgeLabelStyle extends LabelStyle {
   margin: number
   padding: number
+  background: {
+    color: string,
+    padding: number,
+    borderRadius: number
+  }
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {
