@@ -6,7 +6,9 @@ import { nonNull, Reactive } from "../common/common"
 import { Config, Configs, EdgeConfig, NodeConfig } from "../common/configs"
 import { AnyShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
 import { Edge, Edges, Layouts, LinePosition, Node, NodePositions, Nodes } from "../common/types"
-import { EdgeGroupStates, makeEdgeGroupStates, calculateEdgePosition } from "./edge"
+import { EdgeGroupStates, makeEdgeGroupStates, calculateEdgePosition } from "../common/edge-group"
+
+export type { EdgeGroupStates }
 
 interface NodeStateDatum {
   shape: Ref<AnyShapeStyle>

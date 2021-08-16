@@ -15,7 +15,7 @@
 import { computed, defineComponent, PropType } from "vue"
 import { Edge, Edges, LinePosition, NodePositions, Position } from "../common/types"
 import { Path, Paths, PositionOrCurve } from "../common/types"
-import { EdgeStates, NodeStates, useStates } from "../composables/state"
+import { EdgeStates, NodeStates, useStates, EdgeGroupStates } from "../composables/state"
 import { usePathConfig } from "../composables/style"
 import { useZoomLevel } from "../composables/zoom"
 import { useEventEmitter } from "../composables/event-emitter"
@@ -23,7 +23,6 @@ import { AnyShapeStyle } from "../common/configs"
 import * as v2d from "../common/2d"
 import VPathLine from "./path-line.vue"
 import isEqual from "lodash-es/isEqual"
-import { EdgeGroupStates } from "src/composables/edge"
 
 interface EdgeObject {
   edgeId: string

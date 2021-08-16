@@ -1,7 +1,7 @@
 import { watchEffect } from "vue"
-import { Reactive } from "../common/common"
-import { Config, Configs, EdgeConfig } from "../common/configs"
-import { Edge, Edges, LinePosition, Nodes, Position } from "../common/types"
+import { Reactive } from "./common"
+import { Config, Configs, EdgeConfig } from "./configs"
+import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
 
 // -----------------------------------------------------------------------
 // Private type definition
