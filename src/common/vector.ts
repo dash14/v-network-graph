@@ -39,6 +39,12 @@ export function toLineVector(source: Vector, target: Vector) {
   return target.clone().subtract(source)
 }
 
+/**
+ * Calculate the nearest point from a point to a line.
+ * @param p point
+ * @param line line
+ * @returns point on the line
+ */
 export function getNearestPoint(p: Vector, line: Line): Vector {
   const n = line.v.clone().normalize()
 
@@ -56,29 +62,6 @@ export function getNearestPoint(p: Vector, line: Line): Vector {
   return near
 }
 
-/**
- * Calculate the nearest point from a point to a line.
- * @param p point
- * @param line line
- * @returns point on the line
- */
-export function getNearestPointOnLine(p: Vector, line: Vector): Vector {
-  const n = line.clone().normalize()
-
-  // Let `a` be a vector from any one point on a line to a point
-  const lp = Vector.fromArray([line.x, line.y])
-  const a = p.clone().subtract(lp)
-
-  // Inner product of `n` and `a`
-  const dot = n.dot(a)
-
-  // The nearest point is the sum of a point on the line and a
-  // vector of n multiplied by dot.
-  const nearest = lp.add(n.multiplyScalar(dot))
-
-  return nearest
-}
-
 export function getIntersectionOfLineTargetAndCircle(
   source: Vector,
   target: Vector,
@@ -94,8 +77,8 @@ export function getIntersectionOfLineTargetAndCircle(
   // If contained, calculate the intersection point.
 
   // Find the nearest point `h` between `c` and the line
-  const line = toLineVector(source, target)
-  const h = getNearestPointOnLine(center, line)
+  const line = fromVectors(source, target)
+  const h = getNearestPoint(center, line)
 
   // Let `hp` be the vector from `c` to `h`.
   const hp = h.clone().subtract(center)
@@ -118,7 +101,7 @@ export function getIntersectionOfLineTargetAndCircle(
   // the line multiplied by t
   // - intersection point 1：p + tv
   // - intersection point 2：p - tv
-  const tv = line.normalize().multiplyScalar(t)
+  const tv = line.v.normalize().multiplyScalar(t)
 
   // Calculate the addition or subtraction depending on which side
   // of the line to focus on.
