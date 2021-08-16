@@ -39,7 +39,7 @@
 
         <!-- edges -->
         <g class="v-layer-edges">
-          <v-edge-groups :node-layouts="currentLayouts.nodes" />
+          <v-edge-groups />
         </g>
 
         <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
@@ -47,7 +47,7 @@
         </g>
 
         <!-- edge labels -->
-        <v-edge-labels v-if="overrideEdgeLabels" :nodes="nodes" :node-layouts="currentLayouts.nodes">
+        <v-edge-labels v-if="overrideEdgeLabels">
           <template #edge-label="slotProps">
             <slot name="edge-label" v-bind="slotProps" />
           </template>
@@ -59,7 +59,7 @@
             v-for="nodeId in currentSelectedNodes"
             :id="nodeId"
             :key="nodeId"
-            :node="nodes[nodeId]"
+            :state="nodeStates[nodeId]"
             :pos="currentLayouts.nodes[nodeId]"
           />
         </g>
@@ -71,12 +71,11 @@
         <!-- nodes -->
         <g class="v-layer-nodes">
           <v-node
-            v-for="(node, nodeId) in nodes"
+            v-for="(state, nodeId) in nodeStates"
             :id="nodeId.toString()"
             :key="nodeId"
-            :node="node"
+            :state="state"
             :pos="currentLayouts.nodes[nodeId]"
-            :selected="currentSelectedNodes.has(nodeId.toString())"
           >
             <!-- overide the node -->
             <template v-if="overrideNodes" #override-node="slotProps">
@@ -89,13 +88,7 @@
           </v-node>
         </g>
 
-        <v-paths
-          v-if="visiblePaths"
-          :paths="paths"
-          :nodes="nodes"
-          :edges="edges"
-          :node-layouts="currentLayouts.nodes"
-        />
+        <v-paths v-if="visiblePaths" :paths="paths" :edges="edges" />
 
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
@@ -106,11 +99,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, reactive, readonly, ref } from "vue"
+import { defineComponent, PropType, readonly, ref } from "vue"
 import { computed, nextTick, watch } from "vue"
 import { bindProp, bindPropKeySet } from "../common/props"
 import { provideContainers } from "../composables/container"
 import { provideConfigs } from "../composables/style"
+import { provideStates } from "../composables/state"
 import { provideMouseOperation } from "../composables/mouse"
 import { provideEdgePositions } from "../composables/edge"
 import { provideEventEmitter } from "../composables/event-emitter"
@@ -359,7 +353,7 @@ export default defineComponent({
     const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", props.edges, emit)
     watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
-    const currentLayouts = reactive<Layouts>({ nodes: {} })
+    const currentLayouts = Reactive<Layouts>({ nodes: {} })
 
     // two-way binding
     watch(
@@ -369,25 +363,6 @@ export default defineComponent({
     )
     watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
 
-    // handle increase/decrease nodes
-    watch(
-      () => new Set(Object.keys(props.nodes)),
-      nodeIdSet => {
-        // remove node positions that not found in nodes
-        const positions = currentLayouts.nodes
-        const removed = Object.keys(positions).filter(n => !nodeIdSet.has(n))
-        for (const node of removed) {
-          delete positions[node]
-        }
-        // remove nodes in selected nodes
-        currentSelectedNodes.forEach(n => {
-          if (!nodeIdSet.has(n)) {
-            currentSelectedNodes.delete(n)
-          }
-        })
-      }
-    )
-
     const visibleNodeFocusRing = computed(() => {
       return configs.node.selectable && configs.node.focusring.visible
     })
@@ -396,11 +371,6 @@ export default defineComponent({
     // Edge position calcurating
     // -----------------------------------------------------------------------
     provideEdgePositions(props.nodes, props.edges, configs, scale)
-
-    // -----------------------------------------------------------------------
-    // Paths
-    // -----------------------------------------------------------------------
-    const visiblePaths = computed(() => configs.path.visible)
 
     // -----------------------------------------------------------------------
     // Mouse processing
@@ -428,7 +398,8 @@ export default defineComponent({
       }
     })
 
-    provideMouseOperation(
+    // mouse and touch support
+    const { hoveredNodes, hoveredEdges } = provideMouseOperation(
       svg,
       readonly(currentLayouts.nodes),
       readonly(zoomLevel),
@@ -437,6 +408,22 @@ export default defineComponent({
       currentSelectedEdges,
       emitter
     )
+
+    const { nodeStates, edgeStates } = provideStates(
+      readonly(props.nodes),
+      readonly(props.edges),
+      currentSelectedNodes,
+      currentSelectedEdges,
+      hoveredNodes,
+      hoveredEdges,
+      readonly(configs),
+      currentLayouts
+    )
+
+    // -----------------------------------------------------------------------
+    // Paths
+    // -----------------------------------------------------------------------
+    const visiblePaths = computed(() => configs.path.visible)
 
     // -----------------------------------------------------------------------
     // Node layout handler
@@ -512,6 +499,8 @@ export default defineComponent({
       overrideNodeLabels,
       overrideEdgeLabels,
       scale,
+      nodeStates,
+      edgeStates,
       currentSelectedNodes,
       currentSelectedEdges,
       dragging,

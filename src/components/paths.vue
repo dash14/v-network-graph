@@ -13,13 +13,14 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
-import { Edge, Edges, LinePosition, NodePositions, Nodes, Position } from "../common/types"
+import { Edge, Edges, LinePosition, NodePositions, Position } from "../common/types"
 import { Path, Paths, PositionOrCurve } from "../common/types"
-import { useNodeConfig, usePathConfig } from "../composables/style"
+import { NodeStates, useStates } from "../composables/state"
+import { usePathConfig } from "../composables/style"
 import { EdgeGroupState, EdgePositionGetter, useEdgePositions } from "../composables/edge"
 import { useZoomLevel } from "../composables/zoom"
 import { useEventEmitter } from "../composables/event-emitter"
-import { Config, NodeConfig } from "../common/configs"
+import { AnyShapeStyle } from "../common/configs"
 import * as v2d from "../common/2d"
 import VPathLine from "./path-line.vue"
 import isEqual from "lodash-es/isEqual"
@@ -36,26 +37,18 @@ interface PathObject {
 
 const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
 
-function getNodeRadius(node: string, nodes: Nodes, nodeConfig: NodeConfig) {
-  const nodeObject = nodes[node]
-  const shapeType = Config.value(nodeConfig.normal.type, nodes[node])
-  let radius: number
-  if (shapeType == "circle") {
-    radius = Config.value(nodeConfig.normal.radius, nodeObject)
+function getNodeRadius(shape: AnyShapeStyle) {
+  if (shape.type == "circle") {
+    return shape.radius
   } else {
-    radius = Math.min(
-      Config.value(nodeConfig.normal.width, nodeObject),
-      Config.value(nodeConfig.normal.height, nodeObject)
-    )
+    return Math.min(shape.width, shape.height) / 2
   }
-  return radius
 }
 
 function calculatePathPoints(
   path: PathObject,
-  nodes: Nodes,
+  nodeStates: NodeStates,
   nodeLayouts: NodePositions,
-  nodeConfig: NodeConfig,
   state: EdgeGroupState,
   edgePositions: EdgePositionGetter,
   scale: number,
@@ -113,7 +106,7 @@ function calculatePathPoints(
     }
 
     const nodePos = nodeLayouts[node] ?? { x: 0, y: 0 }
-    const radius = getNodeRadius(node, nodes, nodeConfig)
+    const radius = getNodeRadius(nodeStates[node].shape)
 
     if (
       (state.edgeLayoutPoints[prev.edgeId]?.groupWidth ?? 0) == 0 &&
@@ -202,23 +195,15 @@ export default defineComponent({
       type: Array as PropType<Paths>,
       required: true,
     },
-    nodes: {
-      type: Object as PropType<Nodes>,
-      required: true,
-    },
     edges: {
       type: Object as PropType<Edges>,
-      required: true,
-    },
-    nodeLayouts: {
-      type: Object as PropType<NodePositions>,
       required: true,
     },
   },
   setup(props) {
     const { state, edgePositions } = useEdgePositions()
     const pathConfig = usePathConfig()
-    const nodeConfig = useNodeConfig()
+    const { nodeStates, layouts } = useStates()
     const { scale } = useZoomLevel()
     const { emitter } = useEventEmitter()
 
@@ -240,9 +225,8 @@ export default defineComponent({
       if (path.edges.length === 0) return []
       return calculatePathPoints(
         path,
-        props.nodes,
-        props.nodeLayouts,
-        nodeConfig,
+        nodeStates,
+        layouts.nodes,
         state,
         edgePositions.value,
         scale.value,

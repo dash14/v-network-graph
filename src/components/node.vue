@@ -9,11 +9,11 @@
       name="override-node"
       :node-id="id"
       :scale="scale"
-      :config="shape"
+      :config="state.shape"
       :class="{ draggable: config.draggable, selectable: config.selectable }"
     >
       <v-shape
-        :config="shape"
+        :config="state.shape"
         :class="{ draggable: config.draggable, selectable: config.selectable }"
       />
     </slot>
@@ -22,18 +22,18 @@
       name="override-node-label"
       :node-id="id"
       :scale="scale"
-      :text="labelText"
+      :text="state.labelText"
       :x="labelX"
       :y="labelY"
-      :config="label"
+      :config="state.label"
       :text-anchor="textAnchor"
       :dominant-baseline="dominantBaseline"
     >
       <v-text
-        :text="labelText"
+        :text="state.labelText"
         :x="labelX"
         :y="labelY"
-        :config="label"
+        :config="state.label"
         :text-anchor="textAnchor"
         :dominant-baseline="dominantBaseline"
       />
@@ -43,8 +43,9 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue"
-import { Node, Position } from "../common/types"
-import { Config, NodeLabelDirection, ShapeStyle } from "../common/configs"
+import { Position } from "../common/types"
+import { NodeState } from "../composables/state"
+import { NodeLabelDirection } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
@@ -58,18 +59,14 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    node: {
-      type: Object as PropType<Node>,
+    state: {
+      type: Object as PropType<NodeState>,
       required: true,
     },
     pos: {
       type: Object as PropType<Position>,
       required: false,
       default: undefined,
-    },
-    selected: {
-      type: Boolean,
-      default: false,
     },
   },
   setup(props) {
@@ -95,39 +92,19 @@ export default defineComponent({
       }
     })
 
-    const shape = computed<ShapeStyle>(() => {
-      if (isHovered.value && config.hover) {
-        return Config.values(config.hover, props.node)
-      } else if (props.selected && config.selected) {
-        return Config.values(config.selected, props.node)
-      } else {
-        return Config.values(config.normal, props.node)
-      }
-    })
-
-    const label = computed(() => Config.values(config.label, props.node))
-
-    const labelText = computed<string>(() => {
-      if (config.label.text instanceof Function) {
-        return label.value.text
-      } else {
-        return props.node[label.value.text] ?? ""
-      }
-     })
-
     const labelVisibility = computed(() => {
-      if (label.value.visible && label.value.text) {
-        return props.node[label.value.text] ?? false
+      if (props.state.label.visible) {
+        return props.state.labelText ?? false
       }
       return false
     })
 
     // ラベル
     const labelMargin = computed(() => {
-      if (label.value.direction === NodeLabelDirection.CENTER) {
+      if (props.state.label.direction === NodeLabelDirection.CENTER) {
         return 0
       } else {
-        return label.value.margin * scale.value
+        return props.state.label.margin * scale.value
       }
     })
 
@@ -139,8 +116,9 @@ export default defineComponent({
 
     watchEffect(() => {
       const s = scale.value
-      if (shape.value.type == "circle") {
-        const radius = shape.value.radius * s
+      const shape = props.state.shape
+      if (shape.type == "circle") {
+        const radius = shape.radius * s
         const m = radius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = radius + labelMargin.value
@@ -148,9 +126,9 @@ export default defineComponent({
         labelDiagonalShiftV.value = diagonalMargin
         labelDiagonalShiftH.value = diagonalMargin
       } else {
-        const borderRadius = shape.value.borderRadius * s
-        const width = shape.value.width * s
-        const height = shape.value.height * s
+        const borderRadius = shape.borderRadius * s
+        const width = shape.width * s
+        const height = shape.height * s
         const m = borderRadius + labelMargin.value
         const diagonalMargin = Math.sqrt(m ** 2 / 2)
         labelShiftV.value = height / 2 + labelMargin.value
@@ -161,7 +139,7 @@ export default defineComponent({
     })
 
     const textAnchor = computed(() => {
-      switch (label.value.direction) {
+      switch (props.state.label.direction) {
         case NodeLabelDirection.CENTER:
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
@@ -178,7 +156,7 @@ export default defineComponent({
       }
     })
     const dominantBaseline = computed(() => {
-      switch (label.value.direction) {
+      switch (props.state.label.direction) {
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.NORTH_WEST:
@@ -195,7 +173,7 @@ export default defineComponent({
       }
     })
     const labelX = computed(() => {
-      switch (label.value.direction) {
+      switch (props.state.label.direction) {
         case NodeLabelDirection.CENTER:
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.SOUTH:
@@ -214,7 +192,7 @@ export default defineComponent({
       }
     })
     const labelY = computed(() => {
-      switch (label.value.direction) {
+      switch (props.state.label.direction) {
         case NodeLabelDirection.NORTH:
           return -labelShiftV.value
         case NodeLabelDirection.SOUTH:
@@ -237,10 +215,7 @@ export default defineComponent({
       x,
       y,
       config,
-      shape,
-      label,
       labelVisibility,
-      labelText,
       handleNodePointerDownEvent,
       handleNodePointerOverEvent,
       handleNodePointerOutEvent,

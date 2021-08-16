@@ -12,7 +12,7 @@
               edgeId,
               nodeShape(edge.source),
               nodeShape(edge.target),
-              edgeStroke(edgeId, edge)
+              edgeStates[edgeId].stroke
             )
           "
           :scale="scale"
@@ -23,12 +23,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from "vue"
+import { computed, defineComponent } from "vue"
 import { useEdgePositions } from "../composables/edge"
-import { Edge, NodePositions, Nodes, Position } from "../common/types"
-import { AnyShapeStyle, Config, StrokeStyle } from "../common/configs"
-import { useEdgeConfig, useNodeConfig } from "../composables/style"
-import { useMouseOperation } from "../composables/mouse"
+import { Position } from "../common/types"
+import { useStates } from "../composables/state"
+import { AnyShapeStyle, StrokeStyle } from "../common/configs"
+import { useEdgeConfig } from "../composables/style"
 import { useZoomLevel } from "../composables/zoom"
 import * as v2d from "../common/2d"
 
@@ -38,21 +38,10 @@ interface NodeShape {
 }
 
 export default defineComponent({
-  props: {
-    nodes: {
-      type: Object as PropType<Nodes>,
-      required: true,
-    },
-    nodeLayouts: {
-      type: Object as PropType<NodePositions>,
-      required: true,
-    },
-  },
-  setup(props) {
+  setup() {
     const { state, edgePositions } = useEdgePositions()
-    const nodeConfig = useNodeConfig()
     const edgeConfig = useEdgeConfig()
-    const { hoveredNodes, selectedNodes, selectedEdges } = useMouseOperation()
+    const { nodeStates, edgeStates, layouts } = useStates()
     const { scale } = useZoomLevel()
 
     // not summarized
@@ -81,37 +70,14 @@ export default defineComponent({
       }
     )
 
-    const shape = computed(() => (nodeId: string) => {
-      if (hoveredNodes.has(nodeId) && nodeConfig.hover) {
-        return Config.values(nodeConfig.hover, props.nodes[nodeId])
-      } else if (selectedNodes.has(nodeId) && nodeConfig.selected) {
-        return Config.values(nodeConfig.selected, props.nodes[nodeId])
-      } else {
-        return Config.values(nodeConfig.normal, props.nodes[nodeId])
-      }
-    })
-
     const nodeShape = computed(() => (node: string) => {
-      // TODO: 呼び出し回数をへらす
       return {
-        pos: props.nodeLayouts[node] ?? { x: 0, y: 0 },
-        shape: shape.value(node),
+        pos: layouts.nodes[node] ?? { x: 0, y: 0 },
+        shape: nodeStates[node].shape,
       }
     })
 
-    // TODO: nodeIdごとのhoverを独立させる
-
-    const edgeStroke = computed(() => (edgeId: string, edge: Edge) => {
-      if (selectedEdges.has(edgeId)) {
-        return Config.values(edgeConfig.selected, edge)
-        // } else if (hover.value && config.hover) {
-        //   return Config.values(edgeConfig.hover, edge)
-      } else {
-        return Config.values(edgeConfig.normal, edge)
-      }
-    })
-
-    return { indivisualEdgeGroups, labelAreaPosition, nodeShape, edgeStroke, edgeConfig, scale }
+    return { indivisualEdgeGroups, labelAreaPosition, nodeShape, edgeStates, edgeConfig, scale }
   },
 })
 </script>
