@@ -45,9 +45,9 @@ export function getConfigDefaults(): Configs {
       },
       hover: {
         type: node => Config.value(self.normal.type, node) as any,
-        radius: node => Config.value(self.normal.radius, node) ?? 0 + 2,
-        width: node => Config.value(self.normal.width, node) ?? 0 + 2,
-        height: node => Config.value(self.normal.height, node) ?? 0 + 2,
+        radius: node => (Config.value(self.normal.radius, node) ?? 0) + 2,
+        width: node => (Config.value(self.normal.width, node) ?? 0) + 2,
+        height: node => (Config.value(self.normal.height, node) ?? 0) + 2,
         borderRadius: node => Config.value(self.normal.borderRadius, node) ?? 0,
         strokeWidth: node => Config.value(self.normal.strokeWidth, node),
         strokeColor: node => Config.value(self.normal.strokeColor, node),
