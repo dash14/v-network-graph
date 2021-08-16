@@ -1,17 +1,16 @@
 <template>
-  <v-text
-    v-if="area && dominantBaseline == 'central'"
-    class="v-edge-label-background"
-    :text="text"
-    :x="x"
-    :y="y"
-    v-bind="backgroundConfig"
-    :text-anchor="textAnchor"
-    :dominant-baseline="dominantBaseline"
+  <rect
+    v-if="area && dominantBaseline === 'central'"
+    v-bind="pos"
+    :rx="config.background.borderRadius * scale"
+    :ry="config.background.borderRadius * scale"
+    :fill="config.background.color"
     :transform="transform"
   />
   <v-text
     v-if="area"
+    ref="element"
+    v-bind="$attrs"
     class="v-edge-label"
     :text="text"
     :x="x"
@@ -50,12 +49,49 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, Ref, ref, watchEffect } from "vue"
+import { defineComponent, PropType, reactive, Ref, ref, watch, watchEffect } from "vue"
+import { onMounted, onUnmounted } from "vue"
+import { useZoomLevel } from "../composables/zoom"
 import { EdgeLabelStyle } from "../common/configs"
 import { EdgeLabelArea } from "../common/types"
-import { useZoomLevel } from "../composables/zoom"
 import * as V from "../common/vector"
 import VText from "./text.vue"
+
+type Rect = { x: number; y: number; width: number; height: number }
+
+function updateBackgroundPosition(
+  element: SVGTextElement,
+  pos: Rect,
+  transform: Ref<string | undefined>,
+  config: EdgeLabelStyle,
+  scale: number
+) {
+  const bbox = element.getBBox()
+  const padding = config.background.padding
+  pos.x = bbox.x - padding * scale
+  pos.y = bbox.y - padding * scale
+  pos.width = bbox.width + padding * 2 * scale
+  pos.height = bbox.height + padding * 2 * scale
+  transform.value = element.getAttribute("transform") ?? undefined
+}
+
+function enableMutationObserver(
+  element: SVGTextElement,
+  pos: Rect,
+  transform: Ref<string | undefined>,
+  config: EdgeLabelStyle,
+  scale: Ref<number>
+) {
+  const observer = new MutationObserver(() => {
+    updateBackgroundPosition(element, pos, transform, config, scale.value)
+  })
+  observer.observe(element, {
+    attributes: true,
+    attributeFilter: ["x", "y", "transform", "font-size"],
+  })
+  updateBackgroundPosition(element, pos, transform, config, scale.value)
+  return observer
+}
 
 export default defineComponent({
   components: { VText },
@@ -72,13 +108,13 @@ export default defineComponent({
         fontSize: 10,
         color: "#000000",
         margin: 0,
-        padding: 0
-      })
+        padding: 0,
+      }),
     },
     text: {
       type: String,
       required: false,
-      default: ""
+      default: "",
     },
     align: {
       type: String as PropType<"center" | "source" | "target">,
@@ -90,8 +126,8 @@ export default defineComponent({
     },
     multiline: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   setup(props) {
     const { scale } = useZoomLevel()
@@ -101,6 +137,7 @@ export default defineComponent({
     const textAnchor: Ref<"middle" | "start" | "end"> = ref("middle")
     const dominantBaseline: Ref<"text-top" | "hanging" | "central"> = ref("central")
     const transform = ref("")
+    const element = ref<InstanceType<typeof VText>>()
 
     watchEffect(() => {
       if (!props.area) return
@@ -120,7 +157,8 @@ export default defineComponent({
           x.value = s.below.x
           y.value = s.below.y
           dominantBaseline.value = "hanging"
-        } else { // center
+        } else {
+          // center
           x.value = (s.above.x + s.below.x) / 2
           y.value = (s.above.y + s.below.y) / 2
           dominantBaseline.value = "central"
@@ -139,12 +177,14 @@ export default defineComponent({
           x.value = t.below.x
           y.value = t.below.y
           dominantBaseline.value = "hanging"
-        } else { // center
+        } else {
+          // center
           x.value = (t.above.x + t.below.x) / 2
           y.value = (t.above.y + t.below.y) / 2
           dominantBaseline.value = "central"
         }
-      } else { // center
+      } else {
+        // center
         textAnchor.value = "middle"
         if (props.verticalAlign === "above") {
           x.value = (s.above.x + t.above.x) / 2
@@ -154,7 +194,8 @@ export default defineComponent({
           x.value = (s.below.x + t.below.x) / 2
           y.value = (s.below.y + t.below.y) / 2
           dominantBaseline.value = "hanging"
-        } else { // center
+        } else {
+          // center
           x.value = (s.above.x + t.below.x) / 2
           y.value = (s.above.y + t.below.y) / 2
           dominantBaseline.value = "central"
@@ -162,7 +203,7 @@ export default defineComponent({
       }
       let angle = V.fromPositions(s.above, t.above).v.angleDeg()
       if (angle < -90 || angle >= 90) {
-        angle = (angle + 180)
+        angle = angle + 180
         if (angle > 180) {
           angle -= 360
         }
@@ -170,20 +211,34 @@ export default defineComponent({
       transform.value = `rotate(${angle} ${x.value} ${y.value})`
     })
 
-    const backgroundConfig = computed(() => {
-      return {
-        "stroke": "#ffffff",
-        "stroke-width": props.config.padding * scale.value,
-        "style": "opacity: .7",
-        config: {
-          color: "#ffffff",
-          fontFamily: props.config.fontFamily,
-          fontSize: props.config.fontSize
-        }
+    // Show background only if it overlaps an edge line.
+    const pos = reactive<Rect>({ x: 0, y: 0, width: 0, height: 0 })
+
+    let observer: MutationObserver | undefined
+
+    onMounted(() => {
+      if (!element.value) return
+      if (dominantBaseline.value === "central") {
+        observer = enableMutationObserver(element.value.$el, pos, transform, props.config, scale)
       }
     })
 
-    return { x, y, textAnchor, dominantBaseline, transform, backgroundConfig }
+    watch(dominantBaseline, (v, prev) => {
+      if (!element.value || v === prev) return
+      if (dominantBaseline.value === "central") {
+        observer = enableMutationObserver(element.value.$el, pos, transform, props.config, scale)
+      } else {
+        observer?.disconnect()
+        observer = undefined
+      }
+    })
+
+    onUnmounted(() => {
+      observer?.disconnect()
+      observer = undefined
+    })
+
+    return { x, y, textAnchor, dominantBaseline, transform, element, pos, scale }
   },
 })
 </script>
