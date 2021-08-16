@@ -15,6 +15,9 @@ export class Config {
   }
 
   static values<V, T>(value: CallableValues<V, T>, target: T): V {
+    if (Object.values(value).filter(v => v instanceof Function).length === 0) {
+      return value as V  // all config are literals
+    }
     return Object.fromEntries(
       Object.entries(value).map(([k, v]) => [k, v instanceof Function ? v(target) : v])
     ) as V
