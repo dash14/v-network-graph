@@ -106,7 +106,6 @@ import { provideContainers } from "../composables/container"
 import { provideConfigs } from "../composables/style"
 import { provideStates } from "../composables/state"
 import { provideMouseOperation } from "../composables/mouse"
-import { provideEdgePositions } from "../composables/edge"
 import { provideEventEmitter } from "../composables/event-emitter"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
@@ -368,11 +367,6 @@ export default defineComponent({
     })
 
     // -----------------------------------------------------------------------
-    // Edge position calcurating
-    // -----------------------------------------------------------------------
-    provideEdgePositions(props.nodes, props.edges, configs, scale)
-
-    // -----------------------------------------------------------------------
     // Mouse processing
     // -----------------------------------------------------------------------
 
@@ -417,7 +411,8 @@ export default defineComponent({
       hoveredNodes,
       hoveredEdges,
       readonly(configs),
-      currentLayouts
+      currentLayouts,
+      scale
     )
 
     // -----------------------------------------------------------------------

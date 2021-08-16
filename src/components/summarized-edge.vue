@@ -19,8 +19,8 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { Edges, NodePositions } from "../common/types"
+import { useStates } from "../composables/state"
 import { useEdgeConfig } from "../composables/style"
-import { useEdgePositions } from "../composables/edge"
 import VLine from "../components/line.vue"
 import VShape from "../components/shape.vue"
 import VText from "../components/text.vue"
@@ -39,7 +39,7 @@ export default defineComponent({
   },
   setup(props) {
     const config = useEdgeConfig()
-    const { edgePositions } = useEdgePositions()
+    const { edgeStates } = useStates()
 
     // 指定されたedgesは同一ペアのため、最初の1つを取得して描画する
     const pos = ref({ x1: 0, y1: 0, x2: 0, y2: 0 })
@@ -47,12 +47,7 @@ export default defineComponent({
 
     watchEffect(() => {
       const edgeId = Object.keys(props.edges)[0]
-      const edge = props.edges[Object.keys(props.edges)[0]]
-      pos.value = edgePositions.value(
-        edgeId,
-        props.layouts[edge.source],
-        props.layouts[edge.target]
-      )
+      pos.value = edgeStates[edgeId].position
       centerPos.value = {
         x: (pos.value.x1 + pos.value.x2) / 2,
         y: (pos.value.y1 + pos.value.y2) / 2,

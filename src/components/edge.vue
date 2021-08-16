@@ -1,6 +1,6 @@
 <template>
   <v-line
-    v-bind="edgePositions(id, sourcePos, targetPos)"
+    v-bind="state.position"
     :class="{ selectable: config.selectable }"
     :config="state.stroke"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
@@ -14,7 +14,6 @@ import { defineComponent, PropType, ref, watchEffect } from "vue"
 import { useEdgeConfig } from "../composables/style"
 import { Position } from "../common/types"
 import { EdgeState } from "../composables/state"
-import { useEdgePositions } from "../composables/edge"
 import { useMouseOperation } from "../composables/mouse"
 import VLine from "./line.vue"
 
@@ -42,7 +41,6 @@ export default defineComponent({
   },
   setup(props) {
     const config = useEdgeConfig()
-    const { edgePositions } = useEdgePositions()
     const {
       handleEdgePointerDownEvent,
       handleEdgePointerOverEvent,
@@ -60,7 +58,6 @@ export default defineComponent({
     })
 
     return {
-      edgePositions,
       config,
       handleEdgePointerDownEvent,
       handleEdgePointerOverEvent,

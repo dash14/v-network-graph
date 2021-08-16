@@ -1,5 +1,5 @@
-import { computed, ComputedRef, inject, InjectionKey, provide, reactive, watchEffect } from "vue"
-import { nonNull } from "../common/common"
+import { watchEffect } from "vue"
+import { Reactive } from "../common/common"
 import { Config, Configs, EdgeConfig } from "../common/configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "../common/types"
 
@@ -19,37 +19,30 @@ interface EdgeLayoutPoint {
   groupWidth: number
 }
 
-export interface EdgeGroupState {
+export interface EdgeGroupStates {
   edgeLayoutPoints: Record<string, EdgeLayoutPoint>
   edgeGroups: Record<string, EdgeGroup>
   summarizedEdges: Record<string, true>
 }
 
-export type EdgePositionGetter = (edgeId: string, source?: Position, target?: Position) => LinePosition
+export type EdgePositionGetter = (
+  edgeId: string,
+  source?: Position,
+  target?: Position
+) => LinePosition
 
-interface EdgePositionsState {
-  state: EdgeGroupState
-  edgePositions: ComputedRef<EdgePositionGetter>
-}
-
-// -----------------------------------------------------------------------
-// Private Constants
-// -----------------------------------------------------------------------
-
-const edgePositionStateKey = Symbol("containers") as InjectionKey<EdgePositionsState>
 
 // -----------------------------------------------------------------------
 // Exported functions
 // -----------------------------------------------------------------------
 
-export function provideEdgePositions(
-  nodes: Nodes,
-  edges: Edges,
-  configs: Configs,
-  scale: ComputedRef<number>
-) {
+export function makeEdgeGroupStates(
+  nodes: Readonly<Nodes>,
+  edges: Readonly<Edges>,
+  configs: Readonly<Configs>
+): Reactive<EdgeGroupStates> {
   // Calculate position map
-  const state = reactive<EdgeGroupState>({
+  const state = Reactive<EdgeGroupStates>({
     edgeLayoutPoints: {},
     edgeGroups: {},
     summarizedEdges: {},
@@ -87,38 +80,28 @@ export function provideEdgePositions(
     state.summarizedEdges = summarizedEdges
   })
 
-  // calc position reactively
-  const edgePositions = computed(
-    () =>
-      (edgeId: string, source?: Position, target?: Position): LinePosition => {
-        const p = state.edgeLayoutPoints[edgeId]
-        if (!p) {
-          return { x1: 0, y1: 0, x2: 0, y2: 0 } // sanitized
-        }
-        if (edgeId in state.summarizedEdges) {
-          // summarize
-          return calculateEdgePosition(p.edge, source, target, scale.value, 0, 0)
-        } else {
-          return calculateEdgePosition(
-            p.edge,
-            source,
-            target,
-            scale.value,
-            p.groupWidth,
-            p.pointInGroup
-          )
-        }
-      }
-  )
-
-  const result: EdgePositionsState = { state, edgePositions }
-  provide(edgePositionStateKey, result)
-  return result
+  return state
 }
 
-export function useEdgePositions() {
-  return nonNull(inject(edgePositionStateKey), "edgePositions")
+export function calculateEdgePosition(
+  state: EdgeGroupStates,
+  edgeId: string,
+  source: Position,
+  target: Position,
+  scale: number
+): LinePosition {
+  const p = state.edgeLayoutPoints[edgeId]
+  if (!p) {
+    return { x1: 0, y1: 0, x2: 0, y2: 0 } // sanitized
+  }
+  if (edgeId in state.summarizedEdges) {
+    // summarize
+    return calculateEdgePositionInner(p.edge, source, target, scale, 0, 0)
+  } else {
+    return calculateEdgePositionInner(p.edge, source, target, scale, p.groupWidth, p.pointInGroup)
+  }
 }
+
 
 // -----------------------------------------------------------------------
 // Private functions
@@ -203,7 +186,7 @@ function defaultCheckSummarize(nodes: Nodes, edges: Edges, configs: Configs, wid
   return width > minWidth
 }
 
-function calculateEdgePosition(
+function calculateEdgePositionInner(
   edge: Edge,
   source: Position | undefined,
   target: Position | undefined,

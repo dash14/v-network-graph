@@ -1,5 +1,5 @@
 <template>
-  <template v-for="({ summarize, edges }, key) in state.edgeGroups">
+  <template v-for="({ summarize, edges }, key) in edgeGroupStates.edgeGroups">
     <template v-if="summarize">
       <v-summarized-edge
         :key="key"
@@ -20,7 +20,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue"
-import { useEdgePositions } from "../composables/edge"
 import { useStates } from "../composables/state"
 import VEdge from "./edge.vue"
 import VSummarizedEdge from "./summarized-edge.vue"
@@ -28,10 +27,9 @@ import VSummarizedEdge from "./summarized-edge.vue"
 export default defineComponent({
   components: { VEdge, VSummarizedEdge },
   setup() {
-    const { state } = useEdgePositions()
-    const { edgeStates, layouts } = useStates()
+    const { edgeStates, edgeGroupStates, layouts } = useStates()
 
-    return { state, edgeStates, layouts }
+    return { edgeStates, edgeGroupStates, layouts }
   }
 })
 

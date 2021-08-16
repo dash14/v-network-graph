@@ -1,17 +1,12 @@
 // the states of nodes and edges
 
-import { computed, inject, InjectionKey, provide, reactive, Ref, unref, UnwrapRef, watch } from "vue"
+import { computed, ComputedRef, reactive, Ref, unref, UnwrapRef, watch } from "vue"
+import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "../common/common"
-import {
-  AnyShapeStyle,
-  Config,
-  Configs,
-  EdgeConfig,
-  NodeConfig,
-  NodeLabelStyle,
-  StrokeStyle,
-} from "../common/configs"
-import { Edge, Edges, Layouts, Node, Nodes } from "../common/types"
+import { Config, Configs, EdgeConfig, NodeConfig } from "../common/configs"
+import { AnyShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
+import { Edge, Edges, Layouts, LinePosition, Node, NodePositions, Nodes } from "../common/types"
+import { EdgeGroupStates, makeEdgeGroupStates, calculateEdgePosition } from "./edge"
 
 interface NodeStateDatum {
   shape: Ref<AnyShapeStyle>
@@ -28,6 +23,7 @@ interface EdgeStateDatum {
   stroke: Ref<StrokeStyle>
   selected: boolean
   hovered: boolean
+  position: Ref<LinePosition>
 }
 
 export type EdgeState = UnwrapRef<EdgeStateDatum>
@@ -36,6 +32,7 @@ export type EdgeStates = Record<string, EdgeState>
 interface States {
   nodeStates: NodeStates
   edgeStates: EdgeStates
+  edgeGroupStates: EdgeGroupStates
   layouts: Layouts
 }
 const statesKey = Symbol("states") as InjectionKey<States>
@@ -83,15 +80,24 @@ function createNodeState(
 
 function createEdgeState(
   states: EdgeStates,
+  groupStates: EdgeGroupStates,
   edges: Edges,
   id: string,
   selected: boolean,
   hovered: boolean,
-  config: EdgeConfig
+  config: EdgeConfig,
+  layouts: NodePositions,
+  scale: ComputedRef<number>
 ) {
   states[id] = { selected, hovered } as any
   const state = states[id] as any as EdgeStateDatum
   state.stroke = computed(() => getEdgeStroke(edges[id], state.selected, state.hovered, config))
+  state.position = computed(() => {
+    const edge = edges[id]
+    const source = layouts[edge?.source] ?? { x: 0, y: 0 }
+    const target = layouts[edge?.target] ?? { x: 0, y: 0 }
+    return calculateEdgePosition(groupStates, id, source, target, scale.value)
+  })
 }
 
 export function provideStates(
@@ -102,16 +108,18 @@ export function provideStates(
   hoveredNodes: Reactive<Set<string>>,
   hoveredEdges: Reactive<Set<string>>,
   configs: Readonly<Configs>,
-  layouts: Reactive<Layouts>
+  layouts: Reactive<Layouts>,
+  scale: ComputedRef<number>
 ) {
   const nodeStates: NodeStates = reactive({})
   const edgeStates: EdgeStates = reactive({})
 
+  // -----------------------------------------------------------------------
+  // States for nodes
+  // -----------------------------------------------------------------------
+
   Object.keys(nodes).forEach(id => {
     createNodeState(nodeStates, nodes, id, selectedNodes.has(id), false, configs.node)
-  })
-  Object.keys(edges).forEach(id => {
-    createEdgeState(edgeStates, edges, id, selectedEdges.has(id), false, configs.edge)
   })
 
   // update `node.selected` flag
@@ -120,19 +128,13 @@ export function provideStates(
     (nodes, prev) => {
       const append = nodes.filter(n => !prev.includes(n))
       const removed = prev.filter(n => !nodes.includes(n))
-
       append.forEach(id => {
         const state = nodeStates[id]
-        if (state && !state.selected) {
-          state.selected = true
-        }
+        if (state && !state.selected) state.selected = true
       })
-
       removed.forEach(id => {
         const state = nodeStates[id]
-        if (state && state.selected) {
-          state.selected = false
-        }
+        if (state && state.selected) state.selected = false
       })
     }
   )
@@ -143,65 +145,13 @@ export function provideStates(
     (nodes, prev) => {
       const append = nodes.filter(n => !prev.includes(n))
       const removed = prev.filter(n => !nodes.includes(n))
-
       append.forEach(id => {
         const state = nodeStates[id]
-        if (state && !state.hovered) {
-          state.hovered = true
-        }
+        if (state && !state.hovered) state.hovered = true
       })
-
       removed.forEach(id => {
         const state = nodeStates[id]
-        if (state && state.hovered) {
-          state.hovered = false
-        }
-      })
-    }
-  )
-
-  // update `edge.selected` flag
-  watch(
-    () => [...selectedEdges],
-    (nodes, prev) => {
-      const append = nodes.filter(n => !prev.includes(n))
-      const removed = prev.filter(n => !nodes.includes(n))
-
-      append.forEach(id => {
-        const state = edgeStates[id]
-        if (state && !state.selected) {
-          state.selected = true
-        }
-      })
-
-      removed.forEach(id => {
-        const state = edgeStates[id]
-        if (state && state.selected) {
-          state.selected = false
-        }
-      })
-    }
-  )
-
-  // update `edge.hovered` flag
-  watch(
-    () => [...hoveredEdges],
-    (nodes, prev) => {
-      const append = nodes.filter(n => !prev.includes(n))
-      const removed = prev.filter(n => !nodes.includes(n))
-
-      append.forEach(id => {
-        const state = edgeStates[id]
-        if (state && !state.hovered) {
-          state.hovered = true
-        }
-      })
-
-      removed.forEach(id => {
-        const state = edgeStates[id]
-        if (state && state.hovered) {
-          state.hovered = false
-        }
+        if (state && state.hovered) state.hovered = false
       })
     }
   )
@@ -229,6 +179,67 @@ export function provideStates(
     }
   )
 
+  // -----------------------------------------------------------------------
+  // States for edges
+  // -----------------------------------------------------------------------
+
+  // grouping
+  const edgeGroupStates = makeEdgeGroupStates(nodes, edges, configs)
+
+  Object.keys(edges).forEach(id => {
+    createEdgeState(
+      edgeStates,
+      edgeGroupStates,
+      edges,
+      id,
+      selectedEdges.has(id),
+      false,
+      configs.edge,
+      layouts.nodes,
+      scale
+    )
+  })
+
+  // update `edge.selected` flag
+  watch(
+    () => [...selectedEdges],
+    (nodes, prev) => {
+      const append = nodes.filter(n => !prev.includes(n))
+      const removed = prev.filter(n => !nodes.includes(n))
+      append.forEach(id => {
+        const state = edgeStates[id]
+        if (state && !state.selected) state.selected = true
+      })
+      removed.forEach(id => {
+        const state = edgeStates[id]
+        if (state && state.selected) state.selected = false
+      })
+    }
+  )
+
+  // update `edge.hovered` flag
+  watch(
+    () => [...hoveredEdges],
+    (nodes, prev) => {
+      const append = nodes.filter(n => !prev.includes(n))
+      const removed = prev.filter(n => !nodes.includes(n))
+
+      append.forEach(id => {
+        const state = edgeStates[id]
+        if (state && !state.hovered) {
+          state.hovered = true
+        }
+      })
+
+      removed.forEach(id => {
+        const state = edgeStates[id]
+        if (state && state.hovered) {
+          state.hovered = false
+        }
+      })
+    }
+  )
+
   // handle increase/decrease edges
   watch(
     () => new Set(Object.keys(edges)),
@@ -236,7 +247,17 @@ export function provideStates(
       for (const edgeId of idSet) {
         if (prev.has(edgeId)) continue
         // edge append
-        createEdgeState(edgeStates, edges, edgeId, false, false, configs.edge)
+        createEdgeState(
+          edgeStates,
+          edgeGroupStates,
+          edges,
+          edgeId,
+          false,
+          false,
+          configs.edge,
+          layouts.nodes,
+          scale
+        )
       }
 
       for (const edgeId of prev) {
@@ -249,7 +270,7 @@ export function provideStates(
     }
   )
 
-  const states = { nodeStates, edgeStates, layouts }
+  const states = { nodeStates, edgeStates, edgeGroupStates, layouts }
   provide(statesKey, states)
   return states
 }

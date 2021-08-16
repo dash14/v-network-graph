@@ -24,7 +24,6 @@
 
 <script lang="ts">
 import { computed, defineComponent } from "vue"
-import { useEdgePositions } from "../composables/edge"
 import { Position } from "../common/types"
 import { useStates } from "../composables/state"
 import { AnyShapeStyle, StrokeStyle } from "../common/configs"
@@ -39,15 +38,14 @@ interface NodeShape {
 
 export default defineComponent({
   setup() {
-    const { state, edgePositions } = useEdgePositions()
     const edgeConfig = useEdgeConfig()
-    const { nodeStates, edgeStates, layouts } = useStates()
+    const { nodeStates, edgeStates, edgeGroupStates, layouts } = useStates()
     const { scale } = useZoomLevel()
 
     // not summarized
     const indivisualEdgeGroups = computed(() =>
       Object.fromEntries(
-        Object.entries(state.edgeGroups).filter(
+        Object.entries(edgeGroupStates.edgeGroups).filter(
           ([_, group]) => !group.summarize && Object.keys(group.edges).length > 0
         )
       )
@@ -55,9 +53,8 @@ export default defineComponent({
 
     const labelAreaPosition = computed(
       () => (edgeId: string, source: NodeShape, target: NodeShape, edgeStyle: StrokeStyle) => {
-        const line = edgePositions.value(edgeId, source.pos, target.pos)
         return v2d.calculateEdgeLabelArea(
-          line,
+          edgeStates[edgeId].position,
           edgeStyle,
           source.pos,
           target.pos,

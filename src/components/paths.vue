@@ -15,15 +15,15 @@
 import { computed, defineComponent, PropType } from "vue"
 import { Edge, Edges, LinePosition, NodePositions, Position } from "../common/types"
 import { Path, Paths, PositionOrCurve } from "../common/types"
-import { NodeStates, useStates } from "../composables/state"
+import { EdgeStates, NodeStates, useStates } from "../composables/state"
 import { usePathConfig } from "../composables/style"
-import { EdgeGroupState, EdgePositionGetter, useEdgePositions } from "../composables/edge"
 import { useZoomLevel } from "../composables/zoom"
 import { useEventEmitter } from "../composables/event-emitter"
 import { AnyShapeStyle } from "../common/configs"
 import * as v2d from "../common/2d"
 import VPathLine from "./path-line.vue"
 import isEqual from "lodash-es/isEqual"
+import { EdgeGroupStates } from "src/composables/edge"
 
 interface EdgeObject {
   edgeId: string
@@ -49,15 +49,13 @@ function calculatePathPoints(
   path: PathObject,
   nodeStates: NodeStates,
   nodeLayouts: NodePositions,
-  state: EdgeGroupState,
-  edgePositions: EdgePositionGetter,
+  edgeStates: EdgeStates,
+  edgeGroupStates: EdgeGroupStates,
   scale: number,
   curveInNode: boolean
 ): PositionOrCurve[] {
   // Edge ID list -> List of Edge locations
-  const edgePos = path.edges.map(({ edgeId, edge }) =>
-    edgePositions(edgeId, nodeLayouts[edge.source], nodeLayouts[edge.target])
-  )
+  const edgePos = path.edges.map(({ edgeId }) => edgeStates[edgeId].position)
 
   // The relationship between the source/target of a link and the connection
   // by path can be different.
@@ -109,8 +107,8 @@ function calculatePathPoints(
     const radius = getNodeRadius(nodeStates[node].shape)
 
     if (
-      (state.edgeLayoutPoints[prev.edgeId]?.groupWidth ?? 0) == 0 &&
-      (state.edgeLayoutPoints[next.edgeId]?.groupWidth ?? 0) == 0
+      (edgeGroupStates.edgeLayoutPoints[prev.edgeId]?.groupWidth ?? 0) == 0 &&
+      (edgeGroupStates.edgeLayoutPoints[next.edgeId]?.groupWidth ?? 0) == 0
     ) {
       // If there is one edge in both sections:
       if (curveInNode) {
@@ -201,9 +199,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { state, edgePositions } = useEdgePositions()
     const pathConfig = usePathConfig()
-    const { nodeStates, layouts } = useStates()
+    const { nodeStates, edgeStates, edgeGroupStates, layouts } = useStates()
     const { scale } = useZoomLevel()
     const { emitter } = useEventEmitter()
 
@@ -227,8 +224,8 @@ export default defineComponent({
         path,
         nodeStates,
         layouts.nodes,
-        state,
-        edgePositions.value,
+        edgeStates,
+        edgeGroupStates,
         scale.value,
         pathConfig.curveInNode
       )
