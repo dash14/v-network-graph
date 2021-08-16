@@ -2,8 +2,12 @@
   <g class="v-edge-labels">
     <template v-for="(group, id) in indivisualEdgeGroups" :key="id">
       <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
-        <v-edge-label
-          :label-area="
+        <slot
+          name="edge-label"
+          :edge-id="edgeId"
+          :edge="edge"
+          :config="edgeConfig.label"
+          :area="
             labelAreaPosition(
               edgeId,
               nodeShape(edge.source),
@@ -11,6 +15,7 @@
               edgeStroke(edgeId, edge)
             )
           "
+          :scale="scale"
         />
       </template>
     </template>
@@ -26,7 +31,6 @@ import { useEdgeConfig, useNodeConfig } from "../composables/style"
 import { useMouseOperation } from "../composables/mouse"
 import { useZoomLevel } from "../composables/zoom"
 import * as v2d from "../common/2d"
-import VEdgeLabel from "./edge-label.vue"
 
 interface NodeShape {
   pos: Position
@@ -34,7 +38,6 @@ interface NodeShape {
 }
 
 export default defineComponent({
-  components: { VEdgeLabel },
   props: {
     nodes: {
       type: Object as PropType<Nodes>,
@@ -108,7 +111,7 @@ export default defineComponent({
       }
     })
 
-    return { indivisualEdgeGroups, labelAreaPosition, nodeShape, edgeStroke }
+    return { indivisualEdgeGroups, labelAreaPosition, nodeShape, edgeStroke, edgeConfig, scale }
   },
 })
 </script>

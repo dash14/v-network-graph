@@ -47,12 +47,11 @@
         </g>
 
         <!-- edge labels -->
-        <v-edge-labels :nodes="nodes" :node-layouts="currentLayouts.nodes" />
-        <!-- <v-edge-labels v-if="overrideEdgeLabels">
-          <template #default="slotProps">
+        <v-edge-labels v-if="overrideEdgeLabels" :nodes="nodes" :node-layouts="currentLayouts.nodes">
+          <template #edge-label="slotProps">
             <slot name="edge-label" v-bind="slotProps" />
           </template>
-        </v-edge-labels> -->
+        </v-edge-labels>
 
         <!-- node selections (focus ring) -->
         <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">

@@ -143,6 +143,11 @@ export interface StrokeStyle {
   animationSpeed: number
 }
 
+export interface EdgeLabelStyle extends LabelStyle {
+  margin: number
+  padding: number
+}
+
 export interface EdgeConfig<E extends Edge = Edge> {
   normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
@@ -155,10 +160,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
     shape: ShapeStyle
     stroke: StrokeStyle
   },
-  label: {
-    margin: number
-    padding: number
-  }
+  label: EdgeLabelStyle
 }
 
 /* Path config */

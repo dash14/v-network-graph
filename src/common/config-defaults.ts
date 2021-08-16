@@ -132,6 +132,9 @@ export function getConfigDefaults(): Configs {
         },
       },
       label: {
+        fontFamily: undefined,
+        fontSize: 11,
+        color: "#000000",
         margin: 4,
         padding: 10,
       },
