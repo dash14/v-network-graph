@@ -61,11 +61,11 @@ export interface Size {
   height: number
 }
 
-interface FixablePosition extends Position {
+export interface FixablePosition extends Position {
   fixed?: boolean
 }
 
-export type NodePositions = { [name: string]: FixablePosition }
+export type NodePositions = Record<string, FixablePosition>
 
 export interface Layouts {
   nodes: NodePositions

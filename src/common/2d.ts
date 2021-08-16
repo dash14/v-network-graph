@@ -161,10 +161,10 @@ export function calculateEdgeLabelArea(
   // margin for edges
   const labelMargin = (edgeStyle.width / 2 + margin) * scale
   const vMargin = V.Vector.fromArray([-normalized.y, normalized.x]).multiplyScalar(labelMargin)
-  let sourceAbove = sv.clone().subtract(vMargin).toObject()
-  let sourceBelow = sv.clone().add(vMargin).toObject()
-  let targetAbove = tv.clone().subtract(vMargin).toObject()
-  let targetBelow = tv.clone().add(vMargin).toObject()
+  let sourceAbove = sv.clone().subtract(vMargin).toObject() as Position
+  let sourceBelow = sv.clone().add(vMargin).toObject() as Position
+  let targetAbove = tv.clone().subtract(vMargin).toObject() as Position
+  let targetBelow = tv.clone().add(vMargin).toObject() as Position
 
   const angle = line.v.angleDeg()
   if (angle < -90 || angle >= 90) {

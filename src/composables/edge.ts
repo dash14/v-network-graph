@@ -7,7 +7,7 @@ import { Edge, Edges, LinePosition, Nodes, Position } from "../common/types"
 // Private type definition
 // -----------------------------------------------------------------------
 
-interface EdgeGroup {
+export interface EdgeGroup {
   edges: Edges
   groupWidth: number
   summarize: boolean
