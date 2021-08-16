@@ -130,6 +130,8 @@ export type Events = {
   "edge:pointerup": EdgePointerEvent
   "edge:pointerdown": EdgePointerEvent
   "edge:click": EdgePointerEvent
+  "edge:pointerover": EdgePointerEvent
+  "edge:pointerout": EdgePointerEvent
   "edge:select": string[]
   "path:click": Path
 }
