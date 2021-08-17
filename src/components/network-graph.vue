@@ -583,7 +583,12 @@ export default defineComponent({
         target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
       }
 
-      return target.outerHTML
+      let data = target.outerHTML
+
+      // cleanup
+      data = data.replaceAll(/ data-v-[0-9a-z]+=""/g, "")
+      data = data.replaceAll(/<!--[\s\S]*?-->/mg, "")
+      return data
     },
   },
 })
