@@ -126,26 +126,4 @@ export function getIntersectionPointOfLines(line1: Line, line2: Line): Vector {
   return p2.add(v2.multiplyScalar(t2))
 }
 
-// export function getIntersectOfLineAndSegment(line: Line, segment: Line) {
-//   // 直線の向きをv1、線分の向きをv2として取得
-//   const v1 = line.v;
-//   const v2 = segment.v;
-
-//   // 直線と線分の外積が0なら平行なので、当たってない判定とする
-//   const cross = v1.clone().cross(v2)
-//   if (Math.abs(cross) < Number.EPSILON) return null
-
-//   // v2をどれだけ伸ばしたら 直線上の点になるかの値を t として tを求める
-//   const v = segment.source.clone().subtract(line.source)
-//   const t = v.cross(v1) / cross
-
-//   // t が 0 ～ 1 の範囲に収まっていなければ当たっていない
-//   if (t < 0 || 1 < t) return null
-
-//   // 衝突点は 半直線の始点に t*v2 を足した場所
-//   return segment.source.clone().add(v2.clone().multiplyScalar(t))
-// }
-
-
-
 export { Vector }

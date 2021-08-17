@@ -32,5 +32,4 @@ export default defineComponent({
     return { edgeStates, edgeGroupStates, layouts }
   }
 })
-
 </script>

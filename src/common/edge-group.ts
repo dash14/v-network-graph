@@ -4,14 +4,8 @@ import { Config, Configs, EdgeConfig } from "./configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
 
 // -----------------------------------------------------------------------
-// Private type definition
+// Type definition
 // -----------------------------------------------------------------------
-
-export interface EdgeGroup {
-  edges: Edges
-  groupWidth: number
-  summarize: boolean
-}
 
 interface EdgeLayoutPoint {
   edge: Edge
@@ -19,17 +13,17 @@ interface EdgeLayoutPoint {
   groupWidth: number
 }
 
+export interface EdgeGroup {
+  edges: Edges
+  groupWidth: number
+  summarize: boolean
+}
+
 export interface EdgeGroupStates {
   edgeLayoutPoints: Record<string, EdgeLayoutPoint>
   edgeGroups: Record<string, EdgeGroup>
   summarizedEdges: Record<string, true>
 }
-
-export type EdgePositionGetter = (
-  edgeId: string,
-  source?: Position,
-  target?: Position
-) => LinePosition
 
 
 // -----------------------------------------------------------------------

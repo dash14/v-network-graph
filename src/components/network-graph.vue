@@ -405,7 +405,7 @@ export default defineComponent({
       emitter
     )
 
-    const { nodeStates, edgeStates } = provideStates(
+    const { nodeStates } = provideStates(
       readonly(props.nodes),
       readonly(props.edges),
       currentSelectedNodes,
@@ -488,7 +488,6 @@ export default defineComponent({
       svgPanZoom,
 
       // properties
-      slots,
       layerDefs,
       isShowGrid,
       isShowBackgroundViewport,
@@ -497,9 +496,7 @@ export default defineComponent({
       overrideEdgeLabels,
       scale,
       nodeStates,
-      edgeStates,
       currentSelectedNodes,
-      currentSelectedEdges,
       dragging,
       currentLayouts,
       visibleNodeFocusRing,

@@ -4,14 +4,14 @@ import { computed, ComputedRef, reactive, Ref, unref, UnwrapRef, watch } from "v
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "../common/common"
 import { Config, Configs, EdgeConfig, NodeConfig } from "../common/configs"
-import { AnyShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
+import { ShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
 import { Edge, Edges, Layouts, LinePosition, Node, NodePositions, Nodes } from "../common/types"
 import { EdgeGroupStates, makeEdgeGroupStates, calculateEdgePosition } from "../common/edge-group"
 
 export type { EdgeGroupStates }
 
 interface NodeStateDatum {
-  shape: Ref<AnyShapeStyle>
+  shape: Ref<ShapeStyle>
   label: Ref<NodeLabelStyle>
   labelText: Ref<string>
   selected: boolean
