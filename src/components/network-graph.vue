@@ -323,13 +323,14 @@ export default defineComponent({
       applyAbsoluteZoomLevel(initialZoomLevel)
     })
 
-    // 中心位置や拡大率の認識がずれることがあるための対処
+    // To resolve the problem that the center position and
+    // magnification rate may not be recognized.
     const updateBorderBox = (callback: () => void) => {
       svgPanZoom.value?.updateBBox()
       nextTick(callback)
     }
 
-    // SVG 領域にコンテンツの内容がfitするように拡大・縮小する
+    // Scales the content to fit in the SVG area.
     const fitToContents = () => {
       updateBorderBox(() => {
         svgPanZoom.value?.fitToContents()
@@ -337,7 +338,7 @@ export default defineComponent({
       })
     }
 
-    // SVG 領域の中央にコンテンツを配置する
+    // Place content in the center of the SVG area.
     const panToCenter = () => {
       updateBorderBox(() => {
         svgPanZoom.value?.center()

@@ -51,7 +51,7 @@ const methods: Partial<SvgPanZoomInternal> = {
   fitToContents(this: SvgPanZoomInternal) {
     this.fit()
       .center()
-      .zoomOut() // 2段階ズームアウトしたサイズとする
+      .zoomOut() // Zoom out two steps.
       .zoomOut()
     return this
   },

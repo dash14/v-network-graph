@@ -61,8 +61,15 @@ export function isPointContainedInCircle(
 }
 
 
-// 角丸四角形に触れないようにするための距離を取得する
-
+/**
+ * Get the distance that a line should be away from the
+ * edge to avoid contacting a rounded rectangle.
+ * @param sourcePos source position of the line
+ * @param targetPos target position of the line
+ * @param rect rectangle style
+ * @param scale scale factor
+ * @returns distance from target position
+ */
 function calculateDistanceToAvoidOverlapsWithRect(
   sourcePos: Position,
   targetPos: Position, // 対象角丸四角形の位置
@@ -77,8 +84,10 @@ function calculateDistanceToAvoidOverlapsWithRect(
   const vertexes = []
   const borderRadius = rect.borderRadius * scale
 
+  // Calculate the nearest neighbor points of the vertices
+  // and lines of a figure.
   if (borderRadius == 0) {
-    // 矩形の頂点と直線との最近傍点を算出する
+    // Since it is a simple rectangle, the four corners are the vertices.
     vertexes.push(
       V.Vector.fromArray([left, top]),
       V.Vector.fromArray([left, bottom]),
@@ -86,7 +95,8 @@ function calculateDistanceToAvoidOverlapsWithRect(
       V.Vector.fromArray([right, bottom]),
     )
   } else {
-    // 四隅と角丸ではない直線部分の頂点と、直線との最近傍点を算出する
+    // The edge of each line and the center of the rounded corner are
+    // the vertices.
     const hypo = borderRadius * Math.sin(Math.PI / 4) // 45deg
     vertexes.push(
       V.Vector.fromArray([left + borderRadius, top]),
@@ -108,6 +118,19 @@ function calculateDistanceToAvoidOverlapsWithRect(
   return V.toLineVector(minP, centerLine.target).length()
 }
 
+/**
+ * Calculate the position to display the edge label from the
+ * positions of the edge.
+ * @param linePos position of the line
+ * @param edgeStyle stroke style of edges
+ * @param sourceNodePos position of the source node
+ * @param targetNodePos position of the target node
+ * @param sourceNodeShape shape style of the source node
+ * @param targetNodeShape shape style of the target node
+ * @param margin margin from line
+ * @param scale scale factor
+ * @returns edge label display area
+ */
 export function calculateEdgeLabelArea(
   linePos: LinePosition,
   edgeStyle: StrokeStyle,
@@ -167,7 +190,7 @@ export function calculateEdgeLabelArea(
 
   const angle = line.v.angleDeg()
   if (angle < -90 || angle >= 90) {
-    // 上下逆転
+    // upside down
     [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove];
     [targetAbove, targetBelow] = [targetBelow, targetAbove]
   }

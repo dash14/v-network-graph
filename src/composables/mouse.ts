@@ -1,4 +1,4 @@
-// 選択状態とマウス操作を担当する機能
+// Module responsible for selection state and mouse/touch operations
 
 import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } from "vue"
 import { Emitter } from "mitt"

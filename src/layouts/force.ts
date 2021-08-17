@@ -177,8 +177,8 @@ export class ForceLayout implements LayoutHandler {
   }
 
   private forceLayoutEdges(edges: Edges): ForceEdgeDatum[] {
-    // d3-forceによってedge内のsource/targetがNodeDatumオブジェクトに
-    // 置き換えられてしまうため、独自のリンクオブジェクトを構築する.
+    // d3-force replaces the source/target in the edge with NodeDatum
+    // objects, so build own link objects.
     return Object.values(edges).map(v => ({
       source: v.source,
       target: v.target,

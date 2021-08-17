@@ -41,7 +41,8 @@ export default defineComponent({
     const config = useEdgeConfig()
     const { edgeStates } = useStates()
 
-    // 指定されたedgesは同一ペアのため、最初の1つを取得して描画する
+    // Since the specified edges are in the same pair,
+    // get the first one and draw it.
     const pos = ref({ x1: 0, y1: 0, x2: 0, y2: 0 })
     const centerPos = ref({ x: 0, y: 0 })
 

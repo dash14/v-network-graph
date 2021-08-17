@@ -2,6 +2,10 @@ import { NodeLabelDirection, Configs, withSelf, Config, UserConfigs } from "./co
 import { SimpleLayout } from "../layouts/simple"
 import merge from "lodash-es/merge"
 
+/**
+ * Get all default configs.
+ * @returns configs
+ */
 export function getConfigDefaults(): Configs {
   return {
     view: {
