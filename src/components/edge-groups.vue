@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import { useStates } from "../composables/state"
+import VEdge from "./edge.vue"
+import VEdgeSummarized from "./edge-summarized.vue"
+
+const { edgeStates, edgeGroupStates, layouts } = useStates()
+
+defineExpose({ edgeStates, edgeGroupStates, layouts })
+</script>
+
 <template>
   <template v-for="({ summarize, edges }, key) in edgeGroupStates.edgeGroups">
     <template v-if="summarize">
@@ -17,19 +27,3 @@
     </template>
   </template>
 </template>
-
-<script lang="ts">
-import { defineComponent } from "vue"
-import { useStates } from "../composables/state"
-import VEdge from "./edge.vue"
-import VEdgeSummarized from "./edge-summarized.vue"
-
-export default defineComponent({
-  components: { VEdge, VEdgeSummarized },
-  setup() {
-    const { edgeStates, edgeGroupStates, layouts } = useStates()
-
-    return { edgeStates, edgeGroupStates, layouts }
-  }
-})
-</script>

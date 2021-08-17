@@ -1,3 +1,135 @@
+<script setup lang="ts">
+import { onMounted, ref, watchEffect } from "vue"
+import { useZoomLevel } from "../composables/zoom"
+import { useContainers } from "../composables/container"
+import { useEventEmitter } from "../composables/event-emitter"
+import { Point, Size } from "../common/types"
+import { useViewConfig } from "../composables/config"
+
+// [index, pos, start, end, attrs][]
+type LineDefinitions = [number, number, number, number, Record<string, any>][]
+
+const { emitter } = useEventEmitter()
+const { container, svgPanZoom } = useContainers()
+const { scale } = useZoomLevel()
+const config = useViewConfig()
+
+// left-top point in SVG coordinates
+const basePoint = ref<Point>({ x: 0, y: 0 })
+
+// container size in pixel
+const viewport = ref<Size>({ width: 500, height: 500 })
+
+onMounted(() => {
+  const pan = svgPanZoom.value?.getPan()
+  if (pan) {
+    basePoint.value = {
+      x: -pan.x,
+      y: -pan.y,
+    }
+  }
+  const rect = container.value.getBoundingClientRect()
+  viewport.value = {
+    width: rect.width,
+    height: rect.height,
+  }
+})
+
+emitter.on("view:resize", rect => {
+  viewport.value = { width: rect.width, height: rect.height }
+})
+
+emitter.on("view:pan", pan => {
+  basePoint.value = { x: -pan.x, y: -pan.y }
+})
+
+emitter.on("view:zoom", () => {
+  const pan = svgPanZoom.value?.getPan()
+  if (pan) {
+    basePoint.value = { x: -pan.x, y: -pan.y }
+  }
+})
+
+const thickVerticals = ref<LineDefinitions>([])
+const thickHorizontals = ref<LineDefinitions>([])
+const normalVerticals = ref<LineDefinitions>([])
+const normalHorizontals = ref<LineDefinitions>([])
+
+// make grid lines
+watchEffect(() => {
+  const thickH: LineDefinitions = []
+  const thickV: LineDefinitions = []
+  const normalH: LineDefinitions = []
+  const normalV: LineDefinitions = []
+
+  const s = scale.value
+  const gi = config.grid.interval
+  const x = basePoint.value.x * s
+  const y = basePoint.value.y * s
+  const width = Math.floor(viewport.value.width / gi + 1) * gi
+  const height = Math.floor(viewport.value.height / gi + 1) * gi
+  const maxWidth = (basePoint.value.x + width) * s
+  const maxHeight = (basePoint.value.y + height) * s
+  const inc = config.grid.thickIncrements // interval to make the line thicker
+  const normalDasharray = config.grid.line.strokeDasharray
+  const thickDasharray = config.grid.thick.strokeDasharray
+
+  let thickAttrs = {
+    stroke: config.grid.thick.color,
+    "stroke-width": config.grid.thick.strokeWidth,
+    "stroke-dasharray": thickDasharray,
+    "stroke-dashoffset": thickDasharray ? x / s : undefined
+  }
+
+  let normalAttrs = {
+    stroke: config.grid.line.color,
+    "stroke-width": config.grid.line.strokeWidth,
+    "stroke-dasharray": normalDasharray,
+    "stroke-dashoffset": normalDasharray ? x / s : undefined
+  }
+
+  // horizontal lines
+  const w = (basePoint.value.x + width) * s
+  for (let i = y; i <= maxHeight; i += gi) {
+    const index = Math.floor(i / gi)
+    if (inc && index % inc === 0) {
+      thickH.push([index, index * gi, x, w, thickAttrs])
+    } else {
+      normalH.push([index, index * gi, x, w, normalAttrs])
+    }
+  }
+
+  thickAttrs = { ...thickAttrs }
+  thickAttrs["stroke-dashoffset"] = thickDasharray ? y / s : undefined
+
+  normalAttrs = { ...normalAttrs }
+  normalAttrs["stroke-dashoffset"] = normalDasharray ? y / s : undefined
+
+  // vertical lines
+  const h = (basePoint.value.y + height) * s
+  for (let i = x; i <= maxWidth; i += gi) {
+    const index = Math.floor(i / gi)
+    if (inc && index % inc === 0) {
+      thickV.push([index, index * gi, y, h, thickAttrs])
+    } else {
+      normalV.push([index, index * gi, y, h, normalAttrs])
+    }
+  }
+
+  thickHorizontals.value = thickH
+  thickVerticals.value = thickV
+  normalHorizontals.value = normalH
+  normalVerticals.value = normalV
+})
+
+defineExpose({
+  thickVerticals,
+  thickHorizontals,
+  normalVerticals,
+  normalHorizontals,
+})
+</script>
+  
 <template>
   <g class="v-background-grid" shape-rendering="crispEdges">
     <!-- normal -->
@@ -32,142 +164,6 @@
     />
   </g>
 </template>
-
-<script lang="ts">
-import { defineComponent, onMounted, ref, watchEffect } from "vue"
-import { useZoomLevel } from "../composables/zoom"
-import { useContainers } from "../composables/container"
-import { useEventEmitter } from "../composables/event-emitter"
-import { Point, Size } from "../common/types"
-import { useViewConfig } from "../composables/config"
-
-// [index, pos, start, end, attrs][]
-type LineDefinitions = [number, number, number, number, Record<string, any>][]
-
-export default defineComponent({
-  setup() {
-    const { emitter } = useEventEmitter()
-    const { container, svgPanZoom } = useContainers()
-    const { scale } = useZoomLevel()
-    const config = useViewConfig()
-
-    // left-top point in SVG coordinates
-    const basePoint = ref<Point>({ x: 0, y: 0 })
-
-    // container size in pixel
-    const viewport = ref<Size>({ width: 500, height: 500 })
-
-    onMounted(() => {
-      const pan = svgPanZoom.value?.getPan()
-      if (pan) {
-        basePoint.value = {
-          x: -pan.x,
-          y: -pan.y,
-        }
-      }
-      const rect = container.value.getBoundingClientRect()
-      viewport.value = {
-        width: rect.width,
-        height: rect.height,
-      }
-    })
-
-    emitter.on("view:resize", rect => {
-      viewport.value = { width: rect.width, height: rect.height }
-    })
-
-    emitter.on("view:pan", pan => {
-      basePoint.value = { x: -pan.x, y: -pan.y }
-    })
-
-    emitter.on("view:zoom", () => {
-      const pan = svgPanZoom.value?.getPan()
-      if (pan) {
-        basePoint.value = { x: -pan.x, y: -pan.y }
-      }
-    })
-
-    const thickVerticals = ref<LineDefinitions>([])
-    const thickHorizontals = ref<LineDefinitions>([])
-    const normalVerticals = ref<LineDefinitions>([])
-    const normalHorizontals = ref<LineDefinitions>([])
-
-    // make grid lines
-    watchEffect(() => {
-      const thickH: LineDefinitions = []
-      const thickV: LineDefinitions = []
-      const normalH: LineDefinitions = []
-      const normalV: LineDefinitions = []
-
-      const s = scale.value
-      const gi = config.grid.interval
-      const x = basePoint.value.x * s
-      const y = basePoint.value.y * s
-      const width = Math.floor(viewport.value.width / gi + 1) * gi
-      const height = Math.floor(viewport.value.height / gi + 1) * gi
-      const maxWidth = (basePoint.value.x + width) * s
-      const maxHeight = (basePoint.value.y + height) * s
-      const inc = config.grid.thickIncrements // interval to make the line thicker
-      const normalDasharray = config.grid.line.strokeDasharray
-      const thickDasharray = config.grid.thick.strokeDasharray
-
-      let thickAttrs = {
-        stroke: config.grid.thick.color,
-        "stroke-width": config.grid.thick.strokeWidth,
-        "stroke-dasharray": thickDasharray,
-        "stroke-dashoffset": thickDasharray ? x / s : undefined
-      }
-
-      let normalAttrs = {
-        stroke: config.grid.line.color,
-        "stroke-width": config.grid.line.strokeWidth,
-        "stroke-dasharray": normalDasharray,
-        "stroke-dashoffset": normalDasharray ? x / s : undefined
-      }
-
-      // horizontal lines
-      const w = (basePoint.value.x + width) * s
-      for (let i = y; i <= maxHeight; i += gi) {
-        const index = Math.floor(i / gi)
-        if (inc && index % inc === 0) {
-          thickH.push([index, index * gi, x, w, thickAttrs])
-        } else {
-          normalH.push([index, index * gi, x, w, normalAttrs])
-        }
-      }
-
-      thickAttrs = { ...thickAttrs }
-      thickAttrs["stroke-dashoffset"] = thickDasharray ? y / s : undefined
-
-      normalAttrs = { ...normalAttrs }
-      normalAttrs["stroke-dashoffset"] = normalDasharray ? y / s : undefined
-
-      // vertical lines
-      const h = (basePoint.value.y + height) * s
-      for (let i = x; i <= maxWidth; i += gi) {
-        const index = Math.floor(i / gi)
-        if (inc && index % inc === 0) {
-          thickV.push([index, index * gi, y, h, thickAttrs])
-        } else {
-          normalV.push([index, index * gi, y, h, normalAttrs])
-        }
-      }
-
-      thickHorizontals.value = thickH
-      thickVerticals.value = thickV
-      normalHorizontals.value = normalH
-      normalVerticals.value = normalV
-    })
-
-    return {
-      thickVerticals,
-      thickHorizontals,
-      normalVerticals,
-      normalHorizontals,
-    }
-  },
-})
-</script>
 
 <style>
 .v-background-grid {
