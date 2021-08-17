@@ -792,7 +792,7 @@ export default /*#__PURE__*/ defineComponent({
 
     return {
       graph,
-      configs,
+      configs: configs as any,  // To avoid type checking errors in <template>
       layouts,
       layoutType,
       layoutsText,
