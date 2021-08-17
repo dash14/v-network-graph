@@ -1,3 +1,50 @@
+<script setup lang="ts">
+import { computed, PropType } from "vue"
+import { StrokeStyle } from "../common/configs"
+import { useZoomLevel } from "../composables/zoom"
+import { applyScaleToDasharray } from "../common/utility"
+
+const props = defineProps({
+  x1: {
+    type: Number,
+    required: true
+  },
+  y1: {
+    type: Number,
+    required: true
+  },
+  x2: {
+    type: Number,
+    required: true
+  },
+  y2: {
+    type: Number,
+    required: true
+  },
+  config: {
+    type: Object as PropType<StrokeStyle>,
+    required: true,
+  },
+})
+
+const { scale } = useZoomLevel()
+
+const strokeWidth = computed(() => {
+  return props.config.width * scale.value
+})
+
+const strokeDasharray = computed(() => {
+  return applyScaleToDasharray(props.config.dasharray, scale.value)
+})
+
+const animationSpeed = computed(() => {
+  const speed = props.config.animate ? props.config.animationSpeed * scale.value : false
+  return speed ? `--animation-speed:${speed}` : undefined
+})
+
+defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
+</script>
+
 <template>
   <path
     :class="{ 'v-line': true, animate: config.animate }"
@@ -9,56 +56,6 @@
     :style="animationSpeed"
   />
 </template>
-
-<script lang="ts">
-import { computed, defineComponent, PropType } from "vue"
-import { StrokeStyle } from "../common/configs"
-import { useZoomLevel } from "../composables/zoom"
-import { applyScaleToDasharray } from "../common/utility"
-
-export default defineComponent({
-  props: {
-    x1: {
-      type: Number,
-      required: true
-    },
-    y1: {
-      type: Number,
-      required: true
-    },
-    x2: {
-      type: Number,
-      required: true
-    },
-    y2: {
-      type: Number,
-      required: true
-    },
-    config: {
-      type: Object as PropType<StrokeStyle>,
-      required: true,
-    },
-  },
-  setup(props) {
-    const { scale } = useZoomLevel()
-
-    const strokeWidth = computed(() => {
-      return props.config.width * scale.value
-    })
-
-    const strokeDasharray = computed(() => {
-      return applyScaleToDasharray(props.config.dasharray, scale.value)
-    })
-
-    const animationSpeed = computed(() => {
-      const speed = props.config.animate ? props.config.animationSpeed * scale.value : false
-      return speed ? `--animation-speed:${speed}` : undefined
-    })
-
-    return { strokeWidth, strokeDasharray, animationSpeed }
-  },
-})
-</script>
 
 <style scoped>
 .v-line.animate {

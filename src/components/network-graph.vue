@@ -565,24 +565,30 @@ export default defineComponent({
 
       if (viewport) {
         const box = viewport.getBBox()
+        const z = this.zoomLevel
         const svg = {
-          x: Math.floor(box.x) - 10,
-          y: Math.floor(box.y) - 10,
-          width: Math.ceil(box.width) + 20,
-          height: Math.ceil(box.height) + 20,
+          x: Math.floor((box.x - 10) * z),
+          y: Math.floor((box.y - 10) * z),
+          width: Math.ceil((box.width + 20) * z),
+          height: Math.ceil((box.height + 20) * z),
         }
-        target.setAttribute("width", svg.width.toString())
+        target.setAttribute("width",  svg.width.toString())
         target.setAttribute("height", svg.height.toString())
 
         const v = viewport.cloneNode(true) as SVGGElement
-        v.setAttribute("transform", `translate(${-svg.x} ${-svg.y})`)
+        v.setAttribute("transform", `translate(${-svg.x} ${-svg.y}), scale(${z})`)
         v.removeAttribute("style")
         target.appendChild(v)
 
         target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
       }
 
-      return target.outerHTML
+      let data = target.outerHTML
+
+      // cleanup
+      data = data.replaceAll(/ data-v-[0-9a-z]+=""/g, "")
+      data = data.replaceAll(/<!--[\s\S]*?-->/mg, "")
+      return data
     },
   },
 })

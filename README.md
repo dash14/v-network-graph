@@ -10,6 +10,12 @@ An interactive SVG based network-graph visualization component for Vue 3.
 
 [Live examples](https://dash14.github.io/v-network-graph/examples/)
 
+
+[![Version](https://img.shields.io/npm/v/v-network-graph.svg)](https://www.npmjs.com/package/v-network-graph)
+![GitHub package.json dependency version](https://img.shields.io/github/package-json/dependency-version/dash14/v-network-graph/dev/@vue/compiler-sfc?label=Vue)
+[![License](https://img.shields.io/npm/l/v-network-graph.svg)](https://www.npmjs.com/package/v-network-graph)
+
+
 ## Features
 
 * Create a graph according your reactive data dynamically

@@ -1,18 +1,5 @@
-<template>
-  <g class="v-paths">
-    <v-path-line
-      v-for="(path, i) in pathList"
-      :key="i"
-      :points="calcPathPoints(path)"
-      :class="{ clickable: pathConfig.clickable }"
-      :path="path.path"
-      @click.prevent.stop="emitPathClicked(path.path)"
-    />
-  </g>
-</template>
-
-<script lang="ts">
-import { computed, defineComponent, PropType } from "vue"
+<script setup lang="ts">
+import { computed, PropType } from "vue"
 import { Edge, Edges, LinePosition, NodePositions, Position } from "../common/types"
 import { Path, Paths, PositionOrCurve } from "../common/types"
 import { EdgeStates, NodeStates, useStates, EdgeGroupStates } from "../composables/state"
@@ -34,7 +21,61 @@ interface PathObject {
   edges: EdgeObject[]
 }
 
+interface EdgePosition {
+  edgeId: string
+  source: Position
+  target: Position
+}
+
 const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
+
+const props = defineProps({
+  paths: {
+    type: Array as PropType<Paths>,
+    required: true,
+  },
+  edges: {
+    type: Object as PropType<Edges>,
+    required: true,
+  },
+})
+
+const pathConfig = usePathConfig()
+const { nodeStates, edgeStates, edgeGroupStates, layouts } = useStates()
+const { scale } = useZoomLevel()
+const { emitter } = useEventEmitter()
+
+const pathList = computed(() => {
+  const list: PathObject[] = []
+  for (const path of props.paths) {
+    const edges = path.edges
+      .map(edgeId => ({ edgeId, edge: props.edges[edgeId] }))
+      .filter(e => e.edge)
+    if (edges.length !== path.edges.length) {
+      continue // reject a path includes unknown edge ID
+    }
+    list.push({ path, edges })
+  }
+  return list
+})
+
+const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
+  if (path.edges.length === 0) return []
+  return calculatePathPoints(
+    path,
+    nodeStates,
+    layouts.nodes,
+    edgeStates,
+    edgeGroupStates,
+    scale.value,
+    pathConfig.curveInNode
+  )
+})
+
+const emitPathClicked = (path: Path) => {
+  if (!pathConfig.clickable) return
+  emitter.emit("path:click", path)
+}
 
 function getNodeRadius(shape: AnyShapeStyle) {
   if (shape.type == "circle") {
@@ -185,66 +226,6 @@ function calculatePathPoints(
   return points
 }
 
-export default defineComponent({
-  components: { VPathLine },
-  props: {
-    paths: {
-      type: Array as PropType<Paths>,
-      required: true,
-    },
-    edges: {
-      type: Object as PropType<Edges>,
-      required: true,
-    },
-  },
-  setup(props) {
-    const pathConfig = usePathConfig()
-    const { nodeStates, edgeStates, edgeGroupStates, layouts } = useStates()
-    const { scale } = useZoomLevel()
-    const { emitter } = useEventEmitter()
-
-    const pathList = computed(() => {
-      const list: PathObject[] = []
-      for (const path of props.paths) {
-        const edges = path.edges
-          .map(edgeId => ({ edgeId, edge: props.edges[edgeId] }))
-          .filter(e => e.edge)
-        if (edges.length !== path.edges.length) {
-          continue // reject a path includes unknown edge ID
-        }
-        list.push({ path, edges })
-      }
-      return list
-    })
-
-    const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
-      if (path.edges.length === 0) return []
-      return calculatePathPoints(
-        path,
-        nodeStates,
-        layouts.nodes,
-        edgeStates,
-        edgeGroupStates,
-        scale.value,
-        pathConfig.curveInNode
-      )
-    })
-
-    const emitPathClicked = (path: Path) => {
-      if (!pathConfig.clickable) return
-      emitter.emit("path:click", path)
-    }
-
-    return { pathConfig, pathList, calcPathPoints, emitPathClicked }
-  },
-})
-
-interface EdgePosition {
-  edgeId: string
-  source: Position
-  target: Position
-}
-
 function getEdgePositions(
   edgeId: string,
   positions: LinePosition,
@@ -270,7 +251,22 @@ function getEdgePositions(
 function getSlope(pos: EdgePosition) {
   return (pos.target.y - pos.source.y) / (pos.target.x - pos.source.x)
 }
+
+defineExpose({ pathConfig, pathList, calcPathPoints, emitPathClicked })
 </script>
+
+<template>
+  <g class="v-paths">
+    <v-path-line
+      v-for="(path, i) in pathList"
+      :key="i"
+      :points="calcPathPoints(path)"
+      :class="{ clickable: pathConfig.clickable }"
+      :path="path.path"
+      @click.prevent.stop="emitPathClicked(path.path)"
+    />
+  </g>
+</template>
 
 <style lang="scss" scoped>
 .v-path-line {
