@@ -63,6 +63,15 @@ export function getConfigDefaults(): Configs {
         fontSize: 11,
         color: "#000000",
         background: undefined,
+        // background: {
+        //   visible: true,
+        //   color: "#ffffff",
+        //   padding: {
+        //     vertical: 1,
+        //     horizontal: 4,
+        //   },
+        //   borderRadius: 2
+        // },
         margin: 4,
         direction: NodeLabelDirection.SOUTH,
         text: "name",
