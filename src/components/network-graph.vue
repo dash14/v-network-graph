@@ -121,6 +121,8 @@ import VBackgroundViewport from "./background-viewport.vue"
 import VBackgroundGrid from "./background-grid.vue"
 import VPaths from "./paths.vue"
 
+const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label"]
+
 export default defineComponent({
   components: {
     VNode,
@@ -191,8 +193,7 @@ export default defineComponent({
     // Additional layers
     const layerDefs = computed(() => {
       const definedSlots = new Set(Object.keys(slots))
-      definedSlots.delete("override-node") // used by node component
-      definedSlots.delete("override-node-label") // used by node component
+      SYSTEM_SLOTS.forEach(s => definedSlots.delete(s))
 
       const layers = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
       Object.assign(
