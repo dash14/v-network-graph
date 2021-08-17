@@ -15,6 +15,9 @@ export class Config {
   }
 
   static values<V, T>(value: CallableValues<V, T>, target: T): V {
+    if (Object.values(value).filter(v => v instanceof Function).length === 0) {
+      return value as V  // all config are literals
+    }
     return Object.fromEntries(
       Object.entries(value).map(([k, v]) => [k, v instanceof Function ? v(target) : v])
     ) as V
@@ -87,10 +90,22 @@ export type AnyShapeStyle = CircleShapeStyle | RectangleShapeStyle
 
 /* Label style */
 
+interface Padding {
+  vertical: number
+  horizontal: number
+}
+export interface LabelBackgroundStyle {
+  visible: boolean
+  color?: string,
+  padding?: number | Padding,
+  borderRadius?: number
+}
+
 export interface LabelStyle {
   fontFamily?: string
   fontSize: number
   color: string
+  background?: LabelBackgroundStyle
 }
 
 /* Node style */
@@ -143,6 +158,10 @@ export interface StrokeStyle {
   animationSpeed: number
 }
 
+export interface EdgeLabelStyle extends LabelStyle {
+  margin: number
+}
+
 export interface EdgeConfig<E extends Edge = Edge> {
   normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
@@ -154,7 +173,8 @@ export interface EdgeConfig<E extends Edge = Edge> {
     label: LabelStyle
     shape: ShapeStyle
     stroke: StrokeStyle
-  }
+  },
+  label: EdgeLabelStyle
 }
 
 /* Path config */

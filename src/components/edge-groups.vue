@@ -1,45 +1,35 @@
 <template>
-  <template v-for="({ summarize, edges }, key) in state.edgeGroups">
+  <template v-for="({ summarize, edges }, key) in edgeGroupStates.edgeGroups">
     <template v-if="summarize">
-      <v-summarized-edge
+      <v-edge-summarized
         :key="key"
         :edges="edges"
-        :layouts="nodeLayouts"
+        :layouts="layouts.nodes"
       />
     </template>
     <template v-for="(edge, id) in edges" v-else :key="id">
       <v-edge
         :id="id"
-        :edge="edge"
-        :source-pos="nodeLayouts[edge.source]"
-        :target-pos="nodeLayouts[edge.target]"
-        :selected="selectedEdges.has(id.toString())"
+        :state="edgeStates[id]"
+        :source-pos="layouts.nodes[edge.source]"
+        :target-pos="layouts.nodes[edge.target]"
       />
     </template>
   </template>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue"
-import { useEdgePositions } from "../composables/edge"
-import { useMouseOperation } from "../composables/mouse"
-import { NodePositions } from "../common/types"
+import { defineComponent } from "vue"
+import { useStates } from "../composables/state"
 import VEdge from "./edge.vue"
-import VSummarizedEdge from "./summarized-edge.vue"
+import VEdgeSummarized from "./edge-summarized.vue"
 
 export default defineComponent({
-  components: { VEdge, VSummarizedEdge },
-  props: {
-    nodeLayouts: {
-      type: Object as PropType<NodePositions>,
-      required: true
-    }
-  },
+  components: { VEdge, VEdgeSummarized },
   setup() {
-    const { state } = useEdgePositions()
-    const { selectedEdges } = useMouseOperation()
+    const { edgeStates, edgeGroupStates, layouts } = useStates()
 
-    return { state, selectedEdges }
+    return { edgeStates, edgeGroupStates, layouts }
   }
 })
 

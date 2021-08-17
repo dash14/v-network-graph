@@ -45,9 +45,9 @@ export function getConfigDefaults(): Configs {
       },
       hover: {
         type: node => Config.value(self.normal.type, node) as any,
-        radius: node => Config.value(self.normal.radius, node) ?? 0 + 2,
-        width: node => Config.value(self.normal.width, node) ?? 0 + 2,
-        height: node => Config.value(self.normal.height, node) ?? 0 + 2,
+        radius: node => (Config.value(self.normal.radius, node) ?? 0) + 2,
+        width: node => (Config.value(self.normal.width, node) ?? 0) + 2,
+        height: node => (Config.value(self.normal.height, node) ?? 0) + 2,
         borderRadius: node => Config.value(self.normal.borderRadius, node) ?? 0,
         strokeWidth: node => Config.value(self.normal.strokeWidth, node),
         strokeColor: node => Config.value(self.normal.strokeColor, node),
@@ -62,6 +62,16 @@ export function getConfigDefaults(): Configs {
         fontFamily: undefined,
         fontSize: 11,
         color: "#000000",
+        background: undefined,
+        // background: {
+        //   visible: true,
+        //   color: "#ffffff",
+        //   padding: {
+        //     vertical: 1,
+        //     horizontal: 4,
+        //   },
+        //   borderRadius: 2
+        // },
         margin: 4,
         direction: NodeLabelDirection.SOUTH,
         text: "name",
@@ -130,6 +140,22 @@ export function getConfigDefaults(): Configs {
           animate: false,
           animationSpeed: 100,
         },
+      },
+      label: {
+        fontFamily: undefined,
+        fontSize: 11,
+        color: "#000000",
+        background: undefined,
+        // background: {
+        //   visible: true,
+        //   color: "#ffffff",
+        //   padding: {
+        //     vertical: 1,
+        //     horizontal: 4,
+        //   },
+        //   borderRadius: 2
+        // },
+        margin: 4,
       },
     })),
     path: {

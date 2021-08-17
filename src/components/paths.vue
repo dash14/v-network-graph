@@ -13,13 +13,13 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue"
-import { Edge, Edges, LinePosition, NodePositions, Nodes, Position } from "../common/types"
+import { Edge, Edges, LinePosition, NodePositions, Position } from "../common/types"
 import { Path, Paths, PositionOrCurve } from "../common/types"
-import { useNodeConfig, usePathConfig } from "../composables/style"
-import { EdgeGroupState, EdgePositionGetter, useEdgePositions } from "../composables/edge"
+import { EdgeStates, NodeStates, useStates, EdgeGroupStates } from "../composables/state"
+import { usePathConfig } from "../composables/config"
 import { useZoomLevel } from "../composables/zoom"
 import { useEventEmitter } from "../composables/event-emitter"
-import { Config, NodeConfig } from "../common/configs"
+import { AnyShapeStyle } from "../common/configs"
 import * as v2d from "../common/2d"
 import VPathLine from "./path-line.vue"
 import isEqual from "lodash-es/isEqual"
@@ -36,35 +36,25 @@ interface PathObject {
 
 const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
 
-function getNodeRadius(node: string, nodes: Nodes, nodeConfig: NodeConfig) {
-  const nodeObject = nodes[node]
-  const shapeType = Config.value(nodeConfig.normal.type, nodes[node])
-  let radius: number
-  if (shapeType == "circle") {
-    radius = Config.value(nodeConfig.normal.radius, nodeObject)
+function getNodeRadius(shape: AnyShapeStyle) {
+  if (shape.type == "circle") {
+    return shape.radius
   } else {
-    radius = Math.min(
-      Config.value(nodeConfig.normal.width, nodeObject),
-      Config.value(nodeConfig.normal.height, nodeObject)
-    )
+    return Math.min(shape.width, shape.height) / 2
   }
-  return radius
 }
 
 function calculatePathPoints(
   path: PathObject,
-  nodes: Nodes,
+  nodeStates: NodeStates,
   nodeLayouts: NodePositions,
-  nodeConfig: NodeConfig,
-  state: EdgeGroupState,
-  edgePositions: EdgePositionGetter,
+  edgeStates: EdgeStates,
+  edgeGroupStates: EdgeGroupStates,
   scale: number,
   curveInNode: boolean
 ): PositionOrCurve[] {
   // Edge ID list -> List of Edge locations
-  const edgePos = path.edges.map(({ edgeId, edge }) =>
-    edgePositions(edgeId, nodeLayouts[edge.source], nodeLayouts[edge.target])
-  )
+  const edgePos = path.edges.map(({ edgeId }) => edgeStates[edgeId].position)
 
   // The relationship between the source/target of a link and the connection
   // by path can be different.
@@ -113,19 +103,19 @@ function calculatePathPoints(
     }
 
     const nodePos = nodeLayouts[node] ?? { x: 0, y: 0 }
-    const radius = getNodeRadius(node, nodes, nodeConfig)
+    const radius = getNodeRadius(nodeStates[node].shape)
 
     if (
-      (state.edgeLayoutPoints[prev.edgeId]?.groupWidth ?? 0) == 0 &&
-      (state.edgeLayoutPoints[next.edgeId]?.groupWidth ?? 0) == 0
+      (edgeGroupStates.edgeLayoutPoints[prev.edgeId]?.groupWidth ?? 0) == 0 &&
+      (edgeGroupStates.edgeLayoutPoints[next.edgeId]?.groupWidth ?? 0) == 0
     ) {
       // If there is one edge in both sections:
       if (curveInNode) {
         // Make the curve with the center of the node as the control point.
         const r = radius * scale
         // Intersection of a line and the circumference of a circle
-        const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-        const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+        const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+        const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
         points.push(cp1)
         points.push([nodePos, nodePos, cp2])
       } else {
@@ -141,8 +131,8 @@ function calculatePathPoints(
     ) {
       // For parallel lines, connect the end points of the lines.
       const r = Math.max(radius * (2 / 3), radius - 4) * scale
-      const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-      const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+      const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+      const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
       if (curveInNode) {
         points.push(cp1)
         points.push([prev.target, next.source, cp2])
@@ -154,8 +144,8 @@ function calculatePathPoints(
       if (curveInNode) {
         const r = radius * scale
         // Intersection of a line and the circumference of a circle
-        const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-        const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+        const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+        const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
 
         // Is the intersection of the two lines contained in the circle?
         let cp = v2d.getIntersectionPointOfLines(prev, next)
@@ -165,7 +155,7 @@ function calculatePathPoints(
           // the center of the circle, and the circumference of the circle
           // (with a radius of 2/3) is the control point of the curve.
           const line = { source: cp, target: nodePos }
-          cp = v2d.getIntersectPointLineAndCircle(line, true, nodePos, r * (2 / 3)) ?? nodePos
+          cp = v2d.getIntersectionOfLineAndCircle(line, true, nodePos, r * (2 / 3)) ?? nodePos
         }
         points.push(cp1)
         points.push([cp, cp, cp2])
@@ -179,8 +169,8 @@ function calculatePathPoints(
         if (v2d.isPointContainedInCircle(cp, nodePos, r)) {
           points.push(cp)
         } else {
-          const cp1 = v2d.getIntersectPointLineAndCircle(prev, true, nodePos, r) ?? prev.target
-          const cp2 = v2d.getIntersectPointLineAndCircle(next, false, nodePos, r) ?? next.source
+          const cp1 = v2d.getIntersectionOfLineAndCircle(prev, true, nodePos, r) ?? prev.target
+          const cp2 = v2d.getIntersectionOfLineAndCircle(next, false, nodePos, r) ?? next.source
           points.push(cp1)
           points.push(cp2)
         }
@@ -202,23 +192,14 @@ export default defineComponent({
       type: Array as PropType<Paths>,
       required: true,
     },
-    nodes: {
-      type: Object as PropType<Nodes>,
-      required: true,
-    },
     edges: {
       type: Object as PropType<Edges>,
       required: true,
     },
-    nodeLayouts: {
-      type: Object as PropType<NodePositions>,
-      required: true,
-    },
   },
   setup(props) {
-    const { state, edgePositions } = useEdgePositions()
     const pathConfig = usePathConfig()
-    const nodeConfig = useNodeConfig()
+    const { nodeStates, edgeStates, edgeGroupStates, layouts } = useStates()
     const { scale } = useZoomLevel()
     const { emitter } = useEventEmitter()
 
@@ -240,11 +221,10 @@ export default defineComponent({
       if (path.edges.length === 0) return []
       return calculatePathPoints(
         path,
-        props.nodes,
-        props.nodeLayouts,
-        nodeConfig,
-        state,
-        edgePositions.value,
+        nodeStates,
+        layouts.nodes,
+        edgeStates,
+        edgeGroupStates,
         scale.value,
         pathConfig.curveInNode
       )
