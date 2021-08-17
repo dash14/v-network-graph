@@ -35,17 +35,7 @@ const {
   handleNodePointerDownEvent,
   handleNodePointerOverEvent,
   handleNodePointerOutEvent,
-  hoveredNodes,
 } = useMouseOperation()
-
-// for suppress reactive events
-const isHovered = ref(false)
-watchEffect(() => {
-  const hovered = hoveredNodes.has(props.id)
-  if (isHovered.value != hovered) {
-    isHovered.value = hovered
-  }
-})
 
 const labelVisibility = computed(() => {
   if (props.state.label.visible) {
@@ -54,7 +44,6 @@ const labelVisibility = computed(() => {
   return false
 })
 
-// ラベル
 const labelMargin = computed(() => {
   if (props.state.label.direction === NodeLabelDirection.CENTER) {
     return 0
@@ -63,11 +52,10 @@ const labelMargin = computed(() => {
   }
 })
 
-// 円の場合のラベル位置計算用
-const labelShiftV = ref(0) // ラベルのシフト量(縦)
-const labelShiftH = ref(0) // ラベルのシフト量(横)
-const labelDiagonalShiftV = ref(0) // 斜め方向のシフト量(縦)
-const labelDiagonalShiftH = ref(0) // 斜め方向のシフト量(横)
+const labelShiftV = ref(0) // Amount of label shift (vertical)
+const labelShiftH = ref(0) // Amount of label shift (horizontal)
+const labelDiagonalShiftV = ref(0) // Amount of shift in diagonal direction (vertical)
+const labelDiagonalShiftH = ref(0) // Amount of shift in diagonal direction (horizontal)
 
 watchEffect(() => {
   const s = scale.value
@@ -184,6 +172,7 @@ defineExpose({
 
 <template>
   <g
+    :class="{ hover: state.hovered, selected: state.selected }"
     :transform="`translate(${x} ${y})`"
     @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.capture="handleNodePointerOverEvent(id, $event)"
