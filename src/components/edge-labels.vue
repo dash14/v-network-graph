@@ -61,7 +61,6 @@ export default defineComponent({
           source.shape,
           target.shape,
           edgeConfig.label.margin,
-          edgeConfig.label.padding,
           scale.value
         )
       }

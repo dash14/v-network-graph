@@ -90,10 +90,22 @@ export type AnyShapeStyle = CircleShapeStyle | RectangleShapeStyle
 
 /* Label style */
 
+interface Padding {
+  vertical: number
+  horizontal: number
+}
+export interface LabelBackgroundStyle {
+  visible: boolean
+  color?: string,
+  padding?: number | Padding,
+  borderRadius?: number
+}
+
 export interface LabelStyle {
   fontFamily?: string
   fontSize: number
   color: string
+  background?: LabelBackgroundStyle
 }
 
 /* Node style */
@@ -148,12 +160,6 @@ export interface StrokeStyle {
 
 export interface EdgeLabelStyle extends LabelStyle {
   margin: number
-  padding: number
-  background: {
-    color: string,
-    padding: number,
-    borderRadius: number
-  }
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {

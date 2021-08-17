@@ -371,18 +371,6 @@
           >
           <div class="value">{{ configs.edge.label.margin }}</div>
         </div>
-        <div class="control slider">
-          <label for="edgeLabelPadding">Padding</label>
-          <input
-            id="edgeLabelPadding"
-            v-model.number="configs.edge.label.padding"
-            type="range"
-            min="0"
-            max="24"
-            step="1"
-          >
-          <div class="value">{{ configs.edge.label.padding }}</div>
-        </div>
         <div class="control color">
           <label for="edgeLabelColor">Color</label>
           <input id="edgeLabelColor" v-model="configs.edge.label.color" type="color">
@@ -712,7 +700,7 @@
       </template>
 
       <!-- edge label -->
-      <template #edge-label="{ edgeId, edge, scale, ...slotProps }">
+      <template #edge-label="{ edgeId, ...slotProps }">
         <!-- for once it is evaluated. -->
         <v-edge-label
           :text="edgeId"

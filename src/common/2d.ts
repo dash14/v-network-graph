@@ -116,7 +116,6 @@ export function calculateEdgeLabelArea(
   sourceNodeShape: AnyShapeStyle,
   targetNodeShape: AnyShapeStyle,
   margin: number,
-  padding: number,
   scale: number
 ) {
   const line = V.fromLinePosition(linePos)
@@ -125,7 +124,7 @@ export function calculateEdgeLabelArea(
   // source side
   let sv: V.Vector
   if (sourceNodeShape.type === "circle") {
-    const radius = (sourceNodeShape.radius + padding) * scale
+    const radius = (sourceNodeShape.radius + margin) * scale
     const d = normalized.clone().multiplyScalar(radius)
     sv = line.source.clone().add(d)
   } else {
@@ -135,7 +134,7 @@ export function calculateEdgeLabelArea(
       sourceNodeShape,
       scale
     )
-    const nm = (m / scale + padding) * scale
+    const nm = (m / scale + margin) * scale
     const d = normalized.clone().multiplyScalar(nm)
     sv = line.source.clone().add(d)
   }
@@ -143,7 +142,7 @@ export function calculateEdgeLabelArea(
   // target side
   let tv: V.Vector
   if (targetNodeShape.type === "circle") {
-    const radius = (targetNodeShape.radius + padding) * scale
+    const radius = (targetNodeShape.radius + margin) * scale
     const d = normalized.clone().multiplyScalar(radius)
     tv = line.target.clone().subtract(d)
   } else {
@@ -153,7 +152,7 @@ export function calculateEdgeLabelArea(
       targetNodeShape,
       scale
     )
-    const nm = (m / scale + padding) * scale
+    const nm = (m / scale + margin) * scale
     const d = normalized.clone().multiplyScalar(nm)
     tv = line.target.clone().subtract(d)
   }

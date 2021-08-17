@@ -1,24 +1,13 @@
 <template>
-  <rect
-    v-if="area && dominantBaseline === 'central'"
-    v-bind="pos"
-    :rx="config.background.borderRadius * scale"
-    :ry="config.background.borderRadius * scale"
-    :fill="config.background.color"
-    :transform="transform"
-  />
   <v-text
-    v-if="area"
-    ref="element"
-    v-bind="$attrs"
     class="v-edge-label"
     :text="text"
     :x="x"
     :y="y"
-    :config="config"
+    :config="updatedConfig"
     :text-anchor="textAnchor"
     :dominant-baseline="dominantBaseline"
-    :transform="transform"
+    :transform="`rotate(${angle} ${x} ${y})`"
   />
   <!-- <g>
     <circle
@@ -49,67 +38,22 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, reactive, Ref, ref, watch, watchEffect } from "vue"
-import { onMounted, onUnmounted } from "vue"
-import { useZoomLevel } from "../composables/zoom"
+import { computed, defineComponent, PropType, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "../common/configs"
 import { EdgeLabelArea } from "../common/types"
 import * as V from "../common/vector"
 import VText from "./text.vue"
-
-type Rect = { x: number; y: number; width: number; height: number }
-
-function updateBackgroundPosition(
-  element: SVGTextElement,
-  pos: Rect,
-  transform: Ref<string | undefined>,
-  config: EdgeLabelStyle,
-  scale: number
-) {
-  const bbox = element.getBBox()
-  const padding = config.background.padding
-  pos.x = bbox.x - padding * scale
-  pos.y = bbox.y - padding * scale
-  pos.width = bbox.width + padding * 2 * scale
-  pos.height = bbox.height + padding * 2 * scale
-  transform.value = element.getAttribute("transform") ?? undefined
-}
-
-function enableMutationObserver(
-  element: SVGTextElement,
-  pos: Rect,
-  transform: Ref<string | undefined>,
-  config: EdgeLabelStyle,
-  scale: Ref<number>
-) {
-  const observer = new MutationObserver(() => {
-    updateBackgroundPosition(element, pos, transform, config, scale.value)
-  })
-  observer.observe(element, {
-    attributes: true,
-    attributeFilter: ["x", "y", "transform", "font-size"],
-  })
-  updateBackgroundPosition(element, pos, transform, config, scale.value)
-  return observer
-}
 
 export default defineComponent({
   components: { VText },
   props: {
     area: {
       type: Object as PropType<EdgeLabelArea>,
-      required: false,
-      default: undefined,
+      required: true,
     },
     config: {
       type: Object as PropType<EdgeLabelStyle>,
-      required: false,
-      default: () => ({
-        fontSize: 10,
-        color: "#000000",
-        margin: 0,
-        padding: 0,
-      }),
+      required: true,
     },
     text: {
       type: String,
@@ -124,23 +68,15 @@ export default defineComponent({
       type: String as PropType<"center" | "above" | "below">,
       default: "center",
     },
-    multiline: {
-      type: Boolean,
-      default: false,
-    },
   },
   setup(props) {
-    const { scale } = useZoomLevel()
-
     const x = ref(0)
     const y = ref(0)
     const textAnchor: Ref<"middle" | "start" | "end"> = ref("middle")
     const dominantBaseline: Ref<"text-top" | "hanging" | "central"> = ref("central")
-    const transform = ref("")
-    const element = ref<InstanceType<typeof VText>>()
+    const angle = ref(0)
 
     watchEffect(() => {
-      if (!props.area) return
       const s = props.area.source
       const t = props.area.target
       if (props.align === "source") {
@@ -201,44 +137,38 @@ export default defineComponent({
           dominantBaseline.value = "central"
         }
       }
-      let angle = V.fromPositions(s.above, t.above).v.angleDeg()
-      if (angle < -90 || angle >= 90) {
-        angle = angle + 180
-        if (angle > 180) {
-          angle -= 360
+      let degree = V.fromPositions(s.above, t.above).v.angleDeg()
+      if (degree < -90 || degree >= 90) {
+        degree = degree + 180
+        if (degree > 180) {
+          degree -= 360
         }
       }
-      transform.value = `rotate(${angle} ${x.value} ${y.value})`
+      angle.value = degree
     })
 
-    // Show background only if it overlaps an edge line.
-    const pos = reactive<Rect>({ x: 0, y: 0, width: 0, height: 0 })
-
-    let observer: MutationObserver | undefined
-
-    onMounted(() => {
-      if (!element.value) return
-      if (dominantBaseline.value === "central") {
-        observer = enableMutationObserver(element.value.$el, pos, transform, props.config, scale)
-      }
-    })
-
-    watch(dominantBaseline, (v, prev) => {
-      if (!element.value || v === prev) return
-      if (dominantBaseline.value === "central") {
-        observer = enableMutationObserver(element.value.$el, pos, transform, props.config, scale)
+    // If there is no background config and text overlaps the line,
+    // automatically set the background.
+    const updatedConfig = computed(() => {
+      if (dominantBaseline.value === "central" && !props.config.background) {
+        return {
+          ...props.config,
+          background: {
+            visible: true,
+            color: "#ffffff",
+            padding: {
+              vertical: 1,
+              horizontal: 4,
+            },
+            borderRadius: 2
+          }
+        }
       } else {
-        observer?.disconnect()
-        observer = undefined
+        return props.config
       }
     })
 
-    onUnmounted(() => {
-      observer?.disconnect()
-      observer = undefined
-    })
-
-    return { x, y, textAnchor, dominantBaseline, transform, element, pos, scale }
+    return { x, y, textAnchor, dominantBaseline, angle, updatedConfig }
   },
 })
 </script>

@@ -62,6 +62,7 @@ export function getConfigDefaults(): Configs {
         fontFamily: undefined,
         fontSize: 11,
         color: "#000000",
+        background: undefined,
         margin: 4,
         direction: NodeLabelDirection.SOUTH,
         text: "name",
@@ -135,13 +136,17 @@ export function getConfigDefaults(): Configs {
         fontFamily: undefined,
         fontSize: 11,
         color: "#000000",
+        background: undefined,
+        // background: {
+        //   visible: true,
+        //   color: "#ffffff",
+        //   padding: {
+        //     vertical: 1,
+        //     horizontal: 4,
+        //   },
+        //   borderRadius: 2
+        // },
         margin: 4,
-        padding: 10,
-        background: {
-          color: "#ffffff88",
-          padding: 2,
-          borderRadius: 2,
-        }
       },
     })),
     path: {
