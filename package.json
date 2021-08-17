@@ -53,7 +53,7 @@
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
-    "vue": "^3.2.2"
+    "vue": "^3.2.3"
   },
   "exports": {
     ".": {
