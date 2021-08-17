@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, PropType, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "../common/configs"
-import { EdgeLabelArea } from "../common/types"
+import { Edge, EdgeLabelArea } from "../common/types"
 import * as V from "../common/vector"
 import VText from "./label-text.vue"
 
@@ -27,6 +27,18 @@ const props = defineProps({
     type: String as PropType<"center" | "above" | "below">,
     default: "center",
   },
+  // The followings are the definitions to avoid passing unwanted
+  // items to <text> when they are specified in v-bind.
+  edge: {
+    type: Object as PropType<Edge>,
+    required: false,
+    default: undefined
+  },
+  scale: {
+    type: Number,
+    required: false,
+    default: undefined
+  }
 })
 
 const x = ref(0)
