@@ -14,14 +14,14 @@
   "main": "./lib/index.umd.js",
   "module": "./lib/index.es.js",
   "scripts": {
-    "dev": "vite",
+    "example:dev": "vite --config vite-example.config.ts",
+    "example:build": "vue-tsc --noEmit && vite build --config vite-example.config.ts",
+    "example:serve": "vite --config vite-example.config.ts preview",
     "build": "run-s clean build:tc build:lib",
     "build:tc": "vue-tsc --noEmit",
     "build:lib": "run-p build:lib:*",
-    "build:lib:main": "vite --config vite-lib.config.ts build",
+    "build:lib:main": "vite build",
     "build:lib:force": "vite --config vite-lib-force.config.ts build",
-    "build:example": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview",
     "clean": "rimraf lib"
   },
   "dependencies": {
