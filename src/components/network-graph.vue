@@ -565,7 +565,7 @@ export default defineComponent({
 
       if (viewport) {
         const box = viewport.getBBox()
-        const z = this.zoomLevel
+        const z = 1 / this.scale
         const svg = {
           x: Math.floor((box.x - 10) * z),
           y: Math.floor((box.y - 10) * z),
