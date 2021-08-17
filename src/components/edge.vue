@@ -55,7 +55,7 @@ defineExpose({
 <template>
   <v-line
     v-bind="state.position"
-    :class="{ selectable: config.selectable }"
+    :class="{ selectable: config.selectable, hover: state.hovered, selected: state.selected }"
     :config="state.stroke"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerenter="handleEdgePointerOverEvent(id, $event)"
