@@ -26,6 +26,7 @@
       :x="labelX"
       :y="labelY"
       :config="state.label"
+      :shape="state.shape"
       :text-anchor="textAnchor"
       :dominant-baseline="dominantBaseline"
     >
@@ -160,7 +161,7 @@ export default defineComponent({
         case NodeLabelDirection.NORTH:
         case NodeLabelDirection.NORTH_EAST:
         case NodeLabelDirection.NORTH_WEST:
-          return "auto"
+          return "text-top"
         case NodeLabelDirection.SOUTH:
         case NodeLabelDirection.SOUTH_EAST:
         case NodeLabelDirection.SOUTH_WEST:
