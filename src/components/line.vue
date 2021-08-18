@@ -2,24 +2,24 @@
 import { computed, PropType } from "vue"
 import { StrokeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
-import { applyScaleToDasharray } from "../common/utility"
+import { applyScaleToDasharray, getDasharrayUnit } from "../common/utility"
 
 const props = defineProps({
   x1: {
     type: Number,
-    required: true
+    required: true,
   },
   y1: {
     type: Number,
-    required: true
+    required: true,
   },
   x2: {
     type: Number,
-    required: true
+    required: true,
   },
   y2: {
     type: Number,
-    required: true
+    required: true,
   },
   config: {
     type: Object as PropType<StrokeStyle>,
@@ -38,7 +38,9 @@ const strokeDasharray = computed(() => {
 })
 
 const animationSpeed = computed(() => {
-  const speed = props.config.animate ? props.config.animationSpeed * scale.value : false
+  const speed = props.config.animate
+    ? getDasharrayUnit(props.config.dasharray) * props.config.animationSpeed * scale.value
+    : false
   return speed ? `--animation-speed:${speed}` : undefined
 })
 

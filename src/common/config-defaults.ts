@@ -94,7 +94,7 @@ export function getConfigDefaults(): Configs {
         dasharray: 0,
         linecap: "butt",
         animate: false,
-        animationSpeed: 100,
+        animationSpeed: 50,
       },
       hover: {
         width: edge => Config.value(self.normal.width, edge) + 1,
@@ -142,7 +142,7 @@ export function getConfigDefaults(): Configs {
           dasharray: undefined,
           linecap: undefined,
           animate: false,
-          animationSpeed: 100,
+          animationSpeed: 50,
         },
       },
       label: {
@@ -201,7 +201,7 @@ export function getConfigDefaults(): Configs {
         linecap: "round",
         linejoin: "round",
         animate: false,
-        animationSpeed: 100,
+        animationSpeed: 50,
       },
     },
   }
