@@ -4,7 +4,7 @@ import { useZoomLevel } from "../composables/zoom"
 import { usePathConfig } from "../composables/config"
 import { Config } from "../common/configs"
 import { Path, PositionOrCurve } from "../common/types"
-import { applyScaleToDasharray } from "../common/utility"
+import { applyScaleToDasharray, getDasharrayUnit } from "../common/utility"
 
 const props = defineProps({
   points: {
@@ -44,7 +44,9 @@ const strokeDasharray = computed(() => {
 })
 
 const animationSpeed = computed(() => {
-  const speed = config.value.animate ? config.value.animationSpeed * scale.value : false
+  const speed = config.value.animate
+    ? getDasharrayUnit(config.value.dasharray) * config.value.animationSpeed * scale.value
+    : false
   return speed ? `--animation-speed:${speed}` : undefined
 })
 

@@ -48,11 +48,34 @@ export function applyScaleToDasharray(dasharray: number | string | undefined, sc
     result = dasharray
       .split(/\s+/)
       .map(v => parseInt(v) * scale)
+      .filter(v => !isNaN(v))
       .join(" ")
   } else {
     result = dasharray * scale
   }
   return result && result !== "0" ? result : undefined
+}
+
+export function getDasharrayUnit(dasharray: number | string | undefined) {
+  let result: number | string = 0
+  if (dasharray === undefined || dasharray === "none") {
+    result = 0
+  } else if (typeof dasharray === "string") {
+    const array = dasharray
+      .split(/\s+/)
+      .map(v => parseInt(v))
+      .filter(v => !isNaN(v))
+    if (array.length % 2 === 0) {
+      // ex: 1 2 -> -  -  -  - ...
+      result = array.reduce((s, n) => s + n, 0)
+    } else {
+      // ex: 1 2 3 -> -  --- --   -  --- ...
+      result = array.reduce((s, n) => s + n, 0) * 2
+    }
+  } else {
+    result = dasharray * 2 // 2 <- border and space
+  }
+  return result
 }
 
 export class MapUtil {
