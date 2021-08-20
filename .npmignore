@@ -3,10 +3,8 @@ node_modules
 dist-ssr
 *.local
 
+.vscode
 src/
-public/
-index.html
 vite.config.ts
 vite-lib.config.ts
 tsconfig.json
-lib/types/Example.vue.d.ts

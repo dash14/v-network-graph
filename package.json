@@ -16,9 +16,6 @@
     "lib"
   ],
   "scripts": {
-    "example:dev": "vite --config vite-example.config.ts",
-    "example:build": "vue-tsc --noEmit && vite build --config vite-example.config.ts",
-    "example:serve": "vite --config vite-example.config.ts preview",
     "build": "run-s clean build:tc build:lib",
     "build:tc": "vue-tsc --noEmit",
     "build:lib": "run-p build:lib:*",
