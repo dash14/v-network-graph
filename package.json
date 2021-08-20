@@ -33,12 +33,12 @@
   "devDependencies": {
     "@types/d3-force": "^3.0.3",
     "@types/lodash-es": "^4.17.4",
-    "@types/node": "^16.6.1",
+    "@types/node": "^16.6.2",
     "@types/victor": "^1.1.0",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
     "@typescript-eslint/parser": "^4.29.2",
     "@vitejs/plugin-vue": "^1.4.0",
-    "@vue/compiler-sfc": "^3.2.3",
+    "@vue/compiler-sfc": "^3.2.4",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
@@ -55,7 +55,7 @@
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
-    "vue": "^3.2.3"
+    "vue": "^3.2.4"
   },
   "exports": {
     ".": {
