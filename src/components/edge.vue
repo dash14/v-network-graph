@@ -58,8 +58,8 @@ defineExpose({
     :class="{ selectable: config.selectable, hover: state.hovered, selected: state.selected }"
     :config="state.stroke"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
-    @pointerenter="handleEdgePointerOverEvent(id, $event)"
-    @pointerleave="handleEdgePointerOutEvent(id, $event)"
+    @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
+    @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"
   />
 </template>
 
