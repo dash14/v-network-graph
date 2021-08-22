@@ -88,9 +88,13 @@
           </v-node>
         </g>
 
+        <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
+          <slot :name="layerName" :scale="scale" />
+        </g>
+
         <v-paths v-if="visiblePaths" :paths="paths" :edges="edges" />
 
-        <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['paths']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
       </g>
