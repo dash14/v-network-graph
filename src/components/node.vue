@@ -175,8 +175,8 @@ defineExpose({
     :class="{ hover: state.hovered, selected: state.selected }"
     :transform="`translate(${x} ${y})`"
     @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
-    @pointerenter.capture="handleNodePointerOverEvent(id, $event)"
-    @pointerleave.capture="handleNodePointerOutEvent(id, $event)"
+    @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
+    @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
   >
     <slot
       name="override-node"
