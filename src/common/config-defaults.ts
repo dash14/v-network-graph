@@ -23,13 +23,13 @@ export function getConfigDefaults(): Configs {
         thickIncrements: 5,
         line: {
           color: "#e0e0e0",
-          strokeWidth: 1,
-          strokeDasharray: 1,
+          width: 1,
+          dasharray: 1,
         },
         thick: {
           color: "#cccccc",
-          strokeWidth: 1,
-          strokeDasharray: 0,
+          width: 1,
+          dasharray: 0,
         },
       },
     },
@@ -65,6 +65,7 @@ export function getConfigDefaults(): Configs {
         visible: true,
         fontFamily: undefined,
         fontSize: 11,
+        lineHeight: 1.1,
         color: "#000000",
         background: undefined,
         // background: {
@@ -121,6 +122,7 @@ export function getConfigDefaults(): Configs {
       summarized: {
         label: {
           fontSize: 10,
+          lineHeight: 1,
           color: "#4466cc",
         },
         shape: {
@@ -148,6 +150,7 @@ export function getConfigDefaults(): Configs {
       label: {
         fontFamily: undefined,
         fontSize: 11,
+        lineHeight: 1.1,
         color: "#000000",
         background: undefined,
         // background: {

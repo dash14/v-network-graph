@@ -71,19 +71,19 @@ watchEffect(() => {
   const maxWidth = (basePoint.value.x + width) * s
   const maxHeight = (basePoint.value.y + height) * s
   const inc = config.grid.thickIncrements // interval to make the line thicker
-  const normalDasharray = config.grid.line.strokeDasharray
-  const thickDasharray = config.grid.thick.strokeDasharray
+  const normalDasharray = config.grid.line.dasharray
+  const thickDasharray = config.grid.thick.dasharray
 
   let thickAttrs = {
     stroke: config.grid.thick.color,
-    "stroke-width": config.grid.thick.strokeWidth,
+    "stroke-width": config.grid.thick.width,
     "stroke-dasharray": thickDasharray,
     "stroke-dashoffset": thickDasharray ? x / s : undefined
   }
 
   let normalAttrs = {
     stroke: config.grid.line.color,
-    "stroke-width": config.grid.line.strokeWidth,
+    "stroke-width": config.grid.line.width,
     "stroke-dasharray": normalDasharray,
     "stroke-dashoffset": normalDasharray ? x / s : undefined
   }

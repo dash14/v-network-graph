@@ -28,8 +28,8 @@ export class Config {
 
 export interface GridLine {
   color: string
-  strokeWidth: number
-  strokeDasharray?: string | number
+  width: number
+  dasharray?: string | number
 }
 
 export interface GridConfig {
@@ -106,6 +106,7 @@ export interface LabelStyle {
   fontSize: number
   color: string
   background?: LabelBackgroundStyle
+  lineHeight: number
 }
 
 /* Node style */
@@ -167,7 +168,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   hover?: CallableValues<StrokeStyle, E>
   selected: CallableValues<StrokeStyle, E>
   selectable: boolean | number
-  gap: number
+  gap: number | ((edges: Edges, configs: Configs) => number)
   summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
   summarized: {
     label: LabelStyle

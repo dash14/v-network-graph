@@ -29,6 +29,7 @@ export interface LinePosition {
 }
 
 export type LayerPosition =
+  "paths"
   | "nodes"
   | "focusring"
   | "edges"
@@ -37,6 +38,7 @@ export type LayerPosition =
   | "background"
   | "root"
 export const LayerPositions: readonly LayerPosition[] = [
+  "paths",
   "nodes",
   "focusring",
   "edges",
