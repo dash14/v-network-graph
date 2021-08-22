@@ -28,8 +28,8 @@ export class Config {
 
 export interface GridLine {
   color: string
-  strokeWidth: number
-  strokeDasharray?: string | number
+  width: number
+  dasharray?: string | number
 }
 
 export interface GridConfig {
