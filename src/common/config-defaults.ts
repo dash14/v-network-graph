@@ -65,6 +65,7 @@ export function getConfigDefaults(): Configs {
         visible: true,
         fontFamily: undefined,
         fontSize: 11,
+        lineHeight: 1.1,
         color: "#000000",
         background: undefined,
         // background: {
@@ -121,6 +122,7 @@ export function getConfigDefaults(): Configs {
       summarized: {
         label: {
           fontSize: 10,
+          lineHeight: 1,
           color: "#4466cc",
         },
         shape: {
@@ -148,6 +150,7 @@ export function getConfigDefaults(): Configs {
       label: {
         fontFamily: undefined,
         fontSize: 11,
+        lineHeight: 1.1,
         color: "#000000",
         background: undefined,
         // background: {

@@ -106,6 +106,7 @@ export interface LabelStyle {
   fontSize: number
   color: string
   background?: LabelBackgroundStyle
+  lineHeight: number
 }
 
 /* Node style */

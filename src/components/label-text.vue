@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, PropType, reactive, Ref, ref, watch } from "vue"
+import { computed, PropType, reactive, Ref, ref, useAttrs, watch } from "vue"
 import { onMounted, onUnmounted } from "vue"
 import { LabelStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
@@ -54,8 +54,29 @@ const props = defineProps({
   },
 })
 
+const attrs = useAttrs()
+
 const { scale } = useZoomLevel()
-const fontSize = computed(() => props.config.fontSize * scale.value)
+
+const texts = computed(() => props.text.split(/\r?\n/))
+
+const fontSize = computed(() => {
+  return attrs['font-size'] as number ?? (props.config.fontSize * scale.value)
+})
+
+const lineHeight = computed(() => fontSize.value * props.config.lineHeight)
+
+const topDeltaY = computed(() => {
+  const dominantBaseline = attrs['dominant-baseline'] as string
+  if (dominantBaseline === "hanging") {
+    return 0
+  } else if (dominantBaseline === "central") {
+    return -(lineHeight.value * (texts.value.length - 1)) / 2
+  } else {
+    // "auto", "text-top"
+    return -lineHeight.value * (texts.value.length - 1)
+  }
+})
 
 const element = ref<SVGTextElement>()
 const transform = ref("") // copy from <text>
@@ -71,11 +92,12 @@ const backgroundRectPos = computed(() => {
     paddingVertical = config.padding ?? 0
     paddingHorizontal = config.padding ?? 0
   }
+  const lineMargin = lineHeight.value - fontSize.value
   return {
     x: pos.x - paddingHorizontal * scale.value,
-    y: pos.y - paddingVertical * scale.value,
+    y: pos.y - paddingVertical * scale.value - (lineMargin / 2),
     width: pos.width + paddingHorizontal * 2 * scale.value,
-    height: pos.height + paddingVertical * 2 * scale.value,
+    height: pos.height + paddingVertical * 2 * scale.value + lineMargin,
   }
 })
 
@@ -123,7 +145,19 @@ defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
     :x="x"
     :y="y"
     :font-family="$attrs['font-family'] ? `${$attrs['font-family']}` : config.fontFamily"
-    :font-size="$attrs['font-size'] ? `${$attrs['font-size']}` : fontSize"
+    :font-size="fontSize"
     :fill="$attrs.fill ? `${$attrs.fill}` : config.color"
-  >{{ text }}</text>
+  >
+    <template v-if="texts.length <= 1">
+      {{ text }}
+    </template>
+    <template v-else>
+      <tspan
+        v-for="(t, i) in texts"
+        :key="i"
+        :x="x"
+        :dy="i == 0 ? topDeltaY : lineHeight"
+      >{{ t }}</tspan>
+    </template>
+  </text>
 </template>
