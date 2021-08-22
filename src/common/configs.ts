@@ -167,7 +167,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   hover?: CallableValues<StrokeStyle, E>
   selected: CallableValues<StrokeStyle, E>
   selectable: boolean | number
-  gap: number
+  gap: number | ((edges: Edges, configs: Configs) => number)
   summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
   summarized: {
     label: LabelStyle

@@ -44,7 +44,7 @@ export function makeEdgeGroupStates(
 
   watchEffect(() => {
     const { edgeLayoutPoints, edgeGroups } = calculateEdgeGroupAndPositions(
-      configs.edge,
+      configs,
       nodes,
       edges
     )
@@ -101,7 +101,7 @@ export function calculateEdgePosition(
 // Private functions
 // -----------------------------------------------------------------------
 
-function calculateEdgeGroupAndPositions(config: EdgeConfig, nodes: Nodes, edges: Edges) {
+function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: Edges) {
   const edgeLayoutPoints: Record<string, EdgeLayoutPoint> = {}
   const edgeGroups: Record<string, EdgeGroup> = {}
 
@@ -122,11 +122,12 @@ function calculateEdgeGroupAndPositions(config: EdgeConfig, nodes: Nodes, edges:
   // - the starting point of each line
   // - the width between the centers of the lines at both ends
   // *Note*: the drawing position of the line is the center of the line.
-  const gap = config.gap
+  const calcGap = (configs.edge.gap instanceof Function) ? configs.edge.gap : ((_e: Edges, _c: Configs) => configs.edge.gap as number)
   for (const [key, edges] of Object.entries(map)) {
     const edgeLen = Object.keys(edges).length
     if (edgeLen == 0) continue
 
+    const gap = calcGap(edges, configs)
     const [edgeId, edge] = Object.entries(edges)[0]
     if (edgeLen === 1) {
       edgeLayoutPoints[edgeId] = { edge, pointInGroup: 0, groupWidth: 0 }
@@ -134,7 +135,7 @@ function calculateEdgeGroupAndPositions(config: EdgeConfig, nodes: Nodes, edges:
     } else {
       let pointInGroup = 0
       const lineHalfWidths = Object.values(edges).map(edge => {
-        return Config.value(config.normal.width, edge) / 2
+        return Config.value(configs.edge.normal.width, edge) / 2
       })
       const points = Object.entries(edges).map(([edgeId, edge], i) => {
         if (i > 0) {
