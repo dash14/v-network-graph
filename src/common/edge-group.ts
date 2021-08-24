@@ -1,6 +1,6 @@
 import { watchEffect } from "vue"
 import { Reactive } from "./common"
-import { Config, Configs, EdgeConfig } from "./configs"
+import { Config, Configs } from "./configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
 
 // -----------------------------------------------------------------------
@@ -78,17 +78,16 @@ export function makeEdgeGroupStates(
 }
 
 export function calculateEdgePosition(
-  state: EdgeGroupStates,
-  edgeId: string,
+  p: EdgeLayoutPoint,
+  isSummarized: boolean,
   source: Position,
   target: Position,
   scale: number
 ): LinePosition {
-  const p = state.edgeLayoutPoints[edgeId]
   if (!p) {
     return { x1: 0, y1: 0, x2: 0, y2: 0 } // sanitized
   }
-  if (edgeId in state.summarizedEdges) {
+  if (isSummarized) {
     // summarize
     return calculateEdgePositionInner(p.edge, source, target, scale, 0, 0)
   } else {

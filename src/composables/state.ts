@@ -1,17 +1,21 @@
 // the states of nodes and edges
 
-import { computed, ComputedRef, reactive, Ref, unref, UnwrapRef, watch } from "vue"
+import { computed, ComputedRef, reactive, Ref, toRef, unref, UnwrapRef } from "vue"
+import { watch, watchEffect, WatchStopHandle } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "../common/common"
-import { Config, Configs, EdgeConfig, NodeConfig } from "../common/configs"
+import { Config, Configs, EdgeConfig, EdgeHeadType, HeadStyle, NodeConfig } from "../common/configs"
 import { ShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
 import { Edge, Edges, Layouts, LinePosition, Node, NodePositions, Nodes } from "../common/types"
 import { EdgeGroupStates, makeEdgeGroupStates, calculateEdgePosition } from "../common/edge-group"
+import { clearMarker, makeMarker } from "./marker"
+import * as v2d from "../common/2d"
 
 export type { EdgeGroupStates }
 
 interface NodeStateDatum {
   shape: Ref<ShapeStyle>
+  staticShape: Ref<ShapeStyle>
   label: Ref<NodeLabelStyle>
   labelText: Ref<string>
   selected: boolean
@@ -21,11 +25,30 @@ interface NodeStateDatum {
 export type NodeState = UnwrapRef<NodeStateDatum>
 export type NodeStates = Record<string, NodeState>
 
+export interface EdgeMarker {
+  type: EdgeHeadType
+  width: number
+  height: number
+  color: string
+  relative: boolean
+}
+
+interface Line {
+  stroke: StrokeStyle
+  source: EdgeMarker
+  target: EdgeMarker
+}
+
 interface EdgeStateDatum {
-  stroke: Ref<StrokeStyle>
+  line: Ref<Line>
   selected: boolean
   hovered: boolean
-  position: Ref<LinePosition>
+  origin: LinePosition // line segment between center of nodes
+  outers: LinePosition // line segment between the outermost of the nodes
+  position: LinePosition // line segments to be displayed with margins applied
+  sourceMarkerId: string | undefined
+  targetMarkerId: string | undefined
+  stopWatchHandle: WatchStopHandle
 }
 
 export type EdgeState = UnwrapRef<EdgeStateDatum>
@@ -43,6 +66,14 @@ function getNodeShape(node: Node, selected: boolean, hovered: boolean, config: N
   if (hovered && config.hover) {
     return Config.values(config.hover, node)
   } else if (selected && config.selected) {
+    return Config.values(config.selected, node)
+  } else {
+    return Config.values(config.normal, node)
+  }
+}
+
+function getNodeStaticShape(node: Node, selected: boolean, config: NodeConfig) {
+  if (selected && config.selected) {
     return Config.values(config.selected, node)
   } else {
     return Config.values(config.normal, node)
@@ -70,14 +101,30 @@ function createNodeState(
   states[id] = { selected, hovered } as any
   const state = states[id] as any as NodeStateDatum
   state.shape = computed(() => getNodeShape(nodes[id], state.selected, state.hovered, config))
+  state.staticShape = computed(() => getNodeStaticShape(nodes[id], state.selected, config))
   state.label = computed(() => Config.values(config.label, nodes[id]))
   state.labelText = computed(() => {
     if (config.label.text instanceof Function) {
       return unref(state.label).text
     } else {
-      return nodes[id][unref(state.label).text] ?? ""
+      return nodes[id]?.[unref(state.label).text] ?? ""
     }
   })
+}
+
+const noneMarker: EdgeMarker = {
+  type: "none",
+  width: 0,
+  height: 0,
+  color: "#000000",
+  relative: true,
+}
+function toEdgeMarker(head: HeadStyle): EdgeMarker {
+  if (head.type === "none") {
+    return noneMarker
+  } else {
+    return head
+  }
 }
 
 function createEdgeState(
@@ -89,17 +136,103 @@ function createEdgeState(
   hovered: boolean,
   config: EdgeConfig,
   layouts: NodePositions,
-  scale: ComputedRef<number>
+  scale: ComputedRef<number>,
+  nodeStates: NodeStates
 ) {
-  states[id] = { selected, hovered } as any
+  const edge = edges[id]
+  if (!edge) return
+
+  states[id] = {
+    selected,
+    hovered,
+    origin: { x1: 0, y1: 0, x2: 0, y2: 0 },
+    outers: { x1: 0, y1: 0, x2: 0, y2: 0 },
+    position: { x1: 0, y1: 0, x2: 0, y2: 0 },
+  } as any
   const state = states[id] as any as EdgeStateDatum
-  state.stroke = computed(() => getEdgeStroke(edges[id], state.selected, state.hovered, config))
-  state.position = computed(() => {
-    const edge = edges[id]
-    const source = layouts[edge?.source] ?? { x: 0, y: 0 }
-    const target = layouts[edge?.target] ?? { x: 0, y: 0 }
-    return calculateEdgePosition(groupStates, id, source, target, scale.value)
+
+  const line = computed(() => {
+    const stroke = getEdgeStroke(edges[id], state.selected, state.hovered, config)
+    const source = toEdgeMarker(Config.values(config.head.source, [edges[id], stroke]))
+    const target = toEdgeMarker(Config.values(config.head.target, [edges[id], stroke]))
+    return { stroke, source, target }
   })
+  state.line = line
+
+  const edgeLayoutPoint = toRef(groupStates.edgeLayoutPoints, id)
+  const isSummarized = toRef(groupStates.summarizedEdges, id)
+
+  const stopCalcHandle = watchEffect(() => {
+    const edge = edges[id]
+    if (!edge) return
+
+    const source = layouts[edge?.source]
+    const target = layouts[edge?.target]
+    const sourceShape = nodeStates[edge?.source]?.staticShape
+    const targetShape = nodeStates[edge?.target]?.staticShape
+    if (!source || !target || !sourceShape || !targetShape) {
+      return
+    }
+
+    // calculate the line segment between center of nodes
+    state.origin = calculateEdgePosition(
+      edgeLayoutPoint.value,
+      isSummarized.value,
+      source,
+      target,
+      scale.value
+    )
+
+    // calculate the line segment between the outermost of the nodes
+    state.outers = v2d.calculateLinePositionBetweenNodes(
+      state.origin,
+      source,
+      target,
+      sourceShape,
+      targetShape,
+      scale.value
+    )
+
+    // calculate the line segments to be displayed with margins applied
+    let sourceMargin = 0
+    let targetMargin = 0
+    const l = line.value
+    if (l.source.type !== "none") {
+      sourceMargin = l.source.relative ? l.source.width * l.stroke.width : l.source.width
+    }
+    if (l.target.type !== "none") {
+      targetMargin = l.target.relative ? l.target.width * l.stroke.width : l.target.width
+    }
+    const s = scale.value
+    if (config.margin === undefined) {
+      if (sourceMargin === 0 && targetMargin === 0) {
+        state.position = state.origin
+      } else {
+        state.position = v2d.applyMarginToLine(state.origin, sourceMargin * s, targetMargin * s)
+      }
+    } else {
+      sourceMargin += config.margin
+      targetMargin += config.margin
+      if (sourceMargin === 0 && targetMargin === 0) {
+        state.position = state.outers
+      } else {
+        state.position = v2d.applyMarginToLine(state.outers, sourceMargin * s, targetMargin * s)
+      }
+    }
+  })
+
+  const stopUpdateMarkerHandle = watchEffect(() => {
+    if (!edges[id]) return
+    state.sourceMarkerId = makeMarker(line.value.source, true /* isSource */, state.sourceMarkerId)
+    state.targetMarkerId = makeMarker(line.value.target, false /* isSource */, state.targetMarkerId)
+  })
+
+  states[id].stopWatchHandle = () => {
+    stopCalcHandle()
+    stopUpdateMarkerHandle()
+    clearMarker(state.sourceMarkerId)
+    clearMarker(state.targetMarkerId)
+  }
 }
 
 export function provideStates(
@@ -198,7 +331,8 @@ export function provideStates(
       false,
       configs.edge,
       layouts.nodes,
-      scale
+      scale,
+      nodeStates
     )
   })
 
@@ -258,7 +392,8 @@ export function provideStates(
           false,
           configs.edge,
           layouts.nodes,
-          scale
+          scale,
+          nodeStates
         )
       }
 
@@ -267,6 +402,7 @@ export function provideStates(
         // remove edge
         selectedEdges.delete(edgeId)
         hoveredEdges.delete(edgeId)
+        edgeStates[edgeId].stopWatchHandle()
         delete edgeStates[edgeId]
       }
     }

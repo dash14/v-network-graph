@@ -118,6 +118,23 @@ export function getConfigDefaults(): Configs {
       },
       selectable: false,
       gap: 3,
+      head: {
+        source: {
+          type: "arrow",
+          width: 4,
+          height: 4,
+          color: ([_edge, stroke]) => stroke.color,
+          relative: true
+        },
+        target: {
+          type: "arrow",
+          width: 4,
+          height: 4,
+          color: ([_edge, stroke]) => stroke.color,
+          relative: true
+        },
+      },
+      margin: 10,
       summarize: true,
       summarized: {
         label: {
@@ -163,6 +180,7 @@ export function getConfigDefaults(): Configs {
         //   borderRadius: 2
         // },
         margin: 4,
+        padding: 4
       },
     })),
     path: {

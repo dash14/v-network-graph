@@ -161,6 +161,17 @@ export interface StrokeStyle {
 
 export interface EdgeLabelStyle extends LabelStyle {
   margin: number
+  padding: number
+}
+
+export type EdgeHeadType = "none" | "arrow" | "angle" | "circle"
+
+export interface HeadStyle {
+  type: EdgeHeadType
+  width: number
+  height: number
+  color: string
+  relative: boolean
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {
@@ -169,6 +180,11 @@ export interface EdgeConfig<E extends Edge = Edge> {
   selected: CallableValues<StrokeStyle, E>
   selectable: boolean | number
   gap: number | ((edges: Edges, configs: Configs) => number)
+  head: {
+    source: CallableValues<HeadStyle, [E, StrokeStyle]>
+    target: CallableValues<HeadStyle, [E, StrokeStyle]>
+  }
+  margin: undefined | number
   summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
   summarized: {
     label: LabelStyle

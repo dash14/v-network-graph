@@ -132,6 +132,7 @@ defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
 <template>
   <rect
     v-if="config.background && config.background.visible"
+    class="v-text-background"
     v-bind="backgroundRectPos"
     :rx="(config.background?.borderRadius ?? 0) * scale"
     :ry="(config.background?.borderRadius ?? 0) * scale"

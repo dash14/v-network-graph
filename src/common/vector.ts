@@ -1,7 +1,7 @@
 import Vector from "victor"
 import { LinePosition, Position } from "./types"
 
-interface Line {
+export interface Line {
   source: Vector
   target: Vector
   v: Vector

@@ -56,7 +56,9 @@ defineExpose({
   <v-line
     v-bind="state.position"
     :class="{ selectable: config.selectable, hover: state.hovered, selected: state.selected }"
-    :config="state.stroke"
+    :config="state.line.stroke"
+    :marker-start="state.sourceMarkerId ? `url(#${state.sourceMarkerId})` : undefined"
+    :marker-end="state.targetMarkerId ? `url(#${state.targetMarkerId})` : undefined"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
     @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"
@@ -67,7 +69,7 @@ defineExpose({
 $transition: 0.1s linear;
 
 .v-line {
-  transition: stroke $transition, stroke-width $transition;
+  transition: stroke $transition, stroke-width $transition, d $transition;
 }
 
 .v-line.selectable {
