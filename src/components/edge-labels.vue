@@ -77,3 +77,12 @@ defineExpose({
     </template>
   </g>
 </template>
+
+<style lang="scss" scoped>
+.v-edge-labels {
+  :deep(.v-text),
+  :deep(.v-text-background) {
+    pointer-events: none;
+  }
+}
+</style>
