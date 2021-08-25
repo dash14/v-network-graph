@@ -120,21 +120,23 @@ export function getConfigDefaults(): Configs {
       gap: 3,
       head: {
         source: {
-          type: "arrow",
-          width: 4,
-          height: 4,
-          color: ([_edge, stroke]) => stroke.color,
-          relative: true
+          type: "angle",
+          width: 5,
+          height: 5,
+          margin: -1,
+          units: "strokeWidth",
+          color: null
         },
         target: {
           type: "arrow",
-          width: 4,
-          height: 4,
-          color: ([_edge, stroke]) => stroke.color,
-          relative: true
+          width: 5,
+          height: 5,
+          margin: -1,
+          units: "strokeWidth",
+          color: null
         },
       },
-      margin: 10,
+      margin: -2,
       summarize: true,
       summarized: {
         label: {

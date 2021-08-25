@@ -164,14 +164,16 @@ export interface EdgeLabelStyle extends LabelStyle {
   padding: number
 }
 
-export type EdgeHeadType = "none" | "arrow" | "angle" | "circle"
+export type EdgeHeadType = "none" | "arrow" | "angle" | "circle" | "custom"
 
 export interface HeadStyle {
   type: EdgeHeadType
   width: number
   height: number
-  color: string
-  relative: boolean
+  margin: number
+  units: "strokeWidth" | "userSpaceOnUse"
+  color: string | null
+  customMarker?: string
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {
