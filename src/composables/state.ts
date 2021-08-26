@@ -74,7 +74,7 @@ const NONE_MARKER: HeadStyle = {
   height: 0,
   margin: 0,
   units: "strokeWidth",
-  color: undefined,
+  color: null,
 }
 
 // -----------------------------------------------------------------------
@@ -324,7 +324,7 @@ function toEdgeMarker(head: HeadStyle): HeadStyle {
 
 function createEdgeState(
   states: EdgeStates,
-  groupStates: EdgeGroupStates,
+  groupStates: Reactive<EdgeGroupStates>,
   nodeStates: NodeStates,
   edges: Edges,
   id: string,

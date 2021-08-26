@@ -165,13 +165,14 @@ export interface EdgeLabelStyle extends LabelStyle {
 }
 
 export type EdgeHeadType = "none" | "arrow" | "angle" | "circle" | "custom"
+export type MarkerUnits = "strokeWidth" | "userSpaceOnUse"
 
 export interface HeadStyle {
   type: EdgeHeadType
   width: number
   height: number
   margin: number
-  units: "strokeWidth" | "userSpaceOnUse"
+  units: MarkerUnits
   color: string | null
   customMarker?: string
 }

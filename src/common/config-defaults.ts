@@ -120,7 +120,7 @@ export function getConfigDefaults(): Configs {
       gap: 3,
       head: {
         source: {
-          type: "angle",
+          type: "none",
           width: 5,
           height: 5,
           margin: -1,
@@ -128,7 +128,7 @@ export function getConfigDefaults(): Configs {
           color: null
         },
         target: {
-          type: "arrow",
+          type: "none",
           width: 5,
           height: 5,
           margin: -1,
