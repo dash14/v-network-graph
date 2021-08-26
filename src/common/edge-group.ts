@@ -2,6 +2,7 @@ import { watchEffect } from "vue"
 import { Reactive } from "./common"
 import { Config, Configs } from "./configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
+import { updateObjectDiff } from "./utility"
 
 // -----------------------------------------------------------------------
 // Type definition
@@ -48,8 +49,8 @@ export function makeEdgeGroupStates(
       nodes,
       edges
     )
-    state.edgeLayoutPoints = edgeLayoutPoints
-    state.edgeGroups = edgeGroups
+    updateObjectDiff(state.edgeLayoutPoints, edgeLayoutPoints)
+    updateObjectDiff(state.edgeGroups, edgeGroups)
   })
 
   // calc layout and check summarize
