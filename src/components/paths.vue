@@ -95,7 +95,7 @@ function calculatePathPoints(
   curveInNode: boolean
 ): PositionOrCurve[] {
   // Edge ID list -> List of Edge locations
-  const edgePos = path.edges.map(({ edgeId }) => edgeStates[edgeId].position)
+  const edgePos = path.edges.map(({ edgeId }) => edgeStates[edgeId].origin)
 
   // The relationship between the source/target of a link and the connection
   // by path can be different.
