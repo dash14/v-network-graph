@@ -187,7 +187,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
     source: CallableValues<HeadStyle, [E, StrokeStyle]>
     target: CallableValues<HeadStyle, [E, StrokeStyle]>
   }
-  margin: undefined | number
+  margin: number | null
   summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
   summarized: {
     label: LabelStyle

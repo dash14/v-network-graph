@@ -407,7 +407,7 @@ function createEdgeState(
     }
     const s = scale.value
     let edgePosition: LinePosition
-    if (config.margin === undefined) {
+    if (config.margin === null || config.margin === undefined) {
       edgePosition = state.origin
     } else {
       edgePosition = state.outers

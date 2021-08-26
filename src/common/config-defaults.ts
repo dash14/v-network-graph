@@ -136,7 +136,7 @@ export function getConfigDefaults(): Configs {
           color: null
         },
       },
-      margin: -2,
+      margin: null,
       summarize: true,
       summarized: {
         label: {
