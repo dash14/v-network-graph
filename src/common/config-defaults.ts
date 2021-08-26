@@ -118,7 +118,7 @@ export function getConfigDefaults(): Configs {
       },
       selectable: false,
       gap: 3,
-      head: {
+      marker: {
         source: {
           type: "none",
           width: 5,

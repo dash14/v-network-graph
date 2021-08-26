@@ -4,7 +4,7 @@ import { computed, ComputedRef, reactive, Ref, toRef, unref, UnwrapRef } from "v
 import { watch, watchEffect, WatchStopHandle } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "../common/common"
-import { Config, Configs, EdgeConfig, HeadStyle, NodeConfig } from "../common/configs"
+import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "../common/configs"
 import { ShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
 import { Edge, Edges, Layouts, LinePosition, Node, NodePositions, Nodes } from "../common/types"
 import { EdgeGroupStates, makeEdgeGroupStates, calculateEdgePosition } from "../common/edge-group"
@@ -34,8 +34,8 @@ export type NodeStates = Record<string, NodeState>
 // States of edges
 interface Line {
   stroke: StrokeStyle
-  source: HeadStyle
-  target: HeadStyle
+  source: MarkerStyle
+  target: MarkerStyle
 }
 
 interface EdgeStateDatum {
@@ -68,7 +68,7 @@ interface States {
 
 const statesKey = Symbol("states") as InjectionKey<States>
 
-const NONE_MARKER: HeadStyle = {
+const NONE_MARKER: MarkerStyle = {
   type: "none",
   width: 0,
   height: 0,
@@ -314,11 +314,11 @@ function createNodeState(
   })
 }
 
-function toEdgeMarker(head: HeadStyle): HeadStyle {
-  if (head.type === "none") {
+function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
+  if (marker.type === "none") {
     return NONE_MARKER
   } else {
-    return head
+    return marker
   }
 }
 
@@ -347,8 +347,8 @@ function createEdgeState(
 
   const line = computed(() => {
     const stroke = getEdgeStroke(edges[id], state.selected, state.hovered, config)
-    const source = toEdgeMarker(Config.values(config.head.source, [edges[id], stroke]))
-    const target = toEdgeMarker(Config.values(config.head.target, [edges[id], stroke]))
+    const source = toEdgeMarker(Config.values(config.marker.source, [edges[id], stroke]))
+    const target = toEdgeMarker(Config.values(config.marker.target, [edges[id], stroke]))
     return { stroke, source, target }
   })
   state.line = line
@@ -392,16 +392,16 @@ function createEdgeState(
     let targetMargin = 0
     const l = line.value
     if (l.source.type !== "none") {
-      const head = l.source
-      sourceMargin = head.margin + head.width
-      if (head.units === "strokeWidth") {
+      const marker = l.source
+      sourceMargin = marker.margin + marker.width
+      if (marker.units === "strokeWidth") {
         sourceMargin *= l.stroke.width
       }
     }
     if (l.target.type !== "none") {
-      const head = l.target
-      targetMargin = head.margin + head.width
-      if (head.units === "strokeWidth") {
+      const marker = l.target
+      targetMargin = marker.margin + marker.width
+      if (marker.units === "strokeWidth") {
         targetMargin *= l.stroke.width
       }
     }

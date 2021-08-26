@@ -1,9 +1,9 @@
-import { HeadStyle } from "../common/configs"
+import { MarkerStyle } from "../common/configs"
 import { InjectionKey, provide, reactive } from "vue"
 
-export type MarkerBuilder = (marker: HeadStyle | null, isSource?: boolean) => string
+export type MarkerBuilder = (marker: MarkerStyle | null, isSource?: boolean) => string
 
-export interface HeadMarker extends HeadStyle {
+export interface HeadMarker extends MarkerStyle {
   color: string
   isSource: boolean
 }
@@ -18,7 +18,7 @@ export function provideMarkers() {
   return markers
 }
 
-function toHeadMarker(marker: HeadStyle, isSource: boolean, strokeColor: string) {
+function toHeadMarker(marker: MarkerStyle, isSource: boolean, strokeColor: string) {
   return {
     ...marker,
     color: marker.color ?? strokeColor,
@@ -56,7 +56,7 @@ export function clearMarker(id: string | undefined) {
   }
 }
 
-export function makeMarker(marker: HeadStyle, isSource: boolean, previousId: string | undefined, strokeColor: string) {
+export function makeMarker(marker: MarkerStyle, isSource: boolean, previousId: string | undefined, strokeColor: string) {
   if (marker.type === "none") {
     clearMarker(previousId)
     return undefined
@@ -64,7 +64,7 @@ export function makeMarker(marker: HeadStyle, isSource: boolean, previousId: str
 
   if (marker.type === "custom") {
     clearMarker(previousId)
-    return marker.customMarker
+    return marker.customId
   }
 
   const headMarker = toHeadMarker(marker, isSource, strokeColor)
