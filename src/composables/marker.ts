@@ -57,16 +57,19 @@ export function clearMarker(id: string | undefined) {
 }
 
 export function makeMarker(marker: HeadStyle, isSource: boolean, previousId: string | undefined, strokeColor: string) {
-  if (marker.type === "none" || marker.type === "custom") {
+  if (marker.type === "none") {
     clearMarker(previousId)
     return undefined
   }
 
+  if (marker.type === "custom") {
+    clearMarker(previousId)
+    return marker.customMarker
+  }
+
   const headMarker = toHeadMarker(marker, isSource, strokeColor)
   const id = buildKey(headMarker)
-  console.log("build", id)
   if (id === previousId) {
-    console.log("same", id)
     return id
   }
   clearMarker(previousId)
