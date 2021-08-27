@@ -16,6 +16,16 @@
         :scale="scale"
       />
 
+      <defs v-if="Object.keys(markers).length > 0">
+        <v-marker-head
+          v-for="(marker, id) in markers"
+          :id="id"
+          :key="id"
+          :marker="marker"
+          :scale="scale"
+        />
+      </defs>
+
       <!-- background-viewport:
            area outside the scope of SVG text retrieval but targeted by pan/zoom. -->
       <v-background-viewport v-if="isShowBackgroundViewport">
@@ -111,6 +121,7 @@ import { provideConfigs } from "../composables/config"
 import { provideStates } from "../composables/state"
 import { provideMouseOperation } from "../composables/mouse"
 import { provideEventEmitter } from "../composables/event-emitter"
+import { provideMarkers } from "../composables/marker"
 import { useSvgPanZoom } from "../composables/svg-pan-zoom"
 import { provideZoomLevel } from "../composables/zoom"
 import { EventHandlers, Nodes, Edges, Paths, Layouts, UserLayouts } from "../common/types"
@@ -124,6 +135,7 @@ import VEdgeLabels from "./edge-labels.vue"
 import VBackgroundViewport from "./background-viewport.vue"
 import VBackgroundGrid from "./background-grid.vue"
 import VPaths from "./paths.vue"
+import VMarkerHead from "./marker-head.vue"
 
 const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label"]
 
@@ -136,6 +148,7 @@ export default defineComponent({
     VBackgroundViewport,
     VBackgroundGrid,
     VPaths,
+    VMarkerHead,
   },
   props: {
     nodes: {
@@ -373,6 +386,11 @@ export default defineComponent({
     })
 
     // -----------------------------------------------------------------------
+    // SVG Markers
+    // -----------------------------------------------------------------------
+    const markers = provideMarkers()
+
+    // -----------------------------------------------------------------------
     // Mouse processing
     // -----------------------------------------------------------------------
 
@@ -501,6 +519,7 @@ export default defineComponent({
       scale,
       nodeStates,
       currentSelectedNodes,
+      markers,
       dragging,
       currentLayouts,
       visibleNodeFocusRing,
@@ -620,5 +639,10 @@ export default defineComponent({
 .v-canvas.dragging,
 .v-canvas.dragging * {
   cursor: grabbing !important;
+}
+.v-canvas.dragging {
+  :deep(.v-line) {
+    transition: d 0s;
+  }
 }
 </style>

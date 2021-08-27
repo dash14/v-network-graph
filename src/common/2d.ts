@@ -22,12 +22,14 @@ export function getIntersectionOfLineAndCircle(
   center: Position,
   radius: number
 ): Position | null {
-  return V.getIntersectionOfLineTargetAndCircle(
-    V.Vector.fromObject(targetSide ? line.source : line.target),
-    V.Vector.fromObject(targetSide ? line.target : line.source),
-    V.Vector.fromObject(center),
-    radius
-  )?.toObject() ?? null
+  return (
+    V.getIntersectionOfLineTargetAndCircle(
+      V.Vector.fromObject(targetSide ? line.source : line.target),
+      V.Vector.fromObject(targetSide ? line.target : line.source),
+      V.Vector.fromObject(center),
+      radius
+    )?.toObject() ?? null
+  )
 }
 
 /**
@@ -60,7 +62,6 @@ export function isPointContainedInCircle(
   return v.lengthSq() < radius * radius
 }
 
-
 /**
  * Get the distance that a line should be away from the
  * edge to avoid contacting a rounded rectangle.
@@ -92,7 +93,7 @@ function calculateDistanceToAvoidOverlapsWithRect(
       V.Vector.fromArray([left, top]),
       V.Vector.fromArray([left, bottom]),
       V.Vector.fromArray([right, top]),
-      V.Vector.fromArray([right, bottom]),
+      V.Vector.fromArray([right, bottom])
     )
   } else {
     // The edge of each line and the center of the rounded corner are
@@ -110,75 +111,47 @@ function calculateDistanceToAvoidOverlapsWithRect(
       V.Vector.fromArray([right - borderRadius + hypo, top + borderRadius - hypo]),
       V.Vector.fromArray([right - borderRadius, bottom]),
       V.Vector.fromArray([right, bottom - borderRadius]),
-      V.Vector.fromArray([right - borderRadius + hypo, bottom - borderRadius + hypo]),
+      V.Vector.fromArray([right - borderRadius + hypo, bottom - borderRadius + hypo])
     )
   }
   const hits = vertexes.map(p => V.getNearestPoint(p, centerLine))
-  const minP = minBy(hits, p => V.toLineVector(centerLine.source, p).lengthSq()) ?? centerLine.target
+  const minP =
+    minBy(hits, p => V.toLineVector(centerLine.source, p).lengthSq()) ?? centerLine.target
   return V.toLineVector(minP, centerLine.target).length()
 }
 
 /**
  * Calculate the position to display the edge label from the
  * positions of the edge.
- * @param linePos position of the line
+ * @param linePos line segment between the outermost of the nodes
  * @param edgeStyle stroke style of edges
- * @param sourceNodePos position of the source node
- * @param targetNodePos position of the target node
- * @param sourceNodeShape shape style of the source node
- * @param targetNodeShape shape style of the target node
  * @param margin margin from line
+ * @param padding padding from outside
  * @param scale scale factor
  * @returns edge label display area
  */
 export function calculateEdgeLabelArea(
   linePos: LinePosition,
   edgeStyle: StrokeStyle,
-  sourceNodePos: Position,
-  targetNodePos: Position,
-  sourceNodeShape: AnyShapeStyle,
-  targetNodeShape: AnyShapeStyle,
   margin: number,
+  padding: number,
   scale: number
 ) {
+  // the line segment between the outermost of the nodes
   const line = V.fromLinePosition(linePos)
   const normalized = line.v.clone().normalize()
 
   // source side
-  let sv: V.Vector
-  if (sourceNodeShape.type === "circle") {
-    const radius = (sourceNodeShape.radius + margin) * scale
-    const d = normalized.clone().multiplyScalar(radius)
-    sv = line.source.clone().add(d)
-  } else {
-    const m = calculateDistanceToAvoidOverlapsWithRect(
-      targetNodePos,
-      sourceNodePos,
-      sourceNodeShape,
-      scale
-    )
-    const nm = (m / scale + margin) * scale
-    const d = normalized.clone().multiplyScalar(nm)
-    sv = line.source.clone().add(d)
-  }
+  const sv =
+    padding === 0
+      ? line.source
+      : line.source.clone().add(normalized.clone().multiplyScalar(padding * scale))
 
   // target side
-  let tv: V.Vector
-  if (targetNodeShape.type === "circle") {
-    const radius = (targetNodeShape.radius + margin) * scale
-    const d = normalized.clone().multiplyScalar(radius)
-    tv = line.target.clone().subtract(d)
-  } else {
-    const m = calculateDistanceToAvoidOverlapsWithRect(
-      sourceNodePos,
-      targetNodePos,
-      targetNodeShape,
-      scale
-    )
-    const nm = (m / scale + margin) * scale
-    const d = normalized.clone().multiplyScalar(nm)
-    tv = line.target.clone().subtract(d)
-  }
+  const tv =
+    padding === 0
+      ? line.target
+      : line.target.clone().subtract(normalized.clone().multiplyScalar(padding * scale))
 
   // margin for edges
   const labelMargin = (edgeStyle.width / 2 + margin) * scale
@@ -191,11 +164,141 @@ export function calculateEdgeLabelArea(
   const angle = line.v.angleDeg()
   if (angle < -90 || angle >= 90) {
     // upside down
-    [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove];
-    [targetAbove, targetBelow] = [targetBelow, targetAbove]
+    [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove]
+    ;[targetAbove, targetBelow] = [targetBelow, targetAbove]
   }
   return {
     source: { above: sourceAbove, below: sourceBelow },
     target: { above: targetAbove, below: targetBelow },
   }
+}
+
+export function calculateEdgePosition(
+  linePos: LinePosition,
+  sourceNodePos: Position,
+  targetNodePos: Position,
+  sourceNodeShape: AnyShapeStyle,
+  targetNodeShape: AnyShapeStyle,
+  margin: number | undefined,
+  sourceMargin: number,
+  targetMargin: number,
+  scale: number
+): LinePosition {
+  const line = V.fromLinePosition(linePos)
+  const normalized = line.v.clone().normalize()
+
+  // source side
+  let distance: number
+  if (margin === undefined) {
+    distance = sourceMargin * scale
+  } else {
+    sourceMargin += margin
+    if (sourceNodeShape.type === "circle") {
+      distance = (sourceNodeShape.radius + sourceMargin) * scale
+    } else {
+      const m = calculateDistanceToAvoidOverlapsWithRect(
+        targetNodePos,
+        sourceNodePos,
+        sourceNodeShape,
+        scale
+      )
+      distance = (m / scale + sourceMargin) * scale
+    }
+  }
+  const sv = line.source.clone().add(normalized.clone().multiplyScalar(distance))
+
+  // target side
+  if (margin === undefined) {
+    distance = targetMargin * scale
+  } else {
+    targetMargin += margin
+
+    if (targetNodeShape.type === "circle") {
+      distance = (targetNodeShape.radius + targetMargin) * scale
+    } else {
+      const m = calculateDistanceToAvoidOverlapsWithRect(
+        sourceNodePos,
+        targetNodePos,
+        targetNodeShape,
+        scale
+      )
+      distance = (m / scale + targetMargin) * scale
+    }
+  }
+  const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(distance))
+
+  const [x1, y1] = sv.toArray()
+  const [x2, y2] = tv.toArray()
+  return { x1, y1, x2, y2 }
+}
+
+export function calculateLinePositionBetweenNodes(
+  linePos: LinePosition,
+  sourceNodePos: Position,
+  targetNodePos: Position,
+  sourceNodeShape: AnyShapeStyle,
+  targetNodeShape: AnyShapeStyle,
+  scale: number
+): LinePosition {
+  // source side
+  let sourceMargin: number
+  if (sourceNodeShape.type === "circle") {
+    sourceMargin = sourceNodeShape.radius * scale
+  } else {
+    sourceMargin = calculateDistanceToAvoidOverlapsWithRect(
+      targetNodePos,
+      sourceNodePos,
+      sourceNodeShape,
+      scale
+    )
+  }
+
+  // target side
+  let targetMargin: number
+  if (targetNodeShape.type === "circle") {
+    targetMargin = targetNodeShape.radius * scale
+  } else {
+    targetMargin = calculateDistanceToAvoidOverlapsWithRect(
+      sourceNodePos,
+      targetNodePos,
+      targetNodeShape,
+      scale
+    )
+  }
+
+  const line = V.fromLinePosition(linePos)
+  return applyMarginToLineInner(line, sourceMargin, targetMargin)
+}
+
+export function applyMarginToLine(
+  linePos: LinePosition,
+  sourceMargin: number,
+  targetMargin: number
+) {
+  const line = V.fromLinePosition(linePos)
+  return applyMarginToLineInner(line, sourceMargin, targetMargin)
+}
+
+export function applyMarginToLineInner(line: V.Line, sourceMargin: number, targetMargin: number) {
+  const normalized = line.v.clone().normalize()
+
+  line.v.angle()
+
+  const sv = line.source.clone().add(normalized.clone().multiplyScalar(sourceMargin))
+
+  const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(targetMargin))
+
+  let [x1, y1] = sv.toArray()
+  let [x2, y2] = tv.toArray()
+
+  const check = V.toLineVector(sv, tv)
+  if (line.v.angle() * check.angle() < 0) {
+    // reversed
+    const c1 = V.Vector.fromArray([(x1 + x2) / 2, (y1 + y2) / 2])
+    const c2 = c1.clone().add(normalized.multiplyScalar(0.5))
+    ;[x1, y1] = c1.toArray()
+    ;[x2, y2] = c2.toArray()
+  }
+
+  return { x1, y1, x2, y2 }
 }

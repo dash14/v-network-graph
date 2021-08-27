@@ -118,6 +118,25 @@ export function getConfigDefaults(): Configs {
       },
       selectable: false,
       gap: 3,
+      marker: {
+        source: {
+          type: "none",
+          width: 5,
+          height: 5,
+          margin: -1,
+          units: "strokeWidth",
+          color: null
+        },
+        target: {
+          type: "none",
+          width: 5,
+          height: 5,
+          margin: -1,
+          units: "strokeWidth",
+          color: null
+        },
+      },
+      margin: null,
       summarize: true,
       summarized: {
         label: {
@@ -163,6 +182,7 @@ export function getConfigDefaults(): Configs {
         //   borderRadius: 2
         // },
         margin: 4,
+        padding: 4
       },
     })),
     path: {

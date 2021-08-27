@@ -28,13 +28,10 @@ const indivisualEdgeGroups = computed(() =>
 const labelAreaPosition = computed(
   () => (edgeId: string, source: NodeShape, target: NodeShape, edgeStyle: StrokeStyle) => {
     return v2d.calculateEdgeLabelArea(
-      edgeStates[edgeId].position,
+      edgeStates[edgeId].outers,
       edgeStyle,
-      source.pos,
-      target.pos,
-      source.shape,
-      target.shape,
       edgeConfig.label.margin,
+      edgeConfig.label.padding,
       scale.value
     )
   }
@@ -71,7 +68,7 @@ defineExpose({
               edgeId,
               nodeShape(edge.source),
               nodeShape(edge.target),
-              edgeStates[edgeId].stroke
+              edgeStates[edgeId].line.stroke
             )
           "
           :scale="scale"
@@ -80,3 +77,12 @@ defineExpose({
     </template>
   </g>
 </template>
+
+<style lang="scss" scoped>
+.v-edge-labels {
+  :deep(.v-text),
+  :deep(.v-text-background) {
+    pointer-events: none;
+  }
+}
+</style>

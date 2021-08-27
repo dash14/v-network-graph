@@ -161,6 +161,20 @@ export interface StrokeStyle {
 
 export interface EdgeLabelStyle extends LabelStyle {
   margin: number
+  padding: number
+}
+
+export type EdgeHeadType = "none" | "arrow" | "angle" | "circle" | "custom"
+export type MarkerUnits = "strokeWidth" | "userSpaceOnUse"
+
+export interface MarkerStyle {
+  type: EdgeHeadType
+  width: number
+  height: number
+  margin: number
+  units: MarkerUnits
+  color: string | null
+  customId?: string
 }
 
 export interface EdgeConfig<E extends Edge = Edge> {
@@ -169,6 +183,11 @@ export interface EdgeConfig<E extends Edge = Edge> {
   selected: CallableValues<StrokeStyle, E>
   selectable: boolean | number
   gap: number | ((edges: Edges, configs: Configs) => number)
+  marker: {
+    source: CallableValues<MarkerStyle, [E, StrokeStyle]>
+    target: CallableValues<MarkerStyle, [E, StrokeStyle]>
+  }
+  margin: number | null
   summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
   summarized: {
     label: LabelStyle
