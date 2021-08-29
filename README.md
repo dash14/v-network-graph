@@ -87,6 +87,57 @@ export default defineComponent({
 
 For more examples, see [here](https://dash14.github.io/v-network-graph/examples/).
 
+## Motivation and Design Policy
+
+The requirements for visualizing network graphs are various, including
+the design and user actions for each component such as nodes, edges,
+paths, etc.
+Many libraries have been made to flexibly achieve these numerous
+requirements. However, many of these libraries have been around since
+before Vue was launched, so there are not many libraries that can be
+used with the concept of reactive programming. This means that using
+these libraries together with Vue, you need to learn how to use the
+graph libraries as well as Vue, and also having to design the
+integration with Vue. These are probably a lot of efforts.
+
+This component aims to make it easy to realize applications with these
+various requirements while keeping the simple and reactive style of
+Vue. Using the power of Vue (especially reactive system and two-way
+binding), we hope to help developers quickly visualize interactively
+manipulable network graphs with less code and lower learning costs.
+
+v-network-graph was designed with the following policy:
+
+* Reactive
+
+    All primitive data such as nodes, edges, node positions, and
+    their styles are provided from outside the component, and the
+    component can handle these data reactively with Vue. The
+    developer can modify the data at any time to reactively perform
+    manipulations such as adding/removing objects, moving node
+    positions, changing appearance, etc.
+
+* Highly customizable
+
+    For visualizations, where the requirements vary widely from each
+    application, it will be available a variety of customizations
+    for ease of use. In addition to static specifications, it also
+    supports dynamic changes due to the values ​​of fields contained
+    in node and edge data.
+
+* Extendable
+
+    Network graphs have many types of visualization objects, and in
+    many cases there are application-specific requirements. It is
+    difficult to cover all the requirements with pre-defined
+    functions. Therefore, we also implement a mechanism that allows
+    developers to flexibly add their own SVG elements and actions
+    as needed.
+
+With the above, we would like to contribute to helping application
+developers to focus on developing application-specific requirements
+for handling network graphs.
+
 ## Contributing
 
 If you find any bugs and/or want to contribute, feel free to submit issues or pull requests.
