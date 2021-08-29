@@ -49,6 +49,7 @@
 
         <!-- edges -->
         <g class="v-layer-edges">
+          <v-edge-backgrounds />
           <v-edge-groups />
         </g>
 
@@ -131,6 +132,7 @@ import { UserConfigs } from "../common/configs"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
+import VEdgeBackgrounds from "./edge-backgrounds.vue"
 import VEdgeLabels from "./edge-labels.vue"
 import VBackgroundViewport from "./background-viewport.vue"
 import VBackgroundGrid from "./background-grid.vue"
@@ -144,6 +146,7 @@ export default defineComponent({
     VNode,
     VNodeFocusRing,
     VEdgeGroups,
+    VEdgeBackgrounds,
     VEdgeLabels,
     VBackgroundViewport,
     VBackgroundGrid,

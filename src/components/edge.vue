@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { PropType, ref, watchEffect } from "vue"
+import { PropType } from "vue"
 import { useEdgeConfig } from "../composables/config"
 import { Position } from "../common/types"
 import { EdgeState } from "../composables/state"
-import { useMouseOperation } from "../composables/mouse"
 import VLine from "./line.vue"
 
 const props = defineProps({
@@ -28,28 +27,8 @@ const props = defineProps({
 })
 
 const config = useEdgeConfig()
-const {
-  handleEdgePointerDownEvent,
-  handleEdgePointerOverEvent,
-  handleEdgePointerOutEvent,
-  hoveredEdges,
-} = useMouseOperation()
 
-// for suppress reactive events
-const isHovered = ref(false)
-watchEffect(() => {
-  const hovered = hoveredEdges.has(props.id)
-  if (isHovered.value != hovered) {
-    isHovered.value = hovered
-  }
-})
-
-defineExpose({
-  config,
-  handleEdgePointerDownEvent,
-  handleEdgePointerOverEvent,
-  handleEdgePointerOutEvent,
-})
+defineExpose({ config })
 </script>
 
 <template>
@@ -59,9 +38,6 @@ defineExpose({
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url(#${state.sourceMarkerId})` : undefined"
     :marker-end="state.targetMarkerId ? `url(#${state.targetMarkerId})` : undefined"
-    @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
-    @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
-    @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"
   />
 </template>
 
@@ -70,9 +46,6 @@ $transition: 0.1s linear;
 
 .v-line {
   transition: stroke $transition, stroke-width $transition, d $transition;
-}
-
-.v-line.selectable {
-  cursor: pointer;
+  pointer-events: none;
 }
 </style>
