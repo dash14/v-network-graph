@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/d3-force": "^3.0.3",
     "@types/lodash-es": "^4.17.4",
-    "@types/node": "^16.7.3",
+    "@types/node": "^16.7.5",
     "@types/victor": "^1.1.0",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
@@ -43,7 +43,7 @@
     "lodash-es": "^4.17.21",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
-    "sass": "^1.38.1",
+    "sass": "^1.38.2",
     "typescript": "^4.4.2",
     "victor": "^1.1.0",
     "vite": "^2.5.1",

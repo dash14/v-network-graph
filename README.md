@@ -101,10 +101,11 @@ graph libraries as well as Vue, and also having to design the
 integration with Vue. These are probably a lot of efforts.
 
 This component aims to make it easy to realize applications with these
-various requirements while keeping the simple and reactive style of
-Vue. Using the power of Vue (especially reactive system and two-way
-binding), we hope to help developers quickly visualize interactively
-manipulable network graphs with less code and lower learning costs.
+various requirements while keeping the simplicity and reactive
+programming style of Vue. Using the power of Vue (especially reactive
+system and two-way binding), we hope to help developers quickly
+visualize interactively manipulable network graphs with less code and
+lower learning costs.
 
 v-network-graph was designed with the following policy:
 
