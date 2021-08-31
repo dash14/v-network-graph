@@ -40,6 +40,7 @@ interface Line {
 
 interface EdgeStateDatum {
   line: Ref<Line>
+  normalWidth: number // stroke width when not hovered
   selected: boolean
   hovered: boolean
   origin: LinePosition // line segment between center of nodes
@@ -346,10 +347,12 @@ function createEdgeState(
   const state = states[id] as any as EdgeStateDatum
 
   const line = computed(() => {
-    const stroke = getEdgeStroke(edges[id], state.selected, state.hovered, config)
-    const source = toEdgeMarker(Config.values(config.marker.source, [edges[id], stroke]))
-    const target = toEdgeMarker(Config.values(config.marker.target, [edges[id], stroke]))
-    return { stroke, source, target }
+    const edge = edges[id]
+    const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
+    const normalWidth = Config.value(config.normal.width, edge)
+    const source = toEdgeMarker(Config.values(config.marker.source, [edge, stroke]))
+    const target = toEdgeMarker(Config.values(config.marker.target, [edge, stroke]))
+    return { stroke, normalWidth, source, target }
   })
   state.line = line
 
@@ -395,14 +398,14 @@ function createEdgeState(
       const marker = l.source
       sourceMargin = marker.margin + marker.width
       if (marker.units === "strokeWidth") {
-        sourceMargin *= l.stroke.width
+        sourceMargin *= l.normalWidth
       }
     }
     if (l.target.type !== "none") {
       const marker = l.target
       targetMargin = marker.margin + marker.width
       if (marker.units === "strokeWidth") {
-        targetMargin *= l.stroke.width
+        targetMargin *= l.normalWidth
       }
     }
     const s = scale.value

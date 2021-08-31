@@ -45,7 +45,7 @@ defineExpose({ config })
 $transition: 0.1s linear;
 
 .v-line {
-  transition: stroke $transition, stroke-width $transition, d $transition;
+  transition: stroke $transition, stroke-width $transition;
   pointer-events: none;
 }
 </style>
