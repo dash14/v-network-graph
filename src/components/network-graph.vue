@@ -346,8 +346,12 @@ export default defineComponent({
     // To resolve the problem that the center position and
     // magnification rate may not be recognized.
     const updateBorderBox = (callback: () => void) => {
-      svgPanZoom.value?.updateBBox()
-      nextTick(callback)
+      if (Object.keys(props.nodes).length > 0) {
+        svgPanZoom.value?.updateBBox()
+        nextTick(callback)
+      } else {
+        callback()
+      }
     }
 
     // Scales the content to fit in the SVG area.
