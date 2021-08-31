@@ -1,4 +1,5 @@
 import { NodeLabelDirection, Configs, withSelf, Config, UserConfigs } from "./configs"
+import { Node, Edge, Path } from "./types"
 import { SimpleLayout } from "../layouts/simple"
 import merge from "lodash-es/merge"
 
@@ -230,7 +231,7 @@ export function getConfigDefaults(): Configs {
   }
 }
 
-export function getFullConfigs(config?: UserConfigs) {
+export function getFullConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(config?: UserConfigs<N, E, P>): Configs {
   const configs = getConfigDefaults()
   if (config) {
     merge(configs, config)

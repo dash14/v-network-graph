@@ -219,10 +219,14 @@ export interface Configs<N extends Node = Node, E extends Edge = Edge, P extends
 }
 
 /** For specification by the user */
-export type UserConfigs<N extends Node = Node, E extends Edge = Edge> = RecursivePartial<Configs<N, E>>
+export type UserConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path> = RecursivePartial<Configs<N, E, P>>
 
 /** Make a config with self object */
 export function withSelf<T extends {[name: string]: any}>(callback: (self: T) => T): T {
   const self = {} as T
   return Object.assign(self, callback(self))
+}
+
+export function configsWithType<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(configs: UserConfigs<N, E, P>): UserConfigs {
+  return configs as UserConfigs
 }
