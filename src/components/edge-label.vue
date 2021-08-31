@@ -21,10 +21,12 @@ const props = defineProps({
   },
   align: {
     type: String as PropType<"center" | "source" | "target">,
+    required: false,
     default: "center",
   },
   verticalAlign: {
     type: String as PropType<"center" | "above" | "below">,
+    required: false,
     default: "center",
   },
   // The followings are the definitions to avoid passing unwanted
@@ -33,6 +35,16 @@ const props = defineProps({
     type: Object as PropType<Edge>,
     required: false,
     default: undefined
+  },
+  hovered: {
+    type: Boolean,
+    required: false,
+    default: false
+  },
+  selected: {
+    type: Boolean,
+    required: false,
+    default: false
   },
   scale: {
     type: Number,

@@ -71,6 +71,8 @@ defineExpose({
               edgeStates[edgeId].line.stroke
             )
           "
+          :hovered="edgeStates[edgeId].hovered"
+          :selected="edgeStates[edgeId].selected"
           :scale="scale"
         />
       </template>
