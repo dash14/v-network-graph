@@ -479,19 +479,29 @@ export default defineComponent({
     onSvgPanZoomMounted(() => {
       updateBorderBox(() => {
         // pan to center
-        svgPanZoom.value?.center()
+        const svg = nonNull(svgPanZoom.value, "svg-pan-zoom")
+        svg.center()
 
         // activate layout handler.
         // (calc the positions of nodes whose positions are not specified)
         configs.view.layoutHandler.activate(activateParams())
 
         nextTick(() => {
-          // The center may change as a result of the position calculation above,
-          // so re-center.
-          if (configs.view.fit) {
-            fitToContents()
+          if (Object.keys(props.nodes).length > 0) {
+            // The center may change as a result of the position calculation above,
+            // so re-center.
+            if (configs.view.fit) {
+              fitToContents()
+            } else {
+              panToCenter()
+            }
           } else {
-            panToCenter()
+            // Pan (0, 0) to the center.
+            const sizes = svg.getSizes()
+            svg.pan({
+              x: sizes.width / 2,
+              y: sizes.height / 2
+            })
           }
 
           emitter.emit("view:load")
