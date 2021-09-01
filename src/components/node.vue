@@ -172,7 +172,7 @@ defineExpose({
 
 <template>
   <g
-    :class="{ hover: state.hovered, selected: state.selected }"
+    :class="{ 'v-node': true, hover: state.hovered, selected: state.selected }"
     :transform="`translate(${x} ${y})`"
     @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
@@ -228,16 +228,14 @@ $transition: 0.1s linear;
   transition: fill $transition, stroke $transition, stroke-width $transition,
     x $transition, y $transition, width $transition, height $transition;
 }
-.draggable,
-.selectable {
-  pointer-events: all;
-  cursor: pointer;
+.v-node {
+  :deep(.draggable),
+  :deep(.selectable) {
+    pointer-events: all;
+    cursor: pointer;
+  }
 }
 
-.dragging circle,
-.dragging rect {
-  cursor: inherit;
-}
 .v-text {
   pointer-events: none;
   user-select: none;

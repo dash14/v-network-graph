@@ -653,11 +653,10 @@ export default defineComponent({
   }
 }
 
-.v-canvas.dragging,
-.v-canvas.dragging * {
-  cursor: grabbing !important;
-}
 .v-canvas.dragging {
+  :deep(*) {
+    cursor: grabbing !important;
+  }
   :deep(.v-line) {
     transition: d 0s;
   }
