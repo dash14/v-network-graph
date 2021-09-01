@@ -227,7 +227,7 @@ function calculateLinePosition(
   const dy = y2 - y1
 
   // Shifting width from center
-  let diff = (pointInGroup - groupWidth / 2) * scale
+  let diff = (groupWidth / 2 - pointInGroup) * scale
 
   if (dx === 0) {
     const sign = dy < 0 ? -1 : 1
