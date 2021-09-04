@@ -72,7 +72,7 @@ export function makeEdgeGroupStates(
         Object.keys(edges).forEach(id => (summarizedEdges[id] = true))
       }
     }
-    state.summarizedEdges = summarizedEdges
+    updateObjectDiff(state.summarizedEdges, summarizedEdges)
   })
 
   return state
