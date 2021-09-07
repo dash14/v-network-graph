@@ -59,6 +59,7 @@
       "import": "./lib/index.es.js",
       "require": "./lib/index.umd.js"
     },
+    "./lib/*": "./lib/*",
     "./force-layout": {
       "import": "./lib/force-layout.es.js",
       "require": "./lib/force-layout.umd.js"
