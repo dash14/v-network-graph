@@ -173,7 +173,9 @@ export class ForceLayout implements LayoutHandler {
   }
 
   private forceNodeLayouts(layouts: NodePositions): ForceNodeDatum[] {
-    return Object.entries(layouts).map(([id, v]) => ({ id, ...v }))
+    return Object.entries(layouts).map(([id, v]) => {
+      return v.fixed ? { id, ...v, fx: v.x, fy: v.y } : { id, ...v }
+    })
   }
 
   private forceLayoutEdges(edges: Edges): ForceEdgeDatum[] {
