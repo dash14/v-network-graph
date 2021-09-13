@@ -63,6 +63,8 @@ interface States {
   layouts: Layouts
 }
 
+export type ReadonlyStates = Readonly<States>
+
 // -----------------------------------------------------------------------
 // Constants
 // -----------------------------------------------------------------------
@@ -259,7 +261,7 @@ export function provideStates(
 }
 
 export function useStates() {
-  return nonNull(inject(statesKey), "states")
+  return nonNull(inject(statesKey), "states") as ReadonlyStates
 }
 
 // -----------------------------------------------------------------------

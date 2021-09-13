@@ -27,6 +27,9 @@ export type { LayoutHandler } from "./layouts/handler"
 export * from "./common/types"
 export * from "./common/configs"
 
+// Export for more advanced visualization. However, be aware of the
+// possibility of destructive specification changes in the future.
+export { useStates } from "./composables/state"
 
 // // iife/cjs usage extends esm default export - so import it all
 // import plugin, * as components from '.';
