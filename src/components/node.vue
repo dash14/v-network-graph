@@ -234,12 +234,12 @@ $transition: 0.1s linear;
     pointer-events: all;
     cursor: pointer;
   }
+  :deep(.v-text) {
+    pointer-events: none;
+    user-select: none;
+    cursor: default;
+    transition: x $transition, y $transition;
+  }
 }
 
-.v-text {
-  pointer-events: none;
-  user-select: none;
-  cursor: default;
-  transition: x $transition, y $transition;
-}
 </style>
