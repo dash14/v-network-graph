@@ -28,7 +28,7 @@ const indivisualEdgeGroups = computed(() =>
 const labelAreaPosition = computed(
   () => (edgeId: string, source: NodeShape, target: NodeShape, edgeStyle: StrokeStyle) => {
     return v2d.calculateEdgeLabelArea(
-      edgeStates[edgeId].outers,
+      edgeStates[edgeId].labelPosition,
       edgeStyle,
       edgeConfig.label.margin,
       edgeConfig.label.padding,

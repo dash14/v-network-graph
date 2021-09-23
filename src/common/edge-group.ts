@@ -31,6 +31,13 @@ export interface EdgeGroupStates {
 // Exported functions
 // -----------------------------------------------------------------------
 
+/**
+ * Make the states for edge group.
+ * @param nodes nodes
+ * @param edges edges
+ * @param configs configs
+ * @returns the states object for edge group
+ */
 export function makeEdgeGroupStates(
   nodes: Readonly<Nodes>,
   edges: Readonly<Edges>,
@@ -83,7 +90,16 @@ export function makeEdgeGroupStates(
   return state
 }
 
-export function calculateEdgePosition(
+/**
+ * Calculate the edge position by applying a shift.
+ * @param p relative layout information of edges
+ * @param isSummarized summarize or not
+ * @param source position of source node
+ * @param target position of target node
+ * @param scale scale factor
+ * @returns the edge position by applying a shift
+ */
+export function calculateEdgeShiftedPosition(
   p: EdgeLayoutPoint,
   isSummarized: boolean,
   source: Position,

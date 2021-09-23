@@ -9,6 +9,29 @@ interface Line {
 }
 
 /**
+ * Convert `LinePosition` to list of `Position`
+ * @param line `LinePosition` instance
+ * @returns list of `Position` instance
+ */
+export function lineTo2Positions(line: LinePosition): [Position, Position] {
+  const { x1, x2, y1, y2 } = line
+  return [
+    { x: x1, y: y1 },
+    { x: x2, y: y2 },
+  ]
+}
+
+/**
+ * Convert two `Position` to `LinePosition`
+ * @param p1 source position of the line
+ * @param p2 target position of the line
+ * @returns `LinePosition` instance
+ */
+export function positionsToLinePosition(p1: Position, p2: Position): LinePosition {
+  return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }
+}
+
+/**
  * Calculate the intersection of a line and a circle.
  * @param line line
  * @param targetSide side of the line where the node is located. true: target side, false: source side
@@ -60,6 +83,17 @@ export function isPointContainedInCircle(
   const c = V.Vector.fromObject(center)
   const v = p.subtract(c)
   return v.lengthSq() < radius * radius
+}
+
+/**
+ * Calculate the distance of the line.
+ * @param line line
+ * @returns distance
+ */
+export function calculateDistance(line: LinePosition) {
+  const x = line.x2 - line.x1
+  const y = line.y2 - line.y1
+  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 }
 
 /**
@@ -173,113 +207,125 @@ export function calculateEdgeLabelArea(
   }
 }
 
-export function calculateEdgePosition(
-  linePos: LinePosition,
+// export function calculateEdgePosition(
+//   linePos: LinePosition,
+//   sourceNodePos: Position,
+//   targetNodePos: Position,
+//   sourceNodeShape: AnyShapeStyle,
+//   targetNodeShape: AnyShapeStyle,
+//   margin: number | undefined,
+//   sourceMargin: number,
+//   targetMargin: number,
+//   scale: number
+// ): LinePosition {
+//   const line = V.fromLinePosition(linePos)
+//   const normalized = line.v.clone().normalize()
+
+//   // source side
+//   let distance: number
+//   if (margin === undefined) {
+//     distance = sourceMargin * scale
+//   } else {
+//     sourceMargin += margin
+//     if (sourceNodeShape.type === "circle") {
+//       distance = (sourceNodeShape.radius + sourceMargin) * scale
+//     } else {
+//       const m = calculateDistanceToAvoidOverlapsWithRect(
+//         targetNodePos,
+//         sourceNodePos,
+//         sourceNodeShape,
+//         scale
+//       )
+//       distance = (m / scale + sourceMargin) * scale
+//     }
+//   }
+//   const sv = line.source.clone().add(normalized.clone().multiplyScalar(distance))
+
+//   // target side
+//   if (margin === undefined) {
+//     distance = targetMargin * scale
+//   } else {
+//     targetMargin += margin
+
+//     if (targetNodeShape.type === "circle") {
+//       distance = (targetNodeShape.radius + targetMargin) * scale
+//     } else {
+//       const m = calculateDistanceToAvoidOverlapsWithRect(
+//         sourceNodePos,
+//         targetNodePos,
+//         targetNodeShape,
+//         scale
+//       )
+//       distance = (m / scale + targetMargin) * scale
+//     }
+//   }
+//   const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(distance))
+
+//   const [x1, y1] = sv.toArray()
+//   const [x2, y2] = tv.toArray()
+//   return { x1, y1, x2, y2 }
+// }
+
+/**
+ * Calculate the distances between center of node and edge of node.
+ * @param sourceNodePos position of source node
+ * @param targetNodePos position of target node
+ * @param sourceNodeShape shape config of source node
+ * @param targetNodeShape shape config of target node
+ * @returns the distances
+ */
+export function calculateDistancesFromCenterOfNodeToEndOfNode(
   sourceNodePos: Position,
   targetNodePos: Position,
   sourceNodeShape: AnyShapeStyle,
-  targetNodeShape: AnyShapeStyle,
-  margin: number | undefined,
-  sourceMargin: number,
-  targetMargin: number,
-  scale: number
-): LinePosition {
-  const line = V.fromLinePosition(linePos)
-  const normalized = line.v.clone().normalize()
-
+  targetNodeShape: AnyShapeStyle
+): [number, number] {
   // source side
-  let distance: number
-  if (margin === undefined) {
-    distance = sourceMargin * scale
-  } else {
-    sourceMargin += margin
-    if (sourceNodeShape.type === "circle") {
-      distance = (sourceNodeShape.radius + sourceMargin) * scale
-    } else {
-      const m = calculateDistanceToAvoidOverlapsWithRect(
-        targetNodePos,
-        sourceNodePos,
-        sourceNodeShape,
-        scale
-      )
-      distance = (m / scale + sourceMargin) * scale
-    }
-  }
-  const sv = line.source.clone().add(normalized.clone().multiplyScalar(distance))
-
-  // target side
-  if (margin === undefined) {
-    distance = targetMargin * scale
-  } else {
-    targetMargin += margin
-
-    if (targetNodeShape.type === "circle") {
-      distance = (targetNodeShape.radius + targetMargin) * scale
-    } else {
-      const m = calculateDistanceToAvoidOverlapsWithRect(
-        sourceNodePos,
-        targetNodePos,
-        targetNodeShape,
-        scale
-      )
-      distance = (m / scale + targetMargin) * scale
-    }
-  }
-  const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(distance))
-
-  const [x1, y1] = sv.toArray()
-  const [x2, y2] = tv.toArray()
-  return { x1, y1, x2, y2 }
-}
-
-export function calculateLinePositionBetweenNodes(
-  linePos: LinePosition,
-  sourceNodePos: Position,
-  targetNodePos: Position,
-  sourceNodeShape: AnyShapeStyle,
-  targetNodeShape: AnyShapeStyle,
-  scale: number
-): LinePosition {
-  // source side
-  let sourceMargin: number
+  let distance1: number
   if (sourceNodeShape.type === "circle") {
-    sourceMargin = sourceNodeShape.radius * scale
+    distance1 = sourceNodeShape.radius
   } else {
-    sourceMargin = calculateDistanceToAvoidOverlapsWithRect(
+    distance1 = calculateDistanceToAvoidOverlapsWithRect(
       targetNodePos,
       sourceNodePos,
       sourceNodeShape,
-      scale
+      1 // scale
     )
   }
 
   // target side
-  let targetMargin: number
+  let distance2: number
   if (targetNodeShape.type === "circle") {
-    targetMargin = targetNodeShape.radius * scale
+    distance2 = targetNodeShape.radius
   } else {
-    targetMargin = calculateDistanceToAvoidOverlapsWithRect(
+    distance2 = calculateDistanceToAvoidOverlapsWithRect(
       sourceNodePos,
       targetNodePos,
       targetNodeShape,
-      scale
+      1 // scale
     )
   }
 
-  const line = V.fromLinePosition(linePos)
-  return applyMarginToLineInner(line, sourceMargin, targetMargin)
+  return [distance1, distance2]
 }
 
+/**
+ * Calculates the line position to which the margin is applied.
+ * @param linePos original position of the line
+ * @param sourceMargin margin for source side
+ * @param targetMargin margin for target side
+ * @returns the line position
+ */
 export function applyMarginToLine(
   linePos: LinePosition,
   sourceMargin: number,
   targetMargin: number
-) {
+): LinePosition {
   const line = V.fromLinePosition(linePos)
   return applyMarginToLineInner(line, sourceMargin, targetMargin)
 }
 
-export function applyMarginToLineInner(line: V.Line, sourceMargin: number, targetMargin: number) {
+function applyMarginToLineInner(line: V.Line, sourceMargin: number, targetMargin: number) {
   const normalized = line.v.clone().normalize()
 
   line.v.angle()
@@ -301,4 +347,22 @@ export function applyMarginToLineInner(line: V.Line, sourceMargin: number, targe
   }
 
   return { x1, y1, x2, y2 }
+}
+
+/**
+ * Calculates the position of a given distance along the circumference.
+ * @param pos original position
+ * @param center center of the circle
+ * @param radian radius of the circle
+ * @returns the moved position
+ */
+export function moveOnCircumference(pos: Position, center: Position, radian: number) {
+  const { x, y } = pos
+  const dx = x - center.x
+  const dy = y - center.y
+
+  return {
+    x: dx * Math.cos(radian) - dy * Math.sin(radian) + center.x,
+    y: dx * Math.sin(radian) + dy * Math.cos(radian) + center.y,
+  }
 }
