@@ -207,65 +207,6 @@ export function calculateEdgeLabelArea(
   }
 }
 
-// export function calculateEdgePosition(
-//   linePos: LinePosition,
-//   sourceNodePos: Position,
-//   targetNodePos: Position,
-//   sourceNodeShape: AnyShapeStyle,
-//   targetNodeShape: AnyShapeStyle,
-//   margin: number | undefined,
-//   sourceMargin: number,
-//   targetMargin: number,
-//   scale: number
-// ): LinePosition {
-//   const line = V.fromLinePosition(linePos)
-//   const normalized = line.v.clone().normalize()
-
-//   // source side
-//   let distance: number
-//   if (margin === undefined) {
-//     distance = sourceMargin * scale
-//   } else {
-//     sourceMargin += margin
-//     if (sourceNodeShape.type === "circle") {
-//       distance = (sourceNodeShape.radius + sourceMargin) * scale
-//     } else {
-//       const m = calculateDistanceToAvoidOverlapsWithRect(
-//         targetNodePos,
-//         sourceNodePos,
-//         sourceNodeShape,
-//         scale
-//       )
-//       distance = (m / scale + sourceMargin) * scale
-//     }
-//   }
-//   const sv = line.source.clone().add(normalized.clone().multiplyScalar(distance))
-
-//   // target side
-//   if (margin === undefined) {
-//     distance = targetMargin * scale
-//   } else {
-//     targetMargin += margin
-
-//     if (targetNodeShape.type === "circle") {
-//       distance = (targetNodeShape.radius + targetMargin) * scale
-//     } else {
-//       const m = calculateDistanceToAvoidOverlapsWithRect(
-//         sourceNodePos,
-//         targetNodePos,
-//         targetNodeShape,
-//         scale
-//       )
-//       distance = (m / scale + targetMargin) * scale
-//     }
-//   }
-//   const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(distance))
-
-//   const [x1, y1] = sv.toArray()
-//   const [x2, y2] = tv.toArray()
-//   return { x1, y1, x2, y2 }
-// }
-
 /**
  * Calculate the distances between center of node and edge of node.
  * @param sourceNodePos position of source node
@@ -364,5 +305,18 @@ export function moveOnCircumference(pos: Position, center: Position, radian: num
   return {
     x: dx * Math.cos(radian) - dy * Math.sin(radian) + center.x,
     y: dx * Math.sin(radian) + dy * Math.cos(radian) + center.y,
+  }
+}
+
+/**
+ * Reverse the direction of the angle.
+ * @param theta angle
+ * @returns reversed angle
+ */
+export function reverseAngleRadian(theta: number): number {
+  if (theta > 0) {
+    return -(Math.PI * 2 - theta)
+  } else {
+    return Math.PI * 2 + theta
   }
 }

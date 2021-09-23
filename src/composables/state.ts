@@ -530,6 +530,9 @@ function calculateCurvePositionAndState(
   // Apply margin to the line.
   const centerToTop = V.fromVectors(center, shiftedCenter)
 
+  // Direction of rotation from source to center:
+  const theta0 = V.calculateRelativeAngleRadian(V.fromVectors(center, origin.source), centerToTop)
+
   if (sourceMargin === 0 && targetMargin === 0) {
     position = originPosition
   } else {
@@ -539,8 +542,7 @@ function calculateCurvePositionAndState(
     let targetMoveRad = targetMargin / radius
 
     // Determine which direction to move.
-    const theta = V.calculateRelativeAngleRadian(centerToTop, V.fromVectors(center, origin.source))
-    if (theta < 0) {
+    if (theta0 > 0) {
       sourceMoveRad *= -1
       targetMoveRad *= -1
     }
@@ -551,11 +553,21 @@ function calculateCurvePositionAndState(
 
     // If the endpoints are swapped by applying the margin,
     // a short line is shown at the center.
-    const theta2 = V.calculateRelativeAngleRadian(
-      centerToTop,
-      V.fromPositions(center, { x: position.x1, y: position.y1 })
+    let theta1 = V.calculateRelativeAngleRadian(
+      V.fromVectors(center, origin.source),
+      V.fromVectors(center, origin.target)
     )
-    if (theta * theta2 < 0) {
+    let theta2 = V.calculateRelativeAngleRadian(
+      V.fromPositions(center, { x: position.x1, y: position.y1 }),
+      V.fromPositions(center, { x: position.x2, y: position.y2 })
+    )
+    if (theta0 * theta1 < 0) {
+      theta1 = v2d.reverseAngleRadian(theta1)
+      if (theta0 * theta2 < 0) {
+        theta2 = v2d.reverseAngleRadian(theta2)
+      }
+    }
+    if (theta1 * theta2 < 0) {
       // reversed
       const c = shiftedCenter.clone().add(shifted.v.normalize().multiplyScalar(0.5))
       position = v2d.positionsToLinePosition(shiftedCenter, c)
@@ -569,32 +581,40 @@ function calculateCurvePositionAndState(
   const centerToSource = V.fromVectors(center, p1)
   const centerToTarget = V.fromVectors(center, p2)
 
-  let theta = V.calculateRelativeAngleRadian(centerToSource, centerToTop)
+  let theta = V.calculateRelativeAngleRadian(centerToSource, centerToTarget)
+  if (theta0 * theta < 0) {
+    theta = v2d.reverseAngleRadian(theta)
+  }
+  const middle = V.Vector.fromObject(v2d.moveOnCircumference(p1, center, -theta / 2))
+  const centerToMp = V.fromVectors(center, middle)
+  const mpTangent = V.calculatePerpendicularLine(centerToMp)
+
+  const theta1 = V.calculateRelativeAngleRadian(centerToSource, centerToMp)
   let tangent = V.calculatePerpendicularLine(centerToSource)
-  if (Math.abs(theta) < Math.PI / 2) {
-    const cp = V.getIntersectionPointOfLines(tangent, shifted).toObject()
+  if (Math.abs(theta1) < Math.PI / 2) {
+    const cp = V.getIntersectionPointOfLines(tangent, mpTangent).toObject()
     control.push(cp)
   } else {
     // If greater than 90 degrees, go through the midpoint.
-    const mp = v2d.moveOnCircumference(shiftedCenter, center, theta / 2)
+    const mp = v2d.moveOnCircumference(middle, center, theta1 / 2)
     const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
     const cp1 = V.getIntersectionPointOfLines(tangent, tangent2).toObject()
-    const cp2 = V.getIntersectionPointOfLines(tangent2, shifted).toObject()
+    const cp2 = V.getIntersectionPointOfLines(tangent2, mpTangent).toObject()
     control.push(cp1, mp, cp2)
   }
 
-  control.push(shiftedCenter.toObject())
+  control.push(middle.toObject())
 
-  theta = V.calculateRelativeAngleRadian(centerToTarget, centerToTop)
+  const theta2 = V.calculateRelativeAngleRadian(centerToTarget, centerToMp)
   tangent = V.calculatePerpendicularLine(centerToTarget)
-  if (Math.abs(theta) < Math.PI / 2) {
-    const cp = V.getIntersectionPointOfLines(tangent, shifted).toObject()
+  if (Math.abs(theta2) < Math.PI / 2) {
+    const cp = V.getIntersectionPointOfLines(tangent, mpTangent).toObject()
     control.push(cp)
   } else {
     // If greater than 90 degrees, go through the midpoint.
-    const mp = v2d.moveOnCircumference(shiftedCenter, center, theta / 2)
+    const mp = v2d.moveOnCircumference(middle, center, theta2 / 2)
     const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
-    const cp1 = V.getIntersectionPointOfLines(shifted, tangent2).toObject()
+    const cp1 = V.getIntersectionPointOfLines(mpTangent, tangent2).toObject()
     const cp2 = V.getIntersectionPointOfLines(tangent2, tangent).toObject()
     control.push(cp1, mp, cp2)
   }

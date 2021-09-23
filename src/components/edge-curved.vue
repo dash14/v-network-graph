@@ -58,13 +58,14 @@ defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
 
 <template>
   <!-- <circle
+    v-if="state.curve"
     :cx="state.curve.circle.center.x"
     :cy="state.curve.circle.center.y"
     :r="state.curve.circle.radius"
     fill="#ff000080"
   />
   <circle
-    v-for="cp in state.curve.control"
+    v-for="cp in state.curve?.control"
     :key="JSON.stringify(cp)"
     :cx="cp.x"
     :cy="cp.y"
