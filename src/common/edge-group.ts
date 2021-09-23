@@ -61,7 +61,12 @@ export function makeEdgeGroupStates(
       if (groupWidth == 0) {
         summarize = false
       } else if (configs.edge.summarize instanceof Function) {
-        summarize = configs.edge.summarize(edges, configs)
+        const s = configs.edge.summarize(edges, configs)
+        if (s === null) {
+          summarize = defaultCheckSummarize(nodes, edges, configs, groupWidth)
+        } else {
+          summarize = s
+        }
       } else if (configs.edge.summarize) {
         summarize = defaultCheckSummarize(nodes, edges, configs, groupWidth)
       } else {

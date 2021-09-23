@@ -1,5 +1,5 @@
 import { NodeLabelDirection, Configs, withSelf, Config, UserConfigs } from "./configs"
-import { Node, Edge, Path } from "./types"
+import { Node, Edge, Path, Edges } from "./types"
 import { SimpleLayout } from "../layouts/simple"
 import merge from "lodash-es/merge"
 
@@ -119,6 +119,7 @@ export function getConfigDefaults(): Configs {
       },
       selectable: false,
       gap: 3,
+      type: "straight",
       marker: {
         source: {
           type: "none",
@@ -138,7 +139,9 @@ export function getConfigDefaults(): Configs {
         },
       },
       margin: null,
-      summarize: true,
+      summarize: (_edges: Edges, configs: Configs) => {
+        return configs.edge.type == "curve" ? false : null
+      },
       summarized: {
         label: {
           fontSize: 10,
