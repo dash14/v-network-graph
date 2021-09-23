@@ -4,7 +4,7 @@ import { useEdgeConfig } from "../composables/config"
 import { Position } from "../common/types"
 import { EdgeState } from "../composables/state"
 import VEdgeLine from "./line.vue"
-import VEdgeArc from "./edge-arc.vue"
+import VEdgeCurved from "./edge-curved.vue"
 
 defineProps({
   id: {
@@ -41,7 +41,7 @@ defineExpose({ config })
     :marker-start="state.sourceMarkerId ? `url(#${state.sourceMarkerId})` : undefined"
     :marker-end="state.targetMarkerId ? `url(#${state.targetMarkerId})` : undefined"
   />
-  <v-edge-arc
+  <v-edge-curved
     v-else
     :class="{ selectable: config.selectable, hover: state.hovered, selected: state.selected }"
     :state="state"
