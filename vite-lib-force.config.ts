@@ -1,6 +1,9 @@
 import { defineConfig } from "vite"
 import vue from "@vitejs/plugin-vue"
+import dts from "vite-plugin-dts"
 import path from "path"
+
+import { dtsBeforeWriteFile } from "./vite.config"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
@@ -31,5 +34,13 @@ export default defineConfig({
     sourcemap: true,
   },
   publicDir: false,
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    dts({
+      outputDir: resolvePath("lib/types"),
+      staticImport: true,
+      copyDtsFiles: false,
+      beforeWriteFile: dtsBeforeWriteFile
+    })
+  ],
 })

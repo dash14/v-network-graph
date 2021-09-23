@@ -5,6 +5,14 @@ import path from "path"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
+const TYPES_SRC_DIR = resolvePath("lib/types/src")
+export function dtsBeforeWriteFile(filePath: string, _content: string) {
+  if (filePath.startsWith(TYPES_SRC_DIR)) {
+    filePath = __dirname + "/lib/types" + filePath.substring(TYPES_SRC_DIR.length)
+  }
+  return { filePath }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
@@ -36,10 +44,10 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      compilerOptions: {
-        rootDir: resolvePath("src")
-      },
       outputDir: resolvePath("lib/types"),
-    }),
+      staticImport: true,
+      copyDtsFiles: false,
+      beforeWriteFile: dtsBeforeWriteFile
+    })
   ],
 })
