@@ -13,7 +13,7 @@ export function fromLinePosition(line: LinePosition): Line {
   return {
     source,
     target,
-    v: toLineVector(source, target)
+    v: toLineVector(source, target),
   }
 }
 
@@ -23,7 +23,7 @@ export function fromPositions(sourcePos: Position, targetPos: Position): Line {
   return {
     source,
     target,
-    v: toLineVector(source, target)
+    v: toLineVector(source, target),
   }
 }
 
@@ -31,12 +31,26 @@ export function fromVectors(source: Vector, target: Vector): Line {
   return {
     source,
     target,
-    v: toLineVector(source, target)
+    v: toLineVector(source, target),
   }
 }
 
 export function toLineVector(source: Vector, target: Vector) {
   return target.clone().subtract(source)
+}
+
+export function toVectorsFromLinePosition(line: LinePosition): [Vector, Vector] {
+  return [
+    Vector.fromArray([line.x1, line.y1]),
+    Vector.fromArray([line.x2, line.y2])
+  ]
+}
+
+export function getCenterOfLinePosition(line: LinePosition) {
+  return Vector.fromArray([
+    (line.x1 + line.x2) / 2,
+    (line.y1 + line.y2) / 2,
+  ])
 }
 
 /**
@@ -60,6 +74,27 @@ export function getNearestPoint(p: Vector, line: Line): Vector {
   const near = lp.clone().add(n.multiplyScalar(dot))
 
   return near
+}
+
+/**
+ * Calculate the distance of nearest point from a point to a line.
+ * @param p point
+ * @param line line
+ * @returns distance
+ */
+export function getDistanceToNearestPoint(p: Vector, line: Line): number {
+  const p2 = line.source
+  const v2 = line.v
+
+  const v2len = v2.lengthSq()
+  if (v2len === 0) {
+    return 0
+  }
+  const t = v2.clone().dot(p.clone().subtract(p2)) / v2len
+
+  const tv2 = v2.clone().multiplyScalar(t)
+  const h = p2.clone().add(tv2)
+  return h.subtract(p).length()
 }
 
 export function getIntersectionOfLineTargetAndCircle(
@@ -123,7 +158,47 @@ export function getIntersectionPointOfLines(line1: Line, line2: Line): Vector {
 
   const t2 = v.cross(v1) / v1.cross(v2)
 
-  return p2.add(v2.multiplyScalar(t2))
+  return p2.clone().add(v2.clone().multiplyScalar(t2))
+}
+
+export function calculatePerpendicularLine(line: Line) {
+  const n1 = line.v.clone().normalize().rotate(Math.PI / 2)
+  return fromVectors(line.target, line.target.clone().add(n1))
+}
+
+export function calculateRelativeAngleRadian(line1: Line, line2: Line) {
+  return Math.atan2(
+    line1.v.y * line2.v.x - line1.v.x * line2.v.y,
+    line1.v.x * line2.v.x + line1.v.y * line2.v.y
+  )
+}
+
+export function calculateCircleCenterAndRadiusBy3Points(
+  p1: Vector,
+  p2: Vector,
+  p3: Vector
+): [Vector, number] {
+  const x1 = p1.x
+  const y1 = p1.y
+  const x2 = p2.x
+  const y2 = p2.y
+  const x3 = p3.x
+  const y3 = p3.y
+  const x12 = x1 - x2
+  const y12 = y1 - y2
+  const x32 = x3 - x2
+  const y32 = y3 - y2
+
+  const x =
+    (y32 * (x12 * (x1 + x2) + y12 * (y1 + y2)) - y12 * (x32 * (x3 + x2) + y32 * (y3 + y2))) /
+    (2 * x12 * y32 - 2 * y12 * x32)
+  const y =
+    (-x32 * (x12 * (x1 + x2) + y12 * (y1 + y2)) + x12 * (x32 * (x3 + x2) + y32 * (y3 + y2))) /
+    (2 * x12 * y32 - 2 * y12 * x32)
+
+  const radius = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2))
+  const center = Vector.fromArray([x, y])
+  return [center, radius]
 }
 
 export { Vector }

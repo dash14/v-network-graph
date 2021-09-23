@@ -5,6 +5,7 @@ import { useEdgeConfig } from "../composables/config"
 import { useMouseOperation } from "../composables/mouse"
 import { Position } from "../common/types"
 import { EdgeState } from "../composables/state"
+import chunk from "lodash-es/chunk"
 
 const props = defineProps({
   id: {
@@ -38,7 +39,15 @@ const {
 
 const pathD = computed(() => {
   const p = props.state.position
-  return `M ${p.x1} ${p.y1} L ${p.x2} ${p.y2}`
+  if (config.type === "straight" || !props.state.curve) {
+    return `M ${p.x1} ${p.y1} L ${p.x2} ${p.y2}`
+  } else {
+    const points = [ ...props.state.curve.control, { x: p.x2, y: p.y2 }]
+    const d: string[] = []
+    d.push(`M ${p.x1} ${p.y1}`)
+    chunk(points, 2).forEach(([p1, p2]) => d.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
+    return d.join(" ")
+  }
 })
 
 const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.value)
@@ -57,6 +66,7 @@ defineExpose({
     :d="pathD"
     stroke="transparent"
     :stroke-width="strokeWidth"
+    fill="none"
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
     @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"

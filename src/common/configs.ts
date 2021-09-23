@@ -177,18 +177,21 @@ export interface MarkerStyle {
   customId?: string
 }
 
+export type EdgeType = "straight" | "curve"
+
 export interface EdgeConfig<E extends Edge = Edge> {
   normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
   selected: CallableValues<StrokeStyle, E>
   selectable: boolean | number
   gap: number | ((edges: Edges, configs: Configs) => number)
+  type: EdgeType
   marker: {
     source: CallableValues<MarkerStyle, [E, StrokeStyle]>
     target: CallableValues<MarkerStyle, [E, StrokeStyle]>
   }
   margin: number | null
-  summarize: boolean | ((edges: Edges, configs: Configs) => boolean)
+  summarize: boolean | ((edges: Edges, configs: Configs) => boolean | null)
   summarized: {
     label: LabelStyle
     shape: ShapeStyle
