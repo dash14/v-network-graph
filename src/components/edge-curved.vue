@@ -15,6 +15,16 @@ const props = defineProps({
     type: Object as PropType<StrokeStyle>,
     required: true,
   },
+  markerStart: {
+    type: String,
+    required: false,
+    default: undefined
+  },
+  markerEnd: {
+    type: String,
+    required: false,
+    default: undefined
+  }
 })
 
 const { scale } = useZoomLevel()
@@ -70,6 +80,8 @@ defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
     :stroke-dasharray="strokeDasharray"
     :stroke-linecap="config.linecap"
     :style="animationSpeed"
+    :marker-start="markerStart"
+    :marker-end="markerEnd"
   />
 </template>
 
