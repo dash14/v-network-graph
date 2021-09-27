@@ -170,6 +170,7 @@ export function getConfigDefaults(): Configs {
           animationSpeed: 50,
         },
       },
+      keepOrder: "clock",
       label: {
         fontFamily: undefined,
         fontSize: 11,

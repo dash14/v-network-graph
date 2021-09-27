@@ -179,6 +179,12 @@ export interface MarkerStyle {
 
 export type EdgeType = "straight" | "curve"
 
+// Orientation to be considered when keeping multiple edge alignments.
+//   "clock": Keep the forward/backward when viewed as a clock.
+//   "vertical": Keep the vertical alignment.
+//   "horizontal": Keep the horizontal alignment.
+export type EdgeKeepOrderType = "clock" | "vertical" | "horizontal"
+
 export interface EdgeConfig<E extends Edge = Edge> {
   normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
@@ -196,7 +202,8 @@ export interface EdgeConfig<E extends Edge = Edge> {
     label: LabelStyle
     shape: ShapeStyle
     stroke: StrokeStyle
-  },
+  }
+  keepOrder: EdgeKeepOrderType
   label: EdgeLabelStyle
 }
 

@@ -398,7 +398,8 @@ function createEdgeState(
       isEdgeSummarized.value,
       source,
       target,
-      scale.value
+      scale.value,
+      config.keepOrder
     )
 
     const [sourceShapeMargin, targetShapeMargin] =

@@ -1,6 +1,6 @@
 import { watchEffect } from "vue"
 import { Reactive } from "./common"
-import { Config, Configs } from "./configs"
+import { Config, Configs, EdgeKeepOrderType } from "./configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
 import { updateObjectDiff } from "./utility"
 
@@ -26,7 +26,6 @@ export interface EdgeGroupStates {
   summarizedEdges: Record<string, true>
 }
 
-
 // -----------------------------------------------------------------------
 // Exported functions
 // -----------------------------------------------------------------------
@@ -51,11 +50,7 @@ export function makeEdgeGroupStates(
   })
 
   watchEffect(() => {
-    const { edgeLayoutPoints, edgeGroups } = calculateEdgeGroupAndPositions(
-      configs,
-      nodes,
-      edges
-    )
+    const { edgeLayoutPoints, edgeGroups } = calculateEdgeGroupAndPositions(configs, nodes, edges)
     updateObjectDiff(state.edgeLayoutPoints, edgeLayoutPoints)
     updateObjectDiff(state.edgeGroups, edgeGroups)
   })
@@ -97,6 +92,7 @@ export function makeEdgeGroupStates(
  * @param source position of source node
  * @param target position of target node
  * @param scale scale factor
+ * @param keepOrder edge positional type config
  * @returns the edge position by applying a shift
  */
 export function calculateEdgeShiftedPosition(
@@ -104,19 +100,27 @@ export function calculateEdgeShiftedPosition(
   isSummarized: boolean,
   source: Position,
   target: Position,
-  scale: number
+  scale: number,
+  keepOrder: EdgeKeepOrderType
 ): LinePosition {
   if (!p) {
     return { x1: 0, y1: 0, x2: 0, y2: 0 } // sanitized
   }
   if (isSummarized) {
     // summarize
-    return calculateEdgePositionInner(p.edge, source, target, scale, 0, 0)
+    return calculateEdgePositionInner(p.edge, source, target, scale, 0, 0, keepOrder)
   } else {
-    return calculateEdgePositionInner(p.edge, source, target, scale, p.groupWidth, p.pointInGroup)
+    return calculateEdgePositionInner(
+      p.edge,
+      source,
+      target,
+      scale,
+      p.groupWidth,
+      p.pointInGroup,
+      keepOrder
+    )
   }
 }
-
 
 // -----------------------------------------------------------------------
 // Private functions
@@ -143,7 +147,10 @@ function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: E
   // - the starting point of each line
   // - the width between the centers of the lines at both ends
   // *Note*: the drawing position of the line is the center of the line.
-  const calcGap = (configs.edge.gap instanceof Function) ? configs.edge.gap : ((_e: Edges, _c: Configs) => configs.edge.gap as number)
+  const calcGap =
+    configs.edge.gap instanceof Function
+      ? configs.edge.gap
+      : (_e: Edges, _c: Configs) => configs.edge.gap as number
   for (const [key, edges] of Object.entries(map)) {
     const edgeLen = Object.keys(edges).length
     if (edgeLen == 0) continue
@@ -208,7 +215,8 @@ function calculateEdgePositionInner(
   target: Position | undefined,
   scale: number,
   groupWidth: number,
-  pointInGroup: number
+  pointInGroup: number,
+  keepOrder: EdgeKeepOrderType
 ): LinePosition {
   let x1, y1, x2, y2
   if (edge.source < edge.target) {
@@ -219,7 +227,8 @@ function calculateEdgePositionInner(
       target?.y ?? 0,
       scale,
       groupWidth,
-      pointInGroup
+      pointInGroup,
+      keepOrder
     )
   } else {
     [x2, y2, x1, y1] = calculateLinePosition(
@@ -229,7 +238,8 @@ function calculateEdgePositionInner(
       source?.y ?? 0,
       scale,
       groupWidth,
-      pointInGroup
+      pointInGroup,
+      keepOrder
     )
   }
   return { x1, y1, x2, y2 }
@@ -242,13 +252,31 @@ function calculateLinePosition(
   y2: number,
   scale: number,
   groupWidth: number,
-  pointInGroup: number
+  pointInGroup: number,
+  keepOrder: EdgeKeepOrderType
 ): [number, number, number, number] {
   const dx = x2 - x1
   const dy = y2 - y1
 
   // Shifting width from center
   let diff = (groupWidth / 2 - pointInGroup) * scale
+
+  // Adjust the relative position.
+  if (diff !== 0 && keepOrder !== "clock") {
+    const radian = Math.atan2(y2 - y1, x2 - x1)
+    if (keepOrder === "vertical") {
+      // Keep the vertical alignment of multiple edges.
+      const perpendicular = Math.PI / 2
+      if (radian < -perpendicular || radian >= perpendicular) {
+        diff *= -1
+      }
+    } else if (keepOrder === "horizontal") {
+      // Keep the horizontal alignment of multiple edges.
+      if (radian < 0) {
+        diff *= -1
+      }
+    }
+  }
 
   if (dx === 0) {
     const sign = dy < 0 ? -1 : 1
