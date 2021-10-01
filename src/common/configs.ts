@@ -146,6 +146,7 @@ export interface NodeConfig<N extends Node = Node> {
   selectable: boolean | number
   label: CallableValues<NodeLabelStyle, N>
   focusring: NodeFocusRingStyle
+  transition?: string
 }
 
 /* Edge style */
@@ -217,6 +218,7 @@ export interface PathConfig<P extends Path = Path> {
   clickable: boolean
   curveInNode: boolean
   path: CallableValues<PathStrokeStyle, P>
+  transition?: string
 }
 
 /* Configuration */

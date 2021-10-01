@@ -80,7 +80,12 @@
         </g>
 
         <!-- nodes -->
-        <g class="v-layer-nodes">
+        <transition-group
+          :name="allConfigs.node.transition"
+          :css="!!allConfigs.node.transition"
+          tag="g"
+          class="v-layer-nodes"
+        >
           <v-node
             v-for="(state, nodeId) in nodeStates"
             :id="nodeId.toString()"
@@ -97,7 +102,7 @@
               <slot name="override-node-label" v-bind="slotProps" />
             </template>
           </v-node>
-        </g>
+        </transition-group>
 
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
@@ -527,6 +532,7 @@ export default defineComponent({
       svgPanZoom,
 
       // properties
+      allConfigs: configs,
       layerDefs,
       isShowGrid,
       isShowBackgroundViewport,

@@ -256,7 +256,12 @@ defineExpose({ pathConfig, pathList, calcPathPoints, emitPathClicked })
 </script>
 
 <template>
-  <g class="v-paths">
+  <transition-group
+    :name="pathConfig.transition"
+    :css="!!pathConfig.transition"
+    tag="g"
+    class="v-paths"
+  >
     <v-path-line
       v-for="(path, i) in pathList"
       :key="i"
@@ -265,7 +270,7 @@ defineExpose({ pathConfig, pathList, calcPathPoints, emitPathClicked })
       :path="path.path"
       @click.prevent.stop="emitPathClicked(path.path)"
     />
-  </g>
+  </transition-group>
 </template>
 
 <style lang="scss" scoped>

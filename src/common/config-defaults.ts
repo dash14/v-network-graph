@@ -88,6 +88,7 @@ export function getConfigDefaults(): Configs {
         padding: 3,
         color: "#eebb00",
       },
+      transition: undefined
     })),
     edge: withSelf(self => ({
       normal: {
@@ -231,6 +232,7 @@ export function getConfigDefaults(): Configs {
         animate: false,
         animationSpeed: 50,
       },
+      transition: undefined
     },
   }
 }

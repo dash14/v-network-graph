@@ -54,7 +54,7 @@ defineExpose({ config })
 <style lang="scss" scoped>
 $transition: 0.1s linear;
 
-.v-line {
+:where(.v-line) {
   transition: stroke $transition, stroke-width $transition;
   pointer-events: none;
 }

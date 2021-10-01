@@ -87,14 +87,14 @@ $transition: 0.1s linear;
   pointer-events: none;
 }
 
-.v-shape-circle {
+:where(.v-shape-circle) {
   transition: r $transition;
 }
-.v-shape-rect {
+:where(.v-shape-rect) {
   transition: x $transition, y $transition, width $transition, height $transition;
 }
-.dragging .v-shape-circle,
-.dragging .v-shape-rect {
+:where(.dragging .v-shape-circleg),
+:where(.dragging .v-shape-rect) {
   transition: none;
 }
 </style>

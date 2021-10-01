@@ -5,6 +5,32 @@ import VEdgeSummarized from "./edge-summarized.vue"
 
 const { edgeStates, edgeGroupStates, layouts } = useStates()
 
+// type FlattenEdge = {
+//     key: string
+//     summarize: true
+//     edges: Edges
+//     id?: undefined
+//     edge?: undefined
+// } | {
+//     key: string
+//     summarize: false
+//     edges?: undefined
+//     id: string
+//     edge: Edge
+// }
+
+// const flattenEdges = computed(() => {
+//   const results: FlattenEdge[] = []
+//   for (const [key, {summarize, edges}] of Object.entries(edgeGroupStates.edgeGroups)) {
+//     if (summarize) {
+//       results.push({ key, summarize, edges })
+//     } else {
+//       results.push(...Object.entries(edges).map(([id, edge]) => ({ key, summarize, id, edge })))
+//     }
+//   }
+//   return results
+// })
+
 defineExpose({ edgeStates, edgeGroupStates, layouts })
 </script>
 

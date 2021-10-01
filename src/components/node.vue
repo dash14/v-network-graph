@@ -218,12 +218,12 @@ defineExpose({
 <style lang="scss" scoped>
 $transition: 0.1s linear;
 
-.v-shape-circle {
+:where(.v-shape-circle) {
   pointer-events: none;
   transition: fill $transition, stroke $transition, stroke-width $transition,
   r $transition;
 }
-.v-shape-rect {
+:where(.v-shape-rect) {
   pointer-events: none;
   transition: fill $transition, stroke $transition, stroke-width $transition,
     x $transition, y $transition, width $transition, height $transition;
@@ -238,6 +238,8 @@ $transition: 0.1s linear;
     pointer-events: none;
     user-select: none;
     cursor: default;
+  }
+  :where(.v-text) {
     transition: x $transition, y $transition;
   }
 }
