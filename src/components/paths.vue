@@ -6,7 +6,7 @@ import { EdgeStates, NodeStates, useStates, EdgeGroupStates } from "../composabl
 import { usePathConfig } from "../composables/config"
 import { useZoomLevel } from "../composables/zoom"
 import { useEventEmitter } from "../composables/event-emitter"
-import { AnyShapeStyle } from "../common/configs"
+import { AnyShapeStyle, PathEndType } from "../common/configs"
 import * as v2d from "../common/2d"
 import VPathLine from "./path-line.vue"
 import isEqual from "lodash-es/isEqual"
@@ -68,7 +68,8 @@ const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
     edgeStates,
     edgeGroupStates,
     scale.value,
-    pathConfig.curveInNode
+    pathConfig.curveInNode,
+    pathConfig.end
   )
 })
 
@@ -92,7 +93,8 @@ function calculatePathPoints(
   edgeStates: EdgeStates,
   edgeGroupStates: EdgeGroupStates,
   scale: number,
-  curveInNode: boolean
+  curveInNode: boolean,
+  pathEndType: PathEndType
 ): PositionOrCurve[] {
   // Edge ID list -> List of Edge locations
   const edgePos = path.edges.map(({ edgeId }) => edgeStates[edgeId].origin)
@@ -110,8 +112,8 @@ function calculatePathPoints(
       const target = edges[i].edge.target
       let isForward
       if (i === 0) {
-        const nextSlope = [edges[1].edge.source, edges[1].edge.target]
-        isForward = nextSlope.includes(target)
+        const next = [edges[1].edge.source, edges[1].edge.target]
+        isForward = next.includes(target)
       } else {
         isForward = lastNode === source
       }
