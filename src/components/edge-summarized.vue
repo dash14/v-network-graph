@@ -39,7 +39,7 @@ defineExpose({ config, pos, centerPos })
 </script>
 
 <template>
-  <g :class="{ selectable: config.selectable }">
+  <g>
     <v-line
       v-bind="pos"
       :config="config.summarized.stroke"
@@ -56,8 +56,3 @@ defineExpose({ config, pos, centerPos })
   </g>
 </template>
 
-<style lang="scss" scoped>
-.selectable {
-  cursor: pointer;
-}
-</style>

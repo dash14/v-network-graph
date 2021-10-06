@@ -36,14 +36,14 @@ defineExpose({ config })
   <v-edge-line
     v-if="config.type == 'straight' || !state.curve"
     v-bind="state.position"
-    :class="{ selectable: config.selectable, hover: state.hovered, selected: state.selected }"
+    :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url(#${state.sourceMarkerId})` : undefined"
     :marker-end="state.targetMarkerId ? `url(#${state.targetMarkerId})` : undefined"
   />
   <v-edge-curved
     v-else
-    :class="{ selectable: config.selectable, hover: state.hovered, selected: state.selected }"
+    :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
     :state="state"
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url(#${state.sourceMarkerId})` : undefined"

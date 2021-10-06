@@ -56,6 +56,7 @@ interface Curve {
 
 interface EdgeStateDatum {
   line: Ref<Line>
+  selectable: Ref<boolean | number>
   selected: boolean
   hovered: boolean
   origin: LinePosition // line segment between center of nodes
@@ -359,6 +360,7 @@ function createEdgeState(
 
   states[id] = {
     line: undefined as any, // specify later
+    selectable: false, // specify later
     selected,
     hovered: false,
     curve: undefined,
@@ -379,6 +381,7 @@ function createEdgeState(
     return { stroke, normalWidth, source, target }
   })
   state.line = line
+  state.selectable = computed(() => Config.value(config.selectable, edges[id]))
 
   const edgeLayoutPoint = toRef(groupStates.edgeLayoutPoints, id)
   const isEdgeSummarized = toRef(groupStates.summarizedEdges, id)

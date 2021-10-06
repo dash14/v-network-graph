@@ -190,7 +190,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
   selected: CallableValues<StrokeStyle, E>
-  selectable: boolean | number
+  selectable: CallableValue<boolean, E> | number
   gap: number | ((edges: Edges, configs: Configs) => number)
   type: EdgeType
   marker: {

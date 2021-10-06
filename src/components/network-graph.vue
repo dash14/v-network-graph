@@ -430,7 +430,7 @@ export default defineComponent({
       }
     })
 
-    const { nodeStates } = provideStates(
+    const { nodeStates, edgeStates } = provideStates(
       readonly(props.nodes),
       readonly(props.edges),
       currentSelectedNodes,
@@ -447,8 +447,8 @@ export default defineComponent({
       svg,
       readonly(currentLayouts.nodes),
       readonly(zoomLevel),
-      readonly(configs),
       nodeStates,
+      edgeStates,
       currentSelectedNodes,
       currentSelectedEdges,
       hoveredNodes,

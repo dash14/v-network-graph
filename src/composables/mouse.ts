@@ -4,9 +4,8 @@ import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } fro
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "../common/common"
 import { Events, NodePositions, Position } from "../common/types"
-import { Configs } from "../common/configs"
 import { entriesOf, MapUtil } from "../common/utility"
-import { NodeStates } from "./state"
+import { EdgeStates, NodeStates } from "./state"
 
 type NodeEventHandler = (node: string, event: PointerEvent) => void
 type EdgeEventHandler = (edge: string, event: PointerEvent) => void
@@ -70,8 +69,8 @@ export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
   nodePositions: Readonly<NodePositions>,
   zoomLevel: ReadonlyRef<number>,
-  configs: Readonly<Configs>,
   nodeStates: NodeStates,
+  edgeStates: EdgeStates,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
@@ -520,7 +519,8 @@ export function provideMouseOperation(
 
     selectedNodes.clear()
 
-    if (configs.edge.selectable) {
+    const selectable = edgeStates[edge]?.selectable
+    if (selectable) {
       const isTouchAnySelectedEdge =
         MapUtil.valueOf(state.edgePointers).filter(
           p => p.pointerId != event.pointerId && selectedEdges.has(p.edgeId)
@@ -530,8 +530,8 @@ export function provideMouseOperation(
           selectedEdges.delete(edge)
         } else if (
           !(
-            typeof configs.edge.selectable === "number" &&
-            selectedEdges.size >= configs.edge.selectable
+            typeof selectable === "number" &&
+            selectedEdges.size >= selectable
           )
         ) {
           selectedEdges.add(edge)

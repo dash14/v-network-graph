@@ -62,7 +62,7 @@ defineExpose({
 
 <template>
   <path
-    :class="{ 'v-line-background': true, selectable: config.selectable }"
+    :class="{ 'v-line-background': true, selectable: state.selectable }"
     :d="pathD"
     stroke="transparent"
     :stroke-width="strokeWidth"
