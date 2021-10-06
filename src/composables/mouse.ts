@@ -6,20 +6,21 @@ import { nonNull, Reactive, ReadonlyRef } from "../common/common"
 import { Events, NodePositions, Position } from "../common/types"
 import { Configs } from "../common/configs"
 import { entriesOf, MapUtil } from "../common/utility"
+import { NodeStates } from "./state"
 
 type NodeEventHandler = (node: string, event: PointerEvent) => void
 type EdgeEventHandler = (edge: string, event: PointerEvent) => void
 
 interface MouseEventHandlers {
-  selectedNodes: Reactive<Set<string>>,
-  hoveredNodes: Reactive<Set<string>>,
-  selectedEdges: Reactive<Set<string>>,
-  hoveredEdges:  Reactive<Set<string>>,
+  selectedNodes: Reactive<Set<string>>
+  hoveredNodes: Reactive<Set<string>>
+  selectedEdges: Reactive<Set<string>>
+  hoveredEdges: Reactive<Set<string>>
   handleNodePointerDownEvent: NodeEventHandler
-  handleNodePointerOverEvent: NodeEventHandler,
-  handleNodePointerOutEvent: NodeEventHandler,
-  handleEdgePointerDownEvent: EdgeEventHandler,
-  handleEdgePointerOverEvent: EdgeEventHandler,
+  handleNodePointerOverEvent: NodeEventHandler
+  handleNodePointerOutEvent: NodeEventHandler
+  handleEdgePointerDownEvent: EdgeEventHandler
+  handleEdgePointerOverEvent: EdgeEventHandler
   handleEdgePointerOutEvent: EdgeEventHandler
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
@@ -55,7 +56,7 @@ interface State {
   hoveredNodesPre: Set<string> // to keep the hover state while dragging
   hoveredEdges: Reactive<Set<string>>
   edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
-  edgePointerPeekCount: number,
+  edgePointerPeekCount: number
 }
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
@@ -70,8 +71,11 @@ export function provideMouseOperation(
   nodePositions: Readonly<NodePositions>,
   zoomLevel: ReadonlyRef<number>,
   configs: Readonly<Configs>,
+  nodeStates: NodeStates,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
+  hoveredNodes: Reactive<Set<string>>,
+  hoveredEdges: Reactive<Set<string>>,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
   onMounted(() => {
@@ -96,9 +100,9 @@ export function provideMouseOperation(
       followedPointerId: -1,
       nodeBasePositions: {},
     },
-    hoveredNodes: Reactive(new Set()),
+    hoveredNodes,
     hoveredNodesPre: new Set(),
-    hoveredEdges: Reactive(new Set()),
+    hoveredEdges,
     edgePointers: new Map(),
     edgePointerPeekCount: 0,
   }
@@ -162,9 +166,7 @@ export function provideMouseOperation(
     const removed = !(pointerState.pointerId in state.nodePointers)
     if ((isFollowed && removed) || (isFollowed && !isSelectedNode)) {
       // selected => unselected
-      const candidate = MapUtil.valueOf(state.nodePointers).find(p =>
-        selectedNodes.has(p.nodeId)
-      )
+      const candidate = MapUtil.valueOf(state.nodePointers).find(p => selectedNodes.has(p.nodeId))
       if (!candidate) {
         state.follow = { followedPointerId: -1, nodeBasePositions: {} }
         return
@@ -187,6 +189,7 @@ export function provideMouseOperation(
       state.follow.nodeBasePositions = Object.fromEntries(
         Array.from(selectedNodes)
           .filter(n => !userGrabs.includes(n))
+          .filter(n => nodeStates[n]?.draggable)
           .map(n => [n, _unwrapNodePosition(nodePositions, n)])
       )
       pointerState.dragBasePosition = { ...pointerState.latestPosition }
@@ -272,6 +275,10 @@ export function provideMouseOperation(
       return // pending for click and drag distinguish
     }
 
+    if (!nodeStates[pointerState.nodeId]?.draggable) {
+      return
+    }
+
     if (pointerState.moveCounter === MOVE_DETECTION_THRESHOLD + 1) {
       const draggingNodes = _calculateNodeNewPosition(pointerState, {
         pointerId: pointerState.pointerId,
@@ -334,9 +341,11 @@ export function provideMouseOperation(
 
     const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
     if (isMoved) {
-      const draggingNodes = _calculateNodeNewPosition(pointerState, event)
-      emitter.emit("node:dragend", draggingNodes)
-      emitter.emit("node:pointerup", { node, event })
+      if (nodeStates[pointerState.nodeId]?.draggable) {
+        const draggingNodes = _calculateNodeNewPosition(pointerState, event)
+        emitter.emit("node:dragend", draggingNodes)
+        emitter.emit("node:pointerup", { node, event })
+      }
     } else {
       emitter.emit("node:pointerup", { node, event })
       handleNodeClickEvent(node, event)
@@ -399,7 +408,6 @@ export function provideMouseOperation(
 
     emitter.emit("node:pointerdown", { node, event })
   }
-
 
   function handleNodePointerOverEvent(node: string, event: PointerEvent) {
     state.hoveredNodesPre.add(node)
@@ -548,9 +556,9 @@ export function provideMouseOperation(
 
   const provides = {
     selectedNodes,
-    hoveredNodes: state.hoveredNodes,
+    hoveredNodes,
     selectedEdges,
-    hoveredEdges: state.hoveredEdges,
+    hoveredEdges,
     handleNodePointerDownEvent,
     handleNodePointerOverEvent,
     handleNodePointerOutEvent,

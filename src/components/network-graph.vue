@@ -383,6 +383,8 @@ export default defineComponent({
     const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", props.edges, emit)
     watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
+    const hoveredNodes = Reactive(new Set<string>())
+    const hoveredEdges = Reactive(new Set<string>())
     const currentLayouts = Reactive<Layouts>({ nodes: {} })
 
     // two-way binding
@@ -428,17 +430,6 @@ export default defineComponent({
       }
     })
 
-    // mouse and touch support
-    const { hoveredNodes, hoveredEdges } = provideMouseOperation(
-      svg,
-      readonly(currentLayouts.nodes),
-      readonly(zoomLevel),
-      readonly(configs),
-      currentSelectedNodes,
-      currentSelectedEdges,
-      emitter
-    )
-
     const { nodeStates } = provideStates(
       readonly(props.nodes),
       readonly(props.edges),
@@ -449,6 +440,20 @@ export default defineComponent({
       readonly(configs),
       currentLayouts,
       scale
+    )
+
+    // mouse and touch support
+    provideMouseOperation(
+      svg,
+      readonly(currentLayouts.nodes),
+      readonly(zoomLevel),
+      readonly(configs),
+      nodeStates,
+      currentSelectedNodes,
+      currentSelectedEdges,
+      hoveredNodes,
+      hoveredEdges,
+      emitter
     )
 
     // -----------------------------------------------------------------------

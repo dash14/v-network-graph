@@ -29,6 +29,7 @@ interface NodeStateDatum {
   labelText: Ref<string>
   selected: boolean
   hovered: boolean
+  draggable: Ref<boolean>
 }
 
 export type NodeState = UnwrapRef<NodeStateDatum>
@@ -329,6 +330,7 @@ function createNodeState(
       return nodes[id]?.[unref(state.label).text] ?? ""
     }
   })
+  state.draggable = computed(() => Config.value(config.draggable, nodes[id]))
 }
 
 function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
