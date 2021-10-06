@@ -143,7 +143,7 @@ export interface NodeConfig<N extends Node = Node> {
   hover?: CallableValues<ShapeStyle, N>
   selected?: CallableValues<ShapeStyle, N>
   draggable: CallableValue<boolean, N>
-  selectable: boolean | number
+  selectable: CallableValue<boolean, N> | number
   label: CallableValues<NodeLabelStyle, N>
   focusring: NodeFocusRingStyle
   transition?: string

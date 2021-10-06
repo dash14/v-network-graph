@@ -183,11 +183,11 @@ defineExpose({
       :node-id="id"
       :scale="scale"
       :config="state.shape"
-      :class="{ draggable: state.draggable, selectable: config.selectable }"
+      :class="{ draggable: state.draggable, selectable: state.selectable }"
     >
       <v-shape
         :config="state.shape"
-        :class="{ draggable: state.draggable, selectable: config.selectable }"
+        :class="{ draggable: state.draggable, selectable: state.selectable }"
       />
     </slot>
     <slot

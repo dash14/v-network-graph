@@ -396,7 +396,7 @@ export default defineComponent({
     watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
 
     const visibleNodeFocusRing = computed(() => {
-      return configs.node.selectable && configs.node.focusring.visible
+      return configs.node.focusring.visible
     })
 
     // -----------------------------------------------------------------------

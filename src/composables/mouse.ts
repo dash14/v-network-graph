@@ -234,7 +234,8 @@ export function provideMouseOperation(
 
     selectedEdges.clear()
 
-    if (configs.node.selectable) {
+    const selectable = nodeStates[node]?.selectable ?? false
+    if (selectable) {
       const isTouchAnySelectedNode =
         MapUtil.valueOf(state.nodePointers).filter(
           p => p.pointerId != event.pointerId && selectedNodes.has(p.nodeId)
@@ -245,8 +246,8 @@ export function provideMouseOperation(
           selectedNodes.delete(node)
         } else if (
           !(
-            typeof configs.node.selectable === "number" &&
-            selectedNodes.size >= configs.node.selectable
+            typeof selectable === "number" &&
+            selectedNodes.size >= selectable
           )
         ) {
           selectedNodes.add(node)

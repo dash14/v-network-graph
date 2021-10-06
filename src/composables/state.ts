@@ -30,6 +30,7 @@ interface NodeStateDatum {
   selected: boolean
   hovered: boolean
   draggable: Ref<boolean>
+  selectable: Ref<boolean | number>
 }
 
 export type NodeState = UnwrapRef<NodeStateDatum>
@@ -331,6 +332,7 @@ function createNodeState(
     }
   })
   state.draggable = computed(() => Config.value(config.draggable, nodes[id]))
+  state.selectable = computed(() => Config.value(config.selectable, nodes[id]))
 }
 
 function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
