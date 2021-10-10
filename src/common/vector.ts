@@ -201,4 +201,16 @@ export function calculateCircleCenterAndRadiusBy3Points(
   return [center, radius]
 }
 
+/**
+ * Calculate the distance of the line.
+ * @param pos1 Vector
+ * @param pos2 Vector
+ * @returns distance
+ */
+ export function calculateDistance(pos1: Vector, pos2: Vector) {
+  const x = pos2.x - pos1.x
+  const y = pos2.y - pos1.y
+  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+}
+
 export { Vector }

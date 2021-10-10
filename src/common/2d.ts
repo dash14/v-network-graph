@@ -320,3 +320,12 @@ export function reverseAngleRadian(theta: number): number {
     return Math.PI * 2 + theta
   }
 }
+
+export function inverseLine(line: LinePosition): LinePosition {
+  return {
+    x1: line.x2,
+    y1: line.y2,
+    x2: line.x1,
+    y2: line.y1
+  }
+}

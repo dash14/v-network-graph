@@ -26,7 +26,7 @@ const d = computed(() => {
     if (p === null) {
       move = true
     } else if (p instanceof Array) {
-      return `C ${p[0].x} ${p[0].y}, ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}`
+      return `L ${p[0].x} ${p[0].y} Q ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}`
     } else {
       const m = move
       move = false
