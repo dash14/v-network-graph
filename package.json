@@ -24,8 +24,8 @@
     "clean": "rimraf lib"
   },
   "dependencies": {
-    "mitt": "^3.0.0",
-    "svg-pan-zoom": "github:dash14/svg-pan-zoom#main"
+    "@dash14/svg-pan-zoom": "^3.6.4",
+    "mitt": "^3.0.0"
   },
   "devDependencies": {
     "@types/d3-force": "^3.0.3",

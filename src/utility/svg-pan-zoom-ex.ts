@@ -1,4 +1,4 @@
-import svgPanZoom, * as SvgPanZoom from "svg-pan-zoom"
+import svgPanZoom, * as SvgPanZoom from "@dash14/svg-pan-zoom"
 
 interface Box {
   top: number
