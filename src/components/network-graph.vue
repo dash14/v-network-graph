@@ -611,8 +611,7 @@ export default defineComponent({
       const element = this.svg
       const viewport = element?.querySelector(".v-viewport") as SVGGElement
 
-      const target = document.createElement("svg")
-      target.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+      const target = element?.cloneNode(true) as SVGGElement
 
       if (viewport) {
         const box = viewport.getBBox()
@@ -626,10 +625,9 @@ export default defineComponent({
         target.setAttribute("width",  svg.width.toString())
         target.setAttribute("height", svg.height.toString())
 
-        const v = viewport.cloneNode(true) as SVGGElement
+        const v = target.querySelector(".v-viewport") as SVGGElement
         v.setAttribute("transform", `translate(${-svg.x} ${-svg.y}), scale(${z})`)
         v.removeAttribute("style")
-        target.appendChild(v)
 
         target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
       }
