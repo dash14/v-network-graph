@@ -44,11 +44,11 @@ interface Line {
   target: MarkerStyle
 }
 
-interface Curve {
-  enable: boolean
-  center: Position
+export interface Curve {
+  center: V.Vector
+  theta: number // theta: direction of source to center
   circle: {
-    center: Position
+    center: V.Vector
     radius: number
   }
   control: Position[]
@@ -584,52 +584,12 @@ function calculateCurvePositionAndState(
   }
 
   // Calculate the control/via points of a Bezier curve.
-  const control = []
   const [p1, p2] = V.toVectorsFromLinePosition(position)
-  const centerToSource = V.fromVectors(center, p1)
-  const centerToTarget = V.fromVectors(center, p2)
-
-  let theta = V.calculateRelativeAngleRadian(centerToSource, centerToTarget)
-  if (theta0 * theta < 0) {
-    theta = v2d.reverseAngleRadian(theta)
-  }
-  const middle = V.Vector.fromObject(v2d.moveOnCircumference(p1, center, -theta / 2))
-  const centerToMp = V.fromVectors(center, middle)
-  const mpTangent = V.calculatePerpendicularLine(centerToMp)
-
-  const theta1 = V.calculateRelativeAngleRadian(centerToSource, centerToMp)
-  let tangent = V.calculatePerpendicularLine(centerToSource)
-  if (Math.abs(theta1) < Math.PI / 2) {
-    const cp = V.getIntersectionPointOfLines(tangent, mpTangent).toObject()
-    control.push(cp)
-  } else {
-    // If greater than 90 degrees, go through the midpoint.
-    const mp = v2d.moveOnCircumference(middle, center, theta1 / 2)
-    const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
-    const cp1 = V.getIntersectionPointOfLines(tangent, tangent2).toObject()
-    const cp2 = V.getIntersectionPointOfLines(tangent2, mpTangent).toObject()
-    control.push(cp1, mp, cp2)
-  }
-
-  control.push(middle.toObject())
-
-  const theta2 = V.calculateRelativeAngleRadian(centerToTarget, centerToMp)
-  tangent = V.calculatePerpendicularLine(centerToTarget)
-  if (Math.abs(theta2) < Math.PI / 2) {
-    const cp = V.getIntersectionPointOfLines(tangent, mpTangent).toObject()
-    control.push(cp)
-  } else {
-    // If greater than 90 degrees, go through the midpoint.
-    const mp = v2d.moveOnCircumference(middle, center, theta2 / 2)
-    const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
-    const cp1 = V.getIntersectionPointOfLines(mpTangent, tangent2).toObject()
-    const cp2 = V.getIntersectionPointOfLines(tangent2, tangent).toObject()
-    control.push(cp1, mp, cp2)
-  }
+  const control = v2d.calculateBezierCurveControlPoint(p1, center, p2, theta0).map(p => p.toObject())
 
   curve = {
-    enable: true,
-    center: shiftedCenter.toObject(),
+    center: shiftedCenter,
+    theta: theta0,
     circle: { center, radius },
     control,
   }

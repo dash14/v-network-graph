@@ -329,3 +329,54 @@ export function inverseLine(line: LinePosition): LinePosition {
     y2: line.y1
   }
 }
+
+export function calculateBezierCurveControlPoint(
+  p1: V.Vector,
+  center: V.Vector,
+  p2: V.Vector,
+  theta0: number
+): V.Vector[] {
+  const control: V.Vector[] = []
+  const centerToSource = V.fromVectors(center, p1)
+  const centerToTarget = V.fromVectors(center, p2)
+
+  let theta = V.calculateRelativeAngleRadian(centerToSource, centerToTarget)
+  if (theta0 * theta < 0) {
+    theta = reverseAngleRadian(theta)
+  }
+  const middle = V.Vector.fromObject(moveOnCircumference(p1, center, -theta / 2))
+  const centerToMp = V.fromVectors(center, middle)
+  const mpTangent = V.calculatePerpendicularLine(centerToMp)
+
+  const theta1 = V.calculateRelativeAngleRadian(centerToSource, centerToMp)
+  let tangent = V.calculatePerpendicularLine(centerToSource)
+  if (Math.abs(theta1) < Math.PI / 2) {
+    const cp = V.getIntersectionPointOfLines(tangent, mpTangent)
+    control.push(cp)
+  } else {
+    // If greater than 90 degrees, go through the midpoint.
+    const mp = V.Vector.fromObject(moveOnCircumference(middle, center, theta1 / 2))
+    const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
+    const cp1 = V.getIntersectionPointOfLines(tangent, tangent2)
+    const cp2 = V.getIntersectionPointOfLines(tangent2, mpTangent)
+    control.push(cp1, mp, cp2)
+  }
+
+  control.push(middle)
+
+  const theta2 = V.calculateRelativeAngleRadian(centerToTarget, centerToMp)
+  tangent = V.calculatePerpendicularLine(centerToTarget)
+  if (Math.abs(theta2) < Math.PI / 2) {
+    const cp = V.getIntersectionPointOfLines(tangent, mpTangent)
+    control.push(cp)
+  } else {
+    // If greater than 90 degrees, go through the midpoint.
+    const mp = V.Vector.fromObject(moveOnCircumference(middle, center, theta2 / 2))
+    const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
+    const cp1 = V.getIntersectionPointOfLines(mpTangent, tangent2)
+    const cp2 = V.getIntersectionPointOfLines(tangent2, tangent)
+    control.push(cp1, mp, cp2)
+  }
+
+  return control
+}

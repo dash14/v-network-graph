@@ -5,6 +5,7 @@ import { usePathConfig } from "../composables/config"
 import { Config } from "../common/configs"
 import { Path, PositionOrCurve } from "../common/types"
 import { applyScaleToDasharray, getDasharrayUnit } from "../common/utility"
+import chunk from "lodash-es/chunk"
 
 const props = defineProps({
   points: {
@@ -26,7 +27,15 @@ const d = computed(() => {
     if (p === null) {
       move = true
     } else if (p instanceof Array) {
-      return `L ${p[0].x} ${p[0].y} Q ${p[1].x} ${p[1].y}, ${p[2].x} ${p[2].y}`
+      p = [...p]
+      const list = []
+      if (p.length % 2 === 1) {
+        const x = p[0]
+        p = p.slice(1)
+        list.push(`L ${x.x} ${x.y}`)
+      }
+      chunk(p, 2).map(([p1, p2]) => list.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
+      return list.join(" ")
     } else {
       const m = move
       move = false
