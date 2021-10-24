@@ -213,10 +213,13 @@ export interface PathStrokeStyle extends StrokeStyle {
   linejoin: "miter" | "round" | "bevel"
 }
 
+export type PathEndType = "centerOfNode" | "edgeOfNode"
+
 export interface PathConfig<P extends Path = Path> {
   visible: boolean
   clickable: boolean
   curveInNode: boolean
+  end: PathEndType
   path: CallableValues<PathStrokeStyle, P>
   transition?: string
 }

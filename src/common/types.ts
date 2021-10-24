@@ -103,7 +103,7 @@ export interface Path {
 export type Paths = Path[]
 
 // line: point | curve: [control-point, control-point, target-point] | move to next point: null
-export type PositionOrCurve = Position | [Position, Position, Position] | null
+export type PositionOrCurve = Position | Position[] | null
 
 /* ------------------------------------------ *
  * Events
