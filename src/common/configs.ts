@@ -220,6 +220,7 @@ export interface PathConfig<P extends Path = Path> {
   clickable: boolean
   curveInNode: boolean
   end: PathEndType
+  margin: CallableValue<number, P>
   path: CallableValues<PathStrokeStyle, P>
   transition?: string
 }

@@ -196,6 +196,7 @@ export function getConfigDefaults(): Configs {
       clickable: false,
       curveInNode: false,
       end: "centerOfNode",
+      margin: 0,
       path: {
         width: 6,
         color: p => {

@@ -2,6 +2,7 @@
 import { computed, PropType } from "vue"
 import { Edge, Edges, NodePositions, Path, Paths, PositionOrCurve } from "../common/types"
 import { findFirstNonNull } from "../common/utility"
+import { Config } from "../common/configs"
 import { EdgeStates, NodeStates, useStates, EdgeState, Curve } from "../composables/state"
 import { usePathConfig } from "../composables/config"
 import { useZoomLevel } from "../composables/zoom"
@@ -63,6 +64,7 @@ const pathList = computed(() => {
 
 const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
   if (path.edges.length === 0) return []
+  const margin = Config.value(pathConfig.margin, path.path) * scale.value
   return _calculatePathPoints(
     path,
     nodeStates,
@@ -70,7 +72,8 @@ const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
     edgeStates,
     scale.value,
     pathConfig.curveInNode,
-    pathConfig.end
+    pathConfig.end,
+    margin
   )
 })
 
@@ -86,7 +89,8 @@ function _calculatePathPoints(
   edgeStates: EdgeStates,
   scale: number,
   curveInNode: boolean,
-  pathEndType: PathEndType
+  pathEndType: PathEndType,
+  margin: number
 ): PositionOrCurve[] {
   // The relationship between the source/target of a link and the connection
   // by path can be different.
@@ -100,16 +104,29 @@ function _calculatePathPoints(
   // the results
   const points: (V.Vector[] | V.Vector)[] = []
 
+  let isMarginOverRunStart = false
+  let isMarginOverRunEnd = false
+
   // ----------------------------------------------------
   // Determine the starting point.
   // ----------------------------------------------------
-  let nodeId = edgePos[0].source
-  let nodeRadius = _getNodeRadius(nodeStates[nodeId].shape) * scale
-  points.push(
-    pathEndType === "edgeOfNode"
-      ? _calculateEdgeOfNode(edgePos[0], nodeRadius, nodeLayouts, true)
-      : edgePos[0].line.source
-  )
+  {
+    const firstEdge = edgePos[0]
+    let nodeRadius = _getNodeRadius(nodeStates[firstEdge.source].shape) * scale
+    const lineMargin = margin + (pathEndType === "edgeOfNode" ? nodeRadius : 0)
+    const nextPoint =
+      lineMargin <= 0
+        ? firstEdge.line.source
+        : _calculateEdgeOfNode(firstEdge, lineMargin, nodeLayouts, true)
+    points.push(nextPoint)
+    nodeRadius = _getNodeRadius(nodeStates[firstEdge.target].shape) * scale
+    if (margin > 0) {
+      const distance = V.calculateDistance(firstEdge.line.source, firstEdge.line.target)
+      if (distance <= lineMargin + nodeRadius) {
+        isMarginOverRunStart = true
+      }
+    }
+  }
 
   // ----------------------------------------------------
   // Determine transit points.
@@ -269,28 +286,47 @@ function _calculatePathPoints(
   // ----------------------------------------------------
   // Determine the terminate point.
   // ----------------------------------------------------
-  const lastEdge = edgePos[edgePos.length - 1]
-  nodeId = lastEdge.target
-  nodeRadius = _getNodeRadius(nodeStates[nodeId].shape) * scale
-  const nextPoint =
-    pathEndType === "edgeOfNode"
-      ? _calculateEdgeOfNode(lastEdge, nodeRadius, nodeLayouts, false)
-      : lastEdge.line.target
-  const curve = lastEdge.curve
-  if (curve) {
-    // curve
-    const pos = points[points.length - 1]
-    const lastPoint = pos instanceof Array ? pos[pos.length - 1] : pos
-    const control = v2d.calculateBezierCurveControlPoint(
-      lastPoint,
-      curve.circle.center,
-      nextPoint,
-      curve.theta
-    )
-    points.push([...control, nextPoint])
-  } else {
-    // straight
-    points.push(nextPoint)
+  {
+    const lastEdge = edgePos[edgePos.length - 1]
+    let nodeRadius = _getNodeRadius(nodeStates[lastEdge.target].shape) * scale
+    const lineMargin = margin + (pathEndType === "edgeOfNode" ? nodeRadius : 0)
+    const nextPoint =
+      lineMargin <= 0
+        ? lastEdge.line.target
+        : _calculateEdgeOfNode(lastEdge, lineMargin, nodeLayouts, false)
+    nodeRadius = _getNodeRadius(nodeStates[lastEdge.source].shape) * scale
+    const curve = lastEdge.curve
+    if (curve) {
+      // curve
+      const pos = points[points.length - 1]
+      const lastPoint = pos instanceof Array ? pos[pos.length - 1] : pos
+      const control = v2d.calculateBezierCurveControlPoint(
+        lastPoint,
+        curve.circle.center,
+        nextPoint,
+        curve.theta
+      )
+      points.push([...control, nextPoint])
+    } else {
+      // straight
+      points.push(nextPoint)
+    }
+    if (margin > 0) {
+      const distance = V.calculateDistance(lastEdge.line.source, lastEdge.line.target)
+      if (distance <= lineMargin + nodeRadius) {
+        isMarginOverRunEnd = true
+      }
+    }
+  }
+
+  if (isMarginOverRunStart) {
+    points.shift()
+    if (points[0] instanceof Array) {
+      points.unshift(points[0][0])
+    }
+  }
+  if (isMarginOverRunEnd) {
+    points.pop()
   }
 
   return points
