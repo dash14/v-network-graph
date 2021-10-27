@@ -107,7 +107,7 @@ function _calculatePathPoints(
   let nodeRadius = _getNodeRadius(nodeStates[nodeId].shape) * scale
   points.push(
     pathEndType === "edgeOfNode"
-      ? _calculateEdgeOfNode(edgePos[0], nodeRadius, nodeLayouts, edgeStates, true)
+      ? _calculateEdgeOfNode(edgePos[0], nodeRadius, nodeLayouts, true)
       : edgePos[0].line.source
   )
 
@@ -274,9 +274,9 @@ function _calculatePathPoints(
   nodeRadius = _getNodeRadius(nodeStates[nodeId].shape) * scale
   const nextPoint =
     pathEndType === "edgeOfNode"
-      ? _calculateEdgeOfNode(lastEdge, nodeRadius, nodeLayouts, edgeStates, false)
+      ? _calculateEdgeOfNode(lastEdge, nodeRadius, nodeLayouts, false)
       : lastEdge.line.target
-  const curve = edgeStates[lastEdge.edgeId].curve
+  const curve = lastEdge.curve
   if (curve) {
     // curve
     const pos = points[points.length - 1]
@@ -351,11 +351,10 @@ function _calculateEdgeOfNode(
   edge: EdgeLine,
   nodeRadius: number,
   nodeLayouts: NodePositions,
-  edgeStates: EdgeStates,
   direction: boolean
 ) {
   const nodeId = direction ? edge.source : edge.target
-  const curve = edgeStates[edge.edgeId].curve
+  const curve = edge.curve
   if (curve) {
     let moveRad = nodeRadius / curve.circle.radius
     if (curve.theta > 0) {
