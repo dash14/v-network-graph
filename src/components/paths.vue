@@ -469,7 +469,7 @@ function _getIntersectionOfLineAndNode(
 }
 
 function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): EdgeLine {
-  let position = state.position
+  let position = state.origin
   let source = edge.edge.source
   let target = edge.edge.target
   let curve = state.curve
