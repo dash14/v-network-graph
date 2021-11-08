@@ -200,9 +200,9 @@ export interface EdgeConfig<E extends Edge = Edge> {
   margin: number | null
   summarize: boolean | ((edges: Edges, configs: Configs) => boolean | null)
   summarized: {
-    label: LabelStyle
-    shape: ShapeStyle
-    stroke: StrokeStyle
+    label: CallableValues<LabelStyle, Record<string, E>>
+    shape: CallableValues<ShapeStyle, Record<string, E>>
+    stroke: CallableValues<StrokeStyle, Record<string, E>>
   }
   keepOrder: EdgeKeepOrderType
   label: EdgeLabelStyle

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { PropType, ref, watchEffect } from "vue"
+import { computed, PropType, ref, watchEffect } from "vue"
 import { Edges, NodePositions } from "../common/types"
+import { Config } from "../common/configs"
 import { useStates } from "../composables/state"
 import { useEdgeConfig } from "../composables/config"
 import VLine from "./line.vue"
@@ -35,24 +36,24 @@ watchEffect(() => {
   }
 })
 
+const labelConfig = computed(() => Config.values(config.summarized.label, props.edges))
+const shapeConfig = computed(() => Config.values(config.summarized.shape, props.edges))
+const strokeConfig = computed(() => Config.values(config.summarized.stroke, props.edges))
+
 defineExpose({ config, pos, centerPos })
 </script>
 
 <template>
   <g>
-    <v-line
-      v-bind="pos"
-      :config="config.summarized.stroke"
-    />
-    <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="config.summarized.shape" />
+    <v-line v-bind="pos" :config="strokeConfig" />
+    <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
       :text="Object.keys(edges).length.toString()"
       :x="centerPos.x"
       :y="centerPos.y"
-      :config="config.summarized.label"
+      :config="labelConfig"
       text-anchor="middle"
       dominant-baseline="central"
     />
   </g>
 </template>
-
