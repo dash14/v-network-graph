@@ -42,8 +42,8 @@ export interface GridConfig {
 
 export interface ViewConfig {
   scalingObjects: boolean
-  panEnabled: true
-  zoomEnabled: true
+  panEnabled: boolean
+  zoomEnabled: boolean
   minZoomLevel: number
   maxZoomLevel: number
   fit: boolean
