@@ -4,6 +4,7 @@ import { Edges, NodePositions } from "../common/types"
 import { Config } from "../common/configs"
 import { useStates } from "../composables/state"
 import { useEdgeConfig } from "../composables/config"
+import { useMouseOperation } from "../composables/mouse"
 import VLine from "./line.vue"
 import VShape from "./shape.vue"
 import VText from "./label-text.vue"
@@ -20,6 +21,12 @@ const props = defineProps({
 })
 
 const config = useEdgeConfig()
+const {
+  handleEdgesPointerDownEvent,
+  handleEdgesPointerOverEvent,
+  handleEdgesPointerOutEvent, //
+} = useMouseOperation()
+
 const { edgeStates } = useStates()
 
 // Since the specified edges are in the same pair,
@@ -36,16 +43,37 @@ watchEffect(() => {
   }
 })
 
+const edgeIds = computed(() => Object.keys(props.edges))
 const labelConfig = computed(() => Config.values(config.summarized.label, props.edges))
 const shapeConfig = computed(() => Config.values(config.summarized.shape, props.edges))
 const strokeConfig = computed(() => Config.values(config.summarized.stroke, props.edges))
 
-defineExpose({ config, pos, centerPos })
+const hovered = computed(() => edgeIds.value.some(edge => edgeStates[edge].hovered))
+const selectable = computed(() => edgeIds.value.some(edge => edgeStates[edge].selectable))
+const selected = computed(() => edgeIds.value.some(edge => edgeStates[edge].selected))
+
+defineExpose({
+  config,
+  pos,
+  centerPos,
+  handleEdgesPointerDownEvent,
+  handleEdgesPointerOverEvent,
+  handleEdgesPointerOutEvent,
+  hovered,
+  selectable,
+  selected,
+})
 </script>
 
 <template>
-  <g>
-    <v-line v-bind="pos" :config="strokeConfig" />
+  <g :class="{ 'v-line-summarized': true, hovered, selectable, selected }">
+    <v-line
+      v-bind="pos"
+      :config="strokeConfig"
+      @pointerdown.prevent.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
+      @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
+      @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
+    />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
       :text="Object.keys(edges).length.toString()"

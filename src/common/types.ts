@@ -110,7 +110,7 @@ export type PositionOrCurve = Position | Position[] | null
  * ------------------------------------------ */
 
 export type NodePointerEvent = { node: string; event: PointerEvent }
-export type EdgePointerEvent = { edge: string; event: PointerEvent }
+export type EdgePointerEvent = { edge: string; event: PointerEvent, summarized: boolean }
 
 export type Events = {
   "view:load": undefined
