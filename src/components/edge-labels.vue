@@ -5,6 +5,7 @@ import { useStates } from "../composables/state"
 import { AnyShapeStyle, StrokeStyle } from "../common/configs"
 import { useEdgeConfig } from "../composables/config"
 import { useZoomLevel } from "../composables/zoom"
+import { EdgeGroup } from "../common/edge-group"
 import * as v2d from "../common/2d"
 
 interface NodeShape {
@@ -13,7 +14,7 @@ interface NodeShape {
 }
 
 const edgeConfig = useEdgeConfig()
-const { nodeStates, edgeStates, edgeGroupStates, layouts } = useStates()
+const { nodeStates, edgeStates, edgeGroupStates, summarizedEdgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()
 
 // not summarized
@@ -24,6 +25,28 @@ const indivisualEdgeGroups = computed(() =>
     )
   )
 )
+
+const edgeGroups = computed(() => {
+  const indivisual: Record<string, EdgeGroup> = {}
+  const summarized: Record<string, EdgeGroup> = {}
+  Object.entries(edgeGroupStates.edgeGroups).forEach(([id, group]) => {
+    if (Object.keys(group.edges).length > 0) {
+      if (group.summarize) {
+        summarized[id] = group
+      } else {
+        indivisual[id] = group
+      }
+    }
+  })
+  return { indivisual, summarized }
+})
+
+const nodeShape = computed(() => (node: string) => {
+  return {
+    pos: layouts.nodes[node] ?? { x: 0, y: 0 },
+    shape: nodeStates[node].shape,
+  }
+})
 
 const labelAreaPosition = computed(
   () => (edgeId: string, source: NodeShape, target: NodeShape, edgeStyle: StrokeStyle) => {
@@ -37,17 +60,28 @@ const labelAreaPosition = computed(
   }
 )
 
-const nodeShape = computed(() => (node: string) => {
-  return {
-    pos: layouts.nodes[node] ?? { x: 0, y: 0 },
-    shape: nodeStates[node].shape,
-  }
+const groupLabelAreaPosition = computed(() => (id: string, group: EdgeGroup) => {
+  const edgeId = Object.keys(group.edges)[0]
+  return v2d.calculateEdgeLabelArea(
+    edgeStates[edgeId].labelPosition,
+    summarizedEdgeStates[id]?.stroke ?? edgeStates[edgeId].line.stroke,
+    edgeConfig.label.margin,
+    edgeConfig.label.padding,
+    scale.value
+  )
+})
+
+const representativeEdgeState = computed(() => (group: EdgeGroup) => {
+  return edgeStates[Object.keys(group.edges)[0]]
 })
 
 defineExpose({
   indivisualEdgeGroups,
-  labelAreaPosition,
+  edgeGroups,
   nodeShape,
+  labelAreaPosition,
+  groupLabelAreaPosition,
+  representativeEdgeState,
   edgeStates,
   edgeConfig,
   scale,
@@ -56,7 +90,7 @@ defineExpose({
 
 <template>
   <g class="v-edge-labels">
-    <template v-for="(group, id) in indivisualEdgeGroups" :key="id">
+    <template v-for="(group, id) in edgeGroups.indivisual" :key="id">
       <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
         <slot
           name="edge-label"
@@ -76,6 +110,17 @@ defineExpose({
           :scale="scale"
         />
       </template>
+    </template>
+    <template v-for="(group, id) in edgeGroups.summarized" :key="id">
+      <slot
+        name="edges-label"
+        :edges="group.edges"
+        :config="edgeConfig.label"
+        :area="groupLabelAreaPosition(id, group)"
+        :hovered="representativeEdgeState(group).hovered"
+        :selected="representativeEdgeState(group).selected"
+        :scale="scale"
+      />
     </template>
   </g>
 </template>

@@ -68,8 +68,14 @@ interface EdgeStateDatum {
   stopWatchHandle: WatchStopHandle
 }
 
+interface SummarizedEdgeStateDatum {
+  stroke: Ref<StrokeStyle>
+}
+
 export type EdgeState = UnwrapRef<EdgeStateDatum>
 export type EdgeStates = Record<string, EdgeState>
+export type SummarizedEdgeState = UnwrapRef<SummarizedEdgeStateDatum>
+export type SummarizedEdgeStates = Record<string, SummarizedEdgeState>
 
 // Provide states
 
@@ -77,6 +83,7 @@ interface States {
   nodeStates: NodeStates
   edgeStates: EdgeStates
   edgeGroupStates: EdgeGroupStates
+  summarizedEdgeStates: SummarizedEdgeStates
   layouts: Layouts
 }
 
@@ -114,6 +121,7 @@ export function provideStates(
 ) {
   const nodeStates: NodeStates = reactive({})
   const edgeStates: EdgeStates = reactive({})
+  const summarizedEdgeStates: SummarizedEdgeStates = reactive({})
 
   // -----------------------------------------------------------------------
   // States for nodes
@@ -201,6 +209,12 @@ export function provideStates(
     )
   })
 
+  watch(
+    edgeGroupStates.edgeGroups,
+    _ => createSummarizedEdgeStates(summarizedEdgeStates, edgeGroupStates, configs),
+    { immediate: true }
+  )
+
   // update `edge.selected` flag
   watch(
     () => [...selectedEdges],
@@ -272,7 +286,7 @@ export function provideStates(
     }
   )
 
-  const states = { nodeStates, edgeStates, edgeGroupStates, layouts }
+  const states = { nodeStates, edgeStates, edgeGroupStates, summarizedEdgeStates, layouts }
   provide(statesKey, states)
   return states
 }
@@ -585,7 +599,9 @@ function calculateCurvePositionAndState(
 
   // Calculate the control/via points of a Bezier curve.
   const [p1, p2] = V.toVectorsFromLinePosition(position)
-  const control = v2d.calculateBezierCurveControlPoint(p1, center, p2, theta0).map(p => p.toObject())
+  const control = v2d
+    .calculateBezierCurveControlPoint(p1, center, p2, theta0)
+    .map(p => p.toObject())
 
   curve = {
     center: shiftedCenter,
@@ -594,4 +610,26 @@ function calculateCurvePositionAndState(
     control,
   }
   return [position, curve]
+}
+
+function createSummarizedEdgeStates(
+  summarizedEdgeStates: SummarizedEdgeStates,
+  edgeGroupStates: Reactive<EdgeGroupStates>,
+  configs: Configs
+) {
+  const groups = edgeGroupStates.edgeGroups
+  Object.entries(groups)
+    .filter(([id, group]) => group.summarize && !(id in summarizedEdgeStates))
+    .forEach(([id, group]) => {
+      const state = { stroke: undefined as any }
+      state.stroke = computed<StrokeStyle>(() =>
+        Config.values(configs.edge.summarized.stroke, group.edges)
+      )
+      summarizedEdgeStates[id] = state
+    })
+  Object.keys(summarizedEdgeStates).forEach(id => {
+    if (!edgeGroupStates.edgeGroups[id]?.summarize) {
+      delete summarizedEdgeStates[id]
+    }
+  })
 }

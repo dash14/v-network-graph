@@ -64,6 +64,13 @@
           </template>
         </v-edge-labels>
 
+        <!-- summarized edges labels -->
+        <v-edge-labels v-if="overrideEdgesLabels">
+          <template #edges-label="slotProps">
+            <slot name="edges-label" v-bind="slotProps" />
+          </template>
+        </v-edge-labels>
+
         <!-- node selections (focus ring) -->
         <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
           <v-node-focus-ring
@@ -144,7 +151,7 @@ import VBackgroundGrid from "./background-grid.vue"
 import VPaths from "./paths.vue"
 import VMarkerHead from "./marker-head.vue"
 
-const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label"]
+const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
 
 export default defineComponent({
   components: {
@@ -249,6 +256,7 @@ export default defineComponent({
     const overrideNodes = computed(() => "override-node" in slots)
     const overrideNodeLabels = computed(() => "override-node-label" in slots)
     const overrideEdgeLabels = computed(() => "edge-label" in slots)
+    const overrideEdgesLabels = computed(() => "edges-label" in slots)
 
     // -----------------------------------------------------------------------
     // SVG
@@ -544,6 +552,7 @@ export default defineComponent({
       overrideNodes,
       overrideNodeLabels,
       overrideEdgeLabels,
+      overrideEdgesLabels,
       scale,
       nodeStates,
       currentSelectedNodes,
