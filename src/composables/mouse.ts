@@ -177,6 +177,9 @@ export function provideMouseOperation(
         }
         selectedNodes.clear()
         selectedEdges.clear()
+        if (event.button !== 2 /* right click */) {
+          emitter.emit("view:click", { event })
+        }
       }
     }
   }

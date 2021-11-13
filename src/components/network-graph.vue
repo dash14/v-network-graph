@@ -7,6 +7,7 @@
       width="500"
       height="500"
       viewBox="0 0 500 500"
+      @contextmenu="onContextMenu($event)"
     >
       <!-- outside of viewport -->
       <slot
@@ -382,6 +383,10 @@ export default defineComponent({
       })
     }
 
+    const onContextMenu = (event: MouseEvent) => {
+      emitter.emit("view:contextmenu", { event })
+    }
+
     // -----------------------------------------------------------------------
     // States of selected nodes/edges
     // -----------------------------------------------------------------------
@@ -565,6 +570,7 @@ export default defineComponent({
       // methods
       fitToContents,
       panToCenter,
+      onContextMenu,
     }
   },
   methods: {

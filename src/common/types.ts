@@ -109,6 +109,7 @@ export type PositionOrCurve = Position | Position[] | null
  * Events
  * ------------------------------------------ */
 
+export type ViewEvent<T extends Event> = { event: T }
 export type NodeEvent<T extends Event> = { node: string; event: T }
 export type EdgeEvent<T extends Event> = { edge: string; edges: string[], summarized: false; event: T } | { edge?: undefined, edges: string[]; summarized: true; event: T }
 
@@ -124,6 +125,8 @@ export type Events = {
   "view:pan": { x: number; y: number }
   "view:fit": undefined
   "view:resize": { x: number; y: number; width: number; height: number }
+  "view:click": ViewEvent<PointerEvent>
+  "view:contextmenu": ViewEvent<MouseEvent>
   "node:click": NodeEvent<PointerEvent>
   "node:pointerover": NodeEvent<PointerEvent>
   "node:pointerout": NodeEvent<PointerEvent>
