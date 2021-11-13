@@ -35,6 +35,7 @@ const {
   handleNodePointerDownEvent,
   handleNodePointerOverEvent,
   handleNodePointerOutEvent,
+  handleNodeContextMenu,
 } = useMouseOperation()
 
 const labelVisibility = computed(() => {
@@ -162,6 +163,7 @@ defineExpose({
   handleNodePointerDownEvent,
   handleNodePointerOverEvent,
   handleNodePointerOutEvent,
+  handleNodeContextMenu,
   textAnchor,
   dominantBaseline,
   labelX,
@@ -177,6 +179,7 @@ defineExpose({
     @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
     @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
+    @contextmenu="handleNodeContextMenu(id, $event)"
   >
     <slot
       name="override-node"

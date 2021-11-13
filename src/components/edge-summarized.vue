@@ -24,7 +24,8 @@ const config = useEdgeConfig()
 const {
   handleEdgesPointerDownEvent,
   handleEdgesPointerOverEvent,
-  handleEdgesPointerOutEvent, //
+  handleEdgesPointerOutEvent,
+  handleEdgesContextMenu,
 } = useMouseOperation()
 
 const { edgeStates } = useStates()
@@ -61,6 +62,7 @@ defineExpose({
   handleEdgesPointerDownEvent,
   handleEdgesPointerOverEvent,
   handleEdgesPointerOutEvent,
+  handleEdgesContextMenu,
   hovered,
   selectable,
   selected,
@@ -73,11 +75,9 @@ defineExpose({
     @pointerdown.prevent.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
     @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
     @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
+    @contextmenu="handleEdgesContextMenu(edgeIds, $event)"
   >
-    <v-line
-      v-bind="pos"
-      :config="strokeConfig"
-    />
+    <v-line v-bind="pos" :config="strokeConfig" />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
       :text="Object.keys(edges).length.toString()"

@@ -35,6 +35,7 @@ const {
   handleEdgePointerDownEvent,
   handleEdgePointerOverEvent,
   handleEdgePointerOutEvent,
+  handleEdgeContextMenu,
 } = useMouseOperation()
 
 const pathD = computed(() => {
@@ -57,6 +58,7 @@ defineExpose({
   handleEdgePointerDownEvent,
   handleEdgePointerOverEvent,
   handleEdgePointerOutEvent,
+  handleEdgeContextMenu,
 })
 </script>
 
@@ -70,6 +72,7 @@ defineExpose({
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
     @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"
+    @contextmenu="handleEdgeContextMenu(id, $event)"
   />
 </template>
 

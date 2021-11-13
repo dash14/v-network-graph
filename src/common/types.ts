@@ -129,6 +129,7 @@ export type Events = {
   "node:pointerout": NodeEvent<PointerEvent>
   "node:pointerup": NodeEvent<PointerEvent>
   "node:pointerdown": NodeEvent<PointerEvent>
+  "node:contextmenu": NodeEvent<MouseEvent>
   "node:dragstart": { [name: string]: Position }
   "node:pointermove": { [name: string]: Position }
   "node:dragend": { [name: string]: Position }
@@ -138,6 +139,7 @@ export type Events = {
   "edge:click": EdgeEvent<PointerEvent>
   "edge:pointerover": EdgeEvent<PointerEvent>
   "edge:pointerout": EdgeEvent<PointerEvent>
+  "edge:contextmenu": EdgeEvent<MouseEvent>
   "edge:select": string[]
   "path:click": Path
 }

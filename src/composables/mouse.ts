@@ -19,12 +19,15 @@ interface MouseEventHandlers {
   handleNodePointerDownEvent: NodeEventHandler
   handleNodePointerOverEvent: NodeEventHandler
   handleNodePointerOutEvent: NodeEventHandler
+  handleNodeContextMenu: NodeEventHandler<MouseEvent>
   handleEdgePointerDownEvent: EdgeEventHandler
   handleEdgePointerOverEvent: EdgeEventHandler
   handleEdgePointerOutEvent: EdgeEventHandler
+  handleEdgeContextMenu: EdgeEventHandler<MouseEvent>
   handleEdgesPointerDownEvent: EdgesEventHandler
   handleEdgesPointerOverEvent: EdgesEventHandler
   handleEdgesPointerOutEvent: EdgesEventHandler
+  handleEdgesContextMenu: EdgesEventHandler<MouseEvent>
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
@@ -387,6 +390,9 @@ export function provideMouseOperation(
   }
 
   function handleNodePointerDownEvent(node: string, event: PointerEvent) {
+    if (event.button == 2 /* right button */) {
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
 
@@ -446,11 +452,20 @@ export function provideMouseOperation(
     emitter.emit("node:pointerout", { node, event })
   }
 
+  function handleNodeContextMenu(node: string, event: PointerEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    emitter.emit("node:contextmenu", { node, event })
+  }
+
   // -----------------------------------------------------------------------
   // Event handler for edges
   // -----------------------------------------------------------------------
 
   function handleEdgePointerDownEvent(edge: string, event: PointerEvent) {
+    if (event.button == 2 /* right button */) {
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
 
@@ -476,7 +491,7 @@ export function provideMouseOperation(
     }
     state.edgePointers.set(event.pointerId, pointerState)
 
-    emitter.emit("edge:pointerdown", { edge, event, summarized: false })
+    emitter.emit("edge:pointerdown", _makeEdgeEventObject(edge, event))
   }
 
   function handleEdgePointerUpEvent(event: PointerEvent) {
@@ -595,7 +610,16 @@ export function provideMouseOperation(
     emitter.emit("edge:pointerout", _makeEdgeEventObject(edge, event))
   }
 
+  function handleEdgeContextMenu(edge: string, event: PointerEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    emitter.emit("edge:contextmenu",_makeEdgeEventObject(edge, event))
+  }
+
   function handleEdgesPointerDownEvent(edges: string[], event: PointerEvent) {
+    if (event.button == 2 /* right button */) {
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
 
@@ -633,6 +657,11 @@ export function provideMouseOperation(
     emitter.emit("edge:pointerout", _makeEdgeEventObject(edges, event))
   }
 
+  function handleEdgesContextMenu(edges: string[], event: MouseEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    emitter.emit("edge:contextmenu", _makeEdgeEventObject(edges, event))
+  }
 
   const provides = <MouseEventHandlers> {
     selectedNodes,
@@ -642,12 +671,15 @@ export function provideMouseOperation(
     handleNodePointerDownEvent,
     handleNodePointerOverEvent,
     handleNodePointerOutEvent,
+    handleNodeContextMenu,
     handleEdgePointerDownEvent,
     handleEdgePointerOverEvent,
     handleEdgePointerOutEvent,
+    handleEdgeContextMenu,
     handleEdgesPointerDownEvent,
     handleEdgesPointerOverEvent,
     handleEdgesPointerOutEvent,
+    handleEdgesContextMenu,
   }
   provide(mouseEventHandlersKey, provides)
   return provides
