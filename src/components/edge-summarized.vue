@@ -68,13 +68,15 @@ defineExpose({
 </script>
 
 <template>
-  <g :class="{ 'v-line-summarized': true, hovered, selectable, selected }">
+  <g
+    :class="{ 'v-line-summarized': true, hovered, selectable, selected }"
+    @pointerdown.prevent.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
+    @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
+    @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
+  >
     <v-line
       v-bind="pos"
       :config="strokeConfig"
-      @pointerdown.prevent.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
-      @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
-      @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
     />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
