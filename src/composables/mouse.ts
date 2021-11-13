@@ -3,13 +3,13 @@
 import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "../common/common"
-import { Events, NodePositions, Position } from "../common/types"
+import { Events, NodePositions, Position, EdgeEvent } from "../common/types"
 import { entriesOf, MapUtil } from "../common/utility"
 import { EdgeStates, NodeStates } from "./state"
 
-type NodeEventHandler = (node: string, event: PointerEvent) => void
-type EdgeEventHandler = (edge: string, event: PointerEvent) => void
-type EdgesEventHandler = (edges: string[], event: PointerEvent) => void
+type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
+type EdgeEventHandler<T extends Event = PointerEvent> = (edge: string, event: T) => void
+type EdgesEventHandler<T extends Event = PointerEvent> = (edges: string[], event: T) => void
 
 interface MouseEventHandlers {
   selectedNodes: Reactive<Set<string>>
@@ -67,6 +67,26 @@ type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
 function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
   const pos = nodes[node] ?? { x: 0, y: 0 }
   return { ...pos } // unwrap reactivity
+}
+
+function _makeEdgeEventObject<T extends Event>(
+  edge: string | string[],
+  event: T
+): EdgeEvent<T> {
+  if (edge instanceof Array) {
+    return {
+      edges: edge,
+      event,
+      summarized: true,
+    }
+  } else {
+    return {
+      edge,
+      edges: [edge],
+      event,
+      summarized: false
+    }
+  }
 }
 
 export function provideMouseOperation(
@@ -471,10 +491,7 @@ export function provideMouseOperation(
     state.edgePointers.delete(event.pointerId)
 
     const edge = pointerState.edgeId
-    const edges = edge instanceof Array ? edge : [edge]
-    edges.forEach(edge => {
-      emitter.emit("edge:pointerup", { edge, event, summarized: edges.length > 1 })
-    })
+    emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
 
     if (state.edgePointers.size > 0 || state.edgePointerPeekCount === 1) {
       handleEdgeClickEvent(edge, event)
@@ -501,10 +518,7 @@ export function provideMouseOperation(
 
     for (const pointerState of state.edgePointers.values()) {
       const edge = pointerState.edgeId
-      const edges = edge instanceof Array ? edge : [edge]
-      edges.forEach(edge => {
-        emitter.emit("edge:pointerup", { edge, event, summarized: edges.length > 1 })
-      })
+      emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
     }
 
     // reset state
@@ -568,19 +582,17 @@ export function provideMouseOperation(
         }
       }
     }
-    edges.forEach(edge => {
-      emitter.emit("edge:click", { edge, event, summarized: edges.length > 1 })
-    })
+    emitter.emit("edge:click", _makeEdgeEventObject(edge, event))
   }
 
   function handleEdgePointerOverEvent(edge: string, event: PointerEvent) {
     state.hoveredEdges.add(edge)
-    emitter.emit("edge:pointerover", { edge, event, summarized: false })
+    emitter.emit("edge:pointerover", _makeEdgeEventObject(edge, event))
   }
 
   function handleEdgePointerOutEvent(edge: string, event: PointerEvent) {
     state.hoveredEdges.delete(edge)
-    emitter.emit("edge:pointerout", { edge, event, summarized: false })
+    emitter.emit("edge:pointerout", _makeEdgeEventObject(edge, event))
   }
 
   function handleEdgesPointerDownEvent(edges: string[], event: PointerEvent) {
@@ -608,26 +620,21 @@ export function provideMouseOperation(
       edgeId: edges,
     }
     state.edgePointers.set(event.pointerId, pointerState)
-    edges.forEach(edge => {
-      emitter.emit("edge:pointerdown", { edge, event, summarized: edges.length > 1 })
-    })
+    emitter.emit("edge:pointerdown", _makeEdgeEventObject(edges, event))
   }
 
   function handleEdgesPointerOverEvent(edges: string[], event: PointerEvent) {
-    edges.forEach(edge => {
-      state.hoveredEdges.add(edge)
-      emitter.emit("edge:pointerover", { edge, event, summarized: true })
-    })
+    edges.forEach(edge => state.hoveredEdges.add(edge))
+    emitter.emit("edge:pointerover", _makeEdgeEventObject(edges, event))
   }
 
   function handleEdgesPointerOutEvent(edges: string[], event: PointerEvent) {
-    edges.forEach(edge => {
-      state.hoveredEdges.delete(edge)
-      emitter.emit("edge:pointerout", { edge, event, summarized: true })
-    })
+    edges.forEach(edge => state.hoveredEdges.delete(edge))
+    emitter.emit("edge:pointerout", _makeEdgeEventObject(edges, event))
   }
 
-  const provides = {
+
+  const provides = <MouseEventHandlers> {
     selectedNodes,
     hoveredNodes,
     selectedEdges,

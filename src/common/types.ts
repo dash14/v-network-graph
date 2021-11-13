@@ -109,8 +109,12 @@ export type PositionOrCurve = Position | Position[] | null
  * Events
  * ------------------------------------------ */
 
-export type NodePointerEvent = { node: string; event: PointerEvent }
-export type EdgePointerEvent = { edge: string; event: PointerEvent, summarized: boolean }
+export type NodeEvent<T extends Event> = { node: string; event: T }
+export type EdgeEvent<T extends Event> = { edge: string; edges: string[], summarized: false; event: T } | { edge?: undefined, edges: string[]; summarized: true; event: T }
+
+// For compatibility with previous versions
+export type NodePointerEvent = NodeEvent<PointerEvent>
+export type EdgePointerEvent = EdgeEvent<PointerEvent>
 
 export type Events = {
   "view:load": undefined
@@ -120,20 +124,20 @@ export type Events = {
   "view:pan": { x: number; y: number }
   "view:fit": undefined
   "view:resize": { x: number; y: number; width: number; height: number }
-  "node:click": NodePointerEvent
-  "node:pointerover": NodePointerEvent
-  "node:pointerout": NodePointerEvent
-  "node:pointerup": NodePointerEvent
-  "node:pointerdown": NodePointerEvent
+  "node:click": NodeEvent<PointerEvent>
+  "node:pointerover": NodeEvent<PointerEvent>
+  "node:pointerout": NodeEvent<PointerEvent>
+  "node:pointerup": NodeEvent<PointerEvent>
+  "node:pointerdown": NodeEvent<PointerEvent>
   "node:dragstart": { [name: string]: Position }
   "node:pointermove": { [name: string]: Position }
   "node:dragend": { [name: string]: Position }
   "node:select": string[]
-  "edge:pointerup": EdgePointerEvent
-  "edge:pointerdown": EdgePointerEvent
-  "edge:click": EdgePointerEvent
-  "edge:pointerover": EdgePointerEvent
-  "edge:pointerout": EdgePointerEvent
+  "edge:pointerup": EdgeEvent<PointerEvent>
+  "edge:pointerdown": EdgeEvent<PointerEvent>
+  "edge:click": EdgeEvent<PointerEvent>
+  "edge:pointerover": EdgeEvent<PointerEvent>
+  "edge:pointerout": EdgeEvent<PointerEvent>
   "edge:select": string[]
   "path:click": Path
 }
@@ -144,7 +148,7 @@ export type EventHandlers = {
   [K in keyof Events]?: (event: Events[K]) => void
 }
 
-export type OnClickHandler = (param: NodePointerEvent) => void
+export type OnClickHandler = (param: NodeEvent<PointerEvent>) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void
 
 /* ------------------------------------------ *
