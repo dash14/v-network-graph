@@ -89,3 +89,11 @@ defineExpose({
     />
   </g>
 </template>
+
+<style lang="scss" scoped>
+.v-line-summarized {
+  &.selectable {
+    cursor: pointer;
+  }
+}
+</style>
