@@ -112,6 +112,7 @@ export type PositionOrCurve = Position | Position[] | null
 export type ViewEvent<T extends Event> = { event: T }
 export type NodeEvent<T extends Event> = { node: string; event: T }
 export type EdgeEvent<T extends Event> = { edge: string; edges: string[], summarized: false; event: T } | { edge?: undefined, edges: string[]; summarized: true; event: T }
+export type PathEvent<T extends Event> = { path: Path, event: T }
 
 // For compatibility with previous versions
 export type NodePointerEvent = NodeEvent<PointerEvent>
@@ -144,7 +145,8 @@ export type Events = {
   "edge:pointerout": EdgeEvent<PointerEvent>
   "edge:contextmenu": EdgeEvent<MouseEvent>
   "edge:select": string[]
-  "path:click": Path
+  "path:click": PathEvent<MouseEvent>
+  "path:contextmenu": PathEvent<MouseEvent>
 }
 
 export type EventHandlers = {

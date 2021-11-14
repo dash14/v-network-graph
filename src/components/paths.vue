@@ -77,9 +77,14 @@ const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
   )
 })
 
-const emitPathClicked = (path: Path) => {
+const emitPathClickedEvent = (path: Path, event: MouseEvent) => {
   if (!pathConfig.clickable) return
-  emitter.emit("path:click", path)
+  emitter.emit("path:click", { path, event })
+}
+
+const emitPathContextMenuEvent = (path: Path, event: MouseEvent) => {
+  if (!pathConfig.clickable) return
+  emitter.emit("path:contextmenu", { path, event })
 }
 
 function _calculatePathPoints(
@@ -532,7 +537,13 @@ function _getSlope(pos: V.Line) {
   return (pos.target.y - pos.source.y) / (pos.target.x - pos.source.x)
 }
 
-defineExpose({ pathConfig, pathList, calcPathPoints, emitPathClicked })
+defineExpose({
+  pathConfig,
+  pathList,
+  calcPathPoints,
+  emitPathClickedEvent,
+  emitPathContextMenuEvent,
+})
 </script>
 
 <template>
@@ -548,7 +559,8 @@ defineExpose({ pathConfig, pathList, calcPathPoints, emitPathClicked })
       :points="calcPathPoints(path)"
       :class="{ clickable: pathConfig.clickable }"
       :path="path.path"
-      @click.prevent.stop="emitPathClicked(path.path)"
+      @click.prevent.stop="emitPathClickedEvent(path.path, $event)"
+      @contextmenu="emitPathContextMenuEvent(path.path, $event)"
     />
   </transition-group>
 </template>
