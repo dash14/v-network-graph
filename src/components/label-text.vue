@@ -58,7 +58,7 @@ const attrs = useAttrs()
 
 const { scale } = useZoomLevel()
 
-const texts = computed(() => props.text.split(/\r?\n/))
+const texts = computed(() => props.text?.toString().split(/\r?\n/) ?? "")
 
 const fontSize = computed(() => {
   return attrs['font-size'] as number ?? (props.config.fontSize * scale.value)
