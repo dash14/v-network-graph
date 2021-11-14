@@ -456,8 +456,6 @@ export function provideMouseOperation(
   }
 
   function handleNodeContextMenu(node: string, event: PointerEvent) {
-    event.preventDefault()
-    event.stopPropagation()
     emitter.emit("node:contextmenu", { node, event })
   }
 
@@ -614,8 +612,6 @@ export function provideMouseOperation(
   }
 
   function handleEdgeContextMenu(edge: string, event: PointerEvent) {
-    event.preventDefault()
-    event.stopPropagation()
     emitter.emit("edge:contextmenu",_makeEdgeEventObject(edge, event))
   }
 
@@ -661,8 +657,6 @@ export function provideMouseOperation(
   }
 
   function handleEdgesContextMenu(edges: string[], event: MouseEvent) {
-    event.preventDefault()
-    event.stopPropagation()
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edges, event))
   }
 
