@@ -1,5 +1,6 @@
-import { MarkerStyle } from "../common/configs"
 import { InjectionKey, provide, reactive } from "vue"
+import { MarkerStyle } from "../common/configs"
+import { convertToAscii } from "../common/utility"
 
 export type MarkerBuilder = (marker: MarkerStyle | null, isSource?: boolean) => string
 
@@ -27,7 +28,8 @@ function toHeadMarker(marker: MarkerStyle, isSource: boolean, strokeColor: strin
 }
 
 function buildKey(m: HeadMarker) {
-  return `marker_${m.type}_${m.width}_${m.height}_${m.margin}_${m.color.replace("#", "")}_${m.isSource ? "L" : "R"}_${m.units === "strokeWidth" ? "rel" : "abs"}`
+  const converted = convertToAscii(m.color)
+  return `marker_${m.type}_${m.width}_${m.height}_${m.margin}_${converted}_${m.isSource ? "L" : "R"}_${m.units === "strokeWidth" ? "rel" : "abs"}`
 }
 
 function addMarker(key: string, marker: HeadMarker) {

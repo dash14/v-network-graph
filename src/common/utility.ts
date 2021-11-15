@@ -101,3 +101,11 @@ type Args<T> = [...(T | null)[], T]
 export function findFirstNonNull<T>(...values: Args<T>): T {
   return values.find(v => !!v) as T
 }
+
+export function convertToAscii(source: string): string {
+  if (typeof btoa === undefined) {
+    return Buffer.from(source).toString("base64").replaceAll("=", "")
+  } else {
+    return btoa(source).replaceAll("=", "")
+  }
+}
