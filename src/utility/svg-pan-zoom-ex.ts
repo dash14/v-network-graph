@@ -83,7 +83,7 @@ const methods: Partial<SvgPanZoomInternal> = {
   },
   applyAbsoluteZoomLevel(this: SvgPanZoomInternal, zoomLevel: number, minZoomLevel: number, maxZoomLevel: number) {
     // normalize
-    const min = Math.min(0.0001, minZoomLevel)
+    const min = Math.max(0.0001, minZoomLevel)
     const max = Math.max(min, maxZoomLevel)
     const zoom = Math.max(Math.min(max, zoomLevel), min)
 
