@@ -7,7 +7,6 @@
       width="500"
       height="500"
       viewBox="0 0 500 500"
-      @contextmenu="onContextMenu($event)"
     >
       <!-- outside of viewport -->
       <slot
@@ -43,7 +42,7 @@
       </v-background-viewport>
 
       <!-- viewport: pan/zoom target and within the range of SVG text retrieval. -->
-      <g class="v-viewport">
+      <g ref="viewport" class="v-viewport">
         <g v-for="layerName in layerDefs['base']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
@@ -142,6 +141,10 @@ import { EventHandlers, Nodes, Edges, Paths, Layouts, UserLayouts } from "../com
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "../common/types"
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
+import {
+  translateFromSvgViewportToDomCoordinate,
+  translateFromDomToSvgViewportCoordinate,
+} from "../common/utility"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
@@ -263,7 +266,8 @@ export default defineComponent({
     // SVG
     // -----------------------------------------------------------------------
     const container = ref<HTMLDivElement>()
-    const svg = ref<SVGElement>()
+    const svg = ref<SVGSVGElement>()
+    const viewport = ref<SVGGElement>()
     const show = ref<boolean>(false)
 
     const zoomLevel = bindProp(props, "zoomLevel", emit, v => {
@@ -291,7 +295,7 @@ export default defineComponent({
       onPan: p => emitter.emit("view:pan", p),
     })
 
-    provideContainers({ container, svg, svgPanZoom })
+    provideContainers({ container, svg, viewport, svgPanZoom })
 
     // Observe container resizing
     const rectSize = { width: 0, height: 0 }
@@ -381,10 +385,6 @@ export default defineComponent({
       updateBorderBox(() => {
         svgPanZoom.value?.center()
       })
-    }
-
-    const onContextMenu = (event: MouseEvent) => {
-      emitter.emit("view:contextmenu", { event })
     }
 
     // -----------------------------------------------------------------------
@@ -523,7 +523,7 @@ export default defineComponent({
             const sizes = svg.getSizes()
             svg.pan({
               x: sizes.width / 2,
-              y: sizes.height / 2
+              y: sizes.height / 2,
             })
           }
 
@@ -544,6 +544,7 @@ export default defineComponent({
       // html ref
       container,
       svg,
+      viewport,
       show,
 
       // instance
@@ -570,7 +571,6 @@ export default defineComponent({
       // methods
       fitToContents,
       panToCenter,
-      onContextMenu,
     }
   },
   methods: {
@@ -619,39 +619,59 @@ export default defineComponent({
       }
     },
     /**
+     * Translate from DOM to SVG viewport coordinate
+     * @return {Point} coordinate in the SVG viewport
+     */
+    translateFromDomToViewportCoordinate(coordinate: Point): Point {
+      return translateFromDomToSvgViewportCoordinate(
+        nonNull(this.svg, "svg"),
+        nonNull(this.viewport, "viewport"),
+        coordinate
+      )
+    },
+    /**
+     * Translate from SVG viewport to DOM coordinate
+     * @return {Point} coordinate in the DOM
+     */
+    translateFromViewportToDomCoordinate(coordinate: Point): Point {
+      return translateFromSvgViewportToDomCoordinate(
+        nonNull(this.svg, "svg"),
+        nonNull(this.viewport, "viewport"),
+        coordinate
+      )
+    },
+    /**
      * Get graph as SVG text.
      * @return {string} SVG text
      */
     getAsSvg(): string {
-      const element = this.svg
-      const viewport = element?.querySelector(".v-viewport") as SVGGElement
+      const element = nonNull(this.svg, "svg")
+      const viewport = nonNull(this.viewport, "svg viewport")
 
-      const target = element?.cloneNode(true) as SVGGElement
+      const target = element.cloneNode(true) as SVGSVGElement
 
-      if (viewport) {
-        const box = viewport.getBBox()
-        const z = 1 / this.scale
-        const svg = {
-          x: Math.floor((box.x - 10) * z),
-          y: Math.floor((box.y - 10) * z),
-          width: Math.ceil((box.width + 20) * z),
-          height: Math.ceil((box.height + 20) * z),
-        }
-        target.setAttribute("width",  svg.width.toString())
-        target.setAttribute("height", svg.height.toString())
-
-        const v = target.querySelector(".v-viewport") as SVGGElement
-        v.setAttribute("transform", `translate(${-svg.x} ${-svg.y}), scale(${z})`)
-        v.removeAttribute("style")
-
-        target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
+      const box = viewport.getBBox()
+      const z = 1 / this.scale
+      const svg = {
+        x: Math.floor((box.x - 10) * z),
+        y: Math.floor((box.y - 10) * z),
+        width: Math.ceil((box.width + 20) * z),
+        height: Math.ceil((box.height + 20) * z),
       }
+      target.setAttribute("width", svg.width.toString())
+      target.setAttribute("height", svg.height.toString())
+
+      const v = target.querySelector(".v-viewport") as SVGGElement
+      v.setAttribute("transform", `translate(${-svg.x} ${-svg.y}), scale(${z})`)
+      v.removeAttribute("style")
+
+      target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
 
       let data = target.outerHTML
 
       // cleanup
       data = data.replaceAll(/ data-v-[0-9a-z]+=""/g, "")
-      data = data.replaceAll(/<!--[\s\S]*?-->/mg, "")
+      data = data.replaceAll(/<!--[\s\S]*?-->/gm, "")
       return data
     },
   },

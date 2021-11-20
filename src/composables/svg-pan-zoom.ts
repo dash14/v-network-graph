@@ -10,7 +10,7 @@ enum State {
   UNMOUNTED = 2
 }
 
-export function useSvgPanZoom(svg: Ref<SVGElement | undefined>, options: SvgPanZoomOptions) {
+export function useSvgPanZoom(svg: Ref<SVGSVGElement | undefined>, options: SvgPanZoomOptions) {
   const instance = ref<SvgPanZoomInstance>()
   let state = State.INITIAL
   const mountedCallbacks: Callback[] = []

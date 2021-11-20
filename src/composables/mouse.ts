@@ -72,10 +72,7 @@ function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
   return { ...pos } // unwrap reactivity
 }
 
-function _makeEdgeEventObject<T extends Event>(
-  edge: string | string[],
-  event: T
-): EdgeEvent<T> {
+function _makeEdgeEventObject<T extends Event>(edge: string | string[], event: T): EdgeEvent<T> {
   if (edge instanceof Array) {
     return {
       edges: edge,
@@ -87,13 +84,13 @@ function _makeEdgeEventObject<T extends Event>(
       edge,
       edges: [edge],
       event,
-      summarized: false
+      summarized: false,
     }
   }
 }
 
 export function provideMouseOperation(
-  container: Ref<SVGElement | undefined>,
+  container: Ref<SVGSVGElement | undefined>,
   nodePositions: Readonly<NodePositions>,
   zoomLevel: ReadonlyRef<number>,
   nodeStates: NodeStates,
@@ -102,16 +99,20 @@ export function provideMouseOperation(
   selectedEdges: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
   hoveredEdges: Reactive<Set<string>>,
-  emitter: Emitter<Events>
+  emitter: Emitter<Events>,
 ): MouseEventHandlers {
   onMounted(() => {
     container.value?.addEventListener("pointerdown", handleContainerPointerDownEvent, {
       passive: true,
     })
+    container.value?.addEventListener("contextmenu", handleContainerContextMenuEvent, {
+      passive: false,
+    })
   })
 
   onUnmounted(() => {
     container.value?.removeEventListener("pointerdown", handleContainerPointerDownEvent)
+    container.value?.removeEventListener("contextmenu", handleContainerContextMenuEvent)
   })
 
   const state: State = {
@@ -177,10 +178,21 @@ export function provideMouseOperation(
         }
         selectedNodes.clear()
         selectedEdges.clear()
-        if (event.button !== 2 /* right click */) {
-          emitter.emit("view:click", { event })
-        }
+        emitter.emit("view:click", { event })
       }
+    }
+  }
+
+  function handleContainerContextMenuEvent(event: MouseEvent) {
+    emitter.emit("view:contextmenu", { event })
+
+    if (state.container.pointerCounter > 0) {
+      // reset pointer down state
+      state.container.pointerCounter = 0
+        // Remove from event listener
+        entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
+          container.value?.removeEventListener(ev, handler)
+        })
     }
   }
 
@@ -612,7 +624,7 @@ export function provideMouseOperation(
   }
 
   function handleEdgeContextMenu(edge: string, event: PointerEvent) {
-    emitter.emit("edge:contextmenu",_makeEdgeEventObject(edge, event))
+    emitter.emit("edge:contextmenu", _makeEdgeEventObject(edge, event))
   }
 
   function handleEdgesPointerDownEvent(edges: string[], event: PointerEvent) {
@@ -660,7 +672,7 @@ export function provideMouseOperation(
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edges, event))
   }
 
-  const provides = <MouseEventHandlers> {
+  const provides = <MouseEventHandlers>{
     selectedNodes,
     hoveredNodes,
     selectedEdges,

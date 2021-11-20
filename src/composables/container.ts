@@ -4,13 +4,15 @@ import { nonNull } from "../common/common"
 
 interface ProvideContainers {
   container: Ref<HTMLDivElement>
-  svg: Ref<SVGElement>
+  svg: Ref<SVGSVGElement>
+  viewport: Ref<SVGGElement>
   svgPanZoom: Ref<SvgPanZoomInstance | undefined>
 }
 
 interface Containers {
   container: Ref<HTMLDivElement | undefined>
-  svg: Ref<SVGElement | undefined>
+  svg: Ref<SVGSVGElement | undefined>
+  viewport: Ref<SVGGElement | undefined>
   svgPanZoom: Ref<SvgPanZoomInstance | undefined>
 }
 
@@ -24,7 +26,8 @@ export function useContainers(): ProvideContainers {
   const containers = nonNull(inject(containersKey), "containers")
   return {
     container: containers.container as Ref<HTMLDivElement>,
-    svg: containers.svg as Ref<SVGElement>,
+    svg: containers.svg as Ref<SVGSVGElement>,
+    viewport: containers.viewport as Ref<SVGGElement>,
     svgPanZoom: containers.svgPanZoom
   }
 }

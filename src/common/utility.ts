@@ -1,4 +1,4 @@
-import { Node, Position, Size } from "./types"
+import { Node, Point, Position, Size } from "./types"
 import { Config, NodeConfig } from "./configs"
 import isEqual from "lodash-es/isEqual"
 
@@ -108,4 +108,28 @@ export function convertToAscii(source: string): string {
   } else {
     return btoa(source).replaceAll("=", "")
   }
+}
+
+export function translateFromDomToSvgViewportCoordinate(
+  svg: SVGSVGElement,
+  viewport: SVGGElement,
+  coordinate: Point
+): Point {
+  const point = svg.createSVGPoint()
+  point.x = coordinate.x
+  point.y = coordinate.y
+  const svgPoint = point.matrixTransform(viewport.getScreenCTM()?.inverse())
+  return { x: svgPoint.x, y: svgPoint.y }
+}
+
+export function translateFromSvgViewportToDomCoordinate(
+  svg: SVGSVGElement,
+  viewport: SVGGElement,
+  coordinate: Point
+): Point {
+  const point = svg.createSVGPoint()
+  point.x = coordinate.x
+  point.y = coordinate.y
+  const svgPoint = point.matrixTransform(viewport.getScreenCTM() as DOMMatrixInit)
+  return { x: svgPoint.x, y: svgPoint.y }
 }
