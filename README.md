@@ -44,13 +44,19 @@ Install with npm
 npm install v-network-graph
 ```
 
-and setup via Vue.use()
+and setup in main.ts
 
-```js
+```ts
+// main.ts
+import { createApp } from "vue"
 import VNetworkGraph from "v-network-graph"
 import "v-network-graph/lib/style.css"
+import App from "./App.vue"
 
-Vue.use(VNetworkGraph)
+const app = createApp(App)
+
+app.use(VNetworkGraph)
+app.mount("#app")
 ```
 
 ## Basic usage
