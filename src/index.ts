@@ -13,6 +13,8 @@ const install: Exclude<Plugin["install"], undefined> = function (app: App) {
 // Create module definition for Vue.use()
 export default install
 
+export type VNetworkGraphInstance = InstanceType<typeof components.VNetworkGraph>
+
 // To allow individual component use, export components
 // each can be registered via Vue.component()
 export * from "./components/index"
