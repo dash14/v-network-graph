@@ -11,7 +11,7 @@ type LineDefinitions = [number, number, number, number, Record<string, any>][]
 
 const { emitter } = useEventEmitter()
 const { container, svgPanZoom } = useContainers()
-const { scale } = useZoomLevel()
+const { zoomLevel } = useZoomLevel()
 const config = useViewConfig()
 
 // left-top point in SVG coordinates
@@ -62,7 +62,7 @@ watchEffect(() => {
   const normalH: LineDefinitions = []
   const normalV: LineDefinitions = []
 
-  const s = scale.value
+  const s = 1 / zoomLevel.value
   const gi = config.grid.interval
   const x = basePoint.value.x * s
   const y = basePoint.value.y * s
@@ -129,7 +129,7 @@ defineExpose({
   normalHorizontals,
 })
 </script>
-  
+
 <template>
   <g class="v-background-grid" shape-rendering="crispEdges">
     <!-- normal -->
