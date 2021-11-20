@@ -110,26 +110,26 @@ export function convertToAscii(source: string): string {
   }
 }
 
-export function translateFromDomToSvgViewportCoordinate(
+export function translateFromDomToSvgCoordinates(
   svg: SVGSVGElement,
   viewport: SVGGElement,
-  coordinate: Point
+  coordinates: Point
 ): Point {
   const point = svg.createSVGPoint()
-  point.x = coordinate.x
-  point.y = coordinate.y
+  point.x = coordinates.x
+  point.y = coordinates.y
   const svgPoint = point.matrixTransform(viewport.getCTM()?.inverse())
   return { x: svgPoint.x, y: svgPoint.y }
 }
 
-export function translateFromSvgViewportToDomCoordinate(
+export function translateFromSvgToDomCoordinates(
   svg: SVGSVGElement,
   viewport: SVGGElement,
-  coordinate: Point
+  coordinates: Point
 ): Point {
   const point = svg.createSVGPoint()
-  point.x = coordinate.x
-  point.y = coordinate.y
+  point.x = coordinates.x
+  point.y = coordinates.y
   const domPoint = point.matrixTransform(viewport.getCTM() as DOMMatrixInit)
   return { x: domPoint.x, y: domPoint.y }
 }

@@ -142,8 +142,8 @@ import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "../common/t
 import { Reactive, nonNull } from "../common/common"
 import { UserConfigs } from "../common/configs"
 import {
-  translateFromSvgViewportToDomCoordinate,
-  translateFromDomToSvgViewportCoordinate,
+  translateFromSvgToDomCoordinates,
+  translateFromDomToSvgCoordinates,
 } from "../common/utility"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
@@ -619,25 +619,25 @@ export default defineComponent({
       }
     },
     /**
-     * Translate from DOM to SVG viewport coordinate
-     * @return {Point} coordinate in the SVG viewport
+     * Translate from DOM to SVG coordinates
+     * @return {Point} coordinates in the SVG
      */
-    translateFromDomToViewportCoordinate(coordinate: Point): Point {
-      return translateFromDomToSvgViewportCoordinate(
+    translateFromDomToSvgCoordinates(coordinates: Point): Point {
+      return translateFromDomToSvgCoordinates(
         nonNull(this.svg, "svg"),
         nonNull(this.viewport, "viewport"),
-        coordinate
+        coordinates
       )
     },
     /**
-     * Translate from SVG viewport to DOM coordinate
-     * @return {Point} coordinate in the DOM
+     * Translate from SVG to DOM coordinates
+     * @return {Point} coordinates in the DOM
      */
-    translateFromViewportToDomCoordinate(coordinate: Point): Point {
-      return translateFromSvgViewportToDomCoordinate(
+    translateFromSvgToDomCoordinates(coordinates: Point): Point {
+      return translateFromSvgToDomCoordinates(
         nonNull(this.svg, "svg"),
         nonNull(this.viewport, "viewport"),
-        coordinate
+        coordinates
       )
     },
     /**
