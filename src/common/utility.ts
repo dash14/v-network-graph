@@ -118,7 +118,7 @@ export function translateFromDomToSvgViewportCoordinate(
   const point = svg.createSVGPoint()
   point.x = coordinate.x
   point.y = coordinate.y
-  const svgPoint = point.matrixTransform(viewport.getScreenCTM()?.inverse())
+  const svgPoint = point.matrixTransform(viewport.getCTM()?.inverse())
   return { x: svgPoint.x, y: svgPoint.y }
 }
 
@@ -130,6 +130,6 @@ export function translateFromSvgViewportToDomCoordinate(
   const point = svg.createSVGPoint()
   point.x = coordinate.x
   point.y = coordinate.y
-  const svgPoint = point.matrixTransform(viewport.getScreenCTM() as DOMMatrixInit)
-  return { x: svgPoint.x, y: svgPoint.y }
+  const domPoint = point.matrixTransform(viewport.getCTM() as DOMMatrixInit)
+  return { x: domPoint.x, y: domPoint.y }
 }
