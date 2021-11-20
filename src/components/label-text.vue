@@ -48,6 +48,11 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  dominantBaseline: {
+    type: String,
+    required: false,
+    default: "central"
+  },
   config: {
     type: Object as PropType<LabelStyle>,
     required: true,
@@ -67,7 +72,7 @@ const fontSize = computed(() => {
 const lineHeight = computed(() => fontSize.value * props.config.lineHeight)
 
 const topDeltaY = computed(() => {
-  const dominantBaseline = attrs['dominant-baseline'] as string
+  const dominantBaseline = props.dominantBaseline
   if (dominantBaseline === "hanging") {
     return 0
   } else if (dominantBaseline === "central") {
@@ -145,6 +150,7 @@ defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
     v-bind="$attrs"
     :x="x"
     :y="y"
+    :dominant-baseline="dominantBaseline"
     :font-family="$attrs['font-family'] ? `${$attrs['font-family']}` : config.fontFamily"
     :font-size="fontSize"
     :fill="$attrs.fill ? `${$attrs.fill}` : config.color"
@@ -153,11 +159,19 @@ defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
       {{ text }}
     </template>
     <template v-else>
+      <!--
+        In Safari, it seems that `<tspan>` does not inherit the
+        `dominant-baseline` attribute from its parent `<text>` element.
+        Therefore, set the dominant-baseline directly on `<tspan>`.
+        Chrome and Firefox do not have this issue.
+        refs. https://stackoverflow.com/questions/41985077/centering-an-svg-element-chrome-vs-safari/42023579#42023579
+      -->
       <tspan
         v-for="(t, i) in texts"
         :key="i"
         :x="x"
         :dy="i == 0 ? topDeltaY : lineHeight"
+        :dominant-baseline="dominantBaseline"
       >{{ t }}</tspan>
     </template>
   </text>
