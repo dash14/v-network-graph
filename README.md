@@ -157,3 +157,13 @@ If you find any bugs and/or want to contribute, feel free to submit issues or pu
 
 Under the MIT license.  
 See [LICENSE](https://github.com/dash14/v-network-graph/blob/main/LICENSE) file for more details.
+
+## Support me 🌟
+
+I love to hear from people using it, giving me the motivation to keep working on this project.  
+If you find this library helpful, please consider giving it a star ⭐ on GitHub!
+
+You may [buy me a coffee](https://www.buymeacoffee.com/dash14.ack) if you would
+like to show some support for this open-source project.
+It will be greatly appreciated!  
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/dash14.ack)
