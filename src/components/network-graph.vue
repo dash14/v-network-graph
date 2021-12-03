@@ -157,6 +157,12 @@ import VMarkerHead from "./marker-head.vue"
 
 const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
 
+enum State {
+  INITIAL = 0,
+  LOADED = 1,
+  UNLOADED = 2
+}
+
 export default defineComponent({
   components: {
     VNode,
@@ -268,7 +274,8 @@ export default defineComponent({
     const container = ref<HTMLDivElement>()
     const svg = ref<SVGSVGElement>()
     const viewport = ref<SVGGElement>()
-    const show = ref<boolean>(false)
+    const state = ref<State>(State.INITIAL)
+    const show = computed(() => state.value !== State.INITIAL)
 
     const zoomLevel = bindProp(props, "zoomLevel", emit, v => {
       v = Math.max(v, configs.view.minZoomLevel)
@@ -285,6 +292,7 @@ export default defineComponent({
       center: true,
       zoomEnabled: configs.view.zoomEnabled,
       onZoom: _ => {
+        if (state.value === State.UNLOADED) return
         const z = svgPanZoom.value?.getRealZoom() ?? 1
         if (Math.abs(zoomLevel.value - z) >= 1.0e-6) {
           zoomLevel.value = z
@@ -292,7 +300,10 @@ export default defineComponent({
         }
       },
       panEnabled: configs.view.panEnabled,
-      onPan: p => emitter.emit("view:pan", p),
+      onPan: p => {
+        if (state.value === State.UNLOADED) return
+        emitter.emit("view:pan", p)
+      },
     })
 
     provideContainers({ container, svg, viewport, svgPanZoom })
@@ -530,12 +541,13 @@ export default defineComponent({
           emitter.emit("view:load")
 
           // start displaying the svg
-          show.value = true
+          state.value = State.LOADED
         })
       })
     })
 
     onSvgPanZoomUnmounted(() => {
+      state.value = State.UNLOADED
       emitter.emit("view:unload")
       configs.view.layoutHandler.deactivate()
     })
