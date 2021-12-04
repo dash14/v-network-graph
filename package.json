@@ -24,7 +24,7 @@
     "clean": "rimraf lib"
   },
   "dependencies": {
-    "@dash14/svg-pan-zoom": "^3.6.4",
+    "@dash14/svg-pan-zoom": "^3.6.5",
     "mitt": "^3.0.0"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
     "@typescript-eslint/parser": "^5.5.0",
     "@vitejs/plugin-vue": "^1.10.1",
     "@vue/compiler-sfc": "^3.2.23",
-    "eslint": "^8.3.0",
+    "eslint": "^8.4.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^8.1.1",
@@ -52,7 +52,7 @@
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
-    "vue": "^3.2.22"
+    "vue": "^3.2.23"
   },
   "exports": {
     ".": {
