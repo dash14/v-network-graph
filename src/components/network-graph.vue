@@ -386,8 +386,10 @@ export default defineComponent({
     // Scales the content to fit in the SVG area.
     const fitToContents = () => {
       updateBorderBox(() => {
-        svgPanZoom.value?.fitToContents()
-        emitter.emit("view:fit", undefined)
+        if (svgPanZoom.value) {
+          svgPanZoom.value.fitToContents()
+          emitter.emit("view:fit", undefined)
+        }
       })
     }
 

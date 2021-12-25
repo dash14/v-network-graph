@@ -53,6 +53,7 @@ export function useSvgPanZoom(svg: Ref<SVGSVGElement | undefined>, options: SvgP
 
   onUnmounted(() => {
     instance.value?.destroy()
+    instance.value = undefined
   })
 
   const onSvgPanZoomMounted = (callback: Callback) => {
