@@ -336,18 +336,40 @@ function createNodeState(
 ) {
   states[id] = { selected, hovered } as any
   const state = states[id] as any as NodeStateDatum
-  state.shape = computed(() => getNodeShape(nodes[id], state.selected, state.hovered, config))
-  state.staticShape = computed(() => getNodeStaticShape(nodes[id], state.selected, config))
-  state.label = computed(() => Config.values(config.label, nodes[id]))
+
+  state.shape = computed(() => {
+    if (!nodes[id]) return unref(state.shape) // 前回の値を返す
+    return getNodeShape(nodes[id], state.selected, state.hovered, config)
+  })
+
+  state.staticShape = computed(() => {
+    if (!nodes[id]) return unref(state.staticShape) // 前回の値を返す
+    return getNodeStaticShape(nodes[id], state.selected, config)
+  })
+
+  state.label = computed(() => {
+    if (!nodes[id]) return unref(state.label) // 前回の値を返す
+    return Config.values(config.label, nodes[id])
+  })
+
   state.labelText = computed(() => {
     if (config.label.text instanceof Function) {
       return unref(state.label).text
     } else {
+      if (!nodes[id]) return unref(state.labelText) // 前回の値を返す
       return nodes[id]?.[unref(state.label).text] ?? ""
     }
   })
-  state.draggable = computed(() => Config.value(config.draggable, nodes[id]))
-  state.selectable = computed(() => Config.value(config.selectable, nodes[id]))
+
+  state.draggable = computed(() => {
+    if (!nodes[id]) return unref(state.draggable) // 前回の値を返す
+    return Config.value(config.draggable, nodes[id])
+  })
+
+  state.selectable = computed(() => {
+    if (!nodes[id]) return unref(state.selectable) // 前回の値を返す
+    return Config.value(config.selectable, nodes[id])
+  })
 }
 
 function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
