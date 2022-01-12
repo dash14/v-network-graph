@@ -112,21 +112,23 @@ export interface LabelStyle {
 /* Node style */
 
 export enum NodeLabelDirection {
-  CENTER = 0,
-  NORTH = 1,
-  NORTH_EAST = 2,
-  EAST = 3,
-  SOUTH_EAST = 4,
-  SOUTH = 5,
-  SOUTH_WEST = 6,
-  WEST = 7,
-  NORTH_WEST = 8,
+  CENTER = "center",
+  NORTH = "north",
+  NORTH_EAST = "north-east",
+  EAST = "east",
+  SOUTH_EAST = "south-east",
+  SOUTH = "south",
+  SOUTH_WEST = "south-west",
+  WEST = "west",
+  NORTH_WEST = "north-west",
 }
+
+export type NodeLabelDirectionType = "center" | "north" | "north-east" | "east" | "south-east" | "south" | "south-west" | "west" | "north-west"
 
 export interface NodeLabelStyle extends LabelStyle {
   visible: boolean
   margin: number
-  direction: NodeLabelDirection
+  direction: NodeLabelDirectionType
   text: string
 }
 
