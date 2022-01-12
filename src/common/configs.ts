@@ -16,7 +16,7 @@ export class Config {
 
   static values<V, T>(value: CallableValues<V, T>, target: T): V {
     if (Object.values(value).filter(v => v instanceof Function).length === 0) {
-      return value as V  // all config are literals
+      return value as V // all config are literals
     }
     return Object.fromEntries(
       Object.entries(value).map(([k, v]) => [k, v instanceof Function ? v(target) : v])
@@ -96,8 +96,8 @@ interface Padding {
 }
 export interface LabelBackgroundStyle {
   visible: boolean
-  color?: string,
-  padding?: number | Padding,
+  color?: string
+  padding?: number | Padding
   borderRadius?: number
 }
 
@@ -235,14 +235,34 @@ export interface Configs<N extends Node = Node, E extends Edge = Edge, P extends
 }
 
 /** For specification by the user */
-export type UserConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path> = RecursivePartial<Configs<N, E, P>>
+export type UserConfigs<
+  N extends Node = Node,
+  E extends Edge = Edge,
+  P extends Path = Path
+> = RecursivePartial<Configs<N, E, P>>
 
 /** Make a config with self object */
-export function withSelf<T extends {[name: string]: any}>(callback: (self: T) => T): T {
+export function withSelf<T extends { [name: string]: any }>(callback: (self: T) => T): T {
   const self = {} as T
   return Object.assign(self, callback(self))
 }
 
-export function configsWithType<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(configs: UserConfigs<N, E, P>): UserConfigs {
-  return configs as UserConfigs
+/** @deprecated */
+export function configsWithType<
+  N extends Node = Node,
+  E extends Edge = Edge,
+  P extends Path = Path,
+  U extends UserConfigs<N, E, P> = UserConfigs<N, E, P>
+>(configs: U): U & UserConfigs<N, E, P> {
+  return configs
+}
+
+/** Define configurations */
+export function defineConfigs<
+  N extends Node = Node,
+  E extends Edge = Edge,
+  P extends Path = Path,
+  U extends UserConfigs<N, E, P> = UserConfigs<N, E, P>
+>(configs: U): U & UserConfigs<N, E, P> {
+  return configs
 }
