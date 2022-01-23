@@ -57,6 +57,10 @@
       "import": "./lib/index.mjs",
       "require": "./lib/index.js"
     },
+    "./lib/force-layout": {
+      "import": "./lib/force-layout.mjs",
+      "require": "./lib/force-layout.js"
+    },
     "./lib/*": "./lib/*",
     "./style.css": "./lib/style.css"
   }
