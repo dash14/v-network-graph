@@ -15,7 +15,7 @@ export default defineConfig({
     lib: {
       entry: resolvePath("src/force-layout.ts"),
       name: "v-network-graph",
-      fileName: "force-layout"
+      fileName: format => (format == "es" ? "force-layout.mjs" : "force-layout.js"),
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
@@ -37,10 +37,10 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      outputDir: resolvePath("lib/types"),
+      outputDir: resolvePath("lib"),
       staticImport: true,
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile
-    })
+    }),
   ],
 })

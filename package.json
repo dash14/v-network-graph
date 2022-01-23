@@ -2,10 +2,8 @@
   "name": "v-network-graph",
   "description": "An interactive network graph visualization component for Vue 3",
   "version": "0.3.13",
-  "main": "./lib/index.umd.js",
-  "module": "./lib/index.es.js",
-  "types": "./lib/types/index.d.ts",
-  "browser": "./lib/index.umd.js",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
   "license": "MIT",
   "homepage": "https://dash14.github.io/v-network-graph/",
   "repository": {
@@ -56,24 +54,10 @@
   },
   "exports": {
     ".": {
-      "import": "./lib/index.es.js",
-      "require": "./lib/index.umd.js"
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
     },
     "./lib/*": "./lib/*",
-    "./force-layout": {
-      "import": "./lib/force-layout.es.js",
-      "require": "./lib/force-layout.umd.js"
-    },
     "./style.css": "./lib/style.css"
-  },
-  "typesVersions": {
-    "*": {
-      "lib/types/index.d.ts": [
-        "lib/types/index.d.ts"
-      ],
-      "*": [
-        "lib/types/*"
-      ]
-    }
   }
 }

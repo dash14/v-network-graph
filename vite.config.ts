@@ -5,10 +5,10 @@ import path from "path"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
-const TYPES_SRC_DIR = resolvePath("lib/types/src")
+const TYPES_SRC_DIR = resolvePath("lib/src")
 export function dtsBeforeWriteFile(filePath: string, _content: string) {
   if (filePath.startsWith(TYPES_SRC_DIR)) {
-    filePath = __dirname + "/lib/types" + filePath.substring(TYPES_SRC_DIR.length)
+    filePath = __dirname + "/lib" + filePath.substring(TYPES_SRC_DIR.length)
   }
   return { filePath }
 }
@@ -21,7 +21,7 @@ export default defineConfig({
     lib: {
       entry: resolvePath("src/index.ts"),
       name: "v-network-graph",
-      fileName: "index"
+      fileName: format => (format == "es" ? "index.mjs" : "index.js"),
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
@@ -44,10 +44,10 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      outputDir: resolvePath("lib/types"),
+      outputDir: resolvePath("lib"),
       staticImport: true,
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile
-    })
+    }),
   ],
 })
