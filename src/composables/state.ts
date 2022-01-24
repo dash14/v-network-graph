@@ -109,8 +109,8 @@ const NONE_MARKER: MarkerStyle = {
 // -----------------------------------------------------------------------
 
 export function provideStates(
-  nodes: Readonly<Nodes>,
-  edges: Readonly<Edges>,
+  nodes: Ref<Nodes>,
+  edges: Ref<Edges>,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
@@ -127,7 +127,7 @@ export function provideStates(
   // States for nodes
   // -----------------------------------------------------------------------
 
-  Object.keys(nodes).forEach(id => {
+  Object.keys(nodes.value).forEach(id => {
     createNodeState(nodeStates, nodes, id, selectedNodes.has(id), false, configs.node)
   })
 
@@ -167,7 +167,7 @@ export function provideStates(
 
   // handle increase/decrease nodes
   watch(
-    () => new Set(Object.keys(nodes)),
+    () => new Set(Object.keys(nodes.value)),
     (idSet, prev) => {
       for (const nodeId of idSet) {
         if (prev.has(nodeId)) continue
@@ -195,7 +195,7 @@ export function provideStates(
   // grouping
   const edgeGroupStates = EdgeGroup.makeEdgeGroupStates(nodes, edges, configs)
 
-  Object.keys(edges).forEach(id => {
+  Object.keys(edges.value).forEach(id => {
     createEdgeState(
       edgeStates,
       edgeGroupStates,
@@ -257,7 +257,7 @@ export function provideStates(
 
   // handle increase/decrease edges
   watch(
-    () => new Set(Object.keys(edges)),
+    () => new Set(Object.keys(edges.value)),
     (idSet, prev) => {
       for (const edgeId of idSet) {
         if (prev.has(edgeId)) continue
@@ -328,7 +328,7 @@ function getEdgeStroke(edge: Edge, selected: boolean, hovered: boolean, config: 
 
 function createNodeState(
   states: NodeStates,
-  nodes: Nodes,
+  nodes: Ref<Nodes>,
   id: string,
   selected: boolean,
   hovered: boolean,
@@ -338,37 +338,37 @@ function createNodeState(
   const state = states[id] as any as NodeStateDatum
 
   state.shape = computed(() => {
-    if (!nodes[id]) return unref(state.shape) // 前回の値を返す
-    return getNodeShape(nodes[id], state.selected, state.hovered, config)
+    if (!nodes.value[id]) return unref(state.shape) // Return the previous value
+    return getNodeShape(nodes.value[id], state.selected, state.hovered, config)
   })
 
   state.staticShape = computed(() => {
-    if (!nodes[id]) return unref(state.staticShape) // 前回の値を返す
-    return getNodeStaticShape(nodes[id], state.selected, config)
+    if (!nodes.value[id]) return unref(state.staticShape) // Return the previous value
+    return getNodeStaticShape(nodes.value[id], state.selected, config)
   })
 
   state.label = computed(() => {
-    if (!nodes[id]) return unref(state.label) // 前回の値を返す
-    return Config.values(config.label, nodes[id])
+    if (!nodes.value[id]) return unref(state.label) // Return the previous value
+    return Config.values(config.label, nodes.value[id])
   })
 
   state.labelText = computed(() => {
     if (config.label.text instanceof Function) {
       return unref(state.label).text
     } else {
-      if (!nodes[id]) return unref(state.labelText) // 前回の値を返す
-      return nodes[id]?.[unref(state.label).text] ?? ""
+      if (!nodes.value[id]) return unref(state.labelText) // Return the previous value
+      return nodes.value[id]?.[unref(state.label).text] ?? ""
     }
   })
 
   state.draggable = computed(() => {
-    if (!nodes[id]) return unref(state.draggable) // 前回の値を返す
-    return Config.value(config.draggable, nodes[id])
+    if (!nodes.value[id]) return unref(state.draggable) // Return the previous value
+    return Config.value(config.draggable, nodes.value[id])
   })
 
   state.selectable = computed(() => {
-    if (!nodes[id]) return unref(state.selectable) // 前回の値を返す
-    return Config.value(config.selectable, nodes[id])
+    if (!nodes.value[id]) return unref(state.selectable) // Return the previous value
+    return Config.value(config.selectable, nodes.value[id])
   })
 }
 
@@ -384,14 +384,14 @@ function createEdgeState(
   states: EdgeStates,
   groupStates: Reactive<EdgeGroupStates>,
   nodeStates: NodeStates,
-  edges: Edges,
+  edges: Ref<Edges>,
   id: string,
   selected: boolean,
   config: EdgeConfig,
   layouts: NodePositions,
   scale: ComputedRef<number>
 ) {
-  const edge = edges[id]
+  const edge = edges.value[id]
   if (!edge) return
 
   states[id] = {
@@ -409,7 +409,7 @@ function createEdgeState(
   const state = states[id] as any as EdgeStateDatum
 
   const line = computed<Line>(() => {
-    const edge = edges[id]
+    const edge = edges.value[id]
     const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
     const normalWidth = Config.value(config.normal.width, edge)
     const source = toEdgeMarker(Config.values(config.marker.source, [edge, stroke]))
@@ -417,13 +417,13 @@ function createEdgeState(
     return { stroke, normalWidth, source, target }
   })
   state.line = line
-  state.selectable = computed(() => Config.value(config.selectable, edges[id]))
+  state.selectable = computed(() => Config.value(config.selectable, edges.value[id]))
 
   const edgeLayoutPoint = toRef(groupStates.edgeLayoutPoints, id)
   const isEdgeSummarized = toRef(groupStates.summarizedEdges, id)
 
   const stopCalcHandle = watchEffect(() => {
-    const edge = edges[id]
+    const edge = edges.value[id]
     if (!edge) return
 
     const source = layouts[edge?.source]
@@ -514,7 +514,7 @@ function createEdgeState(
   })
 
   const stopUpdateMarkerHandle = watchEffect(() => {
-    if (!edges[id]) return
+    if (!edges.value[id]) return
     state.sourceMarkerId = makeMarker(
       line.value.source,
       true /* isSource */,

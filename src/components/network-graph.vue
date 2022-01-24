@@ -126,7 +126,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, readonly, ref } from "vue"
+import { defineComponent, PropType, readonly, ref, toRef } from "vue"
 import { computed, nextTick, watch } from "vue"
 import { bindProp, bindPropKeySet } from "../common/props"
 import { provideContainers } from "../composables/container"
@@ -160,7 +160,7 @@ const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edg
 enum State {
   INITIAL = 0,
   LOADED = 1,
-  UNLOADED = 2
+  UNLOADED = 2,
 }
 
 export default defineComponent({
@@ -230,7 +230,7 @@ export default defineComponent({
     })
 
     // Style settings
-    const configs = provideConfigs(props.configs)
+    const configs = provideConfigs(toRef(props, "configs"))
 
     // Additional layers
     const layerDefs = computed(() => {
@@ -457,8 +457,8 @@ export default defineComponent({
     })
 
     const { nodeStates, edgeStates } = provideStates(
-      readonly(props.nodes),
-      readonly(props.edges),
+      toRef(props, "nodes"),
+      toRef(props, "edges"),
       currentSelectedNodes,
       currentSelectedEdges,
       hoveredNodes,

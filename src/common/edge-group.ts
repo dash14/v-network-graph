@@ -1,4 +1,4 @@
-import { watchEffect } from "vue"
+import { Ref, watchEffect } from "vue"
 import { Reactive } from "./common"
 import { Config, Configs, EdgeKeepOrderType } from "./configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
@@ -38,8 +38,8 @@ export interface EdgeGroupStates {
  * @returns the states object for edge group
  */
 export function makeEdgeGroupStates(
-  nodes: Readonly<Nodes>,
-  edges: Readonly<Edges>,
+  nodes: Ref<Nodes>,
+  edges: Ref<Edges>,
   configs: Readonly<Configs>
 ): Reactive<EdgeGroupStates> {
   // Calculate position map
@@ -50,7 +50,11 @@ export function makeEdgeGroupStates(
   })
 
   watchEffect(() => {
-    const { edgeLayoutPoints, edgeGroups } = calculateEdgeGroupAndPositions(configs, nodes, edges)
+    const { edgeLayoutPoints, edgeGroups } = calculateEdgeGroupAndPositions(
+      configs,
+      nodes.value,
+      edges.value
+    )
     updateObjectDiff(state.edgeLayoutPoints, edgeLayoutPoints)
     updateObjectDiff(state.edgeGroups, edgeGroups)
   })
@@ -65,12 +69,12 @@ export function makeEdgeGroupStates(
       } else if (configs.edge.summarize instanceof Function) {
         const s = configs.edge.summarize(edges, configs)
         if (s === null) {
-          summarize = defaultCheckSummarize(nodes, edges, configs, groupWidth)
+          summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
         } else {
           summarize = s
         }
       } else if (configs.edge.summarize) {
-        summarize = defaultCheckSummarize(nodes, edges, configs, groupWidth)
+        summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
       } else {
         summarize = false
       }
@@ -220,7 +224,7 @@ function calculateEdgePositionInner(
 ): LinePosition {
   let x1, y1, x2, y2
   if (edge.source < edge.target) {
-    [x1, y1, x2, y2] = calculateLinePosition(
+    ;[x1, y1, x2, y2] = calculateLinePosition(
       source?.x ?? 0,
       source?.y ?? 0,
       target?.x ?? 0,
@@ -231,7 +235,7 @@ function calculateEdgePositionInner(
       keepOrder
     )
   } else {
-    [x2, y2, x1, y1] = calculateLinePosition(
+    ;[x2, y2, x1, y1] = calculateLinePosition(
       target?.x ?? 0,
       target?.y ?? 0,
       source?.x ?? 0,

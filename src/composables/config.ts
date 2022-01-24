@@ -2,17 +2,17 @@
 import { nonNull } from "../common/common"
 import { Configs, UserConfigs } from "../common/configs"
 import { getConfigDefaults } from "../common/config-defaults"
-import { inject, InjectionKey, provide, reactive, watch } from "vue"
+import { inject, InjectionKey, provide, reactive, Ref, watch } from "vue"
 import merge from "lodash-es/merge"
 
 const injectionKey = Symbol("style") as InjectionKey<Configs>
 
-export function provideConfigs(configs: UserConfigs) {
+export function provideConfigs(configs: Ref<UserConfigs>) {
   const results: Configs = reactive(getConfigDefaults())
   const styleKeys = Object.keys(results) as (keyof Configs)[]
   for (const key of styleKeys) {
-    watch(() => configs[key], () => {
-      merge(results[key], configs[key] || {})
+    watch(() => configs.value[key], () => {
+      merge(results[key], configs.value[key] || {})
     }, { immediate: true, deep: true })
   }
 
