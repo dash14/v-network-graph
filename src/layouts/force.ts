@@ -35,11 +35,11 @@ export class ForceLayout implements LayoutHandler {
 
   activate(parameters: LayoutActivateParameters): void {
     const { layouts, nodes, edges, emitter, svgPanZoom } = parameters
-    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes, layouts, { x: 0, y: 0 })
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, { x: 0, y: 0 })
 
     const simulation = this.createSimulation(
       nodeLayouts,
-      this.forceLayoutEdges(edges)
+      this.forceLayoutEdges(edges.value)
     )
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
@@ -109,14 +109,14 @@ export class ForceLayout implements LayoutHandler {
     }
 
     const stopNetworkWatch = watch(
-      () => [Object.keys(nodes), edges],
+      () => [Object.keys(nodes.value), edges.value],
       () => {
         // set new node's position to center of the view
         const area = svgPanZoom.getViewArea()
-        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes, layouts, area.center))
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, area.center))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force("edge") as d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>
-        forceEdges.links(this.forceLayoutEdges(edges))
+        forceEdges.links(this.forceLayoutEdges(edges.value))
         restartSimulation()
       },
       { deep: true }

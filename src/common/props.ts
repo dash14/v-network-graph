@@ -55,7 +55,7 @@ type KeysOfType<Obj, Val> = {
 export function bindPropKeySet<T, K extends string & KeysOfType<T, string[]>>(
   props: T,
   name: K,
-  sourceObject: { [name: string]: any },
+  sourceObject: Ref<{ [name: string]: any }>,
   emit: (event: `update:${K}`, ...args: any[]) => void
 ): Reactive<Set<string>> {
   // Generate two-way bindings for a given prop.
@@ -67,7 +67,7 @@ export function bindPropKeySet<T, K extends string & KeysOfType<T, string[]>>(
       // Since it is not recognized as a string[] by type checking,
       // use any for now.
       const prop: string[] = props[name] as any
-      const filtered = prop.filter(n => n in sourceObject)
+      const filtered = prop.filter(n => n in sourceObject.value)
       if (!isEqual(filtered, bound)) {
         bound.clear()
         filtered.forEach(bound.add, bound)

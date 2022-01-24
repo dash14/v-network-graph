@@ -223,6 +223,9 @@ export default defineComponent({
   },
   emits: ["update:zoomLevel", "update:selectedNodes", "update:selectedEdges", "update:layouts"],
   setup(props, { emit, slots }) {
+    const nodesRef = toRef(props, "nodes")
+    const edgesRef = toRef(props, "edges")
+
     // Event Bus
     const emitter = provideEventEmitter()
     Object.entries(props.eventHandlers).forEach(([type, event]) => {
@@ -403,10 +406,10 @@ export default defineComponent({
     // -----------------------------------------------------------------------
     // States of selected nodes/edges
     // -----------------------------------------------------------------------
-    const currentSelectedNodes = bindPropKeySet(props, "selectedNodes", props.nodes, emit)
+    const currentSelectedNodes = bindPropKeySet(props, "selectedNodes", nodesRef, emit)
     watch(currentSelectedNodes, nodes => emitter.emit("node:select", Array.from(nodes)))
 
-    const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", props.edges, emit)
+    const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", edgesRef, emit)
     watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
     const hoveredNodes = Reactive(new Set<string>())
@@ -457,8 +460,8 @@ export default defineComponent({
     })
 
     const { nodeStates, edgeStates } = provideStates(
-      toRef(props, "nodes"),
-      toRef(props, "edges"),
+      nodesRef,
+      edgesRef,
       currentSelectedNodes,
       currentSelectedEdges,
       hoveredNodes,
@@ -493,8 +496,8 @@ export default defineComponent({
 
     const activateParams = () => ({
       layouts: Reactive(currentLayouts.nodes),
-      nodes: readonly(props.nodes),
-      edges: readonly(props.edges),
+      nodes: nodesRef,
+      edges: edgesRef,
       configs: readonly(configs),
       scale: readonly(scale),
       emitter,

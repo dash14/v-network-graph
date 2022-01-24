@@ -7,8 +7,8 @@ import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
 
 export interface LayoutActivateParameters {
   layouts: Reactive<NodePositions>
-  nodes: Readonly<Nodes>
-  edges: Readonly<Edges>
+  nodes: Ref<Nodes>
+  edges: Ref<Edges>
   configs: Readonly<Configs>
   scale: Readonly<Ref<number>>
   emitter: Emitter<Events>
