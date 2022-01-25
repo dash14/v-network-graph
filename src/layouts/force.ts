@@ -4,7 +4,6 @@ import { OnClickHandler, OnDragHandler } from "../common/types"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 import * as d3 from "d3-force"
 
-
 export interface ForceNodeDatum extends d3.SimulationNodeDatum {
   id: string
 }
@@ -37,10 +36,7 @@ export class ForceLayout implements LayoutHandler {
     const { layouts, nodes, edges, emitter, svgPanZoom } = parameters
     let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, { x: 0, y: 0 })
 
-    const simulation = this.createSimulation(
-      nodeLayouts,
-      this.forceLayoutEdges(edges.value)
-    )
+    const simulation = this.createSimulation(nodeLayouts, this.forceLayoutEdges(edges.value))
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
         const layout = layouts?.[node.id]
@@ -115,8 +111,10 @@ export class ForceLayout implements LayoutHandler {
         const area = svgPanZoom.getViewArea()
         ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, area.center))
         simulation.nodes(nodeLayouts)
-        const forceEdges = simulation.force("edge") as d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>
-        forceEdges.links(this.forceLayoutEdges(edges.value))
+        const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
+        if (forceEdges) {
+          forceEdges.links(this.forceLayoutEdges(edges.value))
+        }
         restartSimulation()
       },
       { deep: true }
