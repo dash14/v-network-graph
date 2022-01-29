@@ -35,6 +35,8 @@ const {
   handleEdgePointerDownEvent,
   handleEdgePointerOverEvent,
   handleEdgePointerOutEvent,
+  handleEdgeClickEvent,
+  handleEdgeDoubleClickEvent,
   handleEdgeContextMenu,
 } = useMouseOperation()
 
@@ -58,6 +60,8 @@ defineExpose({
   handleEdgePointerDownEvent,
   handleEdgePointerOverEvent,
   handleEdgePointerOutEvent,
+  handleEdgeClickEvent,
+  handleEdgeDoubleClickEvent,
   handleEdgeContextMenu,
 })
 </script>
@@ -72,6 +76,8 @@ defineExpose({
     @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
     @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"
+    @click="handleEdgeClickEvent(id, $event)"
+    @dblclick="handleEdgeDoubleClickEvent(id, $event)"
     @contextmenu="handleEdgeContextMenu(id, $event)"
   />
 </template>

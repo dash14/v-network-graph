@@ -19,14 +19,20 @@ interface MouseEventHandlers {
   handleNodePointerDownEvent: NodeEventHandler
   handleNodePointerOverEvent: NodeEventHandler
   handleNodePointerOutEvent: NodeEventHandler
+  handleNodeClickEvent: NodeEventHandler<MouseEvent>
+  handleNodeDoubleClickEvent: NodeEventHandler<MouseEvent>
   handleNodeContextMenu: NodeEventHandler<MouseEvent>
   handleEdgePointerDownEvent: EdgeEventHandler
   handleEdgePointerOverEvent: EdgeEventHandler
   handleEdgePointerOutEvent: EdgeEventHandler
+  handleEdgeClickEvent: EdgeEventHandler<MouseEvent>
+  handleEdgeDoubleClickEvent: EdgeEventHandler<MouseEvent>
   handleEdgeContextMenu: EdgeEventHandler<MouseEvent>
   handleEdgesPointerDownEvent: EdgesEventHandler
   handleEdgesPointerOverEvent: EdgesEventHandler
   handleEdgesPointerOutEvent: EdgesEventHandler
+  handleEdgesClickEvent: EdgesEventHandler<MouseEvent>
+  handleEdgesDoubleClickEvent: EdgesEventHandler<MouseEvent>
   handleEdgesContextMenu: EdgesEventHandler<MouseEvent>
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
@@ -54,6 +60,7 @@ interface State {
     pointerCounter: number
   }
   nodePointers: Map<number, NodePointerState> // <PointerId, ...>
+  prevNodePointers: Map<number, NodePointerState> // <PointerId, ...>
   follow: {
     followedPointerId: number
     nodeBasePositions: { [name: string]: Position }
@@ -123,6 +130,7 @@ export function provideMouseOperation(
       pointerCounter: 0,
     },
     nodePointers: new Map(),
+    prevNodePointers: new Map(),
     follow: {
       followedPointerId: -1,
       nodeBasePositions: {},
@@ -268,7 +276,16 @@ export function provideMouseOperation(
     )
   }
 
-  function handleNodeClickEvent(node: string, event: PointerEvent) {
+  function handleNodeClickEvent(node: string, event: MouseEvent) {
+    // Don't fire the click event if the node is being dragged
+    const pointerState = Array.from(state.prevNodePointers.values()).find(s => s.nodeId === node)
+    if (pointerState) {
+      const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
+      if (isMoved) {
+        return
+      }
+    }
+
     if (event.shiftKey && selectedEdges.size > 0) {
       return
     }
@@ -278,9 +295,7 @@ export function provideMouseOperation(
     const selectable = nodeStates[node]?.selectable ?? false
     if (selectable) {
       const isTouchAnySelectedNode =
-        MapUtil.valueOf(state.nodePointers).filter(
-          p => p.pointerId != event.pointerId && selectedNodes.has(p.nodeId)
-        ).length > 0
+        MapUtil.valueOf(state.nodePointers).filter(p => selectedNodes.has(p.nodeId)).length > 0
       if (event.shiftKey || isTouchAnySelectedNode) {
         // select multiple nodes
         if (selectedNodes.has(node)) {
@@ -295,6 +310,10 @@ export function provideMouseOperation(
       }
     }
     emitter.emit("node:click", { node, event })
+  }
+
+  function handleNodeDoubleClickEvent(node: string, event: MouseEvent) {
+    emitter.emit("node:dblclick", { node, event })
   }
 
   function handleNodePointerMoveEvent(event: PointerEvent) {
@@ -351,7 +370,6 @@ export function provideMouseOperation(
         emitter.emit("node:dragend", draggingNodes)
       }
       emitter.emit("node:pointerup", { node, event })
-      // no click event
     }
 
     // reset state
@@ -373,6 +391,7 @@ export function provideMouseOperation(
     }
 
     state.nodePointers.delete(event.pointerId)
+    state.prevNodePointers.set(event.pointerId, pointerState)
 
     const node = pointerState.nodeId
 
@@ -385,7 +404,6 @@ export function provideMouseOperation(
       }
     } else {
       emitter.emit("node:pointerup", { node, event })
-      handleNodeClickEvent(node, event)
     }
 
     if (state.nodePointers.size == 0) {
@@ -521,10 +539,6 @@ export function provideMouseOperation(
     const edge = pointerState.edgeId
     emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
 
-    if (state.edgePointers.size > 0 || state.edgePointerPeekCount === 1) {
-      handleEdgeClickEvent(edge, event)
-    }
-
     if (state.edgePointers.size === 0) {
       // reset state
       state.edgePointerPeekCount = 0
@@ -558,7 +572,11 @@ export function provideMouseOperation(
     emitter.emit("view:mode", "default")
   }
 
-  function handleEdgeClickEvent(edge: string | string[], event: PointerEvent) {
+  function handleEdgeClickEvent(edge: string | string[], event: MouseEvent) {
+    if (state.edgePointers.size > 0 || state.edgePointerPeekCount > 0) {
+      return // ignore
+    }
+
     if (event.shiftKey && selectedNodes.size > 0) {
       return
     }
@@ -570,7 +588,7 @@ export function provideMouseOperation(
     const isTouchAnySelectedEdge =
       MapUtil.valueOf(state.edgePointers).filter(p => {
         const edges = p.edgeId instanceof Array ? p.edgeId : [p.edgeId]
-        return p.pointerId != event.pointerId && edges.every(edge => selectedEdges.has(edge))
+        return edges.every(edge => selectedEdges.has(edge))
       }).length > 0
 
     if (edge instanceof Array) {
@@ -611,6 +629,10 @@ export function provideMouseOperation(
       }
     }
     emitter.emit("edge:click", _makeEdgeEventObject(edge, event))
+  }
+
+  function handleEdgeDoubleClickEvent(edge: string | string[], event: MouseEvent) {
+    emitter.emit("edge:dblclick", _makeEdgeEventObject(edge, event))
   }
 
   function handleEdgePointerOverEvent(edge: string, event: PointerEvent) {
@@ -668,6 +690,14 @@ export function provideMouseOperation(
     emitter.emit("edge:pointerout", _makeEdgeEventObject(edges, event))
   }
 
+  function handleEdgesClickEvent(edges: string[], event: MouseEvent) {
+    handleEdgeClickEvent(edges, event)
+  }
+
+  function handleEdgesDoubleClickEvent(edges: string[], event: MouseEvent) {
+    handleEdgeDoubleClickEvent(edges, event)
+  }
+
   function handleEdgesContextMenu(edges: string[], event: MouseEvent) {
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edges, event))
   }
@@ -680,14 +710,20 @@ export function provideMouseOperation(
     handleNodePointerDownEvent,
     handleNodePointerOverEvent,
     handleNodePointerOutEvent,
+    handleNodeClickEvent,
+    handleNodeDoubleClickEvent,
     handleNodeContextMenu,
     handleEdgePointerDownEvent,
     handleEdgePointerOverEvent,
     handleEdgePointerOutEvent,
+    handleEdgeClickEvent,
+    handleEdgeDoubleClickEvent,
     handleEdgeContextMenu,
     handleEdgesPointerDownEvent,
     handleEdgesPointerOverEvent,
     handleEdgesPointerOutEvent,
+    handleEdgesClickEvent,
+    handleEdgesDoubleClickEvent,
     handleEdgesContextMenu,
   }
   provide(mouseEventHandlersKey, provides)

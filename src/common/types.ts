@@ -128,7 +128,8 @@ export type Events = {
   "view:resize": { x: number; y: number; width: number; height: number }
   "view:click": ViewEvent<PointerEvent>
   "view:contextmenu": ViewEvent<MouseEvent>
-  "node:click": NodeEvent<PointerEvent>
+  "node:click": NodeEvent<MouseEvent>
+  "node:dblclick": NodeEvent<MouseEvent>
   "node:pointerover": NodeEvent<PointerEvent>
   "node:pointerout": NodeEvent<PointerEvent>
   "node:pointerup": NodeEvent<PointerEvent>
@@ -140,7 +141,8 @@ export type Events = {
   "node:select": string[]
   "edge:pointerup": EdgeEvent<PointerEvent>
   "edge:pointerdown": EdgeEvent<PointerEvent>
-  "edge:click": EdgeEvent<PointerEvent>
+  "edge:click": EdgeEvent<MouseEvent>
+  "edge:dblclick": EdgeEvent<MouseEvent>
   "edge:pointerover": EdgeEvent<PointerEvent>
   "edge:pointerout": EdgeEvent<PointerEvent>
   "edge:contextmenu": EdgeEvent<MouseEvent>
@@ -155,7 +157,7 @@ export type EventHandlers = {
   [K in keyof Events]?: (event: Events[K]) => void
 }
 
-export type OnClickHandler = (param: NodeEvent<PointerEvent>) => void
+export type OnClickHandler = (param: NodeEvent<MouseEvent>) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void
 
 /* ------------------------------------------ *
