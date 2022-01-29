@@ -149,6 +149,7 @@ export type Events = {
   "edge:contextmenu": EdgeEvent<MouseEvent>
   "edge:select": string[]
   "path:click": PathEvent<MouseEvent>
+  "path:dblclick": PathEvent<MouseEvent>
   "path:contextmenu": PathEvent<MouseEvent>
 }
 
