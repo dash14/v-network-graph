@@ -68,7 +68,7 @@ export function bindPropKeySet<T, K extends string & KeysOfType<T, string[]>>(
       // use any for now.
       const prop: string[] = props[name] as any
       const filtered = prop.filter(n => n in sourceObject.value)
-      if (!isEqual(filtered, bound)) {
+      if (!isEqual(filtered, Array.from(bound))) {
         bound.clear()
         filtered.forEach(bound.add, bound)
       }
