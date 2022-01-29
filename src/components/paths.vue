@@ -584,7 +584,7 @@ defineExpose({
 .v-path-line {
   pointer-events: none;
   &.clickable {
-    pointer-events: all;
+    pointer-events: stroke;
     cursor: pointer;
   }
 }
