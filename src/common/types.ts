@@ -126,7 +126,8 @@ export type Events = {
   "view:pan": { x: number; y: number }
   "view:fit": undefined
   "view:resize": { x: number; y: number; width: number; height: number }
-  "view:click": ViewEvent<PointerEvent>
+  "view:click": ViewEvent<MouseEvent>
+  "view:dblclick": ViewEvent<MouseEvent>
   "view:contextmenu": ViewEvent<MouseEvent>
   "node:click": NodeEvent<MouseEvent>
   "node:dblclick": NodeEvent<MouseEvent>

@@ -58,6 +58,7 @@ interface State {
   container: {
     moveCounter: number
     pointerCounter: number
+    allowClickEvent: boolean
   }
   nodePointers: Map<number, NodePointerState> // <PointerId, ...>
   prevNodePointers: Map<number, NodePointerState> // <PointerId, ...>
@@ -106,19 +107,21 @@ export function provideMouseOperation(
   selectedEdges: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
   hoveredEdges: Reactive<Set<string>>,
-  emitter: Emitter<Events>,
+  emitter: Emitter<Events>
 ): MouseEventHandlers {
   onMounted(() => {
-    container.value?.addEventListener("pointerdown", handleContainerPointerDownEvent, {
-      passive: true,
-    })
-    container.value?.addEventListener("contextmenu", handleContainerContextMenuEvent, {
-      passive: false,
-    })
+    const c = container.value
+    if (!c) return
+    c.addEventListener("pointerdown", handleContainerPointerDownEvent, { passive: true })
+    c.addEventListener("click", handleContainerClickEvent, { passive: false })
+    c.addEventListener("dblclick", handleContainerDoubleClickEvent, { passive: false })
+    c.addEventListener("contextmenu", handleContainerContextMenuEvent, { passive: false })
   })
 
   onUnmounted(() => {
     container.value?.removeEventListener("pointerdown", handleContainerPointerDownEvent)
+    container.value?.removeEventListener("click", handleContainerClickEvent)
+    container.value?.removeEventListener("dblclick", handleContainerDoubleClickEvent)
     container.value?.removeEventListener("contextmenu", handleContainerContextMenuEvent)
   })
 
@@ -128,6 +131,7 @@ export function provideMouseOperation(
     container: {
       moveCounter: 0,
       pointerCounter: 0,
+      allowClickEvent: false,
     },
     nodePointers: new Map(),
     prevNodePointers: new Map(),
@@ -158,6 +162,7 @@ export function provideMouseOperation(
   }
 
   function handleContainerPointerDownEvent(_: PointerEvent) {
+    state.container.allowClickEvent = false
     state.container.moveCounter = 0
     if (state.container.pointerCounter === 0) {
       // Add to event listener
@@ -186,8 +191,20 @@ export function provideMouseOperation(
         }
         selectedNodes.clear()
         selectedEdges.clear()
-        emitter.emit("view:click", { event })
+        state.container.allowClickEvent = true
       }
+    }
+  }
+
+  function handleContainerClickEvent(event: MouseEvent) {
+    if (state.container.allowClickEvent) {
+      emitter.emit("view:click", { event })
+    }
+  }
+
+  function handleContainerDoubleClickEvent(event: MouseEvent) {
+    if (state.container.allowClickEvent) {
+      emitter.emit("view:dblclick", { event })
     }
   }
 
@@ -197,10 +214,10 @@ export function provideMouseOperation(
     if (state.container.pointerCounter > 0) {
       // reset pointer down state
       state.container.pointerCounter = 0
-        // Remove from event listener
-        entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-          container.value?.removeEventListener(ev, handler)
-        })
+      // Remove from event listener
+      entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
+        container.value?.removeEventListener(ev, handler)
+      })
     }
   }
 
