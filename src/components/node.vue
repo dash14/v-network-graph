@@ -183,8 +183,8 @@ defineExpose({
     @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
     @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
-    @click="handleNodeClickEvent(id, $event)"
-    @dblclick="handleNodeDoubleClickEvent(id, $event)"
+    @click.prevent.stop="handleNodeClickEvent(id, $event)"
+    @dblclick.prevent.stop="handleNodeDoubleClickEvent(id, $event)"
     @contextmenu="handleNodeContextMenu(id, $event)"
   >
     <slot
