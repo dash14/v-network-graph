@@ -82,9 +82,22 @@ const emitPathClickedEvent = (path: Path, event: MouseEvent) => {
   emitter.emit("path:click", { path, event })
 }
 
+const emitPathDoubleClickedEvent = (path: Path, event: MouseEvent) => {
+  if (!pathConfig.clickable) return
+  emitter.emit("path:dblclick", { path, event })
+}
+
 const emitPathContextMenuEvent = (path: Path, event: MouseEvent) => {
   if (!pathConfig.clickable) return
   emitter.emit("path:contextmenu", { path, event })
+}
+
+function stopPointerEventPropagation(event: PointerEvent) {
+  // Prevent view from capturing events
+  if (pathConfig.clickable) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
 }
 
 function _calculatePathPoints(
@@ -559,7 +572,9 @@ defineExpose({
       :points="calcPathPoints(path)"
       :class="{ clickable: pathConfig.clickable }"
       :path="path.path"
+      @pointerdown="stopPointerEventPropagation($event)"
       @click.prevent.stop="emitPathClickedEvent(path.path, $event)"
+      @dblclick.prevent.stop="emitPathDoubleClickedEvent(path.path, $event)"
       @contextmenu="emitPathContextMenuEvent(path.path, $event)"
     />
   </transition-group>
@@ -569,7 +584,7 @@ defineExpose({
 .v-path-line {
   pointer-events: none;
   &.clickable {
-    pointer-events: all;
+    pointer-events: stroke;
     cursor: pointer;
   }
 }

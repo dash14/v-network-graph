@@ -15,6 +15,8 @@ export function getConfigDefaults(): Configs {
       zoomEnabled: true,
       minZoomLevel: 0.1,
       maxZoomLevel: 64,
+      doubleClickZoomEnabled: true,
+      mouseWheelZoomEnabled: true,
       fit: false,
       layoutHandler: new SimpleLayout(),
       onSvgPanZoomInitialized: undefined,

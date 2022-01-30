@@ -291,6 +291,8 @@ export default defineComponent({
       viewportSelector: ".v-viewport",
       minZoom: configs.view.minZoomLevel, // temporary
       maxZoom: configs.view.maxZoomLevel, // temporary
+      dblClickZoomEnabled: configs.view.doubleClickZoomEnabled,
+      mouseWheelZoomEnabled: configs.view.mouseWheelZoomEnabled,
       fit: true,
       center: true,
       zoomEnabled: configs.view.zoomEnabled,
@@ -345,6 +347,26 @@ export default defineComponent({
       )
     }
 
+    watch(
+      () => configs.view.doubleClickZoomEnabled,
+      v => {
+        if (v) {
+          svgPanZoom.value?.enableDblClickZoom()
+        } else {
+          svgPanZoom.value?.disableDblClickZoom()
+        }
+      }
+    )
+    watch(
+      () => configs.view.mouseWheelZoomEnabled,
+      v => {
+        if (v) {
+          svgPanZoom.value?.enableMouseWheelZoom()
+        } else {
+          svgPanZoom.value?.disableMouseWheelZoom()
+        }
+      }
+    )
     watch(
       () => configs.view.panEnabled,
       v => {
