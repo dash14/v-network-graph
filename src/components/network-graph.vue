@@ -315,7 +315,7 @@ export default defineComponent({
 
     // Observe container resizing
     const rectSize = { width: 0, height: 0 }
-    const resizeObserver = new ResizeObserver(() => {
+    const resizeObserver = globalThis.ResizeObserver ? new ResizeObserver(() => {
       svgPanZoom.value?.resize()
       const r = container.value?.getBoundingClientRect()
       if (r) {
@@ -326,17 +326,17 @@ export default defineComponent({
         Object.assign(rectSize, { width, height })
         emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
       }
-    })
+    }) : undefined
     onSvgPanZoomMounted(() => {
       const c = nonNull(container.value, "svg-pan-zoom container")
-      resizeObserver.observe(c)
+      resizeObserver?.observe(c)
       configs.view.onSvgPanZoomInitialized?.(nonNull(svgPanZoom.value, "svg-pan-zoom instance"))
       const r = c.getBoundingClientRect()
       const { width, height } = r
       Object.assign(rectSize, { width, height })
     })
     onSvgPanZoomUnmounted(() => {
-      resizeObserver.disconnect()
+      resizeObserver?.disconnect()
     })
 
     const applyAbsoluteZoomLevel = (absoluteZoomLevel: number) => {
