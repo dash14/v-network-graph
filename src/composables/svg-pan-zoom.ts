@@ -48,7 +48,21 @@ export function useSvgPanZoom(svg: Ref<SVGSVGElement | undefined>, options: SvgP
       haltEventListeners
     }
 
-    createSvgPanZoomEx(element, options)
+    const initialize = () => {
+      const rect = element.getBoundingClientRect()
+      // In svg-pan-zoom, the shadow viewport is generated based with
+      // size on initialization. At this time, if the width and height
+      // are zero, an exception will occur during the calculation.
+      // Therefore, initialization is performed after allocating the area.
+      // Note that even after onMounted, the area is not allocated at
+      // the time of page switching with Nuxt.
+      if (rect.width !== 0 && rect.height !== 0) {
+        createSvgPanZoomEx(element, options)
+      } else {
+        setTimeout(initialize, 200)
+      }
+    }
+    initialize()
   })
 
   onUnmounted(() => {
