@@ -730,9 +730,9 @@ export default defineComponent({
   height: 100%;
   // svgPanZoomライブラリが有効になるまでの乱れへの対応
   opacity: 0;
-  transition: opacity 0.5s linear;
   &.show {
     opacity: 1;
+    transition: opacity 0.5s linear;
   }
 }
 
