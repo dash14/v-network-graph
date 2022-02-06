@@ -90,6 +90,11 @@ export function getConfigDefaults(): Configs {
         padding: 3,
         color: "#eebb00",
       },
+      zOrder: {
+        zIndex: 0,
+        toTopOnHovered: true,
+        toTopOnSelected: true
+      },
       transition: undefined
     })),
     edge: withSelf(self => ({

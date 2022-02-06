@@ -111,6 +111,14 @@ export interface LabelStyle {
   lineHeight: number
 }
 
+/* Z-Order config */
+
+export interface ZOrderConfig<T> {
+  zIndex: CallableValue<number, T>
+  toTopOnHovered: boolean
+  toTopOnSelected: boolean
+}
+
 /* Node style */
 
 export enum NodeLabelDirection {
@@ -150,6 +158,7 @@ export interface NodeConfig<N extends Node = Node> {
   selectable: CallableValue<boolean, N> | number
   label: CallableValues<NodeLabelStyle, N>
   focusring: NodeFocusRingStyle
+  zOrder: ZOrderConfig<N>
   transition?: string
 }
 

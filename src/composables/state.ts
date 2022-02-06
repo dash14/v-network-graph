@@ -4,7 +4,14 @@ import { computed, ComputedRef, reactive, Ref, toRef, unref, UnwrapRef } from "v
 import { watch, watchEffect, WatchStopHandle } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "../common/common"
-import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "../common/configs"
+import {
+  Config,
+  Configs,
+  EdgeConfig,
+  MarkerStyle,
+  NodeConfig,
+  ZOrderConfig,
+} from "../common/configs"
 import { ShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
 import { Edge, Edges, Layouts, Node, Nodes } from "../common/types"
 import { LinePosition, NodePositions, Position } from "../common/types"
@@ -31,6 +38,7 @@ interface NodeStateDatum {
   hovered: boolean
   draggable: Ref<boolean>
   selectable: Ref<boolean | number>
+  zIndex: Ref<number>
 }
 
 export type NodeState = UnwrapRef<NodeStateDatum>
@@ -84,6 +92,7 @@ interface States {
   edgeStates: EdgeStates
   edgeGroupStates: EdgeGroupStates
   summarizedEdgeStates: SummarizedEdgeStates
+  nodeZOrderedList: ComputedRef<Node>
   layouts: Layouts
 }
 
@@ -286,7 +295,19 @@ export function provideStates(
     }
   )
 
-  const states = { nodeStates, edgeStates, edgeGroupStates, summarizedEdgeStates, layouts }
+  // z-index applied Node List
+  const nodeZOrderedList = computed(() => {
+    return makeZOrderedList(nodeStates, configs.node.zOrder, hoveredNodes, selectedNodes)
+  })
+
+  const states = {
+    nodeStates,
+    edgeStates,
+    edgeGroupStates,
+    summarizedEdgeStates,
+    layouts,
+    nodeZOrderedList,
+  }
   provide(statesKey, states)
   return states
 }
@@ -369,6 +390,11 @@ function createNodeState(
   state.selectable = computed(() => {
     if (!nodes.value[id]) return unref(state.selectable) // Return the previous value
     return Config.value(config.selectable, nodes.value[id])
+  })
+
+  state.zIndex = computed(() => {
+    if (!nodes.value[id]) return unref(state.zIndex) // Return the previous value
+    return Config.value(config.zOrder.zIndex, nodes.value[id])
   })
 }
 
@@ -674,4 +700,49 @@ function createSummarizedEdgeStates(
       delete summarizedEdgeStates[id]
     }
   })
+}
+
+function makeZOrderedList<S extends { zIndex: number }, T>(
+  states: Record<string, S>,
+  zOrder: ZOrderConfig<T>,
+  hovered: Reactive<Set<string>>,
+  selected: Reactive<Set<string>>
+) {
+  if (zOrder.toTopOnHovered && zOrder.toTopOnSelected) {
+    return Object.entries(states).sort((a, b) => {
+      const hover1 = hovered.has(a[0])
+      const hover2 = hovered.has(b[0])
+      if (hover1 != hover2) {
+        return hover1 ? 1 : -1
+      }
+      const selected1 = selected.has(a[0])
+      const selected2 = selected.has(b[0])
+      if (selected1 != selected2) {
+        return selected1 ? 1 : -1
+      }
+      return a[1].zIndex - b[1].zIndex
+    })
+  } else if (zOrder.toTopOnHovered) {
+    return Object.entries(states).sort((a, b) => {
+      const hover1 = hovered.has(a[0])
+      const hover2 = hovered.has(b[0])
+      if (hover1 != hover2) {
+        return hover1 ? 1 : -1
+      }
+      return a[1].zIndex - b[1].zIndex
+    })
+  } else if (zOrder.toTopOnSelected) {
+    return Object.entries(states).sort((a, b) => {
+      const selected1 = selected.has(a[0])
+      const selected2 = selected.has(b[0])
+      if (selected1 != selected2) {
+        return selected1 ? 1 : -1
+      }
+      return a[1].zIndex - b[1].zIndex
+    })
+  } else {
+    return Object.entries(states).sort((a, b) => {
+      return a[1].zIndex - b[1].zIndex
+    })
+  }
 }

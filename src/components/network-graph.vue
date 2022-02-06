@@ -94,13 +94,13 @@
           class="v-layer-nodes"
         >
           <v-node
-            v-for="(state, nodeId) in nodeStates"
+            v-for="([nodeId, state]) in nodeZOrderedList"
             :id="nodeId.toString()"
             :key="nodeId"
             :state="state"
             :pos="currentLayouts.nodes[nodeId]"
           >
-            <!-- overide the node -->
+            <!-- override the node -->
             <template v-if="overrideNodes" #override-node="slotProps">
               <slot name="override-node" v-bind="slotProps" />
             </template>
@@ -481,7 +481,7 @@ export default defineComponent({
       }
     })
 
-    const { nodeStates, edgeStates } = provideStates(
+    const { nodeStates, nodeZOrderedList, edgeStates, } = provideStates(
       nodesRef,
       edgesRef,
       currentSelectedNodes,
@@ -600,6 +600,7 @@ export default defineComponent({
       overrideEdgesLabels,
       scale,
       nodeStates,
+      nodeZOrderedList,
       currentSelectedNodes,
       markers,
       dragging,
