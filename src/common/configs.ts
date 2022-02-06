@@ -114,9 +114,10 @@ export interface LabelStyle {
 /* Z-Order config */
 
 export interface ZOrderConfig<T> {
+  enabled: boolean
   zIndex: CallableValue<number, T>
-  toTopOnHovered: boolean
-  toTopOnSelected: boolean
+  bringToFrontOnHover: boolean
+  bringToFrontOnSelected: boolean
 }
 
 /* Node style */

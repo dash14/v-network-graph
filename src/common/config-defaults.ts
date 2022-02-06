@@ -91,9 +91,10 @@ export function getConfigDefaults(): Configs {
         color: "#eebb00",
       },
       zOrder: {
+        enabled: false,
         zIndex: 0,
-        toTopOnHovered: true,
-        toTopOnSelected: true
+        bringToFrontOnHover: true,
+        bringToFrontOnSelected: true
       },
       transition: undefined
     })),
@@ -198,9 +199,10 @@ export function getConfigDefaults(): Configs {
         padding: 4
       },
       zOrder: {
+        enabled: false,
         zIndex: 0,
-        toTopOnHovered: true,
-        toTopOnSelected: true
+        bringToFrontOnHover: true,
+        bringToFrontOnSelected: true
       }
     })),
     path: {

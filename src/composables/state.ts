@@ -30,6 +30,7 @@ export type { EdgeGroupStates }
 // States of nodes
 
 interface NodeStateDatum {
+  id: string
   shape: Ref<ShapeStyle>
   staticShape: Ref<ShapeStyle>
   label: Ref<NodeLabelStyle>
@@ -88,6 +89,7 @@ export type SummarizedEdgeStates = Record<string, SummarizedEdgeState>
 
 // Edge item for display (an edge or summarized edges)
 interface EdgeItem {
+  id: string
   summarized: boolean
   key: string
   zIndex: number
@@ -98,7 +100,7 @@ interface SummarizedEdgeItem extends EdgeItem {
 interface SingleEdgeItem extends EdgeItem {
   edge: Edge
 }
-type EdgeEntries = [string, SummarizedEdgeItem | SingleEdgeItem][]
+type EdgeEntry = SummarizedEdgeItem | SingleEdgeItem
 
 // Provide states
 
@@ -107,8 +109,8 @@ interface States {
   edgeStates: EdgeStates
   edgeGroupStates: EdgeGroupStates
   summarizedEdgeStates: SummarizedEdgeStates
-  nodeZOrderedList: ComputedRef<Node>
-  edgeZOrderedList: ComputedRef<EdgeEntries>
+  nodeZOrderedList: ComputedRef<NodeState[]>
+  edgeZOrderedList: ComputedRef<EdgeEntry[]>
   layouts: Layouts
 }
 
@@ -313,56 +315,61 @@ export function provideStates(
 
   // z-index applied Node List
   const nodeZOrderedList = computed(() => {
-    return makeZOrderedList(
-      Object.entries(nodeStates),
-      configs.node.zOrder,
-      hoveredNodes,
-      selectedNodes
-    )
+    if (configs.node.zOrder.enabled) {
+      return makeZOrderedList(
+        Object.values(nodeStates),
+        configs.node.zOrder,
+        hoveredNodes,
+        selectedNodes
+      )
+    } else {
+      return Object.values(nodeStates)
+    }
   })
 
   // Edge item for display (an edge or summarized edges)
-  const edgeEntries = computed<EdgeEntries>(() => {
-    const entries: EdgeEntries = []
-    Object.entries(edgeGroupStates.edgeGroups).forEach(([key, group]) => {
-      if (group.summarize) {
-        entries.push([
-          Object.keys(group.edges)[0] ?? key,
-          <SummarizedEdgeItem>{
+  const edgeEntries = computed<EdgeEntry[]>(() => {
+    return Object.entries(edgeGroupStates.edgeGroups)
+      .map(([key, group]) => {
+        if (group.summarize) {
+          return <SummarizedEdgeItem>{
+            id: Object.keys(group.edges)[0] ?? key,
             summarized: true,
             key,
             group,
             zIndex: Object.keys(group.edges)
               .map(id => edgeStates[id]?.zIndex ?? 0)
               .reduce((s, z) => Math.max(s, z)),
-          },
-        ])
-      } else {
-        Object.entries(group.edges).forEach(([id, edge]) => {
-          entries.push([
-            id,
-            <SingleEdgeItem>{
-              summarized: false,
-              key: id,
-              edge,
-              zIndex: edgeStates[id]?.zIndex ?? 0,
-            },
-          ])
-        })
-      }
-    })
-    return entries
+          }
+        } else {
+          return Object.entries(group.edges).map(
+            ([id, edge]) =>
+              <SingleEdgeItem>{
+                id,
+                summarized: false,
+                key: id,
+                edge,
+                zIndex: edgeStates[id]?.zIndex ?? 0,
+              }
+          )
+        }
+      })
+      .flat()
   })
 
   // z-index applied Edge List
-  const edgeZOrderedList = computed<EdgeEntries>(() => {
-    const edges = makeZOrderedList(
-      edgeEntries.value,
-      configs.edge.zOrder,
-      hoveredEdges,
-      selectedEdges
-    )
-    return edges
+  const edgeZOrderedList = computed<EdgeEntry[]>(() => {
+    if (configs.edge.zOrder.enabled) {
+      const edges = makeZOrderedList(
+        edgeEntries.value,
+        configs.edge.zOrder,
+        hoveredEdges,
+        selectedEdges
+      )
+      return edges
+    } else {
+      return edgeEntries.value
+    }
   })
 
   const states = <States>{
@@ -425,7 +432,7 @@ function createNodeState(
   hovered: boolean,
   config: NodeConfig
 ) {
-  states[id] = { selected, hovered } as any
+  states[id] = { id, selected, hovered } as any
   const state = states[id] as any as NodeStateDatum
 
   state.shape = computed(() => {
@@ -774,47 +781,47 @@ function createSummarizedEdgeStates(
   })
 }
 
-function makeZOrderedList<S extends { zIndex: number }, T>(
-  states: [string, S][],
+function makeZOrderedList<S extends { id: string, zIndex: number }, T>(
+  states: S[],
   zOrder: ZOrderConfig<T>,
   hovered: Reactive<Set<string>>,
   selected: Reactive<Set<string>>
 ) {
-  if (zOrder.toTopOnHovered && zOrder.toTopOnSelected) {
+  if (zOrder.bringToFrontOnHover && zOrder.bringToFrontOnSelected) {
     return states.sort((a, b) => {
-      const hover1 = hovered.has(a[0])
-      const hover2 = hovered.has(b[0])
+      const hover1 = hovered.has(a.id)
+      const hover2 = hovered.has(b.id)
       if (hover1 != hover2) {
         return hover1 ? 1 : -1
       }
-      const selected1 = selected.has(a[0])
-      const selected2 = selected.has(b[0])
+      const selected1 = selected.has(a.id)
+      const selected2 = selected.has(b.id)
       if (selected1 != selected2) {
         return selected1 ? 1 : -1
       }
-      return a[1].zIndex - b[1].zIndex
+      return a.zIndex - b.zIndex
     })
-  } else if (zOrder.toTopOnHovered) {
+  } else if (zOrder.bringToFrontOnHover) {
     return states.sort((a, b) => {
-      const hover1 = hovered.has(a[0])
-      const hover2 = hovered.has(b[0])
+      const hover1 = hovered.has(a.id)
+      const hover2 = hovered.has(b.id)
       if (hover1 != hover2) {
         return hover1 ? 1 : -1
       }
-      return a[1].zIndex - b[1].zIndex
+      return a.zIndex - b.zIndex
     })
-  } else if (zOrder.toTopOnSelected) {
+  } else if (zOrder.bringToFrontOnSelected) {
     return states.sort((a, b) => {
-      const selected1 = selected.has(a[0])
-      const selected2 = selected.has(b[0])
+      const selected1 = selected.has(a.id)
+      const selected2 = selected.has(b.id)
       if (selected1 != selected2) {
         return selected1 ? 1 : -1
       }
-      return a[1].zIndex - b[1].zIndex
+      return a.zIndex - b.zIndex
     })
   } else {
     return states.sort((a, b) => {
-      return a[1].zIndex - b[1].zIndex
+      return a.zIndex - b.zIndex
     })
   }
 }

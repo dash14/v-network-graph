@@ -35,21 +35,21 @@ defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
 </script>
 
 <template>
-  <template v-for="([_, item]) in edgeZOrderedList">
-    <template v-if="isSummarizedEdges(item)">
+  <template v-for="entry in edgeZOrderedList">
+    <template v-if="isSummarizedEdges(entry)">
       <v-edge-summarized
-        :key="item.key"
-        :edges="item.group.edges"
+        :key="entry.key"
+        :edges="entry.group.edges"
         :layouts="layouts.nodes"
       />
     </template>
     <template v-else>
       <v-edge
-        :key="item.key"
-        :id="item.key"
-        :state="edgeStates[item.key]"
-        :source-pos="layouts.nodes[item.edge.source]"
-        :target-pos="layouts.nodes[item.edge.target]"
+        :key="entry.key"
+        :id="entry.key"
+        :state="edgeStates[entry.key]"
+        :source-pos="layouts.nodes[entry.edge.source]"
+        :target-pos="layouts.nodes[entry.edge.target]"
       />
     </template>
   </template>

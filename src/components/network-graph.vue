@@ -94,11 +94,11 @@
           class="v-layer-nodes"
         >
           <v-node
-            v-for="([nodeId, state]) in nodeZOrderedList"
-            :id="nodeId.toString()"
-            :key="nodeId"
+            v-for="state in nodeZOrderedList"
+            :id="state.id"
+            :key="state.id"
             :state="state"
-            :pos="currentLayouts.nodes[nodeId]"
+            :pos="currentLayouts.nodes[state.id]"
           >
             <!-- override the node -->
             <template v-if="overrideNodes" #override-node="slotProps">
