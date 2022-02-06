@@ -197,6 +197,11 @@ export function getConfigDefaults(): Configs {
         margin: 4,
         padding: 4
       },
+      zOrder: {
+        zIndex: 0,
+        toTopOnHovered: true,
+        toTopOnSelected: true
+      }
     })),
     path: {
       visible: false,

@@ -219,6 +219,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   }
   keepOrder: EdgeKeepOrderType
   label: EdgeLabelStyle
+  zOrder: ZOrderConfig<E>
 }
 
 /* Path config */

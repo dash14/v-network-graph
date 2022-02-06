@@ -481,7 +481,7 @@ export default defineComponent({
       }
     })
 
-    const { nodeStates, nodeZOrderedList, edgeStates, } = provideStates(
+    const { nodeStates, nodeZOrderedList, edgeStates } = provideStates(
       nodesRef,
       edgesRef,
       currentSelectedNodes,
