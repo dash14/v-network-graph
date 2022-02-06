@@ -411,7 +411,27 @@ function createEdgeState(
   const line = computed<Line>(() => {
     const edge = edges.value[id]
     const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
-    const normalWidth = Config.value(config.normal.width, edge)
+    // Minimum error checking required for drawing
+    if (isNaN(+stroke.width)) {
+      console.warn(
+        "[v-network-graph] Edge width is invalid value. id=[%s] value=[%s]",
+        id,
+        stroke.width
+      )
+      stroke.width = 1
+    }
+    if (stroke.color === undefined || stroke.color === null) {
+      console.warn(
+        "[v-network-graph] Edge color is invalid value. id=[%s] value=[%s]",
+        id,
+        stroke.color
+      )
+      stroke.color = "#000000"
+    }
+    let normalWidth = Config.value(config.normal.width, edge)
+    if (isNaN(+normalWidth)) {
+      normalWidth = 1
+    }
     const source = toEdgeMarker(Config.values(config.marker.source, [edge, stroke]))
     const target = toEdgeMarker(Config.values(config.marker.target, [edge, stroke]))
     return { stroke, normalWidth, source, target }

@@ -166,8 +166,17 @@ function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: E
       edgeGroups[key] = { edges, groupWidth: 0, summarize: false }
     } else {
       let pointInGroup = 0
-      const lineHalfWidths = Object.values(edges).map(edge => {
-        return Config.value(configs.edge.normal.width, edge) / 2
+      const lineHalfWidths = Object.entries(edges).map(([id, edge]) => {
+        let width = Config.value(configs.edge.normal.width, edge)
+        if (isNaN(+width)) {
+          console.warn(
+            "[v-network-graph] Edge width is invalid value. id=[%s] value=[%s]",
+            id,
+            width
+          )
+          width = 1
+        }
+        return width / 2
       })
       const points = Object.entries(edges).map(([edgeId, edge], i) => {
         if (i > 0) {
