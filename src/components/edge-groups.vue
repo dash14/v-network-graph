@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useStates } from "../composables/state"
+import { useStates, isSummarizedEdges } from "../composables/state"
 import VEdge from "./edge.vue"
 import VEdgeSummarized from "./edge-summarized.vue"
 
-const { edgeStates, edgeGroupStates, layouts } = useStates()
+const { edgeStates, edgeZOrderedList, edgeGroupStates, layouts } = useStates()
 
 // type FlattenEdge = {
 //     key: string
@@ -31,24 +31,25 @@ const { edgeStates, edgeGroupStates, layouts } = useStates()
 //   return results
 // })
 
-defineExpose({ edgeStates, edgeGroupStates, layouts })
+defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
 </script>
 
 <template>
-  <template v-for="({ summarize, edges }, key) in edgeGroupStates.edgeGroups">
-    <template v-if="summarize">
+  <template v-for="entry in edgeZOrderedList">
+    <template v-if="isSummarizedEdges(entry)">
       <v-edge-summarized
-        :key="key"
-        :edges="edges"
+        :key="entry.key"
+        :edges="entry.group.edges"
         :layouts="layouts.nodes"
       />
     </template>
-    <template v-for="(edge, id) in edges" v-else :key="id">
+    <template v-else>
       <v-edge
-        :id="id"
-        :state="edgeStates[id]"
-        :source-pos="layouts.nodes[edge.source]"
-        :target-pos="layouts.nodes[edge.target]"
+        :key="entry.key"
+        :id="entry.key"
+        :state="edgeStates[entry.key]"
+        :source-pos="layouts.nodes[entry.edge.source]"
+        :target-pos="layouts.nodes[entry.edge.target]"
       />
     </template>
   </template>

@@ -111,6 +111,15 @@ export interface LabelStyle {
   lineHeight: number
 }
 
+/* Z-Order config */
+
+export interface ZOrderConfig<T> {
+  enabled: boolean
+  zIndex: CallableValue<number, T>
+  bringToFrontOnHover: boolean
+  bringToFrontOnSelected: boolean
+}
+
 /* Node style */
 
 export enum NodeLabelDirection {
@@ -150,6 +159,7 @@ export interface NodeConfig<N extends Node = Node> {
   selectable: CallableValue<boolean, N> | number
   label: CallableValues<NodeLabelStyle, N>
   focusring: NodeFocusRingStyle
+  zOrder: ZOrderConfig<N>
   transition?: string
 }
 
@@ -210,6 +220,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   }
   keepOrder: EdgeKeepOrderType
   label: EdgeLabelStyle
+  zOrder: ZOrderConfig<E>
 }
 
 /* Path config */

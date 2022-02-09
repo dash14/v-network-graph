@@ -90,6 +90,12 @@ export function getConfigDefaults(): Configs {
         padding: 3,
         color: "#eebb00",
       },
+      zOrder: {
+        enabled: false,
+        zIndex: 0,
+        bringToFrontOnHover: true,
+        bringToFrontOnSelected: true
+      },
       transition: undefined
     })),
     edge: withSelf(self => ({
@@ -192,6 +198,12 @@ export function getConfigDefaults(): Configs {
         margin: 4,
         padding: 4
       },
+      zOrder: {
+        enabled: false,
+        zIndex: 0,
+        bringToFrontOnHover: true,
+        bringToFrontOnSelected: true
+      }
     })),
     path: {
       visible: false,
