@@ -82,7 +82,7 @@ export function isPointContainedInCircle(
   const p = V.Vector.fromObject(point)
   const c = V.Vector.fromObject(center)
   const v = p.subtract(c)
-  return v.lengthSq() < radius * radius
+  return v.lengthSquared() < radius * radius
 }
 
 /**
@@ -150,7 +150,7 @@ function calculateDistanceToAvoidOverlapsWithRect(
   }
   const hits = vertexes.map(p => V.getNearestPoint(p, centerLine))
   const minP =
-    minBy(hits, p => V.toLineVector(centerLine.source, p).lengthSq()) ?? centerLine.target
+    minBy(hits, p => V.toLineVector(centerLine.source, p).lengthSquared()) ?? centerLine.target
   return V.toLineVector(minP, centerLine.target).length()
 }
 
@@ -195,7 +195,7 @@ export function calculateEdgeLabelArea(
   let targetAbove = tv.clone().subtract(vMargin).toObject() as Position
   let targetBelow = tv.clone().add(vMargin).toObject() as Position
 
-  const angle = line.v.angleDeg()
+  const angle = line.v.angleDegree()
   if (angle < -90 || angle >= 90) {
     // upside down
     [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove]

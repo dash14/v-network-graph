@@ -1,4 +1,4 @@
-import Vector from "victor"
+import { Vector2D as Vector } from "../modules/vector2d"
 import { LinePosition, Position } from "./types"
 
 export interface Line {
@@ -80,7 +80,7 @@ export function getDistanceToNearestPoint(p: Vector, line: Line): number {
   const p2 = line.source
   const v2 = line.v
 
-  const v2len = v2.lengthSq()
+  const v2len = v2.lengthSquared()
   if (v2len === 0) {
     return 0
   }
@@ -99,7 +99,7 @@ export function getIntersectionOfLineTargetAndCircle(
 ): Vector | null {
   // Does the node contain a point?
   const p = target.clone()
-  const length = p.subtract(center).lengthSq()
+  const length = p.subtract(center).lengthSquared()
   const contains = length - (radius * radius) <= Math.pow(1, -10)
 
   if (!contains) return null // Not contained.
@@ -147,7 +147,7 @@ export function getIntersectionOfLineTargetAndCircle2(
 ): Vector | null {
   // Does the node contain a point?
   const p = target.clone()
-  const length = p.subtract(center).lengthSq()
+  const length = p.subtract(center).lengthSquared()
   const contains = length - (radius * radius) <= Math.pow(1, -10)
 
   if (!contains) return null // Not contained.
@@ -227,7 +227,7 @@ export function getIntersectionOfCircles(
   const vC1C2 = c2.clone().subtract(c1)
 
   // length of C1--C2
-  const a = vC1C2.magnitude()
+  const a = vC1C2.length()
 
   const sumR = radius1 + radius2
   if (sumR < a) return null // no overlap

@@ -120,7 +120,7 @@ watchEffect(() => {
       dominantBaseline.value = "central"
     }
   }
-  let degree = V.fromPositions(s.above, t.above).v.angleDeg()
+  let degree = V.fromPositions(s.above, t.above).v.angleDegree()
   if (degree < -90 || degree >= 90) {
     degree = degree + 180
     if (degree > 180) {
