@@ -19,7 +19,8 @@
     "build:lib": "run-p build:lib:*",
     "build:lib:main": "vite build",
     "build:lib:force": "vite --config vite-lib-force.config.ts build",
-    "clean": "rimraf lib"
+    "clean": "rimraf lib",
+    "test": "vitest"
   },
   "dependencies": {
     "@dash14/svg-pan-zoom": "^3.6.5",
@@ -46,6 +47,7 @@
     "victor": "^1.1.0",
     "vite": "^2.7.13",
     "vite-plugin-dts": "^0.9.9",
+    "vitest": "^0.3.2",
     "vue-tsc": "^0.31.1"
   },
   "peerDependencies": {
