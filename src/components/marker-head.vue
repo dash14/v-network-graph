@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
-import { EdgeHeadType } from "../common/configs"
-import { HeadMarker } from "../composables/marker"
+import { EdgeHeadType } from "@/common/configs"
+import { HeadMarker } from "@/composables/marker"
 import VMarkerHeadArrow from "./marker-head-arrow.vue"
 import VMarkerHeadAngle from "./marker-head-angle.vue"
 import VMarkerHeadCircle from "./marker-head-circle.vue"

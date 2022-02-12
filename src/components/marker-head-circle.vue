@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PropType } from "vue"
-import { MarkerUnits } from "../common/configs"
+import { MarkerUnits } from "@/common/configs"
 
 const props = defineProps({
   width: {

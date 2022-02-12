@@ -1,5 +1,5 @@
 import { InjectionKey, provide, reactive } from "vue"
-import { MarkerStyle } from "../common/configs"
+import { MarkerStyle } from "@/common/configs"
 import { convertToAscii } from "@/utils/string"
 
 export type MarkerBuilder = (marker: MarkerStyle | null, isSource?: boolean) => string

@@ -1,6 +1,6 @@
 import { toRef, watch } from "vue"
-import { Edges, NodePositions, Nodes, Position } from "../common/types"
-import { OnClickHandler, OnDragHandler } from "../common/types"
+import { Edges, NodePositions, Nodes, Position } from "@/common/types"
+import { OnClickHandler, OnDragHandler } from "@/common/types"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 import * as d3 from "d3-force"
 

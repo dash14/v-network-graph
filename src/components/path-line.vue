@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
-import { useZoomLevel } from "../composables/zoom"
-import { usePathConfig } from "../composables/config"
-import { Config } from "../common/configs"
-import { Path, PositionOrCurve } from "../common/types"
+import { Path, PositionOrCurve } from "@/common/types"
+import { Config } from "@/common/configs"
+import { usePathConfig } from "@/composables/config"
+import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 import chunk from "lodash-es/chunk"
 

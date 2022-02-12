@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "../common/types"
-import { useStates } from "../composables/state"
-import { AnyShapeStyle, StrokeStyle } from "../common/configs"
-import { useEdgeConfig } from "../composables/config"
-import { useZoomLevel } from "../composables/zoom"
-import { EdgeGroup } from "../common/edge-group"
-import * as v2d from "../common/2d"
+import { Position } from "@/common/types"
+import { AnyShapeStyle, StrokeStyle } from "@/common/configs"
+import { useStates } from "@/composables/state"
+import { useEdgeConfig } from "@/composables/config"
+import { useZoomLevel } from "@/composables/zoom"
+import { EdgeGroup } from "@/modules/edge/group"
+import * as v2d from "@/modules/calculation/2d"
 
 interface NodeShape {
   pos: Position

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, PropType, ref, watchEffect } from "vue"
-import { Position } from "../common/types"
-import { NodeState } from "../composables/state"
-import { NodeLabelDirection } from "../common/configs"
-import { useZoomLevel } from "../composables/zoom"
-import { useNodeConfig } from "../composables/config"
-import { useMouseOperation } from "../composables/mouse"
+import { Position } from "@/common/types"
+import { NodeLabelDirection } from "@/common/configs"
+import { useNodeConfig } from "@/composables/config"
+import { useMouseOperation } from "@/composables/mouse"
+import { NodeState } from "@/composables/state"
+import { useZoomLevel } from "@/composables/zoom"
 import VShape from "./shape.vue"
 import VText from "./label-text.vue"
 

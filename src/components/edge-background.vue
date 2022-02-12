@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
-import { useZoomLevel } from "../composables/zoom"
-import { useEdgeConfig } from "../composables/config"
-import { useMouseOperation } from "../composables/mouse"
-import { Position } from "../common/types"
-import { EdgeState } from "../composables/state"
+import { Position } from "@/common/types"
+import { useEdgeConfig } from "@/composables/config"
+import { EdgeState } from "@/composables/state"
+import { useMouseOperation } from "@/composables/mouse"
+import { useZoomLevel } from "@/composables/zoom"
 import chunk from "lodash-es/chunk"
 
 const props = defineProps({

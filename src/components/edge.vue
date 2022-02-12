@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { PropType } from "vue"
-import { useEdgeConfig } from "../composables/config"
-import { Position } from "../common/types"
-import { EdgeState } from "../composables/state"
+import { Position } from "@/common/types"
+import { useEdgeConfig } from "@/composables/config"
+import { EdgeState } from "@/composables/state"
 import VEdgeLine from "./line.vue"
 import VEdgeCurved from "./edge-curved.vue"
 

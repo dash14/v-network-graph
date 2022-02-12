@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useStates, isSummarizedEdges } from "../composables/state"
+import { useStates, isSummarizedEdges } from "@/composables/state"
 import VEdge from "./edge.vue"
 import VEdgeSummarized from "./edge-summarized.vue"
 

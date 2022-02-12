@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
 import { Position } from "@/common/types";
-import { StrokeStyle } from "../common/configs"
-import { useZoomLevel } from "../composables/zoom"
+import { StrokeStyle } from "@/common/configs"
+import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 
 const props = defineProps({

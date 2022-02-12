@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useStates } from "../composables/state"
+import { useStates } from "@/composables/state"
 import VEdgeBackground from "./edge-background.vue"
 
 const { edgeStates, edgeGroupStates, layouts } = useStates()

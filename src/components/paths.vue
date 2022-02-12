@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
-import { Edge, Edges, NodePositions, Path, Paths, PositionOrCurve } from "../common/types"
+import { Edge, Edges, NodePositions, Path, Paths, PositionOrCurve } from "@/common/types"
 import { findFirstNonNull } from "@/utils/collection"
-import { Config } from "../common/configs"
-import { EdgeStates, NodeStates, useStates, EdgeState, Curve } from "../composables/state"
-import { usePathConfig } from "../composables/config"
-import { useZoomLevel } from "../composables/zoom"
-import { useEventEmitter } from "../composables/event-emitter"
-import { AnyShapeStyle, PathEndType } from "../common/configs"
-import * as v2d from "../common/2d"
-import * as VectorUtils from "../common/vector"
-import { VectorLine } from "../common/vector"
+import { Config } from "@/common/configs"
+import { EdgeStates, NodeStates, useStates, EdgeState, Curve } from "@/composables/state"
+import { usePathConfig } from "@/composables/config"
+import { useZoomLevel } from "@/composables/zoom"
+import { useEventEmitter } from "@/composables/event-emitter"
+import { AnyShapeStyle, PathEndType } from "@/common/configs"
+import * as v2d from "@/modules/calculation/2d"
+import * as PointUtils from "@/modules/calculation/point"
+import { VectorLine } from "@/modules/calculation/line"
+import * as LineUtils from "@/modules/calculation/line"
 import V, { Vector2D } from "@/modules/vector2d"
 import VPathLine from "./path-line.vue"
 
@@ -436,7 +437,7 @@ function _calculateEdgeOfNode(
       target = edge.line.target
     }
     // straight
-    const p = VectorUtils.getIntersectionOfLineTargetAndCircle(
+    const p = PointUtils.getIntersectionOfLineTargetAndCircle(
       source,
       target,
       Vector2D.fromObject(nodeLayouts[nodeId]),
@@ -458,7 +459,7 @@ function _getIntersectionOfLines(
         return prev.line.target.clone()
       }
       // curve -- curve
-      crossPoint = VectorUtils.getIntersectionOfCircles(
+      crossPoint = PointUtils.getIntersectionOfCircles(
         prev.curve.circle.center,
         prev.curve.circle.radius,
         next.curve.circle.center,
@@ -467,7 +468,7 @@ function _getIntersectionOfLines(
       )
     } else {
       // curve -- straight
-      crossPoint = VectorUtils.getIntersectionOfLineTargetAndCircle2(
+      crossPoint = PointUtils.getIntersectionOfLineTargetAndCircle2(
         next.line.target,
         next.line.source,
         prev.curve.circle.center,
@@ -478,7 +479,7 @@ function _getIntersectionOfLines(
   } else {
     if (next.curve) {
       // straight -- curve
-      crossPoint = VectorUtils.getIntersectionOfLineTargetAndCircle(
+      crossPoint = PointUtils.getIntersectionOfLineTargetAndCircle(
         prev.line.source,
         prev.line.target,
         next.curve.circle.center,
@@ -493,7 +494,7 @@ function _getIntersectionOfLines(
       if (isParallel) {
         crossPoint = null // not exist intersection point
       } else {
-        crossPoint = VectorUtils.getIntersectionPointOfLines(prev.line, next.line)
+        crossPoint = PointUtils.getIntersectionPointOfLines(prev.line, next.line)
       }
     }
   }
@@ -507,7 +508,7 @@ function _getIntersectionOfLineAndNode(
   targetSide: boolean
 ): Vector2D | null {
   if (edge.curve) {
-    return VectorUtils.getIntersectionOfCircles(
+    return PointUtils.getIntersectionOfCircles(
       nodeCenter,
       nodeRadius,
       edge.curve.circle.center,
@@ -515,7 +516,7 @@ function _getIntersectionOfLineAndNode(
       Vector2D.fromObject(edge.curve.center)
     )
   } else {
-    return VectorUtils.getIntersectionOfLineTargetAndCircle(
+    return PointUtils.getIntersectionOfLineTargetAndCircle(
       targetSide ? edge.line.source : edge.line.target,
       targetSide ? edge.line.target : edge.line.source,
       nodeCenter,
@@ -530,7 +531,7 @@ function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): E
   let target = edge.edge.target
   let curve = state.curve
   if (!direction) {
-    position = v2d.inverseLine(position)
+    position = LineUtils.inverseLine(position)
     source = edge.edge.target
     target = edge.edge.source
     if (curve) {

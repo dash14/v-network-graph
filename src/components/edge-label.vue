@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, PropType, Ref, ref, watchEffect } from "vue"
-import { EdgeLabelStyle } from "../common/configs"
-import { Edge, EdgeLabelArea } from "../common/types"
-import { VectorLine } from "../common/vector"
+import { EdgeLabelStyle } from "@/common/configs"
+import { Edge, EdgeLabelArea } from "@/common/types"
+import { VectorLine } from "@/modules/calculation/line"
 import VText from "./label-text.vue"
 
 const props = defineProps({

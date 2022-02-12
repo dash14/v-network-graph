@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, PropType, reactive, Ref, ref, useAttrs, watch } from "vue"
 import { onMounted, onUnmounted } from "vue"
-import { LabelStyle } from "../common/configs"
-import { useZoomLevel } from "../composables/zoom"
+import { LabelStyle } from "@/common/configs"
+import { useZoomLevel } from "@/composables/zoom"
 
 type Rect = { x: number; y: number; width: number; height: number }
 
