@@ -1,25 +1,9 @@
 import { AnyShapeStyle, RectangleShapeStyle, StrokeStyle } from "./configs"
-import { LinePosition, Position } from "./types"
-import * as V from "../common/vector"
+import { EdgeLabelArea, LinePosition, Position } from "./types"
+import * as VectorUtils from "../common/vector"
+import { VectorLine } from "../common/vector"
+import V, { Vector2D } from "@/modules/vector2d"
 import minBy from "lodash-es/minBy"
-
-interface Line {
-  source: Position
-  target: Position
-}
-
-/**
- * Convert `LinePosition` to list of `Position`
- * @param line `LinePosition` instance
- * @returns list of `Position` instance
- */
-export function lineTo2Positions(line: LinePosition): [Position, Position] {
-  const { x1, x2, y1, y2 } = line
-  return [
-    { x: x1, y: y1 },
-    { x: x2, y: y2 },
-  ]
-}
 
 /**
  * Convert two `Position` to `LinePosition`
@@ -27,74 +11,36 @@ export function lineTo2Positions(line: LinePosition): [Position, Position] {
  * @param p2 target position of the line
  * @returns `LinePosition` instance
  */
-export function positionsToLinePosition(p1: Position, p2: Position): LinePosition {
-  return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }
+export function toLinePosition(p1: Position, p2: Position): LinePosition {
+  return { p1, p2 }
 }
 
-/**
- * Calculate the intersection of a line and a circle.
- * @param line line
- * @param targetSide side of the line where the node is located. true: target side, false: source side
- * @param center center of the circle
- * @param radius radius of the circle
- * @returns intersection point
- */
-export function getIntersectionOfLineAndCircle(
-  line: Line,
-  targetSide: boolean,
-  center: Position,
-  radius: number
-): Position | null {
-  return (
-    V.getIntersectionOfLineTargetAndCircle(
-      V.Vector.fromObject(targetSide ? line.source : line.target),
-      V.Vector.fromObject(targetSide ? line.target : line.source),
-      V.Vector.fromObject(center),
-      radius
-    )?.toObject() ?? null
-  )
-}
+// /**
+//  * Calculate whether a point is contained in a circle.
+//  * @param point point
+//  * @param center center of the circle
+//  * @param radius radius of the circle
+//  * @returns whether point is contained in a circle
+//  */
+// export function isPointContainedInCircle(
+//   point: Position,
+//   center: Position,
+//   radius: number
+// ): boolean {
+//   const p = Vector2D.fromObject(point)
+//   const c = Vector2D.fromObject(center)
+//   const v = p.subtract(c)
+//   return v.lengthSquared() < radius * radius
+// }
 
-/**
- * Calculate the intersection of two lines.
- * @param line1 line 1
- * @param line2 line 2
- * @returns intersection point
- */
-export function getIntersectionPointOfLines(line1: Line, line2: Line): Position {
-  const l1 = V.fromPositions(line1.source, line1.target)
-  const l2 = V.fromPositions(line2.source, line2.target)
-  return V.getIntersectionPointOfLines(l1, l2).toObject()
-}
-
-/**
- * Calculate whether a point is contained in a circle.
- * @param point point
- * @param center center of the circle
- * @param radius radius of the circle
- * @returns whether point is contained in a circle
- */
-export function isPointContainedInCircle(
-  point: Position,
-  center: Position,
-  radius: number
-): boolean {
-  const p = V.Vector.fromObject(point)
-  const c = V.Vector.fromObject(center)
-  const v = p.subtract(c)
-  return v.lengthSq() < radius * radius
-}
-
-/**
- * Calculate the distance of the line.
- * @param line line
- * @returns distance
- */
-export function calculateDistance(line: LinePosition) {
-  const x = line.x2 - line.x1
-  const y = line.y2 - line.y1
-  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
-}
+// /**
+//  * Calculate the distance of the line.
+//  * @param line line
+//  * @returns distance
+//  */
+// export function calculateDistance(line: LinePosition): number {
+//   return V.distance(line.p1, line.p2)
+// }
 
 /**
  * Get the distance that a line should be away from the
@@ -111,7 +57,7 @@ function calculateDistanceToAvoidOverlapsWithRect(
   rect: RectangleShapeStyle,
   scale: number
 ) {
-  const centerLine = V.fromPositions(sourcePos, targetPos)
+  const centerLine = VectorLine.fromPositions(sourcePos, targetPos)
   const left = targetPos.x - (rect.width / 2) * scale
   const top = targetPos.y - (rect.height / 2) * scale
   const right = targetPos.x + (rect.width / 2) * scale
@@ -124,34 +70,35 @@ function calculateDistanceToAvoidOverlapsWithRect(
   if (borderRadius == 0) {
     // Since it is a simple rectangle, the four corners are the vertices.
     vertexes.push(
-      V.Vector.fromArray([left, top]),
-      V.Vector.fromArray([left, bottom]),
-      V.Vector.fromArray([right, top]),
-      V.Vector.fromArray([right, bottom])
+      new Vector2D(left, top),
+      new Vector2D(left, bottom),
+      new Vector2D(right, top),
+      new Vector2D(right, bottom)
     )
   } else {
     // The edge of each line and the center of the rounded corner are
     // the vertices.
     const hypo = borderRadius * Math.sin(Math.PI / 4) // 45deg
     vertexes.push(
-      V.Vector.fromArray([left + borderRadius, top]),
-      V.Vector.fromArray([left, top + borderRadius]),
-      V.Vector.fromArray([left + borderRadius - hypo, top + borderRadius - hypo]),
-      V.Vector.fromArray([left + borderRadius, bottom]),
-      V.Vector.fromArray([left, bottom - borderRadius]),
-      V.Vector.fromArray([left + borderRadius - hypo, bottom - borderRadius + hypo]),
-      V.Vector.fromArray([right - borderRadius, top]),
-      V.Vector.fromArray([right, top + borderRadius]),
-      V.Vector.fromArray([right - borderRadius + hypo, top + borderRadius - hypo]),
-      V.Vector.fromArray([right - borderRadius, bottom]),
-      V.Vector.fromArray([right, bottom - borderRadius]),
-      V.Vector.fromArray([right - borderRadius + hypo, bottom - borderRadius + hypo])
+      new Vector2D(left + borderRadius, top),
+      new Vector2D(left, top + borderRadius),
+      new Vector2D(left + borderRadius - hypo, top + borderRadius - hypo),
+      new Vector2D(left + borderRadius, bottom),
+      new Vector2D(left, bottom - borderRadius),
+      new Vector2D(left + borderRadius - hypo, bottom - borderRadius + hypo),
+      new Vector2D(right - borderRadius, top),
+      new Vector2D(right, top + borderRadius),
+      new Vector2D(right - borderRadius + hypo, top + borderRadius - hypo),
+      new Vector2D(right - borderRadius, bottom),
+      new Vector2D(right, bottom - borderRadius),
+      new Vector2D(right - borderRadius + hypo, bottom - borderRadius + hypo)
     )
   }
-  const hits = vertexes.map(p => V.getNearestPoint(p, centerLine))
+  const hits = vertexes.map(p => VectorUtils.getNearestPoint(p, centerLine))
   const minP =
-    minBy(hits, p => V.toLineVector(centerLine.source, p).lengthSq()) ?? centerLine.target
-  return V.toLineVector(minP, centerLine.target).length()
+    minBy(hits, p => VectorUtils.toLineVector(centerLine.source, p).lengthSquared()) ??
+    centerLine.target
+  return VectorUtils.toLineVector(minP, centerLine.target).length()
 }
 
 /**
@@ -170,9 +117,9 @@ export function calculateEdgeLabelArea(
   margin: number,
   padding: number,
   scale: number
-) {
+): EdgeLabelArea {
   // the line segment between the outermost of the nodes
-  const line = V.fromLinePosition(linePos)
+  const line = VectorLine.fromLinePosition(linePos)
   const normalized = line.v.clone().normalize()
 
   // source side
@@ -189,16 +136,16 @@ export function calculateEdgeLabelArea(
 
   // margin for edges
   const labelMargin = (edgeStyle.width / 2 + margin) * scale
-  const vMargin = V.Vector.fromArray([-normalized.y, normalized.x]).multiplyScalar(labelMargin)
-  let sourceAbove = sv.clone().subtract(vMargin).toObject() as Position
-  let sourceBelow = sv.clone().add(vMargin).toObject() as Position
-  let targetAbove = tv.clone().subtract(vMargin).toObject() as Position
-  let targetBelow = tv.clone().add(vMargin).toObject() as Position
+  const vMargin = new Vector2D(-normalized.y, normalized.x).multiplyScalar(labelMargin)
+  let sourceAbove = V.subtract(sv, vMargin)
+  let sourceBelow = V.add(sv, vMargin)
+  let targetAbove = V.subtract(tv, vMargin)
+  let targetBelow = V.add(tv, vMargin)
 
-  const angle = line.v.angleDeg()
+  const angle = line.v.angleDegree()
   if (angle < -90 || angle >= 90) {
     // upside down
-    [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove]
+    ;[sourceAbove, sourceBelow] = [sourceBelow, sourceAbove]
     ;[targetAbove, targetBelow] = [targetBelow, targetAbove]
   }
   return {
@@ -262,32 +209,34 @@ export function applyMarginToLine(
   sourceMargin: number,
   targetMargin: number
 ): LinePosition {
-  const line = V.fromLinePosition(linePos)
+  const line = VectorLine.fromLinePosition(linePos)
   return applyMarginToLineInner(line, sourceMargin, targetMargin)
 }
 
-function applyMarginToLineInner(line: V.Line, sourceMargin: number, targetMargin: number) {
+function applyMarginToLineInner(
+  line: VectorLine,
+  sourceMargin: number,
+  targetMargin: number
+): LinePosition {
   const normalized = line.v.clone().normalize()
-
-  line.v.angle()
 
   const sv = line.source.clone().add(normalized.clone().multiplyScalar(sourceMargin))
 
   const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(targetMargin))
 
-  let [x1, y1] = sv.toArray()
-  let [x2, y2] = tv.toArray()
+  let p1 = sv.toObject()
+  let p2 = tv.toObject()
 
-  const check = V.toLineVector(sv, tv)
+  const check = VectorUtils.toLineVector(sv, tv)
   if (line.v.angle() * check.angle() < 0) {
     // reversed
-    const c1 = V.Vector.fromArray([(x1 + x2) / 2, (y1 + y2) / 2])
+    const c1 = new Vector2D((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
     const c2 = c1.clone().add(normalized.multiplyScalar(0.5))
-    ;[x1, y1] = c1.toArray()
-    ;[x2, y2] = c2.toArray()
+    p1 = c1.toObject()
+    p2 = c2.toObject()
   }
 
-  return { x1, y1, x2, y2 }
+  return { p1, p2 }
 }
 
 /**
@@ -322,59 +271,58 @@ export function reverseAngleRadian(theta: number): number {
 }
 
 export function inverseLine(line: LinePosition): LinePosition {
-  return {
-    x1: line.x2,
-    y1: line.y2,
-    x2: line.x1,
-    y2: line.y1
-  }
+  return { p1: line.p2, p2: line.p1 }
 }
 
 export function calculateBezierCurveControlPoint(
-  p1: V.Vector,
-  center: V.Vector,
-  p2: V.Vector,
+  p1: Vector2D,
+  center: Vector2D,
+  p2: Vector2D,
   theta0: number
-): V.Vector[] {
-  const control: V.Vector[] = []
-  const centerToSource = V.fromVectors(center, p1)
-  const centerToTarget = V.fromVectors(center, p2)
+): Vector2D[] {
+  const control: Vector2D[] = []
+  const centerToSource = VectorLine.fromVectors(center, p1)
+  const centerToTarget = VectorLine.fromVectors(center, p2)
 
-  let theta = V.calculateRelativeAngleRadian(centerToSource, centerToTarget)
+  let theta = VectorUtils.calculateRelativeAngleRadian(centerToSource, centerToTarget)
   if (theta0 * theta < 0) {
     theta = reverseAngleRadian(theta)
   }
-  const middle = V.Vector.fromObject(moveOnCircumference(p1, center, -theta / 2))
-  const centerToMp = V.fromVectors(center, middle)
-  const mpTangent = V.calculatePerpendicularLine(centerToMp)
+  const middle = Vector2D.fromObject(moveOnCircumference(p1, center, -theta / 2))
+  const centerToMp = VectorLine.fromVectors(center, middle)
+  const mpTangent = VectorUtils.calculatePerpendicularLine(centerToMp)
 
-  const theta1 = V.calculateRelativeAngleRadian(centerToSource, centerToMp)
-  let tangent = V.calculatePerpendicularLine(centerToSource)
+  const theta1 = VectorUtils.calculateRelativeAngleRadian(centerToSource, centerToMp)
+  let tangent = VectorUtils.calculatePerpendicularLine(centerToSource)
   if (Math.abs(theta1) < Math.PI / 2) {
-    const cp = V.getIntersectionPointOfLines(tangent, mpTangent)
+    const cp = VectorUtils.getIntersectionPointOfLines(tangent, mpTangent)
     control.push(cp)
   } else {
     // If greater than 90 degrees, go through the midpoint.
-    const mp = V.Vector.fromObject(moveOnCircumference(middle, center, theta1 / 2))
-    const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
-    const cp1 = V.getIntersectionPointOfLines(tangent, tangent2)
-    const cp2 = V.getIntersectionPointOfLines(tangent2, mpTangent)
+    const mp = Vector2D.fromObject(moveOnCircumference(middle, center, theta1 / 2))
+    const tangent2 = VectorUtils.calculatePerpendicularLine(
+      VectorLine.fromVectors(center, Vector2D.fromObject(mp))
+    )
+    const cp1 = VectorUtils.getIntersectionPointOfLines(tangent, tangent2)
+    const cp2 = VectorUtils.getIntersectionPointOfLines(tangent2, mpTangent)
     control.push(cp1, mp, cp2)
   }
 
   control.push(middle)
 
-  const theta2 = V.calculateRelativeAngleRadian(centerToTarget, centerToMp)
-  tangent = V.calculatePerpendicularLine(centerToTarget)
+  const theta2 = VectorUtils.calculateRelativeAngleRadian(centerToTarget, centerToMp)
+  tangent = VectorUtils.calculatePerpendicularLine(centerToTarget)
   if (Math.abs(theta2) < Math.PI / 2) {
-    const cp = V.getIntersectionPointOfLines(tangent, mpTangent)
+    const cp = VectorUtils.getIntersectionPointOfLines(tangent, mpTangent)
     control.push(cp)
   } else {
     // If greater than 90 degrees, go through the midpoint.
-    const mp = V.Vector.fromObject(moveOnCircumference(middle, center, theta2 / 2))
-    const tangent2 = V.calculatePerpendicularLine(V.fromVectors(center, V.Vector.fromObject(mp)))
-    const cp1 = V.getIntersectionPointOfLines(mpTangent, tangent2)
-    const cp2 = V.getIntersectionPointOfLines(tangent2, tangent)
+    const mp = Vector2D.fromObject(moveOnCircumference(middle, center, theta2 / 2))
+    const tangent2 = VectorUtils.calculatePerpendicularLine(
+      VectorLine.fromVectors(center, Vector2D.fromObject(mp))
+    )
+    const cp1 = VectorUtils.getIntersectionPointOfLines(mpTangent, tangent2)
+    const cp2 = VectorUtils.getIntersectionPointOfLines(tangent2, tangent)
     control.push(cp1, mp, cp2)
   }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, PropType, ref, watchEffect } from "vue"
-import { Edges, NodePositions } from "../common/types"
+import { Edges, NodePositions, LinePosition, Position } from "../common/types"
 import { Config } from "../common/configs"
 import { useStates } from "../composables/state"
 import { useEdgeConfig } from "../composables/config"
@@ -34,16 +34,16 @@ const { edgeStates } = useStates()
 
 // Since the specified edges are in the same pair,
 // get the first one and draw it.
-const pos = ref({ x1: 0, y1: 0, x2: 0, y2: 0 })
-const centerPos = ref({ x: 0, y: 0 })
+const pos = ref<LinePosition>({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } })
+const centerPos = ref<Position>({ x: 0, y: 0 })
 
 watchEffect(() => {
   const edgeId = Object.keys(props.edges).find(edgeId => edgeId in edgeStates)
   if (edgeId) {
     pos.value = edgeStates[edgeId].position
     centerPos.value = {
-      x: (pos.value.x1 + pos.value.x2) / 2,
-      y: (pos.value.y1 + pos.value.y2) / 2,
+      x: (pos.value.p1.x + pos.value.p2.x) / 2,
+      y: (pos.value.p1.y + pos.value.p2.y) / 2,
     }
   }
 })

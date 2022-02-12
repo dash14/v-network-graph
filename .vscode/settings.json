@@ -9,7 +9,8 @@
     "focusring",
     "nuxt",
     "vite",
-    "vitejs"
+    "vitejs",
+    "vitest"
   ],
   "cSpell.ignorePaths": [
     ".git",

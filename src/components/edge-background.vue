@@ -43,11 +43,11 @@ const {
 const pathD = computed(() => {
   const p = props.state.position
   if (config.type === "straight" || !props.state.curve) {
-    return `M ${p.x1} ${p.y1} L ${p.x2} ${p.y2}`
+    return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`
   } else {
-    const points = [ ...props.state.curve.control, { x: p.x2, y: p.y2 }]
+    const points = [ ...props.state.curve.control, { x: p.p2.x, y: p.p2.y }]
     const d: string[] = []
-    d.push(`M ${p.x1} ${p.y1}`)
+    d.push(`M ${p.p1.x} ${p.p1.y}`)
     chunk(points, 2).forEach(([p1, p2]) => d.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
     return d.join(" ")
   }
