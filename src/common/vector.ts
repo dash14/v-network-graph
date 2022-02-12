@@ -1,50 +1,44 @@
-import { Vector2D as Vector } from "../modules/vector2d"
+import V, { Vector2D } from "../modules/vector2d"
 import { LinePosition, Position } from "./types"
 
-export interface Line {
-  source: Vector
-  target: Vector
-  v: Vector
-}
+export class VectorLine {
+  public source: Vector2D
+  public target: Vector2D
+  public v: Vector2D
 
-export function fromLinePosition(line: LinePosition): Line {
-  const source = Vector.fromObject(line.p1)
-  const target = Vector.fromObject(line.p2)
-  return {
-    source,
-    target,
-    v: toLineVector(source, target),
+  constructor(source: Vector2D, target: Vector2D, v: Vector2D) {
+    this.source = source
+    this.target = target
+    this.v = v
+  }
+
+  static fromLinePosition(line: LinePosition): VectorLine {
+    const source = Vector2D.fromObject(line.p1)
+    const target = Vector2D.fromObject(line.p2)
+    return new VectorLine(source, target, toLineVector(source, target))
+  }
+
+  static fromPositions(sourcePos: Position, targetPos: Position): VectorLine {
+    const source = Vector2D.fromObject(sourcePos)
+    const target = Vector2D.fromObject(targetPos)
+    return new VectorLine(source, target, toLineVector(source, target))
+  }
+
+  static fromVectors(source: Vector2D, target: Vector2D): VectorLine {
+    return new VectorLine(source, target, toLineVector(source, target))
   }
 }
 
-export function fromPositions(sourcePos: Position, targetPos: Position): Line {
-  const source = Vector.fromObject(sourcePos)
-  const target = Vector.fromObject(targetPos)
-  return {
-    source,
-    target,
-    v: toLineVector(source, target),
-  }
-}
-
-export function fromVectors(source: Vector, target: Vector): Line {
-  return {
-    source,
-    target,
-    v: toLineVector(source, target),
-  }
-}
-
-export function toLineVector(source: Vector, target: Vector): Vector {
+export function toLineVector(source: Vector2D, target: Vector2D): Vector2D {
   return target.clone().subtract(source)
 }
 
-export function toVectorsFromLinePosition(line: LinePosition): [Vector, Vector] {
-  return [Vector.fromObject(line.p1), Vector.fromObject(line.p2)]
+export function toVectorsFromLinePosition(line: LinePosition): [Vector2D, Vector2D] {
+  return [Vector2D.fromObject(line.p1), Vector2D.fromObject(line.p2)]
 }
 
-export function getCenterOfLinePosition(line: LinePosition): Vector {
-  return Vector.fromArray([(line.p1.x + line.p2.x) / 2, (line.p1.y + line.p2.y) / 2])
+export function getCenterOfLinePosition(line: LinePosition): Vector2D {
+  return new Vector2D((line.p1.x + line.p2.x) / 2, (line.p1.y + line.p2.y) / 2)
 }
 
 /**
@@ -53,12 +47,12 @@ export function getCenterOfLinePosition(line: LinePosition): Vector {
  * @param line line
  * @returns point on the line
  */
-export function getNearestPoint(p: Vector, line: Line): Vector {
+export function getNearestPoint(p: Vector2D, line: VectorLine): Vector2D {
   const n = line.v.clone().normalize()
 
   // Let `a` be a vector from any one point on a line to a point
   const lp = line.source
-  const a = p.clone().subtract(lp)
+  const a = V.subtract(p, lp)
 
   // Inner product of `n` and `a`
   const dot = n.dot(a)
@@ -70,49 +64,46 @@ export function getNearestPoint(p: Vector, line: Line): Vector {
   return near
 }
 
-/**
- * Calculate the distance of nearest point from a point to a line.
- * @param p point
- * @param line line
- * @returns distance
- */
-export function getDistanceToNearestPoint(p: Vector, line: Line): number {
-  const p2 = line.source
-  const v2 = line.v
+// /**
+//  * Calculate the distance of nearest point from a point to a line.
+//  * @param p point
+//  * @param line line
+//  * @returns distance
+//  */
+// export function getDistanceToNearestPoint(p: Vector2D, line: VectorLine): number {
+//   const p2 = line.source
+//   const v2 = line.v
 
-  const v2len = v2.lengthSquared()
-  if (v2len === 0) {
-    return 0
-  }
-  const t = v2.clone().dot(p.clone().subtract(p2)) / v2len
-
-  const tv2 = v2.clone().multiplyScalar(t)
-  const h = p2.clone().add(tv2)
-  return h.subtract(p).length()
-}
+//   const v2len = v2.lengthSquared()
+//   if (v2len === 0) {
+//     return 0
+//   }
+//   const t = V.dot(v2, V.subtract(p, p2)) / v2len
+//   const tv2 = V.multiplyScalar(v2, t)
+//   const h = p2.clone().add(tv2)
+//   return h.subtract(p).length()
+// }
 
 export function getIntersectionOfLineTargetAndCircle(
-  source: Vector,
-  target: Vector,
-  center: Vector,
+  source: Vector2D,
+  target: Vector2D,
+  center: Vector2D,
   radius: number
-): Vector | null {
+): Vector2D | null {
   // Does the node contain a point?
-  const p = target.clone()
-  const length = p.subtract(center).lengthSquared()
-  const contains = length - (radius * radius) <= Math.pow(1, -10)
+  const length = V.lengthSquared(V.subtract(target, center))
+  const contains = length - radius * radius <= Math.pow(1, -10)
 
   if (!contains) return null // Not contained.
 
   // If contained, calculate the intersection point.
 
   // Find the nearest point `h` between `c` and the line
-  const line = fromVectors(source, target)
+  const line = VectorLine.fromVectors(source, target)
   const h = getNearestPoint(center, line)
 
   // Let `hp` be the vector from `c` to `h`.
-  const hp = h.clone().subtract(center)
-  const hpLen = hp.length()
+  const hpLen = V.length(V.subtract(h, center))
 
   // If `hpLen` is larger than the radius of the circle,
   // there is no intersection.
@@ -139,28 +130,26 @@ export function getIntersectionOfLineTargetAndCircle(
 }
 
 export function getIntersectionOfLineTargetAndCircle2(
-  source: Vector,
-  target: Vector,
-  center: Vector,
+  source: Vector2D,
+  target: Vector2D,
+  center: Vector2D,
   radius: number,
-  nearBy: Vector
-): Vector | null {
+  nearBy: Vector2D
+): Vector2D | null {
   // Does the node contain a point?
-  const p = target.clone()
-  const length = p.subtract(center).lengthSquared()
-  const contains = length - (radius * radius) <= Math.pow(1, -10)
+  const length = V.lengthSquared(V.subtract(target, center))
+  const contains = length - radius * radius <= Math.pow(1, -10)
 
   if (!contains) return null // Not contained.
 
   // If contained, calculate the intersection point.
 
   // Find the nearest point `h` between `c` and the line
-  const line = fromVectors(source, target)
+  const line = VectorLine.fromVectors(source, target)
   const h = getNearestPoint(center, line)
 
   // Let `hp` be the vector from `c` to `h`.
-  const hp = h.clone().subtract(center)
-  const hpLen = hp.length()
+  const hpLen = V.length(V.subtract(h, center))
 
   // If `hpLen` is larger than the radius of the circle,
   // there is no intersection.
@@ -183,8 +172,8 @@ export function getIntersectionOfLineTargetAndCircle2(
   const ip1 = h.clone().add(tv)
   const ip2 = h.clone().subtract(tv)
 
-  const d1 = calculateDistance(nearBy, ip1)
-  const d2 = calculateDistance(nearBy, ip2)
+  const d1 = nearBy.distance(ip1)
+  const d2 = nearBy.distance(ip2)
 
   if (Math.abs(d1 - d2) < 2) {
     // Calculate the addition or subtraction depending on which side
@@ -201,25 +190,24 @@ export function getIntersectionOfLineTargetAndCircle2(
  * @param line2 line 2
  * @returns intersection point
  */
-export function getIntersectionPointOfLines(line1: Line, line2: Line): Vector {
-  const p2 = line2.source
-  const v = p2.clone().subtract(line1.source)
+export function getIntersectionPointOfLines(line1: VectorLine, line2: VectorLine): Vector2D {
+  const v = V.subtract(line2.source, line1.source)
 
   const v1 = line1.v
   const v2 = line2.v
 
-  const t2 = v.cross(v1) / v1.cross(v2)
+  const t2 = V.cross(v, v1) / V.cross(v1, v2)
 
-  return p2.clone().add(v2.clone().multiplyScalar(t2))
+  return line2.source.clone().add(v2.clone().multiplyScalar(t2))
 }
 
 export function getIntersectionOfCircles(
-  center1: Vector,
+  center1: Vector2D,
   radius1: number,
-  center2: Vector,
+  center2: Vector2D,
   radius2: number,
-  near: Vector
-): Vector | null {
+  near: Vector2D
+): Vector2D | null {
   const c1 = center1
   const c2 = center2
 
@@ -278,7 +266,7 @@ export function getIntersectionOfCircles(
   const n1 = vC1C2.clone().normalize()
 
   // vector with n1 rotated 90 degrees to the left
-  const n2 = Vector.fromArray([-n1.y, n1.x])
+  const n2 = new Vector2D(-n1.y, n1.x)
 
   // The point of intersection [P]
   // P  = C1 + tn1 + sn2
@@ -289,21 +277,21 @@ export function getIntersectionOfCircles(
   const result1 = center1.clone().add(tn1).add(sn2)
   const result2 = center1.clone().add(tn1).subtract(sn2)
 
-  const d1 = calculateDistance(result1, near)
-  const d2 = calculateDistance(result2, near)
+  const d1 = result1.distance(near)
+  const d2 = result2.distance(near)
 
   return d1 < d2 ? result1 : result2
 }
 
-export function calculatePerpendicularLine(line: Line) {
+export function calculatePerpendicularLine(line: VectorLine) {
   const n1 = line.v
     .clone()
     .normalize()
     .rotate(Math.PI / 2)
-  return fromVectors(line.target, line.target.clone().add(n1))
+  return VectorLine.fromVectors(line.target, line.target.clone().add(n1))
 }
 
-export function calculateRelativeAngleRadian(line1: Line, line2: Line) {
+export function calculateRelativeAngleRadian(line1: VectorLine, line2: VectorLine) {
   return Math.atan2(
     line1.v.y * line2.v.x - line1.v.x * line2.v.y,
     line1.v.x * line2.v.x + line1.v.y * line2.v.y
@@ -311,10 +299,10 @@ export function calculateRelativeAngleRadian(line1: Line, line2: Line) {
 }
 
 export function calculateCircleCenterAndRadiusBy3Points(
-  p1: Vector,
-  p2: Vector,
-  p3: Vector
-): [Vector, number] {
+  p1: Vector2D,
+  p2: Vector2D,
+  p3: Vector2D
+): [Vector2D, number] {
   const x1 = p1.x
   const y1 = p1.y
   const x2 = p2.x
@@ -334,20 +322,6 @@ export function calculateCircleCenterAndRadiusBy3Points(
     (2 * x12 * y32 - 2 * y12 * x32)
 
   const radius = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2))
-  const center = Vector.fromArray([x, y])
+  const center = new Vector2D(x, y)
   return [center, radius]
 }
-
-/**
- * Calculate the distance of the line.
- * @param pos1 Vector
- * @param pos2 Vector
- * @returns distance
- */
-export function calculateDistance(pos1: Vector, pos2: Vector) {
-  const x = pos2.x - pos1.x
-  const y = pos2.y - pos1.y
-  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
-}
-
-export { Vector }

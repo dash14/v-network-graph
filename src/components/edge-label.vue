@@ -2,7 +2,7 @@
 import { computed, PropType, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "../common/configs"
 import { Edge, EdgeLabelArea } from "../common/types"
-import * as V from "../common/vector"
+import { VectorLine } from "../common/vector"
 import VText from "./label-text.vue"
 
 const props = defineProps({
@@ -120,7 +120,7 @@ watchEffect(() => {
       dominantBaseline.value = "central"
     }
   }
-  let degree = V.fromPositions(s.above, t.above).v.angleDegree()
+  let degree = VectorLine.fromPositions(s.above, t.above).v.angleDegree()
   if (degree < -90 || degree >= 90) {
     degree = degree + 180
     if (degree > 180) {
