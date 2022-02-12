@@ -1,5 +1,5 @@
 import { provide, inject, InjectionKey, Ref } from "vue"
-import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
+import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { nonNull } from "../common/common"
 
 interface ProvideContainers {

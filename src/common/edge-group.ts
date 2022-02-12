@@ -2,7 +2,7 @@ import { Ref, watchEffect } from "vue"
 import { Reactive } from "./common"
 import { Config, Configs, EdgeKeepOrderType } from "./configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "./types"
-import { updateObjectDiff } from "./utility"
+import { updateObjectDiff } from "@/utils/object"
 
 // -----------------------------------------------------------------------
 // Type definition

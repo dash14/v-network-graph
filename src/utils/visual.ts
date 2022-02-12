@@ -1,25 +1,5 @@
-import { Node, Point, Position, Size } from "./types"
-import { Config, NodeConfig } from "./configs"
-import isEqual from "lodash-es/isEqual"
-
-export function keyOf<T>(obj: T): (keyof T)[] {
-  return Object.keys(obj) as (keyof T)[]
-}
-
-export function entriesOf<T, K extends keyof T>(obj: T): [K, T[K]][] {
-  return Object.entries(obj) as [K, T[K]][]
-}
-
-export function updateObjectDiff<T extends Record<string, any>>(target: T, from: T) {
-  const keys = new Set<keyof T>(Object.keys(target))
-  entriesOf(from).forEach(([key, value]) => {
-    if (!isEqual(target[key], value)) {
-      target[key] = value
-    }
-    keys.delete(key)
-  })
-  keys.forEach(k => delete target[k])
-}
+import { Node, Position, Size } from "@/common/types"
+import { Config, NodeConfig } from "@/common/configs"
 
 export function getNodeSize(node: Node, style: NodeConfig, scale: number): Size {
   const shape = Config.values(style.normal, node)
@@ -88,48 +68,4 @@ export function getDasharrayUnit(dasharray: number | string | undefined) {
     result = dasharray * 2 // 2 <- border and space
   }
   return result
-}
-
-export class MapUtil {
-  static valueOf<K, V>(map: Map<K, V>) {
-    return Array.from(map.values())
-  }
-}
-
-type Args<T> = [...(T | null)[], T]
-
-export function findFirstNonNull<T>(...values: Args<T>): T {
-  return values.find(v => !!v) as T
-}
-
-export function convertToAscii(source: string): string {
-  if (typeof btoa === undefined) {
-    return Buffer.from(source).toString("base64").replaceAll("=", "")
-  } else {
-    return btoa(source).replaceAll("=", "")
-  }
-}
-
-export function translateFromDomToSvgCoordinates(
-  svg: SVGSVGElement,
-  viewport: SVGGElement,
-  coordinates: Point
-): Point {
-  const point = svg.createSVGPoint()
-  point.x = coordinates.x
-  point.y = coordinates.y
-  const svgPoint = point.matrixTransform(viewport.getCTM()?.inverse())
-  return { x: svgPoint.x, y: svgPoint.y }
-}
-
-export function translateFromSvgToDomCoordinates(
-  svg: SVGSVGElement,
-  viewport: SVGGElement,
-  coordinates: Point
-): Point {
-  const point = svg.createSVGPoint()
-  point.x = coordinates.x
-  point.y = coordinates.y
-  const domPoint = point.matrixTransform(viewport.getCTM() as DOMMatrixInit)
-  return { x: domPoint.x, y: domPoint.y }
 }

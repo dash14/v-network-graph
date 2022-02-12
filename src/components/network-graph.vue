@@ -144,7 +144,7 @@ import { UserConfigs } from "../common/configs"
 import {
   translateFromSvgToDomCoordinates,
   translateFromDomToSvgCoordinates,
-} from "../common/utility"
+} from "@/utils/svg"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"

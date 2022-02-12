@@ -2,7 +2,7 @@
 import { PropType, ref, watchEffect } from "vue"
 import { AnyShapeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
-import { applyScaleToDasharray } from "../common/utility"
+import { applyScaleToDasharray } from "@/utils/visual"
 
 const props = defineProps({
   baseX: {

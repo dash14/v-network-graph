@@ -4,7 +4,7 @@ import { useZoomLevel } from "../composables/zoom"
 import { usePathConfig } from "../composables/config"
 import { Config } from "../common/configs"
 import { Path, PositionOrCurve } from "../common/types"
-import { applyScaleToDasharray, getDasharrayUnit } from "../common/utility"
+import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 import chunk from "lodash-es/chunk"
 
 const props = defineProps({

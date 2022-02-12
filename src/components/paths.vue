@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
 import { Edge, Edges, NodePositions, Path, Paths, PositionOrCurve } from "../common/types"
-import { findFirstNonNull } from "../common/utility"
+import { findFirstNonNull } from "@/utils/collection"
 import { Config } from "../common/configs"
 import { EdgeStates, NodeStates, useStates, EdgeState, Curve } from "../composables/state"
 import { usePathConfig } from "../composables/config"

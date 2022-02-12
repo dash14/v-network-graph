@@ -2,7 +2,7 @@
 import { computed, PropType } from "vue"
 import { StrokeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
-import { applyScaleToDasharray, getDasharrayUnit } from "../common/utility"
+import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 import { EdgeState } from "../composables/state"
 import chunk from "lodash-es/chunk"
 

@@ -4,7 +4,8 @@ import { inject, InjectionKey, onMounted, onUnmounted, provide, Ref, watch } fro
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "../common/common"
 import { Events, NodePositions, Position, EdgeEvent } from "../common/types"
-import { entriesOf, MapUtil } from "../common/utility"
+import { entriesOf } from "@/utils/object"
+import { MapUtil } from "@/utils/map"
 import { EdgeStates, NodeStates } from "./state"
 
 type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
