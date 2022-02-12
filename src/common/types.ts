@@ -1,4 +1,21 @@
 import { RecursivePartial } from "./common"
+import { Point2D } from "@/modules/vector2d/core"
+
+/* ------------------------------------------ *
+ * Core types
+ * ------------------------------------------ */
+
+export type Position = Point2D
+
+export interface LinePosition {
+  p1: Position
+  p2: Position
+}
+
+export interface Size {
+  width: number
+  height: number
+}
 
 /* ------------------------------------------ *
  * Network graph elements
@@ -20,13 +37,6 @@ export interface Edge {
 }
 
 export type Edges = Record<string, Edge>
-
-export interface LinePosition {
-  x1: number
-  y1: number
-  x2: number
-  y2: number
-}
 
 export type LayerPosition =
   "paths"
@@ -52,16 +62,6 @@ export type Layers = Record<string, LayerPosition>
 /* ------------------------------------------ *
  * Layouts
  * ------------------------------------------ */
-
-export interface Position {
-  x: number
-  y: number
-}
-
-export interface Size {
-  width: number
-  height: number
-}
 
 export interface FixablePosition extends Position {
   fixed?: boolean

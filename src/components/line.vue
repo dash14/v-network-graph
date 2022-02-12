@@ -1,24 +1,17 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
+import { Position } from "@/common/types";
 import { StrokeStyle } from "../common/configs"
 import { useZoomLevel } from "../composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "../common/utility"
 
 const props = defineProps({
-  x1: {
-    type: Number,
+  p1: {
+    type: Object as PropType<Position>,
     required: true,
   },
-  y1: {
-    type: Number,
-    required: true,
-  },
-  x2: {
-    type: Number,
-    required: true,
-  },
-  y2: {
-    type: Number,
+  p2: {
+    type: Object as PropType<Position>,
     required: true,
   },
   config: {
@@ -50,7 +43,7 @@ defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
 <template>
   <path
     :class="{ 'v-line': true, animate: config.animate }"
-    :d="`M ${x1} ${y1} L ${x2} ${y2}`"
+    :d="`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`"
     :stroke="config.color"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"

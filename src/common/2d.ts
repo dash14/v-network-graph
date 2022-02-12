@@ -1,6 +1,7 @@
 import { AnyShapeStyle, RectangleShapeStyle, StrokeStyle } from "./configs"
 import { LinePosition, Position } from "./types"
 import * as V from "../common/vector"
+import * as Vector from "@/modules/vector2d"
 import minBy from "lodash-es/minBy"
 
 interface Line {
@@ -14,11 +15,7 @@ interface Line {
  * @returns list of `Position` instance
  */
 export function lineTo2Positions(line: LinePosition): [Position, Position] {
-  const { x1, x2, y1, y2 } = line
-  return [
-    { x: x1, y: y1 },
-    { x: x2, y: y2 },
-  ]
+  return [line.p1, line.p2]
 }
 
 /**
@@ -28,7 +25,7 @@ export function lineTo2Positions(line: LinePosition): [Position, Position] {
  * @returns `LinePosition` instance
  */
 export function positionsToLinePosition(p1: Position, p2: Position): LinePosition {
-  return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }
+  return { p1, p2 }
 }
 
 /**
@@ -90,10 +87,8 @@ export function isPointContainedInCircle(
  * @param line line
  * @returns distance
  */
-export function calculateDistance(line: LinePosition) {
-  const x = line.x2 - line.x1
-  const y = line.y2 - line.y1
-  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+export function calculateDistance(line: LinePosition): number {
+  return Vector.distance(line.p1, line.p2)
 }
 
 /**
@@ -198,7 +193,7 @@ export function calculateEdgeLabelArea(
   const angle = line.v.angleDegree()
   if (angle < -90 || angle >= 90) {
     // upside down
-    [sourceAbove, sourceBelow] = [sourceBelow, sourceAbove]
+    ;[sourceAbove, sourceBelow] = [sourceBelow, sourceAbove]
     ;[targetAbove, targetBelow] = [targetBelow, targetAbove]
   }
   return {
@@ -266,10 +261,12 @@ export function applyMarginToLine(
   return applyMarginToLineInner(line, sourceMargin, targetMargin)
 }
 
-function applyMarginToLineInner(line: V.Line, sourceMargin: number, targetMargin: number) {
+function applyMarginToLineInner(
+  line: V.Line,
+  sourceMargin: number,
+  targetMargin: number
+): LinePosition {
   const normalized = line.v.clone().normalize()
-
-  line.v.angle()
 
   const sv = line.source.clone().add(normalized.clone().multiplyScalar(sourceMargin))
 
@@ -287,7 +284,7 @@ function applyMarginToLineInner(line: V.Line, sourceMargin: number, targetMargin
     ;[x2, y2] = c2.toArray()
   }
 
-  return { x1, y1, x2, y2 }
+  return { p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 } }
 }
 
 /**
@@ -322,12 +319,7 @@ export function reverseAngleRadian(theta: number): number {
 }
 
 export function inverseLine(line: LinePosition): LinePosition {
-  return {
-    x1: line.x2,
-    y1: line.y2,
-    x2: line.x1,
-    y2: line.y1
-  }
+  return { p1: line.p2, p2: line.p1 }
 }
 
 export function calculateBezierCurveControlPoint(

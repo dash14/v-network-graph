@@ -8,8 +8,8 @@ export interface Line {
 }
 
 export function fromLinePosition(line: LinePosition): Line {
-  const source = Vector.fromArray([line.x1, line.y1])
-  const target = Vector.fromArray([line.x2, line.y2])
+  const source = Vector.fromObject(line.p1)
+  const target = Vector.fromObject(line.p2)
   return {
     source,
     target,
@@ -35,16 +35,16 @@ export function fromVectors(source: Vector, target: Vector): Line {
   }
 }
 
-export function toLineVector(source: Vector, target: Vector) {
+export function toLineVector(source: Vector, target: Vector): Vector {
   return target.clone().subtract(source)
 }
 
 export function toVectorsFromLinePosition(line: LinePosition): [Vector, Vector] {
-  return [Vector.fromArray([line.x1, line.y1]), Vector.fromArray([line.x2, line.y2])]
+  return [Vector.fromObject(line.p1), Vector.fromObject(line.p2)]
 }
 
-export function getCenterOfLinePosition(line: LinePosition) {
-  return Vector.fromArray([(line.x1 + line.x2) / 2, (line.y1 + line.y2) / 2])
+export function getCenterOfLinePosition(line: LinePosition): Vector {
+  return Vector.fromArray([(line.p1.x + line.p2.x) / 2, (line.p1.y + line.p2.y) / 2])
 }
 
 /**

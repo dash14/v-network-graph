@@ -108,7 +108,7 @@ export function calculateEdgeShiftedPosition(
   keepOrder: EdgeKeepOrderType
 ): LinePosition {
   if (!p) {
-    return { x1: 0, y1: 0, x2: 0, y2: 0 } // sanitized
+    return { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } } // sanitized
   }
   if (isSummarized) {
     // summarize
@@ -255,7 +255,7 @@ function calculateEdgePositionInner(
       keepOrder
     )
   }
-  return { x1, y1, x2, y2 }
+  return { p1: { x: x1, y: y1 }, p2: { x: x2, y: y2 } }
 }
 
 function calculateLinePosition(

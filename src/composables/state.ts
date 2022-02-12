@@ -503,9 +503,9 @@ function createEdgeState(
     selected,
     hovered: false,
     curve: undefined,
-    origin: { x1: 0, y1: 0, x2: 0, y2: 0 },
-    labelPosition: { x1: 0, y1: 0, x2: 0, y2: 0 },
-    position: { x1: 0, y1: 0, x2: 0, y2: 0 },
+    origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
     zIndex: undefined as any, // specify later
     stopWatchHandle: () => {},
   }
@@ -727,8 +727,8 @@ function calculateCurvePositionAndState(
       V.fromVectors(center, origin.target)
     )
     let theta2 = V.calculateRelativeAngleRadian(
-      V.fromPositions(center, { x: position.x1, y: position.y1 }),
-      V.fromPositions(center, { x: position.x2, y: position.y2 })
+      V.fromPositions(center, position.p1),
+      V.fromPositions(center, position.p2)
     )
     if (theta0 * theta1 < 0) {
       theta1 = v2d.reverseAngleRadian(theta1)
@@ -781,7 +781,7 @@ function createSummarizedEdgeStates(
   })
 }
 
-function makeZOrderedList<S extends { id: string, zIndex: number }, T>(
+function makeZOrderedList<S extends { id: string; zIndex: number }, T>(
   states: S[],
   zOrder: ZOrderConfig<T>,
   hovered: Reactive<Set<string>>,
