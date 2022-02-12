@@ -1,21 +1,7 @@
 import { Point2D } from "./core"
-import {
-  add,
-  angle,
-  angleDegree,
-  cross,
-  distance,
-  distanceSquared,
-  divide,
-  dot,
-  length,
-  lengthSquared,
-  multiply,
-  multiplyScalar,
-  normalize,
-  rotate,
-  subtract,
-} from "./methods"
+import { add, angle, angleDegree, cross, distance, distanceSquared, divide } from "./methods"
+import { dot, length, lengthSquared, multiply, multiplyScalar, normalize } from "./methods"
+import { rotate, subtract } from "./methods"
 
 export class Vector2D implements Point2D {
   public x: number

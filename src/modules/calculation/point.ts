@@ -1,45 +1,5 @@
-import V, { Vector2D } from "../modules/vector2d"
-import { LinePosition, Position } from "./types"
-
-export class VectorLine {
-  public source: Vector2D
-  public target: Vector2D
-  public v: Vector2D
-
-  constructor(source: Vector2D, target: Vector2D, v: Vector2D) {
-    this.source = source
-    this.target = target
-    this.v = v
-  }
-
-  static fromLinePosition(line: LinePosition): VectorLine {
-    const source = Vector2D.fromObject(line.p1)
-    const target = Vector2D.fromObject(line.p2)
-    return new VectorLine(source, target, toLineVector(source, target))
-  }
-
-  static fromPositions(sourcePos: Position, targetPos: Position): VectorLine {
-    const source = Vector2D.fromObject(sourcePos)
-    const target = Vector2D.fromObject(targetPos)
-    return new VectorLine(source, target, toLineVector(source, target))
-  }
-
-  static fromVectors(source: Vector2D, target: Vector2D): VectorLine {
-    return new VectorLine(source, target, toLineVector(source, target))
-  }
-}
-
-export function toLineVector(source: Vector2D, target: Vector2D): Vector2D {
-  return target.clone().subtract(source)
-}
-
-export function toVectorsFromLinePosition(line: LinePosition): [Vector2D, Vector2D] {
-  return [Vector2D.fromObject(line.p1), Vector2D.fromObject(line.p2)]
-}
-
-export function getCenterOfLinePosition(line: LinePosition): Vector2D {
-  return new Vector2D((line.p1.x + line.p2.x) / 2, (line.p1.y + line.p2.y) / 2)
-}
+import V, { Vector2D } from "@/modules/vector2d"
+import { VectorLine } from "./line"
 
 /**
  * Calculate the nearest point from a point to a line.
@@ -281,47 +241,4 @@ export function getIntersectionOfCircles(
   const d2 = result2.distance(near)
 
   return d1 < d2 ? result1 : result2
-}
-
-export function calculatePerpendicularLine(line: VectorLine) {
-  const n1 = line.v
-    .clone()
-    .normalize()
-    .rotate(Math.PI / 2)
-  return VectorLine.fromVectors(line.target, line.target.clone().add(n1))
-}
-
-export function calculateRelativeAngleRadian(line1: VectorLine, line2: VectorLine) {
-  return Math.atan2(
-    line1.v.y * line2.v.x - line1.v.x * line2.v.y,
-    line1.v.x * line2.v.x + line1.v.y * line2.v.y
-  )
-}
-
-export function calculateCircleCenterAndRadiusBy3Points(
-  p1: Vector2D,
-  p2: Vector2D,
-  p3: Vector2D
-): [Vector2D, number] {
-  const x1 = p1.x
-  const y1 = p1.y
-  const x2 = p2.x
-  const y2 = p2.y
-  const x3 = p3.x
-  const y3 = p3.y
-  const x12 = x1 - x2
-  const y12 = y1 - y2
-  const x32 = x3 - x2
-  const y32 = y3 - y2
-
-  const x =
-    (y32 * (x12 * (x1 + x2) + y12 * (y1 + y2)) - y12 * (x32 * (x3 + x2) + y32 * (y3 + y2))) /
-    (2 * x12 * y32 - 2 * y12 * x32)
-  const y =
-    (-x32 * (x12 * (x1 + x2) + y12 * (y1 + y2)) + x12 * (x32 * (x3 + x2) + y32 * (y3 + y2))) /
-    (2 * x12 * y32 - 2 * y12 * x32)
-
-  const radius = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2))
-  const center = new Vector2D(x, y)
-  return [center, radius]
 }

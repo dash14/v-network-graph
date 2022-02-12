@@ -3,25 +3,18 @@
 import { computed, ComputedRef, reactive, Ref, toRef, unref, UnwrapRef } from "vue"
 import { watch, watchEffect, WatchStopHandle } from "vue"
 import { inject, InjectionKey, provide } from "vue"
-import { nonNull, Reactive } from "../common/common"
-import {
-  Config,
-  Configs,
-  EdgeConfig,
-  MarkerStyle,
-  NodeConfig,
-  ZOrderConfig,
-} from "../common/configs"
-import { ShapeStyle, NodeLabelStyle, StrokeStyle } from "../common/configs"
-import { Edge, Edges, Layouts, Node, Nodes } from "../common/types"
-import { LinePosition, NodePositions, Position } from "../common/types"
-import { EdgeGroupStates } from "../common/edge-group"
-import { clearMarker, makeMarker } from "./marker"
-import * as EdgeGroup from "../common/edge-group"
-import * as v2d from "../common/2d"
-import * as VectorUtils from "../common/vector"
-import { VectorLine } from "../common/vector"
+import { nonNull, Reactive } from "@/common/common"
+import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
+import { ShapeStyle, NodeLabelStyle, StrokeStyle, ZOrderConfig } from "@/common/configs"
+import { Edge, Edges, Layouts, Node, Nodes } from "@/common/types"
+import { LinePosition, NodePositions, Position } from "@/common/types"
 import { Vector2D } from "@/modules/vector2d"
+import * as EdgeGroup from "@/modules/edge/group"
+import { EdgeGroupStates } from "@/modules/edge/group"
+import * as v2d from "@/modules/calculation/2d"
+import * as LineUtils from "@/modules/calculation/line"
+import { VectorLine } from "@/modules/calculation/line"
+import { clearMarker, makeMarker } from "./marker"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -578,7 +571,7 @@ function createEdgeState(
     const s = scale.value
 
     // calculate the line segment between the outermost of the nodes
-    state.labelPosition = v2d.applyMarginToLine(
+    state.labelPosition = LineUtils.applyMargin(
       shiftedPosition,
       sourceShapeMargin * s,
       targetShapeMargin * s
@@ -621,11 +614,11 @@ function createEdgeState(
       if (sourceMargin === 0 && targetMargin === 0) {
         state.position = state.origin
       } else {
-        state.position = v2d.applyMarginToLine(state.origin, sourceMargin * s, targetMargin * s)
+        state.position = LineUtils.applyMargin(state.origin, sourceMargin * s, targetMargin * s)
       }
     } else {
       // curve
-      state.origin = v2d.toLinePosition(source, target)
+      state.origin = LineUtils.toLinePosition(source, target)
       const shift = edgeLayoutPoint.value.groupWidth / 2 - edgeLayoutPoint.value.pointInGroup
 
       const [position, curve] = calculateCurvePositionAndState(
@@ -676,10 +669,10 @@ function calculateCurvePositionAndState(
 
   const origin = VectorLine.fromLinePosition(originPosition)
   const shifted = VectorLine.fromLinePosition(shiftedPosition)
-  const shiftedCenter = VectorUtils.getCenterOfLinePosition(shiftedPosition)
+  const shiftedCenter = LineUtils.getCenterOfLinePosition(shiftedPosition)
 
   // Calculate the center and radius of the circle of the curve.
-  const [center, radius] = VectorUtils.calculateCircleCenterAndRadiusBy3Points(
+  const [center, radius] = v2d.calculateCircleCenterAndRadiusBy3Points(
     origin.source,
     origin.target,
     shiftedCenter
@@ -693,7 +686,7 @@ function calculateCurvePositionAndState(
     if (sourceMargin === 0 && targetMargin === 0) {
       position = originPosition
     } else {
-      position = v2d.applyMarginToLine(originPosition, sourceMargin, targetMargin)
+      position = LineUtils.applyMargin(originPosition, sourceMargin, targetMargin)
     }
     return [position, curve]
   }
@@ -702,7 +695,10 @@ function calculateCurvePositionAndState(
   const centerToTop = VectorLine.fromVectors(center, shiftedCenter)
 
   // Direction of rotation from source to center:
-  const theta0 = VectorUtils.calculateRelativeAngleRadian(VectorLine.fromVectors(center, origin.source), centerToTop)
+  const theta0 = v2d.calculateRelativeAngleRadian(
+    VectorLine.fromVectors(center, origin.source),
+    centerToTop
+  )
 
   if (sourceMargin === 0 && targetMargin === 0) {
     position = originPosition
@@ -717,18 +713,18 @@ function calculateCurvePositionAndState(
       sourceMoveRad *= -1
       targetMoveRad *= -1
     }
-    position = v2d.toLinePosition(
+    position = LineUtils.toLinePosition(
       v2d.moveOnCircumference(origin.source, center, sourceMoveRad),
       v2d.moveOnCircumference(origin.target, center, -targetMoveRad)
     )
 
     // If the endpoints are swapped by applying the margin,
     // a short line is shown at the center.
-    let theta1 = VectorUtils.calculateRelativeAngleRadian(
+    let theta1 = v2d.calculateRelativeAngleRadian(
       VectorLine.fromVectors(center, origin.source),
       VectorLine.fromVectors(center, origin.target)
     )
-    let theta2 = VectorUtils.calculateRelativeAngleRadian(
+    let theta2 = v2d.calculateRelativeAngleRadian(
       VectorLine.fromPositions(center, position.p1),
       VectorLine.fromPositions(center, position.p2)
     )
@@ -741,13 +737,13 @@ function calculateCurvePositionAndState(
     if (theta1 * theta2 < 0) {
       // reversed
       const c = shiftedCenter.clone().add(shifted.v.normalize().multiplyScalar(0.5))
-      position = v2d.toLinePosition(shiftedCenter, c)
+      position = LineUtils.toLinePosition(shiftedCenter, c)
       return [position, curve]
     }
   }
 
   // Calculate the control/via points of a Bezier curve.
-  const [p1, p2] = VectorUtils.toVectorsFromLinePosition(position)
+  const [p1, p2] = LineUtils.toVectorsFromLinePosition(position)
   const control = v2d
     .calculateBezierCurveControlPoint(p1, center, p2, theta0)
     .map(p => p.toObject())
