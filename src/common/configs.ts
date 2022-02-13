@@ -120,6 +120,13 @@ export interface ZOrderConfig<T> {
   bringToFrontOnSelected: boolean
 }
 
+/* Object common config */
+
+export interface ObjectConfigs<O> {
+  selectable: CallableValue<boolean, O> | number
+  zOrder: ZOrderConfig<O>
+}
+
 /* Node style */
 
 export enum NodeLabelDirection {
