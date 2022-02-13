@@ -9,9 +9,9 @@ import { useViewConfig } from "@/composables/config"
 // [index, pos, start, end, attrs][]
 type LineDefinitions = [number, number, number, number, Record<string, any>][]
 
-const { emitter } = useEventEmitter()
 const { container, svgPanZoom } = useContainers()
 const { zoomLevel } = useZoomLevel()
+const emitter = useEventEmitter()
 const config = useViewConfig()
 
 // left-top point in SVG coordinates

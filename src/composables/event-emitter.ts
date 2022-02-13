@@ -12,8 +12,6 @@ export function provideEventEmitter(): Emitter<Events> {
   return emitter
 }
 
-export function useEventEmitter() {
-  return {
-    emitter: nonNull(inject(eventEmitterKey), "event emitter"),
-  }
+export function useEventEmitter(): Emitter<Events> {
+  return nonNull(inject(eventEmitterKey), "event emitter")
 }

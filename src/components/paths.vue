@@ -46,10 +46,10 @@ const props = defineProps({
   },
 })
 
-const pathConfig = usePathConfig()
 const { nodeStates, edgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()
-const { emitter } = useEventEmitter()
+const emitter = useEventEmitter()
+const pathConfig = usePathConfig()
 
 const pathList = computed(() => {
   const list: PathObject[] = []
