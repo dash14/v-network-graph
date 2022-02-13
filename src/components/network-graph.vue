@@ -137,7 +137,7 @@ import { provideConfigs } from "@/composables/config"
 import { provideStates } from "@/composables/state"
 import { provideMouseOperation } from "@/composables/mouse"
 import { provideEventEmitter } from "@/composables/event-emitter"
-import { provideMarkers } from "@/composables/marker"
+import { makeMarkerState } from "@/composables/marker"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
 import { provideZoomLevel } from "@/composables/zoom"
 import { bindProp, bindPropKeySet } from "@/utils/props"
@@ -453,7 +453,7 @@ export default defineComponent({
     // -----------------------------------------------------------------------
     // SVG Markers
     // -----------------------------------------------------------------------
-    const markers = provideMarkers()
+    const markerState = makeMarkerState()
 
     // -----------------------------------------------------------------------
     // Mouse processing
@@ -490,6 +490,7 @@ export default defineComponent({
       hoveredEdges,
       readonly(configs),
       currentLayouts,
+      markerState,
       scale
     )
 
@@ -602,7 +603,7 @@ export default defineComponent({
       nodeStates,
       nodeZOrderedList,
       currentSelectedNodes,
-      markers,
+      markers: markerState.markers,
       dragging,
       currentLayouts,
       visibleNodeFocusRing,

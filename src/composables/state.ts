@@ -14,7 +14,7 @@ import { EdgeGroupStates } from "@/modules/edge/group"
 import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
 import { VectorLine } from "@/modules/calculation/line"
-import { clearMarker, makeMarker } from "./marker"
+import { MarkerState, useMarker } from "./marker"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -139,6 +139,7 @@ export function provideStates(
   hoveredEdges: Reactive<Set<string>>,
   configs: Readonly<Configs>,
   layouts: Reactive<Layouts>,
+  makerState: MarkerState,
   scale: ComputedRef<number>
 ) {
   const nodeStates: NodeStates = reactive({})
@@ -227,6 +228,7 @@ export function provideStates(
       selectedEdges.has(id),
       configs.edge,
       layouts.nodes,
+      makerState,
       scale
     )
   })
@@ -293,6 +295,7 @@ export function provideStates(
           false, // selected
           configs.edge,
           layouts.nodes,
+          makerState,
           scale
         )
       }
@@ -487,8 +490,11 @@ function createEdgeState(
   selected: boolean,
   config: EdgeConfig,
   layouts: NodePositions,
+  makerState: MarkerState,
   scale: ComputedRef<number>
 ) {
+  const { makeMarker, clearMarker } = useMarker(makerState)
+
   const edge = edges.value[id]
   if (!edge) return
 
