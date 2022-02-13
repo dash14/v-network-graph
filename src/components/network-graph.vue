@@ -128,7 +128,6 @@
 <script lang="ts">
 import { defineComponent, PropType, readonly, ref, toRef } from "vue"
 import { computed, nextTick, watch } from "vue"
-import { bindProp, bindPropKeySet } from "@/common/props"
 import { EventHandlers, Nodes, Edges, Paths, Layouts, UserLayouts } from "@/common/types"
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
@@ -141,6 +140,7 @@ import { provideEventEmitter } from "@/composables/event-emitter"
 import { provideMarkers } from "@/composables/marker"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
 import { provideZoomLevel } from "@/composables/zoom"
+import { bindProp, bindPropKeySet } from "@/utils/props"
 import {
   translateFromSvgToDomCoordinates,
   translateFromDomToSvgCoordinates,

@@ -1,6 +1,6 @@
 import { watch, reactive, ref, Ref } from "vue"
 import isEqual from "lodash-es/isEqual"
-import { Reactive } from "./common"
+import { Reactive } from "../common/common"
 
 export function bindProp<T, K extends string & keyof T>(
   props: T,
