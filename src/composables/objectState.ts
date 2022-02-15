@@ -32,14 +32,23 @@ type ObjectState<S extends ObjectStateDatumBase> = UnwrapRef<S>
 type PartiallyPartial<T, K extends keyof T> = Pick<T, K> & Partial<Omit<T, K>>
 type NewStateDatum<T extends ObjectStateDatumBase> = PartiallyPartial<T, keyof ObjectStateDatumBase>
 
-export function useObjectState<T, S extends ObjectStateDatumBase>(
+export function useObjectState<
+  T,
+  S extends ObjectStateDatumBase,
+  E extends { id: string; zIndex: number } = ObjectState<S>
+>(
   input: Ref<InputObjects<T>>,
   config: ObjectConfigs<T>,
   selected: Reactive<Set<string>>,
   hovered: Reactive<Set<string>>,
   createState: (obj: Ref<Objects<T>>, id: string, state: NewStateDatum<S>) => void,
-  terminateState?: (id: string, state: ObjectState<S>) => void
-) {
+  terminateState?: (id: string, state: ObjectState<S>) => void,
+  entriesForZOrder?: () => E[]
+): {
+  objects: Ref<Objects<T>>
+  states: Record<string, ObjectState<S>>
+  zOrderedList: ComputedRef<E[]>
+} {
   // Target object translation
   const objects: Ref<Objects<T>> = ref({})
   watch(
@@ -119,15 +128,11 @@ export function useObjectState<T, S extends ObjectStateDatumBase>(
   // z-order
   // z-index applied Object List
   const zOrderedList = computed(() => {
+    const list: E[] = entriesForZOrder ? entriesForZOrder() : (Object.values(states) as E[])
     if (config.zOrder.enabled) {
-      return makeZOrderedList(
-        Object.values(states),
-        config.zOrder,
-        hovered,
-        selected
-      )
+      return makeZOrderedList(list, config.zOrder, hovered, selected)
     } else {
-      return Object.values(states)
+      return list
     }
   })
 
