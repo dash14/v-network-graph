@@ -6,11 +6,12 @@ import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
 import { StrokeStyle } from "@/common/configs"
-import { Edge, Edges, Layouts, Node, Nodes, NodePositions } from "@/common/types"
+import { Edge, Edges, Layouts, Node, Nodes, NodePositions, Path, Paths } from "@/common/types"
 import { LinePosition } from "@/common/types"
 import * as NodeModel from "@/models/node"
 import * as EdgeModel from "@/models/edge"
 import * as EdgeGroup from "@/modules/edge/group"
+import * as PathModel from "@/models/path"
 import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
 import { VectorLine } from "@/modules/calculation/line"
@@ -32,12 +33,32 @@ interface States {
   edgeStates: EdgeModel.EdgeStates
   edgeGroupStates: EdgeModel.EdgeGroupStates
   summarizedEdgeStates: EdgeModel.SummarizedEdgeStates
+  pathStates: PathModel.PathStates
   nodeZOrderedList: ComputedRef<NodeModel.NodeState[]>
   edgeZOrderedList: ComputedRef<EdgeModel.EdgeEntry[]>
+  pathZOrderedList: ComputedRef<PathModel.PathState[]>
   layouts: Layouts
 }
 
 export type ReadonlyStates = Readonly<States>
+
+interface InputObjects<T> {
+  objects: Ref<T>
+  selected: Reactive<Set<string>>
+  hovered: Reactive<Set<string>>
+}
+
+export function makeStateInput<T>(
+  objects: Ref<T>,
+  selected: Reactive<Set<string>>,
+  hovered: Reactive<Set<string>>
+) {
+  return {
+    objects,
+    selected,
+    hovered,
+  }
+}
 
 // -----------------------------------------------------------------------
 // Constants
@@ -59,12 +80,9 @@ const NONE_MARKER: MarkerStyle = {
 // -----------------------------------------------------------------------
 
 export function provideStates(
-  nodes: Ref<Nodes>,
-  edges: Ref<Edges>,
-  selectedNodes: Reactive<Set<string>>,
-  selectedEdges: Reactive<Set<string>>,
-  hoveredNodes: Reactive<Set<string>>,
-  hoveredEdges: Reactive<Set<string>>,
+  nodes: InputObjects<Nodes>,
+  edges: InputObjects<Edges>,
+  paths: InputObjects<Paths>,
   configs: Readonly<Configs>,
   layouts: Reactive<Layouts>,
   makerState: MarkerState,
@@ -80,10 +98,10 @@ export function provideStates(
     states: nodeStates,
     zOrderedList: nodeZOrderedList, //
   } = useObjectState<Node, NodeModel.NodeStateDatum, NodeModel.NodeState>(
-    nodes,
+    nodes.objects,
     configs.node,
-    selectedNodes,
-    hoveredNodes,
+    nodes.selected,
+    nodes.hovered,
     (nodes, id, newState) => {
       createNewNodeState(nodes, id, newState as NodeModel.NodeStateDatum, configs.node)
     },
@@ -98,7 +116,7 @@ export function provideStates(
   // -----------------------------------------------------------------------
 
   // grouping
-  const edgeGroupStates = EdgeGroup.makeEdgeGroupStates(nodes, edges, configs)
+  const edgeGroupStates = EdgeGroup.makeEdgeGroupStates(nodes.objects, edges.objects, configs)
 
   // edge entries for applying z-order
   const edgeEntries = ref<EdgeModel.EdgeEntry[]>([])
@@ -107,10 +125,10 @@ export function provideStates(
     states: edgeStates,
     zOrderedList: edgeZOrderedList, //
   } = useObjectState<Edge, EdgeModel.EdgeStateDatum, EdgeModel.EdgeEntry>(
-    edges,
+    edges.objects,
     configs.edge,
-    selectedEdges,
-    hoveredEdges,
+    edges.selected,
+    edges.hovered,
     (edges, id, newState) => {
       createNewEdgeState(
         edges,
@@ -141,14 +159,46 @@ export function provideStates(
     { immediate: true }
   )
 
+  // -----------------------------------------------------------------------
+  // States for paths
+  // -----------------------------------------------------------------------
+
+  const {
+    states: pathStates,
+    zOrderedList: pathZOrderedList, //
+  } = useObjectState<Path, PathModel.PathStateDatum, PathModel.PathState>(
+    paths.objects,
+    configs.path,
+    paths.selected,
+    paths.hovered,
+    (paths, id, newState) => {
+      const state = newState as PathModel.PathStateDatum
+
+      state.clickable = computed(() => {
+        if (!paths.value[id]) return false
+        return Config.value(configs.path.clickable, paths.value[id])
+      })
+
+      state.path = paths.value[id]
+      state.edges = computed(() => {
+        const path = paths.value[id]
+        return path.edges
+          .map(edgeId => ({ edgeId, edge: edges.objects.value[edgeId] }))
+          .filter(e => e.edge)
+      })
+    }
+  )
+
   const states = <States>{
     nodeStates,
     edgeStates,
     edgeGroupStates,
     summarizedEdgeStates,
+    pathStates,
     layouts,
     nodeZOrderedList,
     edgeZOrderedList,
+    pathZOrderedList,
   }
   provide(statesKey, states)
   return states

@@ -101,7 +101,7 @@ export interface Path {
   [x: string]: any
 }
 
-export type Paths = Path[]
+export type Paths = Record<string, Path>
 
 // line: point | curve: [control-point, control-point, target-point] | move to next point: null
 export type PositionOrCurve = Position | Position[] | null

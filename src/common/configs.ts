@@ -239,7 +239,7 @@ export type PathEndType = "centerOfNode" | "edgeOfNode"
 
 export interface PathConfig<P extends Path = Path> {
   visible: boolean
-  clickable: boolean
+  clickable: CallableValue<boolean, P>
   curveInNode: boolean
   end: PathEndType
   margin: CallableValue<number, P>

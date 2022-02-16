@@ -15,11 +15,13 @@ export interface PathStateDatum {
   selectable: ComputedRef<boolean | number>
   zIndex: ComputedRef<number>
 
+  clickable: ComputedRef<boolean>
   path: Path
   edges: ComputedRef<EdgeObject[]>
 }
 
 export type PathState = UnwrapRef<PathStateDatum>
+export type PathStates = Record<string, PathState>
 
 export interface EdgeLine {
   edgeId: string

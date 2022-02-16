@@ -1,11 +1,9 @@
 // Management states of objects
-// - selected
-// - hover
-import { computed, ComputedRef, reactive, ref, Ref, toRef, unref, UnwrapRef, watch } from "vue"
+
+import { computed, ComputedRef, reactive, Ref, unref, UnwrapRef, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { InputObjects } from "@/common/types"
 import { Config, ObjectConfigs, ZOrderConfig } from "@/common/configs"
-import { updateObjectDiff } from "@/utils/object"
 
 export function isInputRecordType<T>(input: InputObjects<T>): input is Record<string, T> {
   return !(input instanceof Array)
@@ -30,7 +28,7 @@ export function useObjectState<
   S extends ObjectStateDatumBase,
   E extends { id: string; zIndex: number } = ObjectState<S>
 >(
-  input: Ref<InputObjects<T>>,
+  objects: Ref<Record<string, T>>,
   config: ObjectConfigs<T>,
   selected: Reactive<Set<string>>,
   hovered: Reactive<Set<string>>,
@@ -38,24 +36,9 @@ export function useObjectState<
   terminateState?: (id: string, state: ObjectState<S>) => void,
   entriesForZOrder?: () => E[]
 ): {
-  objects: Ref<Objects<T>>
   states: Record<string, ObjectState<S>>
   zOrderedList: ComputedRef<E[]>
 } {
-  // Target object translation
-  const objects: Ref<Objects<T>> = ref({})
-  watch(
-    () => (input.value instanceof Array ? input.value : Object.keys(input.value)),
-    () => {
-      if (isInputRecordType(input.value)) {
-        objects.value = input.value
-      } else {
-        updateObjectDiff(objects.value, Object.fromEntries(input.value.map(i => [i.id, i])))
-      }
-    },
-    { immediate: true }
-  )
-
   // Object states
   const states: Record<string, ObjectState<S>> = reactive({})
 
@@ -129,7 +112,7 @@ export function useObjectState<
     }
   })
 
-  return { objects, states, zOrderedList }
+  return { states, zOrderedList }
 }
 
 function createNewState<T, S extends ObjectStateDatumBase>(
