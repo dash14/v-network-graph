@@ -244,6 +244,8 @@ export interface PathConfig<P extends Path = Path> {
   end: PathEndType
   margin: CallableValue<number, P>
   path: CallableValues<PathStrokeStyle, P>
+  selectable: CallableValue<boolean, P> | number
+  zOrder: ZOrderConfig<P>
   transition?: string
 }
 

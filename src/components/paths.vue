@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue"
-import { Edge, Edges, NodePositions, Path, Paths, PositionOrCurve } from "@/common/types"
+import { computed, ComputedRef, PropType, ref, UnwrapRef, watchEffect } from "vue"
+import { Edge, Edges, NodePositions, Path, InputPaths, PositionOrCurve } from "@/common/types"
 import { findFirstNonNull } from "@/utils/collection"
-import { Config } from "@/common/configs"
 import { EdgeStates, NodeStates, useStates, EdgeState, Curve } from "@/composables/state"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { useEventEmitter } from "@/composables/event-emitter"
-import { AnyShapeStyle, PathEndType } from "@/common/configs"
+import { Reactive } from "@/common/common"
+import { AnyShapeStyle, Config, PathEndType } from "@/common/configs"
+import { useObjectState } from "@/composables/objectState"
 import * as v2d from "@/modules/calculation/2d"
 import * as PointUtils from "@/modules/calculation/point"
 import { VectorLine } from "@/modules/calculation/line"
@@ -20,10 +21,18 @@ interface EdgeObject {
   edge: Edge
 }
 
-interface PathObject {
+interface PathStateDatum {
+  id: string
+  selected: boolean
+  hovered: boolean
+  selectable: ComputedRef<boolean | number>
+  zIndex: ComputedRef<number>
+
   path: Path
-  edges: EdgeObject[]
+  edges: ComputedRef<EdgeObject[]>
 }
+
+type PathState = UnwrapRef<PathStateDatum>
 
 interface EdgeLine {
   edgeId: string
@@ -37,7 +46,7 @@ const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
 
 const props = defineProps({
   paths: {
-    type: Array as PropType<Paths>,
+    type: [Array, Object] as PropType<InputPaths>,
     required: true,
   },
   edges: {
@@ -51,21 +60,76 @@ const { scale } = useZoomLevel()
 const emitter = useEventEmitter()
 const pathConfig = usePathConfig()
 
-const pathList = computed(() => {
-  const list: PathObject[] = []
-  for (const path of props.paths) {
-    const edges = path.edges
-      .map(edgeId => ({ edgeId, edge: props.edges[edgeId] }))
-      .filter(e => e.edge)
-    if (edges.length !== path.edges.length) {
-      continue // reject a path includes unknown edge ID
+let nextId = 1
+const idStore = new Map<Path, string>()
+
+const compatibilityMode = ref(false)
+const pathObjects = ref<Record<string, Path>>({})
+
+// translate for compatibility
+watchEffect(() => {
+  if (props.paths instanceof Array) {
+    const containKeys = new Set<string>([])
+    pathObjects.value = Object.fromEntries(
+      props.paths.map(path => {
+        let id = path.id
+        if (!id) {
+          if (!compatibilityMode.value) {
+            compatibilityMode.value = true
+            console.warn(
+              "Please specify the `id` field for the `Path` object." +
+                " Currently, this works for compatibility," +
+                " but in the future, the id field will be required."
+            )
+          }
+          id = idStore.get(path)
+          if (!id) {
+            id = "path-" + nextId++
+            idStore.set(path, id)
+          }
+        }
+        containKeys.add(id)
+        return [id, path]
+      })
+    )
+    if (compatibilityMode.value) {
+      for (const [path, id] of Array.from(idStore.entries())) {
+        if (!containKeys.has(id)) {
+          idStore.delete(path)
+        }
+      }
     }
-    list.push({ path, edges })
+  } else {
+    pathObjects.value = Object.fromEntries(
+      Object.entries(props.paths).map(([id, path]) => {
+        return [id, path]
+      })
+    )
   }
-  return list
 })
 
-const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
+const selectedPaths = Reactive<Set<string>>(new Set())
+const hoveredPaths = Reactive<Set<string>>(new Set())
+
+const {
+  states: pathStates,
+  zOrderedList: pathZOrderedList, //
+} = useObjectState<Path, PathStateDatum, PathState>(
+  pathObjects,
+  pathConfig,
+  selectedPaths,
+  hoveredPaths,
+  (paths, id, newState) => {
+    const state = newState as PathStateDatum
+    state.path = paths.value[id]
+    state.edges = computed(() => {
+      const path = paths.value[id]
+      return path.edges.map(edgeId => ({ edgeId, edge: props.edges[edgeId] })).filter(e => e.edge)
+    })
+  }
+)
+
+const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
   if (path.edges.length === 0) return []
   const margin = Config.value(pathConfig.margin, path.path) * scale.value
   return _calculatePathPoints(
@@ -80,19 +144,38 @@ const calcPathPoints = computed(() => (path: PathObject): PositionOrCurve[] => {
   )
 })
 
-const emitPathClickedEvent = (path: Path, event: MouseEvent) => {
+const emitPathClickedEvent = (path: PathState, event: MouseEvent) => {
   if (!pathConfig.clickable) return
-  emitter.emit("path:click", { path, event })
+  event.stopPropagation()
+  event.preventDefault()
+
+  if (compatibilityMode.value) {
+    emitter.emit("path:click", { path: path.path as any, event })
+  } else {
+    emitter.emit("path:click", { path: path.id, event })
+  }
 }
 
-const emitPathDoubleClickedEvent = (path: Path, event: MouseEvent) => {
+const emitPathDoubleClickedEvent = (path: PathState, event: MouseEvent) => {
   if (!pathConfig.clickable) return
-  emitter.emit("path:dblclick", { path, event })
+  event.stopPropagation()
+  event.preventDefault()
+
+  if (compatibilityMode.value) {
+    emitter.emit("path:dblclick", { path: path.path as any, event })
+  } else {
+    emitter.emit("path:dblclick", { path: path.id, event })
+  }
 }
 
-const emitPathContextMenuEvent = (path: Path, event: MouseEvent) => {
+const emitPathContextMenuEvent = (path: PathState, event: MouseEvent) => {
   if (!pathConfig.clickable) return
-  emitter.emit("path:contextmenu", { path, event })
+
+  if (compatibilityMode.value) {
+    emitter.emit("path:contextmenu", { path: path.path as any, event })
+  } else {
+    emitter.emit("path:contextmenu", { path: path.id, event })
+  }
 }
 
 function stopPointerEventPropagation(event: PointerEvent) {
@@ -104,7 +187,7 @@ function stopPointerEventPropagation(event: PointerEvent) {
 }
 
 function _calculatePathPoints(
-  path: PathObject,
+  path: PathState,
   nodeStates: NodeStates,
   nodeLayouts: NodePositions,
   edgeStates: EdgeStates,
@@ -197,8 +280,7 @@ function _calculatePathPoints(
           // the prev line intersects [α] and [β]:
           // Of [α]x[line], [β]x[line], use the one closer to [X] as the transit point.
           p1 =
-            V.distance(crossPoint, prevCoreIp) <
-            V.distance(crossPoint, prevNodeIp)
+            V.distance(crossPoint, prevCoreIp) < V.distance(crossPoint, prevNodeIp)
               ? prevCoreIp
               : prevNodeIp
         } else {
@@ -210,8 +292,7 @@ function _calculatePathPoints(
           // the next line intersects with [α] and [β]:
           // Of [α]x[line], [β]x[line], use the one closer to [X] as the transit point.
           p2 =
-            V.distance(crossPoint, nextCoreIp) <
-            V.distance(crossPoint, nextNodeIp)
+            V.distance(crossPoint, nextCoreIp) < V.distance(crossPoint, nextNodeIp)
               ? nextCoreIp
               : nextNodeIp
         } else {
@@ -555,7 +636,7 @@ function _getSlope(pos: VectorLine) {
 
 defineExpose({
   pathConfig,
-  pathList,
+  pathZOrderedList,
   calcPathPoints,
   emitPathClickedEvent,
   emitPathContextMenuEvent,
@@ -570,15 +651,15 @@ defineExpose({
     class="v-paths"
   >
     <v-path-line
-      v-for="(path, i) in pathList"
-      :key="i"
+      v-for="path in pathZOrderedList"
+      :key="path.id"
       :points="calcPathPoints(path)"
       :class="{ clickable: pathConfig.clickable }"
       :path="path.path"
       @pointerdown="stopPointerEventPropagation($event)"
-      @click.prevent.stop="emitPathClickedEvent(path.path, $event)"
-      @dblclick.prevent.stop="emitPathDoubleClickedEvent(path.path, $event)"
-      @contextmenu="emitPathContextMenuEvent(path.path, $event)"
+      @click="emitPathClickedEvent(path, $event)"
+      @dblclick="emitPathDoubleClickedEvent(path, $event)"
+      @contextmenu="emitPathContextMenuEvent(path, $event)"
     />
   </transition-group>
 </template>

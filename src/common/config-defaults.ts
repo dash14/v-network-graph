@@ -248,6 +248,13 @@ export function getConfigDefaults(): Configs {
         animate: false,
         animationSpeed: 50,
       },
+      selectable: false,
+      zOrder: {
+        enabled: false,
+        zIndex: 0,
+        bringToFrontOnHover: true,
+        bringToFrontOnSelected: true
+      },
       transition: undefined
     },
   }

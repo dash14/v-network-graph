@@ -3,18 +3,11 @@
 // - hover
 import { computed, ComputedRef, reactive, ref, Ref, toRef, unref, UnwrapRef, watch } from "vue"
 import { Reactive } from "@/common/common"
+import { InputObjects } from "@/common/types"
 import { Config, ObjectConfigs, ZOrderConfig } from "@/common/configs"
 import { updateObjectDiff } from "@/utils/object"
 
-/** An object with a field named id */
-interface IdentifiedObject {
-  id: string
-}
-
-/** Supported formats as input (Object or Array) */
-type InputObjects<T> = Record<string, T> | (IdentifiedObject & T)[]
-
-function isInputRecordType<T>(input: InputObjects<T>): input is Record<string, T> {
+export function isInputRecordType<T>(input: InputObjects<T>): input is Record<string, T> {
   return !(input instanceof Array)
 }
 
