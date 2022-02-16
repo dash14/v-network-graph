@@ -1,16 +1,16 @@
 // the states of nodes and edges
 
-import { computed, ComputedRef, reactive, ref, Ref, toRef, unref, UnwrapRef } from "vue"
-import { watch, watchEffect, WatchStopHandle } from "vue"
+import { computed, ComputedRef, reactive, ref, Ref, toRef, unref } from "vue"
+import { watch, watchEffect } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
-import { ShapeStyle, NodeLabelStyle, StrokeStyle } from "@/common/configs"
+import { StrokeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, NodePositions } from "@/common/types"
-import { LinePosition, Position } from "@/common/types"
-import { Vector2D } from "@/modules/vector2d"
+import { LinePosition } from "@/common/types"
+import * as NodeModel from "@/models/node"
+import * as EdgeModel from "@/models/edge"
 import * as EdgeGroup from "@/modules/edge/group"
-import { EdgeGroupStates } from "@/modules/edge/group"
 import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
 import { VectorLine } from "@/modules/calculation/line"
@@ -21,93 +21,19 @@ import { useObjectState } from "./objectState"
 // Type definitions
 // -----------------------------------------------------------------------
 
-export type { EdgeGroupStates }
+export type { EdgeGroupStates } from "@/models/edge"
 
 // States of nodes
-
-export interface NodeStateDatum {
-  id: string
-  shape: ComputedRef<ShapeStyle>
-  staticShape: ComputedRef<ShapeStyle>
-  label: ComputedRef<NodeLabelStyle>
-  labelText: ComputedRef<string>
-  selected: boolean
-  hovered: boolean
-  draggable: ComputedRef<boolean>
-  selectable: ComputedRef<boolean | number>
-  zIndex: ComputedRef<number>
-}
-
-export type NodeState = UnwrapRef<NodeStateDatum>
-export type NodeStates = Record<string, NodeState>
-
-// States of edges
-interface Line {
-  stroke: StrokeStyle
-  normalWidth: number // stroke width when not hovered
-  source: MarkerStyle
-  target: MarkerStyle
-}
-
-export interface Curve {
-  center: Vector2D
-  theta: number // theta: direction of source to center
-  circle: {
-    center: Vector2D
-    radius: number
-  }
-  control: Position[]
-}
-
-interface EdgeStateDatum {
-  id: string
-  line: Ref<Line>
-  selectable: ComputedRef<boolean | number>
-  selected: boolean
-  hovered: boolean
-  origin: LinePosition // line segment between center of nodes
-  labelPosition: LinePosition // line segment between the outermost of the nodes for labels
-  position: LinePosition // line segments to be displayed with margins applied
-  curve?: Curve
-  sourceMarkerId?: string
-  targetMarkerId?: string
-  zIndex: ComputedRef<number>
-  stopWatchHandle: WatchStopHandle
-}
-
-interface SummarizedEdgeStateDatum {
-  stroke: Ref<StrokeStyle>
-}
-
-export type EdgeState = UnwrapRef<EdgeStateDatum>
-export type EdgeStates = Record<string, EdgeState>
-export type SummarizedEdgeState = UnwrapRef<SummarizedEdgeStateDatum>
-export type SummarizedEdgeStates = Record<string, SummarizedEdgeState>
-
-// Edge item for display (an edge or summarized edges)
-interface EdgeItem {
-  id: string
-  summarized: boolean
-  key: string
-  zIndex: number
-}
-interface SummarizedEdgeItem extends EdgeItem {
-  group: EdgeGroup.EdgeGroup
-}
-interface SingleEdgeItem extends EdgeItem {
-  edge: Edge
-}
-type EdgeEntry = SummarizedEdgeItem | SingleEdgeItem
 
 // Provide states
 
 interface States {
-  nodeStates: NodeStates
-  edgeStates: EdgeStates
-  edgeGroupStates: EdgeGroupStates
-  summarizedEdgeStates: SummarizedEdgeStates
-  nodeZOrderedList: ComputedRef<NodeState[]>
-  edgeZOrderedList: ComputedRef<EdgeEntry[]>
+  nodeStates: NodeModel.NodeStates
+  edgeStates: EdgeModel.EdgeStates
+  edgeGroupStates: EdgeModel.EdgeGroupStates
+  summarizedEdgeStates: EdgeModel.SummarizedEdgeStates
+  nodeZOrderedList: ComputedRef<NodeModel.NodeState[]>
+  edgeZOrderedList: ComputedRef<EdgeModel.EdgeEntry[]>
   layouts: Layouts
 }
 
@@ -144,7 +70,7 @@ export function provideStates(
   makerState: MarkerState,
   scale: ComputedRef<number>
 ) {
-  const summarizedEdgeStates: SummarizedEdgeStates = reactive({})
+  const summarizedEdgeStates: EdgeModel.SummarizedEdgeStates = reactive({})
 
   // -----------------------------------------------------------------------
   // States for nodes
@@ -153,13 +79,13 @@ export function provideStates(
   const {
     states: nodeStates,
     zOrderedList: nodeZOrderedList, //
-  } = useObjectState<Node, NodeStateDatum, NodeState>(
+  } = useObjectState<Node, NodeModel.NodeStateDatum, NodeModel.NodeState>(
     nodes,
     configs.node,
     selectedNodes,
     hoveredNodes,
     (nodes, id, newState) => {
-      createNewNodeState(nodes, id, newState as NodeStateDatum, configs.node)
+      createNewNodeState(nodes, id, newState as NodeModel.NodeStateDatum, configs.node)
     },
     (nodeId, _state) => {
       const positions = layouts.nodes
@@ -175,12 +101,12 @@ export function provideStates(
   const edgeGroupStates = EdgeGroup.makeEdgeGroupStates(nodes, edges, configs)
 
   // edge entries for applying z-order
-  const edgeEntries = ref<EdgeEntry[]>([])
+  const edgeEntries = ref<EdgeModel.EdgeEntry[]>([])
 
   const {
     states: edgeStates,
     zOrderedList: edgeZOrderedList, //
-  } = useObjectState<Edge, EdgeStateDatum, EdgeEntry>(
+  } = useObjectState<Edge, EdgeModel.EdgeStateDatum, EdgeModel.EdgeEntry>(
     edges,
     configs.edge,
     selectedEdges,
@@ -189,7 +115,7 @@ export function provideStates(
       createNewEdgeState(
         edges,
         id,
-        newState as EdgeStateDatum,
+        newState as EdgeModel.EdgeStateDatum,
         configs.edge,
         makerState,
         nodeStates,
@@ -228,7 +154,7 @@ export function provideStates(
   return states
 }
 
-export function isSummarizedEdges(item: EdgeItem): item is SummarizedEdgeItem {
+export function isSummarizedEdges(item: EdgeModel.EdgeItem): item is EdgeModel.SummarizedEdgeItem {
   return item.summarized
 }
 
@@ -260,7 +186,7 @@ function getNodeStaticShape(node: Node, selected: boolean, config: NodeConfig) {
 function createNewNodeState(
   nodes: Ref<Nodes>,
   id: string,
-  state: NodeStateDatum,
+  state: NodeModel.NodeStateDatum,
   config: NodeConfig
 ) {
   state.shape = computed(() => {
@@ -314,17 +240,17 @@ function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
 function createNewEdgeState(
   edges: Ref<Edges>,
   id: string,
-  state: EdgeStateDatum,
+  state: EdgeModel.EdgeStateDatum,
   config: EdgeConfig,
   makerState: MarkerState,
-  nodeStates: NodeStates,
-  edgeGroupStates: Reactive<EdgeGroup.EdgeGroupStates>,
+  nodeStates: NodeModel.NodeStates,
+  edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
   layouts: NodePositions,
   scale: Ref<number>
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
-  const line = computed<Line>(() => {
+  const line = computed<EdgeModel.Line>(() => {
     const edge = edges.value[id]
     const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
     // Minimum error checking required for drawing
@@ -472,13 +398,13 @@ function createNewEdgeState(
 }
 
 function createEdgeEntries(
-  edgeGroups: Record<string, EdgeGroup.EdgeGroup>,
-  edgeStates: EdgeStates
+  edgeGroups: Record<string, EdgeModel.EdgeGroup>,
+  edgeStates: EdgeModel.EdgeStates
 ) {
   return Object.entries(edgeGroups)
     .map(([key, group]) => {
       if (group.summarize) {
-        return <SummarizedEdgeItem>{
+        return <EdgeModel.SummarizedEdgeItem>{
           id: Object.keys(group.edges)[0] ?? key,
           summarized: true,
           key,
@@ -490,7 +416,7 @@ function createEdgeEntries(
       } else {
         return Object.entries(group.edges).map(
           ([id, edge]) =>
-            <SingleEdgeItem>{
+            <EdgeModel.SingleEdgeItem>{
               id,
               summarized: false,
               key: id,
@@ -509,7 +435,7 @@ function calculateCurvePositionAndState(
   shift: number,
   sourceMargin: number,
   targetMargin: number
-): [LinePosition, Curve | undefined] {
+): [LinePosition, EdgeModel.Curve | undefined] {
   // The curve is assumed to be part of a perfect circle and is drawn
   // as a Bezier curve.
 
@@ -525,7 +451,7 @@ function calculateCurvePositionAndState(
   )
 
   let position: LinePosition
-  let curve: Curve | undefined = undefined
+  let curve: EdgeModel.Curve | undefined = undefined
 
   if (shift === 0) {
     // The line connecting the centers of the nodes is regarded as a straight line.
@@ -604,8 +530,8 @@ function calculateCurvePositionAndState(
 }
 
 function createSummarizedEdgeStates(
-  summarizedEdgeStates: SummarizedEdgeStates,
-  edgeGroupStates: Reactive<EdgeGroupStates>,
+  summarizedEdgeStates: EdgeModel.SummarizedEdgeStates,
+  edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
   configs: Configs
 ) {
   const groups = edgeGroupStates.edgeGroups

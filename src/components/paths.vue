@@ -1,48 +1,16 @@
 <script setup lang="ts">
-import { computed, ComputedRef, PropType, ref, UnwrapRef, watchEffect } from "vue"
-import { Edge, Edges, NodePositions, Path, InputPaths, PositionOrCurve } from "@/common/types"
-import { findFirstNonNull } from "@/utils/collection"
-import { EdgeStates, NodeStates, useStates, EdgeState, Curve } from "@/composables/state"
+import { computed, PropType, ref, watchEffect } from "vue"
+import { Edges, Path, InputPaths, PositionOrCurve } from "@/common/types"
+import { Reactive } from "@/common/common"
+import { Config } from "@/common/configs"
+import { PathState, PathStateDatum } from "@/models/path"
+import { useStates } from "@/composables/state"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { useEventEmitter } from "@/composables/event-emitter"
-import { Reactive } from "@/common/common"
-import { AnyShapeStyle, Config, PathEndType } from "@/common/configs"
 import { useObjectState } from "@/composables/objectState"
-import * as v2d from "@/modules/calculation/2d"
-import * as PointUtils from "@/modules/calculation/point"
-import { VectorLine } from "@/modules/calculation/line"
-import * as LineUtils from "@/modules/calculation/line"
-import V, { Vector2D } from "@/modules/vector2d"
+import { calculatePathPoints } from "@/modules/calculation/path"
 import VPathLine from "./path-line.vue"
-
-interface EdgeObject {
-  edgeId: string
-  edge: Edge
-}
-
-interface PathStateDatum {
-  id: string
-  selected: boolean
-  hovered: boolean
-  selectable: ComputedRef<boolean | number>
-  zIndex: ComputedRef<number>
-
-  path: Path
-  edges: ComputedRef<EdgeObject[]>
-}
-
-type PathState = UnwrapRef<PathStateDatum>
-
-interface EdgeLine {
-  edgeId: string
-  source: string
-  target: string
-  line: VectorLine
-  curve?: Curve
-}
-
-const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
 
 const props = defineProps({
   paths: {
