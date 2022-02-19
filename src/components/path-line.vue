@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, PropType } from "vue"
-import { Path, PositionOrCurve } from "@/common/types"
+import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
+import { PathState } from "@/models/path"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
@@ -13,7 +14,7 @@ const props = defineProps({
     required: true,
   },
   path: {
-    type: Object as PropType<Path>,
+    type: Object as PropType<PathState>,
     required: true,
   }
 })
@@ -45,7 +46,14 @@ const d = computed(() => {
 })
 
 const config = computed(() => {
-  return Config.values(pathConfig.path, props.path)
+  const state = props.path
+  if (state.selected) {
+    return Config.values(pathConfig.selected, state.path)
+  } else if (state.hovered && pathConfig.hover) {
+    return Config.values(pathConfig.hover, state.path)
+  } else {
+    return Config.values(pathConfig.normal, state.path)
+  }
 })
 
 const strokeDasharray = computed(() => {

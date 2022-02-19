@@ -2,8 +2,8 @@
 import { computed, PropType, reactive, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/configs"
+import { NodeState } from "@/models/node"
 import { useNodeConfig } from "@/composables/config"
-import { NodeState } from "@/composables/state"
 import VShape from "./shape.vue"
 
 const props = defineProps({

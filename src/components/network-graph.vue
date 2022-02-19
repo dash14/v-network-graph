@@ -115,7 +115,7 @@
           <slot :name="layerName" :scale="scale" />
         </g>
 
-        <v-paths v-if="visiblePaths" :paths="paths" :edges="edges" />
+        <v-paths v-if="visiblePaths" />
 
         <g v-for="layerName in layerDefs['paths']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
@@ -128,23 +128,28 @@
 <script lang="ts">
 import { defineComponent, PropType, readonly, ref, toRef } from "vue"
 import { computed, nextTick, watch } from "vue"
-import { EventHandlers, Nodes, Edges, Paths, Layouts, UserLayouts } from "@/common/types"
+import {
+  EventHandlers,
+  InputNodes,
+  InputEdges,
+  InputPaths,
+  Layouts,
+  UserLayouts,
+} from "@/common/types"
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs } from "@/common/configs"
 import { provideContainers } from "@/composables/container"
 import { provideConfigs } from "@/composables/config"
-import { provideStates } from "@/composables/state"
+import { provideStates, makeStateInput } from "@/composables/state"
 import { provideMouseOperation } from "@/composables/mouse"
 import { provideEventEmitter } from "@/composables/event-emitter"
 import { makeMarkerState } from "@/composables/marker"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
 import { provideZoomLevel } from "@/composables/zoom"
+import { useTranslateToObject, useTranslatePathsToObject } from "@/composables/object"
 import { bindProp, bindPropKeySet } from "@/utils/props"
-import {
-  translateFromSvgToDomCoordinates,
-  translateFromDomToSvgCoordinates,
-} from "@/utils/svg"
+import { translateFromSvgToDomCoordinates, translateFromDomToSvgCoordinates } from "@/utils/svg"
 import VNode from "./node.vue"
 import VNodeFocusRing from "./node-focus-ring.vue"
 import VEdgeGroups from "./edge-groups.vue"
@@ -177,11 +182,15 @@ export default defineComponent({
   },
   props: {
     nodes: {
-      type: Object as PropType<Nodes>,
+      type: [Object, Array] as PropType<InputNodes>,
       default: () => ({}),
     },
     edges: {
-      type: Object as PropType<Edges>,
+      type: [Object, Array] as PropType<InputEdges>,
+      default: () => ({}),
+    },
+    paths: {
+      type: [Object, Array] as PropType<InputPaths>,
       default: () => ({}),
     },
     layouts: {
@@ -200,13 +209,13 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    selectedPaths: {
+      type: Array as PropType<string[]>,
+      default: () => [],
+    },
     configs: {
       type: Object as PropType<UserConfigs>,
       default: () => ({}),
-    },
-    paths: {
-      type: Array as PropType<Paths>,
-      default: () => [],
     },
     layers: {
       type: Object as PropType<Layers>,
@@ -221,10 +230,19 @@ export default defineComponent({
       default: () => ({}),
     },
   },
-  emits: ["update:zoomLevel", "update:selectedNodes", "update:selectedEdges", "update:layouts"],
+  emits: [
+    "update:zoomLevel",
+    "update:selectedNodes",
+    "update:selectedEdges",
+    "update:selectedPaths",
+    "update:layouts",
+  ],
   setup(props, { emit, slots }) {
-    const nodesRef = toRef(props, "nodes")
-    const edgesRef = toRef(props, "edges")
+    const nodesRef = useTranslateToObject(toRef(props, "nodes"))
+    const edgesRef = useTranslateToObject(toRef(props, "edges"))
+    const { objects: pathsRef, isInCompatibilityModeForPath } = useTranslatePathsToObject(
+      toRef(props, "paths")
+    )
 
     // Event Bus
     const emitter = provideEventEmitter()
@@ -315,18 +333,20 @@ export default defineComponent({
 
     // Observe container resizing
     const rectSize = { width: 0, height: 0 }
-    const resizeObserver = globalThis.ResizeObserver ? new ResizeObserver(() => {
-      svgPanZoom.value?.resize()
-      const r = container.value?.getBoundingClientRect()
-      if (r) {
-        const x = -(rectSize.width - r.width) / 2
-        const y = -(rectSize.height - r.height) / 2
-        svgPanZoom.value?.panBy({ x, y })
-        const { width, height } = r
-        Object.assign(rectSize, { width, height })
-        emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
-      }
-    }) : undefined
+    const resizeObserver = globalThis.ResizeObserver
+      ? new ResizeObserver(() => {
+          svgPanZoom.value?.resize()
+          const r = container.value?.getBoundingClientRect()
+          if (r) {
+            const x = -(rectSize.width - r.width) / 2
+            const y = -(rectSize.height - r.height) / 2
+            svgPanZoom.value?.panBy({ x, y })
+            const { width, height } = r
+            Object.assign(rectSize, { width, height })
+            emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
+          }
+        })
+      : undefined
     onSvgPanZoomMounted(() => {
       const c = nonNull(container.value, "svg-pan-zoom container")
       resizeObserver?.observe(c)
@@ -434,8 +454,12 @@ export default defineComponent({
     const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", edgesRef, emit)
     watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
+    const currentSelectedPaths = bindPropKeySet(props, "selectedPaths", pathsRef, emit)
+    watch(currentSelectedPaths, paths => emitter.emit("path:select", Array.from(paths)))
+
     const hoveredNodes = Reactive(new Set<string>())
     const hoveredEdges = Reactive(new Set<string>())
+    const hoveredPaths = Reactive(new Set<string>())
     const currentLayouts = Reactive<Layouts>({ nodes: {} })
 
     // two-way binding
@@ -481,13 +505,10 @@ export default defineComponent({
       }
     })
 
-    const { nodeStates, nodeZOrderedList, edgeStates } = provideStates(
-      nodesRef,
-      edgesRef,
-      currentSelectedNodes,
-      currentSelectedEdges,
-      hoveredNodes,
-      hoveredEdges,
+    const { nodeStates, nodeZOrderedList, edgeStates, pathStates } = provideStates(
+      makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
+      makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
+      makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
       readonly(configs),
       currentLayouts,
       markerState,
@@ -501,10 +522,14 @@ export default defineComponent({
       readonly(zoomLevel),
       nodeStates,
       edgeStates,
+      pathStates,
       currentSelectedNodes,
       currentSelectedEdges,
+      currentSelectedPaths,
       hoveredNodes,
       hoveredEdges,
+      hoveredPaths,
+      isInCompatibilityModeForPath,
       emitter
     )
 

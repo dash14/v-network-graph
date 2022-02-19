@@ -95,12 +95,13 @@ export interface EdgeLabelArea {
  * ------------------------------------------ */
 
 export interface Path {
+  id?: string
   edges: string[]
   // any properties
   [x: string]: any
 }
 
-export type Paths = Path[]
+export type Paths = Record<string, Path>
 
 // line: point | curve: [control-point, control-point, target-point] | move to next point: null
 export type PositionOrCurve = Position | Position[] | null
@@ -112,7 +113,7 @@ export type PositionOrCurve = Position | Position[] | null
 export type ViewEvent<T extends Event> = { event: T }
 export type NodeEvent<T extends Event> = { node: string; event: T }
 export type EdgeEvent<T extends Event> = { edge: string; edges: string[], summarized: false; event: T } | { edge?: undefined, edges: string[]; summarized: true; event: T }
-export type PathEvent<T extends Event> = { path: Path, event: T }
+export type PathEvent<T extends Event> = { path: string, event: T }
 
 // For compatibility with previous versions
 export type NodePointerEvent = NodeEvent<PointerEvent>
@@ -121,7 +122,7 @@ export type EdgePointerEvent = EdgeEvent<PointerEvent>
 export type Events = {
   "view:load": undefined
   "view:unload": undefined
-  "view:mode": "default" | "node" | "edge"
+  "view:mode": "default" | "node" | "edge" | "path"
   "view:zoom": number
   "view:pan": { x: number; y: number }
   "view:fit": undefined
@@ -148,8 +149,13 @@ export type Events = {
   "edge:pointerout": EdgeEvent<PointerEvent>
   "edge:contextmenu": EdgeEvent<MouseEvent>
   "edge:select": string[]
+  "path:select": string[]
+  "path:pointerup": PathEvent<PointerEvent>
+  "path:pointerdown": PathEvent<PointerEvent>
   "path:click": PathEvent<MouseEvent>
   "path:dblclick": PathEvent<MouseEvent>
+  "path:pointerover": PathEvent<PointerEvent>
+  "path:pointerout": PathEvent<PointerEvent>
   "path:contextmenu": PathEvent<MouseEvent>
 }
 
@@ -161,6 +167,27 @@ export type EventHandlers = {
 
 export type OnClickHandler = (param: NodeEvent<MouseEvent>) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void
+
+/* ------------------------------------------ *
+ * Input objects
+ * ------------------------------------------ */
+
+/** An object with a field named id */
+export interface IdentifiedObject {
+  id: string
+}
+
+/** Supported formats as input (Object or Array) */
+export type InputObjects<T> = Record<string, T> | (IdentifiedObject & T)[]
+
+export type InputNodes = InputObjects<Node>
+export type InputEdges = InputObjects<Edge>
+
+// When specified in a list, the ID is not needed for a while to
+// keep compatibility.
+// TODO: After a while, make ID mandatory.
+export type InputPaths = Record<string, IdentifiedObject & Path> | Path[]
+
 
 /* ------------------------------------------ *
  * SVG area

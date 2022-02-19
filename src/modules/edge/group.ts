@@ -2,29 +2,12 @@ import { Ref, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Edge, Edges, LinePosition, Nodes, Position } from "@/common/types"
 import { Config, Configs, EdgeKeepOrderType } from "@/common/configs"
+import { EdgeGroup, EdgeGroupStates, EdgeLayoutPoint } from "@/models/edge"
 import { updateObjectDiff } from "@/utils/object"
 
 // -----------------------------------------------------------------------
 // Type definition
 // -----------------------------------------------------------------------
-
-interface EdgeLayoutPoint {
-  edge: Edge
-  pointInGroup: number
-  groupWidth: number
-}
-
-export interface EdgeGroup {
-  edges: Edges
-  groupWidth: number
-  summarize: boolean
-}
-
-export interface EdgeGroupStates {
-  edgeLayoutPoints: Record<string, EdgeLayoutPoint>
-  edgeGroups: Record<string, EdgeGroup>
-  summarizedEdges: Record<string, true>
-}
 
 // -----------------------------------------------------------------------
 // Exported functions
