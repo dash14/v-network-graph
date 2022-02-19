@@ -304,6 +304,12 @@ function createNewEdgeState(
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
+  Object.assign(state, {
+    origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  })
+
   const line = computed<EdgeModel.Line>(() => {
     const edge = edges.value[id]
     const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
