@@ -205,7 +205,7 @@ export function getConfigDefaults(): Configs {
         bringToFrontOnSelected: true
       }
     })),
-    path: {
+    path: withSelf(self => ({
       visible: false,
       clickable: false,
       hoverable: false,
@@ -249,6 +249,33 @@ export function getConfigDefaults(): Configs {
         animate: false,
         animationSpeed: 50,
       },
+      normal: {
+        width: path => Config.value(self.path.width, path),
+        color: path => Config.value(self.path.color, path),
+        dasharray: path => Config.value(self.path.dasharray, path),
+        linecap: path => Config.value(self.path.linecap, path),
+        linejoin: path => Config.value(self.path.linejoin, path),
+        animate: path => Config.value(self.path.animate, path),
+        animationSpeed: path => Config.value(self.path.animationSpeed, path),
+      },
+      hover: {
+        width: path => Config.value(self.normal.width, path) + 2,
+        color: path => Config.value(self.normal.color, path),
+        dasharray: path => Config.value(self.normal.dasharray, path),
+        linecap: path => Config.value(self.normal.linecap, path),
+        linejoin: path => Config.value(self.normal.linejoin, path),
+        animate: path => Config.value(self.normal.animate, path),
+        animationSpeed: path => Config.value(self.normal.animationSpeed, path),
+      },
+      selected: {
+        width: path => Config.value(self.normal.width, path) + 2,
+        color: path => Config.value(self.normal.color, path),
+        dasharray: "6 12",
+        linecap: path => Config.value(self.normal.linecap, path),
+        linejoin: path => Config.value(self.normal.linejoin, path),
+        animate: path => Config.value(self.normal.animate, path),
+        animationSpeed: path => Config.value(self.normal.animationSpeed, path),
+      },
       selectable: false,
       zOrder: {
         enabled: false,
@@ -257,7 +284,7 @@ export function getConfigDefaults(): Configs {
         bringToFrontOnSelected: true
       },
       transition: undefined
-    },
+    })),
   }
 }
 

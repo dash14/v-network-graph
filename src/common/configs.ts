@@ -244,7 +244,14 @@ export interface PathConfig<P extends Path = Path> {
   curveInNode: boolean
   end: PathEndType
   margin: CallableValue<number, P>
+
+  // @Deprecated
   path: CallableValues<PathStrokeStyle, P>
+
+  normal: CallableValues<PathStrokeStyle, P>
+  hover?: CallableValues<PathStrokeStyle, P>
+  selected: CallableValues<PathStrokeStyle, P>
+
   selectable: CallableValue<boolean, P> | number
   zOrder: ZOrderConfig<P>
   transition?: string

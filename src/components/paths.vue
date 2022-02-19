@@ -65,7 +65,7 @@ defineExpose({
       :key="path.id"
       :points="calcPathPoints(path)"
       :class="{ clickable: path.clickable, hoverable: path.hoverable }"
-      :path="path.path"
+      :path="path"
       @pointerdown="handlePathPointerDownEvent(path.id, $event)"
       @pointerenter.passive="handlePathPointerOverEvent(path.id, $event)"
       @pointerleave.passive="handlePathPointerOutEvent(path.id, $event)"
@@ -77,8 +77,12 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
+$transition: 0.1s linear;
+
 .v-path-line {
   pointer-events: none;
+  transition: stroke $transition, stroke-width $transition;
+
   &.clickable {
     pointer-events: stroke;
     cursor: pointer;

@@ -98,7 +98,14 @@ export function provideMouseOperation(
     pathPointerPeekCount: 0,
   }
 
-  setupContainerInteractionHandlers(container, state, selectedNodes, selectedEdges, emitter)
+  setupContainerInteractionHandlers(
+    container,
+    state,
+    selectedNodes,
+    selectedEdges,
+    selectedPaths,
+    emitter
+  )
 
   const provides = <MouseEventHandlers>{
     selectedNodes,

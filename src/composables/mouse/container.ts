@@ -10,6 +10,7 @@ export function setupContainerInteractionHandlers(
   state: InteractionState,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
+  selectedPaths: Reactive<Set<string>>,
   emitter: Emitter<Events>
 ) {
   const containerPointerHandlers = {
@@ -43,11 +44,15 @@ export function setupContainerInteractionHandlers(
       })
       if (state.container.moveCounter <= MOVE_DETECTION_THRESHOLD) {
         // Click container (without mouse move)
-        if (event.shiftKey && (selectedNodes.size > 0 || selectedEdges.size > 0)) {
+        if (
+          event.shiftKey &&
+          (selectedNodes.size > 0 || selectedEdges.size > 0 || selectedPaths.size > 0)
+        ) {
           return
         }
         selectedNodes.clear()
         selectedEdges.clear()
+        selectedPaths.clear()
         state.container.allowClickEvent = true
       }
     }
