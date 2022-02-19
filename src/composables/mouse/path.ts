@@ -1,21 +1,25 @@
-import { Ref } from "vue"
+import { Ref, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
-import { InteractionState, PathPointerState } from "./core"
+import { InteractionModes, PathPointerState } from "./core"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
 import { Emitter } from "mitt"
 
 export function makePathInteractionHandlers(
   pathStates: PathStates,
-  state: InteractionState,
-  selectedNodes: Reactive<Set<string>>,
-  selectedEdges: Reactive<Set<string>>,
+  modes: InteractionModes,
+  hoveredPaths: Reactive<Set<string>>,
   selectedPaths: Reactive<Set<string>>,
   isInCompatibilityModeForPath: Ref<boolean>,
   emitter: Emitter<Events>
 ) {
+  const state = {
+    pointers: new Map<number, PathPointerState>(), // <PointerId, ...>
+    pointerPeekCount: 0,
+  }
+
   function _makePathEventObject<T extends Event>(path: string, event: T): PathEvent<T> {
     if (isInCompatibilityModeForPath.value) {
       return { path: (pathStates[path]?.path ?? path) as any, event }
@@ -29,6 +33,20 @@ export function makePathInteractionHandlers(
     pointercancel: handlePathPointerCancelEvent,
   }
 
+  watch(selectedPaths, selected => {
+    if (selected.size > 0 && modes.selectionMode.value !== "path") {
+      modes.selectionMode.value = "path"
+    } else if (selected.size === 0 && modes.selectionMode.value === "path") {
+      modes.selectionMode.value = "container"
+    }
+  })
+
+  watch(modes.selectionMode, mode => {
+    if (mode !== "path") {
+      selectedPaths.clear()
+    }
+  })
+
   function handlePathPointerDownEvent(path: string, event: PointerEvent) {
     if (!pathStates[path]?.clickable) {
       return
@@ -40,37 +58,33 @@ export function makePathInteractionHandlers(
     event.preventDefault()
     event.stopPropagation()
 
-    if (state.nodePointers.size !== 0) {
+    if (!["default", "path"].includes(modes.viewMode.value)) {
       return
     }
 
-    if (state.edgePointers.size !== 0) {
-      return
-    }
-
-    if (state.pathPointers.size == 0) {
+    if (state.pointers.size == 0) {
       // Add event listeners
-      emitter.emit("view:mode", "path")
+      modes.viewMode.value = "path"
       entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
         document.addEventListener(ev, handler)
       })
-      state.pathPointerPeekCount = 0
+      state.pointerPeekCount = 0
     }
 
-    state.pathPointerPeekCount++
+    state.pointerPeekCount++
 
     // Create new pointer state
     const pointerState: PathPointerState = {
       pointerId: event.pointerId,
       id: path,
     }
-    state.pathPointers.set(event.pointerId, pointerState)
+    state.pointers.set(event.pointerId, pointerState)
 
     emitter.emit("path:pointerdown", _makePathEventObject(path, event))
   }
 
   function handlePathPointerUpEvent(event: PointerEvent) {
-    const pointerState = state.pathPointers.get(event.pointerId)
+    const pointerState = state.pointers.get(event.pointerId)
     if (!pointerState) {
       return
     }
@@ -78,23 +92,23 @@ export function makePathInteractionHandlers(
     event.preventDefault()
     event.stopPropagation()
 
-    state.pathPointers.delete(event.pointerId)
+    state.pointers.delete(event.pointerId)
 
     const path = pointerState.id
     emitter.emit("path:pointerup", _makePathEventObject(path, event))
 
-    if (state.pathPointers.size === 0) {
+    if (state.pointers.size === 0) {
       // reset state
-      state.pathPointerPeekCount = 0
+      state.pointerPeekCount = 0
       entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
-      emitter.emit("view:mode", "default")
+      modes.viewMode.value = "default"
     }
   }
 
   function handlePathPointerCancelEvent(event: PointerEvent) {
-    const pointerState = state.pathPointers.get(event.pointerId)
+    const pointerState = state.pointers.get(event.pointerId)
     if (!pointerState) {
       return
     }
@@ -102,14 +116,14 @@ export function makePathInteractionHandlers(
     event.preventDefault()
     event.stopPropagation()
 
-    for (const pointerState of state.pathPointers.values()) {
+    for (const pointerState of state.pointers.values()) {
       const path = pointerState.id
       emitter.emit("path:pointerup", _makePathEventObject(path, event))
     }
 
     // reset state
-    state.pathPointers.clear()
-    state.pathPointerPeekCount = 0
+    state.pointers.clear()
+    state.pointerPeekCount = 0
     entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
@@ -120,7 +134,7 @@ export function makePathInteractionHandlers(
     if (!pathStates[path]?.hoverable) {
       return
     }
-    state.hoveredPaths.add(path)
+    hoveredPaths.add(path)
     emitter.emit("path:pointerover", _makePathEventObject(path, event))
   }
 
@@ -128,7 +142,7 @@ export function makePathInteractionHandlers(
     if (!pathStates[path]?.hoverable) {
       return
     }
-    state.hoveredPaths.delete(path)
+    hoveredPaths.delete(path)
     emitter.emit("path:pointerout", _makePathEventObject(path, event))
   }
 
@@ -136,21 +150,19 @@ export function makePathInteractionHandlers(
     if (!pathStates[path]?.clickable) {
       return
     }
-    if (state.pathPointers.size > 0 || state.pathPointerPeekCount > 0) {
+    if (state.pointers.size > 0 || state.pointerPeekCount > 0) {
       return // ignore
     }
 
-    // TODO: check mode
-    if (event.shiftKey && selectedNodes.size > 0) {
+    if (event.shiftKey && !["container", "path"].includes(modes.selectionMode.value)) {
       return
     }
-    selectedNodes.clear()
-    selectedEdges.clear()
+    modes.selectionMode.value = "path"
 
     const selectable = pathStates[path]?.selectable ?? false
     if (selectable) {
       const isTouchAnySelectedPath =
-        MapUtil.valueOf(state.pathPointers).filter(p => selectedPaths.has(p.id)).length > 0
+        MapUtil.valueOf(state.pointers).filter(p => selectedPaths.has(p.id)).length > 0
       if (event.shiftKey || isTouchAnySelectedPath) {
         // select multiple nodes
         if (selectedPaths.has(path)) {

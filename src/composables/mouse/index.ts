@@ -1,12 +1,12 @@
 // Module responsible for selection state and mouse/touch operations
 
-import { inject, InjectionKey, provide, Ref } from "vue"
+import { inject, InjectionKey, provide, ref, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
 import { Events, NodePositions } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { EdgeStates } from "@/models/edge"
-import { InteractionState } from "./core"
+import { InteractionModes } from "./core"
 import { makeNodeInteractionHandlers } from "./node"
 import { makeEdgeInteractionHandlers } from "./edge"
 import { setupContainerInteractionHandlers } from "./container"
@@ -74,38 +74,16 @@ export function provideMouseOperation(
   isInCompatibilityModeForPath: Ref<boolean>,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
-  const state: InteractionState = {
-    // measure the number of move events in the pointerdown state
-    // and use it to determine the click when pointerup.
-    container: {
-      moveCounter: 0,
-      pointerCounter: 0,
-      allowClickEvent: false,
-    },
-    nodePointers: new Map(),
-    prevNodePointers: new Map(),
-    follow: {
-      followedPointerId: -1,
-      nodeBasePositions: {},
-    },
-    hoveredNodes,
-    hoveredNodesPre: new Set(),
-    hoveredEdges,
-    hoveredPaths,
-    edgePointers: new Map(),
-    edgePointerPeekCount: 0,
-    pathPointers: new Map(),
-    pathPointerPeekCount: 0,
+  const modes: InteractionModes = {
+    selectionMode: ref("container"),
+    viewMode: ref("default"),
   }
 
-  setupContainerInteractionHandlers(
-    container,
-    state,
-    selectedNodes,
-    selectedEdges,
-    selectedPaths,
-    emitter
-  )
+  watch(modes.viewMode, mode => {
+    emitter.emit("view:mode", mode)
+  })
+
+  setupContainerInteractionHandlers(container, modes, emitter)
 
   const provides = <MouseEventHandlers>{
     selectedNodes,
@@ -117,26 +95,23 @@ export function provideMouseOperation(
     ...makeNodeInteractionHandlers(
       nodeStates,
       nodePositions,
-      state,
+      modes,
+      hoveredNodes,
       selectedNodes,
-      selectedEdges,
-      selectedPaths,
       zoomLevel,
       emitter
     ),
     ...makeEdgeInteractionHandlers(
       edgeStates,
-      state,
-      selectedNodes,
+      modes,
+      hoveredEdges,
       selectedEdges,
-      selectedPaths,
       emitter
     ),
     ...makePathInteractionHandlers(
       pathStates,
-      state,
-      selectedNodes,
-      selectedEdges,
+      modes,
+      hoveredPaths,
       selectedPaths,
       isInCompatibilityModeForPath,
       emitter

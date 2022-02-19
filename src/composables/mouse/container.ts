@@ -1,18 +1,22 @@
 import { onMounted, onUnmounted, Ref } from "vue"
 import { Emitter } from "mitt"
-import { Reactive } from "@/common/common"
 import { Events } from "@/common/types"
 import { entriesOf } from "@/utils/object"
-import { InteractionState, MOVE_DETECTION_THRESHOLD } from "./core"
+import { InteractionModes, MOVE_DETECTION_THRESHOLD } from "./core"
 
 export function setupContainerInteractionHandlers(
   container: Ref<SVGSVGElement | undefined>,
-  state: InteractionState,
-  selectedNodes: Reactive<Set<string>>,
-  selectedEdges: Reactive<Set<string>>,
-  selectedPaths: Reactive<Set<string>>,
+  modes: InteractionModes,
   emitter: Emitter<Events>
 ) {
+  const state = {
+    moveCounter: 0,
+    pointerCounter: 0,
+    allowClickEvent: false,
+  }
+
+  // measure the number of move events in the pointerdown state
+  // and use it to determine the click when pointerup.
   const containerPointerHandlers = {
     pointermove: handleContainerPointerMoveEvent,
     pointerup: handleContainerPointerUpEvent,
@@ -20,52 +24,47 @@ export function setupContainerInteractionHandlers(
   }
 
   function handleContainerPointerDownEvent(_: PointerEvent) {
-    state.container.allowClickEvent = false
-    state.container.moveCounter = 0
-    if (state.container.pointerCounter === 0) {
+    state.allowClickEvent = false
+    state.moveCounter = 0
+    if (state.pointerCounter === 0) {
       // Add to event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         container.value?.addEventListener(ev, handler, { passive: true })
       })
     }
-    state.container.pointerCounter++
+    state.pointerCounter++
   }
 
   function handleContainerPointerMoveEvent(_: PointerEvent) {
-    state.container.moveCounter++
+    state.moveCounter++
   }
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
-    state.container.pointerCounter--
-    if (state.container.pointerCounter === 0) {
+    state.pointerCounter--
+    if (state.pointerCounter === 0) {
       // Remove from event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         container.value?.removeEventListener(ev, handler)
       })
-      if (state.container.moveCounter <= MOVE_DETECTION_THRESHOLD) {
+      if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
         // Click container (without mouse move)
-        if (
-          event.shiftKey &&
-          (selectedNodes.size > 0 || selectedEdges.size > 0 || selectedPaths.size > 0)
-        ) {
+        if (event.shiftKey && modes.selectionMode.value !== "container") {
           return
         }
-        selectedNodes.clear()
-        selectedEdges.clear()
-        selectedPaths.clear()
-        state.container.allowClickEvent = true
+        modes.selectionMode.value = "container"
+        state.allowClickEvent = true
       }
     }
   }
 
   function handleContainerClickEvent(event: MouseEvent) {
-    if (state.container.allowClickEvent) {
+    if (state.allowClickEvent) {
       emitter.emit("view:click", { event })
     }
   }
 
   function handleContainerDoubleClickEvent(event: MouseEvent) {
-    if (state.container.allowClickEvent) {
+    if (state.allowClickEvent) {
       emitter.emit("view:dblclick", { event })
     }
   }
@@ -73,9 +72,9 @@ export function setupContainerInteractionHandlers(
   function handleContainerContextMenuEvent(event: MouseEvent) {
     emitter.emit("view:contextmenu", { event })
 
-    if (state.container.pointerCounter > 0) {
+    if (state.pointerCounter > 0) {
       // reset pointer down state
-      state.container.pointerCounter = 0
+      state.pointerCounter = 0
       // Remove from event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         container.value?.removeEventListener(ev, handler)

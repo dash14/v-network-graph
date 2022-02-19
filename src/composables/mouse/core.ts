@@ -1,7 +1,10 @@
-import { Reactive } from "@/common/common"
+import { Ref } from "vue"
 import { Position } from "@/common/types"
 
 export const MOVE_DETECTION_THRESHOLD = 3 // Sensitivity to start dragging
+
+export type ViewMode = "default" | "node" | "edge" | "path"
+export type SelectionMode = "container" | "node" | "edge" | "path"
 
 // state for each pointer of multi touch
 export interface NodePointerState {
@@ -23,24 +26,7 @@ export interface PathPointerState {
   id: string // pointer down path ID
 }
 
-export interface InteractionState {
-  container: {
-    moveCounter: number
-    pointerCounter: number
-    allowClickEvent: boolean
-  }
-  nodePointers: Map<number, NodePointerState> // <PointerId, ...>
-  prevNodePointers: Map<number, NodePointerState> // <PointerId, ...>
-  follow: {
-    followedPointerId: number
-    nodeBasePositions: { [name: string]: Position }
-  }
-  hoveredNodes: Reactive<Set<string>>
-  hoveredNodesPre: Set<string> // to keep the hover state while dragging
-  hoveredEdges: Reactive<Set<string>>
-  hoveredPaths: Reactive<Set<string>>
-  edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
-  edgePointerPeekCount: number
-  pathPointers: Map<number, PathPointerState> // <PointerId, ...>
-  pathPointerPeekCount: number
+export interface InteractionModes {
+  selectionMode: Ref<SelectionMode>
+  viewMode: Ref<ViewMode>
 }
