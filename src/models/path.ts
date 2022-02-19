@@ -16,6 +16,7 @@ export interface PathStateDatum {
   zIndex: ComputedRef<number>
 
   clickable: ComputedRef<boolean>
+  hoverable: ComputedRef<boolean>
   path: Path
   edges: ComputedRef<EdgeObject[]>
 }

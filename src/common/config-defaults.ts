@@ -208,6 +208,7 @@ export function getConfigDefaults(): Configs {
     path: {
       visible: false,
       clickable: false,
+      hoverable: false,
       curveInNode: false,
       end: "centerOfNode",
       margin: 0,

@@ -178,6 +178,10 @@ export function provideStates(
         if (!paths.value[id]) return false
         return Config.value(configs.path.clickable, paths.value[id])
       })
+      state.hoverable = computed(() => {
+        if (!paths.value[id]) return false
+        return Config.value(configs.path.hoverable, paths.value[id])
+      })
 
       state.path = paths.value[id]
       state.edges = computed(() => {

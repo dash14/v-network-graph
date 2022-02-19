@@ -65,11 +65,7 @@ export function useTranslatePathsToObject<T>(input: Ref<InputPaths>) {
         }
       }
     } else {
-      objects.value = Object.fromEntries(
-        Object.entries(input.value.paths).map(([id, path]) => {
-          return [id, path]
-        })
-      )
+      objects.value = input.value
     }
   })
 

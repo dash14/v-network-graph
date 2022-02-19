@@ -10,22 +10,31 @@ import { InteractionState } from "./core"
 import { makeNodeInteractionHandlers } from "./node"
 import { makeEdgeInteractionHandlers } from "./edge"
 import { setupContainerInteractionHandlers } from "./container"
+import { PathStates } from "@/models/path"
+import { makePathInteractionHandlers } from "./path"
 
 type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
 type EdgeEventHandler<T extends Event = PointerEvent> = (edge: string, event: T) => void
 type EdgesEventHandler<T extends Event = PointerEvent> = (edges: string[], event: T) => void
+type PathEventHandler<T extends Event = PointerEvent> = (path: string, event: T) => void
 
 interface MouseEventHandlers {
   selectedNodes: Reactive<Set<string>>
   hoveredNodes: Reactive<Set<string>>
   selectedEdges: Reactive<Set<string>>
   hoveredEdges: Reactive<Set<string>>
+  selectedPaths: Reactive<Set<string>>
+  hoveredPaths: Reactive<Set<string>>
+
+  // for Nodes
   handleNodePointerDownEvent: NodeEventHandler
   handleNodePointerOverEvent: NodeEventHandler
   handleNodePointerOutEvent: NodeEventHandler
   handleNodeClickEvent: NodeEventHandler<MouseEvent>
   handleNodeDoubleClickEvent: NodeEventHandler<MouseEvent>
   handleNodeContextMenu: NodeEventHandler<MouseEvent>
+
+  // for Edges
   handleEdgePointerDownEvent: EdgeEventHandler
   handleEdgePointerOverEvent: EdgeEventHandler
   handleEdgePointerOutEvent: EdgeEventHandler
@@ -38,6 +47,14 @@ interface MouseEventHandlers {
   handleEdgesClickEvent: EdgesEventHandler<MouseEvent>
   handleEdgesDoubleClickEvent: EdgesEventHandler<MouseEvent>
   handleEdgesContextMenu: EdgesEventHandler<MouseEvent>
+
+  // for Paths
+  handlePathPointerDownEvent: PathEventHandler
+  handlePathPointerOverEvent: PathEventHandler
+  handlePathPointerOutEvent: PathEventHandler
+  handlePathClickEvent: PathEventHandler<MouseEvent>
+  handlePathDoubleClickEvent: PathEventHandler<MouseEvent>
+  handlePathContextMenu: PathEventHandler<MouseEvent>
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
@@ -47,10 +64,14 @@ export function provideMouseOperation(
   zoomLevel: ReadonlyRef<number>,
   nodeStates: NodeStates,
   edgeStates: EdgeStates,
+  pathStates: PathStates,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
+  selectedPaths: Reactive<Set<string>>,
   hoveredNodes: Reactive<Set<string>>,
   hoveredEdges: Reactive<Set<string>>,
+  hoveredPaths: Reactive<Set<string>>,
+  isInCompatibilityModeForPath: Ref<boolean>,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
   const state: InteractionState = {
@@ -70,8 +91,11 @@ export function provideMouseOperation(
     hoveredNodes,
     hoveredNodesPre: new Set(),
     hoveredEdges,
+    hoveredPaths,
     edgePointers: new Map(),
     edgePointerPeekCount: 0,
+    pathPointers: new Map(),
+    pathPointerPeekCount: 0,
   }
 
   setupContainerInteractionHandlers(container, state, selectedNodes, selectedEdges, emitter)
@@ -81,16 +105,35 @@ export function provideMouseOperation(
     hoveredNodes,
     selectedEdges,
     hoveredEdges,
+    selectedPaths,
+    hoveredPaths,
     ...makeNodeInteractionHandlers(
       nodeStates,
       nodePositions,
       state,
       selectedNodes,
       selectedEdges,
+      selectedPaths,
       zoomLevel,
       emitter
     ),
-    ...makeEdgeInteractionHandlers(edgeStates, state, selectedNodes, selectedEdges, emitter),
+    ...makeEdgeInteractionHandlers(
+      edgeStates,
+      state,
+      selectedNodes,
+      selectedEdges,
+      selectedPaths,
+      emitter
+    ),
+    ...makePathInteractionHandlers(
+      pathStates,
+      state,
+      selectedNodes,
+      selectedEdges,
+      selectedPaths,
+      isInCompatibilityModeForPath,
+      emitter
+    ),
   }
   provide(mouseEventHandlersKey, provides)
   return provides

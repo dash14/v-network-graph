@@ -15,7 +15,12 @@ export interface NodePointerState {
 
 export interface EdgePointerState {
   pointerId: number // pointer ID provided by the event
-  edgeId: string | string[] // pointer down edge ID
+  id: string | string[] // pointer down edge ID
+}
+
+export interface PathPointerState {
+  pointerId: number // pointer ID provided by the event
+  id: string // pointer down path ID
 }
 
 export interface InteractionState {
@@ -33,6 +38,9 @@ export interface InteractionState {
   hoveredNodes: Reactive<Set<string>>
   hoveredNodesPre: Set<string> // to keep the hover state while dragging
   hoveredEdges: Reactive<Set<string>>
+  hoveredPaths: Reactive<Set<string>>
   edgePointers: Map<number, EdgePointerState> // <PointerId, ...>
   edgePointerPeekCount: number
+  pathPointers: Map<number, PathPointerState> // <PointerId, ...>
+  pathPointerPeekCount: number
 }

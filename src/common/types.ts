@@ -122,7 +122,7 @@ export type EdgePointerEvent = EdgeEvent<PointerEvent>
 export type Events = {
   "view:load": undefined
   "view:unload": undefined
-  "view:mode": "default" | "node" | "edge"
+  "view:mode": "default" | "node" | "edge" | "path"
   "view:zoom": number
   "view:pan": { x: number; y: number }
   "view:fit": undefined
@@ -149,8 +149,13 @@ export type Events = {
   "edge:pointerout": EdgeEvent<PointerEvent>
   "edge:contextmenu": EdgeEvent<MouseEvent>
   "edge:select": string[]
+  "path:select": string[]
+  "path:pointerup": PathEvent<PointerEvent>
+  "path:pointerdown": PathEvent<PointerEvent>
   "path:click": PathEvent<MouseEvent>
   "path:dblclick": PathEvent<MouseEvent>
+  "path:pointerover": PathEvent<PointerEvent>
+  "path:pointerout": PathEvent<PointerEvent>
   "path:contextmenu": PathEvent<MouseEvent>
 }
 

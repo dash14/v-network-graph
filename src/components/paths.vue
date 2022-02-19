@@ -9,19 +9,21 @@ import { useZoomLevel } from "@/composables/zoom"
 import { useEventEmitter } from "@/composables/event-emitter"
 import { calculatePathPoints } from "@/modules/calculation/path"
 import VPathLine from "./path-line.vue"
-
-const props = defineProps({
-  isCompatibilityMode: {
-    type: Boolean,
-    required: false,
-    default: false
-  }
-})
+import { useMouseOperation } from "@/composables/mouse"
 
 const { pathZOrderedList, nodeStates, edgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()
 const emitter = useEventEmitter()
 const pathConfig = usePathConfig()
+
+const {
+  handlePathPointerDownEvent,
+  handlePathPointerOverEvent,
+  handlePathPointerOutEvent,
+  handlePathClickEvent,
+  handlePathDoubleClickEvent,
+  handlePathContextMenu,
+} = useMouseOperation()
 
 const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
   if (path.edges.length === 0) return []
@@ -38,54 +40,16 @@ const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
   )
 })
 
-const emitPathClickedEvent = (path: PathState, event: MouseEvent) => {
-  if (!pathConfig.clickable) return
-  event.stopPropagation()
-  event.preventDefault()
-
-  if (props.isCompatibilityMode) {
-    emitter.emit("path:click", { path: path.path as any, event })
-  } else {
-    emitter.emit("path:click", { path: path.id, event })
-  }
-}
-
-const emitPathDoubleClickedEvent = (path: PathState, event: MouseEvent) => {
-  if (!pathConfig.clickable) return
-  event.stopPropagation()
-  event.preventDefault()
-
-  if (props.isCompatibilityMode) {
-    emitter.emit("path:dblclick", { path: path.path as any, event })
-  } else {
-    emitter.emit("path:dblclick", { path: path.id, event })
-  }
-}
-
-const emitPathContextMenuEvent = (path: PathState, event: MouseEvent) => {
-  if (!pathConfig.clickable) return
-
-  if (props.isCompatibilityMode) {
-    emitter.emit("path:contextmenu", { path: path.path as any, event })
-  } else {
-    emitter.emit("path:contextmenu", { path: path.id, event })
-  }
-}
-
-function stopPointerEventPropagation(event: PointerEvent) {
-  // Prevent view from capturing events
-  if (pathConfig.clickable) {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-}
-
 defineExpose({
   pathConfig,
   pathZOrderedList,
   calcPathPoints,
-  emitPathClickedEvent,
-  emitPathContextMenuEvent,
+  handlePathPointerDownEvent,
+  handlePathPointerOverEvent,
+  handlePathPointerOutEvent,
+  handlePathClickEvent,
+  handlePathDoubleClickEvent,
+  handlePathContextMenu,
 })
 </script>
 
@@ -100,12 +64,14 @@ defineExpose({
       v-for="path in pathZOrderedList"
       :key="path.id"
       :points="calcPathPoints(path)"
-      :class="{ clickable: pathConfig.clickable }"
+      :class="{ clickable: path.clickable, hoverable: path.hoverable }"
       :path="path.path"
-      @pointerdown="stopPointerEventPropagation($event)"
-      @click="emitPathClickedEvent(path, $event)"
-      @dblclick="emitPathDoubleClickedEvent(path, $event)"
-      @contextmenu="emitPathContextMenuEvent(path, $event)"
+      @pointerdown="handlePathPointerDownEvent(path.id, $event)"
+      @pointerenter.passive="handlePathPointerOverEvent(path.id, $event)"
+      @pointerleave.passive="handlePathPointerOutEvent(path.id, $event)"
+      @click="handlePathClickEvent(path.id, $event)"
+      @dblclick="handlePathDoubleClickEvent(path.id, $event)"
+      @contextmenu="handlePathContextMenu(path.id, $event)"
     />
   </transition-group>
 </template>
@@ -116,6 +82,9 @@ defineExpose({
   &.clickable {
     pointer-events: stroke;
     cursor: pointer;
+  }
+  &.hoverable {
+    pointer-events: stroke;
   }
 }
 </style>

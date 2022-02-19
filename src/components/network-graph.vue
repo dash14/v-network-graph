@@ -115,7 +115,7 @@
           <slot :name="layerName" :scale="scale" />
         </g>
 
-        <v-paths v-if="visiblePaths" :is-compatibility-mode="isInCompatibilityModeForPath" />
+        <v-paths v-if="visiblePaths" />
 
         <g v-for="layerName in layerDefs['paths']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
@@ -182,11 +182,15 @@ export default defineComponent({
   },
   props: {
     nodes: {
-      type: Object as PropType<InputNodes>,
+      type: [Object, Array] as PropType<InputNodes>,
       default: () => ({}),
     },
     edges: {
-      type: Object as PropType<InputEdges>,
+      type: [Object, Array] as PropType<InputEdges>,
+      default: () => ({}),
+    },
+    paths: {
+      type: [Object, Array] as PropType<InputPaths>,
       default: () => ({}),
     },
     layouts: {
@@ -212,10 +216,6 @@ export default defineComponent({
     configs: {
       type: Object as PropType<UserConfigs>,
       default: () => ({}),
-    },
-    paths: {
-      type: Array as PropType<InputPaths>,
-      default: () => [],
     },
     layers: {
       type: Object as PropType<Layers>,
@@ -505,7 +505,7 @@ export default defineComponent({
       }
     })
 
-    const { nodeStates, nodeZOrderedList, edgeStates } = provideStates(
+    const { nodeStates, nodeZOrderedList, edgeStates, pathStates } = provideStates(
       makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
       makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
       makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
@@ -522,10 +522,14 @@ export default defineComponent({
       readonly(zoomLevel),
       nodeStates,
       edgeStates,
+      pathStates,
       currentSelectedNodes,
       currentSelectedEdges,
+      currentSelectedPaths,
       hoveredNodes,
       hoveredEdges,
+      hoveredPaths,
+      isInCompatibilityModeForPath,
       emitter
     )
 
@@ -616,7 +620,6 @@ export default defineComponent({
       layerDefs,
       isShowGrid,
       isShowBackgroundViewport,
-      isInCompatibilityModeForPath,
       overrideNodes,
       overrideNodeLabels,
       overrideEdgeLabels,

@@ -11,6 +11,7 @@ export function makeEdgeInteractionHandlers(
   state: InteractionState,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
+  selectedPaths: Reactive<Set<string>>,
   emitter: Emitter<Events>
 ) {
   const edgePointerHandlers = {
@@ -43,7 +44,7 @@ export function makeEdgeInteractionHandlers(
     // Create new pointer state
     const pointerState: EdgePointerState = {
       pointerId: event.pointerId,
-      edgeId: edge,
+      id: edge,
     }
     state.edgePointers.set(event.pointerId, pointerState)
 
@@ -61,7 +62,7 @@ export function makeEdgeInteractionHandlers(
 
     state.edgePointers.delete(event.pointerId)
 
-    const edge = pointerState.edgeId
+    const edge = pointerState.id
     emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
 
     if (state.edgePointers.size === 0) {
@@ -84,7 +85,7 @@ export function makeEdgeInteractionHandlers(
     }
 
     for (const pointerState of state.edgePointers.values()) {
-      const edge = pointerState.edgeId
+      const edge = pointerState.id
       emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
     }
 
@@ -112,7 +113,7 @@ export function makeEdgeInteractionHandlers(
 
     const isTouchAnySelectedEdge =
       MapUtil.valueOf(state.edgePointers).filter(p => {
-        const edges = p.edgeId instanceof Array ? p.edgeId : [p.edgeId]
+        const edges = p.id instanceof Array ? p.id : [p.id]
         return edges.every(edge => selectedEdges.has(edge))
       }).length > 0
 
@@ -170,7 +171,7 @@ export function makeEdgeInteractionHandlers(
     emitter.emit("edge:pointerout", _makeEdgeEventObject(edge, event))
   }
 
-  function handleEdgeContextMenu(edge: string, event: PointerEvent) {
+  function handleEdgeContextMenu(edge: string, event: MouseEvent) {
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edge, event))
   }
 
@@ -199,7 +200,7 @@ export function makeEdgeInteractionHandlers(
     // Create new pointer state
     const pointerState: EdgePointerState = {
       pointerId: event.pointerId,
-      edgeId: edges,
+      id: edges,
     }
     state.edgePointers.set(event.pointerId, pointerState)
     emitter.emit("edge:pointerdown", _makeEdgeEventObject(edges, event))

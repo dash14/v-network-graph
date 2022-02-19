@@ -15,6 +15,7 @@ export function makeNodeInteractionHandlers(
   state: InteractionState,
   selectedNodes: Reactive<Set<string>>,
   selectedEdges: Reactive<Set<string>>,
+  selectedPaths: Reactive<Set<string>>,
   zoomLevel: ReadonlyRef<number>,
   emitter: Emitter<Events>
 ) {
@@ -301,7 +302,7 @@ export function makeNodeInteractionHandlers(
     emitter.emit("node:pointerout", { node, event })
   }
 
-  function handleNodeContextMenu(node: string, event: PointerEvent) {
+  function handleNodeContextMenu(node: string, event: MouseEvent) {
     emitter.emit("node:contextmenu", { node, event })
   }
 
