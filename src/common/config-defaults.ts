@@ -1,3 +1,4 @@
+import { reactive } from "vue"
 import { NodeLabelDirection, Configs, withSelf, Config, UserConfigs } from "./configs"
 import { Node, Edge, Path, Edges } from "./types"
 import { SimpleLayout } from "../layouts/simple"
@@ -212,7 +213,8 @@ export function getConfigDefaults(): Configs {
       curveInNode: false,
       end: "centerOfNode",
       margin: 0,
-      path: {
+      // @Deprecated
+      path: reactive({
         width: 6,
         color: p => {
           const list = [
@@ -248,7 +250,7 @@ export function getConfigDefaults(): Configs {
         linejoin: "round",
         animate: false,
         animationSpeed: 50,
-      },
+      }),
       normal: {
         width: path => Config.value(self.path.width, path),
         color: path => Config.value(self.path.color, path),
