@@ -2,12 +2,7 @@
 
 import { computed, ComputedRef, reactive, Ref, unref, UnwrapRef, watch } from "vue"
 import { Reactive } from "@/common/common"
-import { InputObjects } from "@/common/types"
 import { Config, ObjectConfigs, ZOrderConfig } from "@/common/configs"
-
-export function isInputRecordType<T>(input: InputObjects<T>): input is Record<string, T> {
-  return !(input instanceof Array)
-}
 
 type Objects<T> = Record<string, T>
 

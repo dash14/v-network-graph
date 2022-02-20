@@ -1,28 +1,5 @@
-import { ref, Ref, watch, watchEffect } from "vue"
-import { InputObjects, InputPaths, Path } from "@/common/types"
-import { updateObjectDiff } from "@/utils/object"
-
-type Objects<T> = Record<string, T>
-
-export function isInputRecordType<T>(input: InputObjects<T>): input is Record<string, T> {
-  return !(input instanceof Array)
-}
-
-export function useTranslateToObject<T>(input: Ref<InputObjects<T>>) {
-  const objects: Ref<Objects<T>> = ref({})
-  watch(
-    () => (input.value instanceof Array ? [ ...input.value ] : Object.keys(input.value)),
-    () => {
-      if (isInputRecordType(input.value)) {
-        objects.value = input.value
-      } else {
-        updateObjectDiff(objects.value, Object.fromEntries(input.value.map(i => [i.id, i])))
-      }
-    },
-    { immediate: true }
-  )
-  return objects
-}
+import { ref, Ref, watchEffect } from "vue"
+import { InputPaths, Path } from "@/common/types"
 
 export function useTranslatePathsToObject<T>(input: Ref<InputPaths>) {
   const objects = ref<Record<string, Path>>({})
@@ -42,7 +19,7 @@ export function useTranslatePathsToObject<T>(input: Ref<InputPaths>) {
             if (!isInCompatibilityModeForPath.value) {
               isInCompatibilityModeForPath.value = true
               console.warn(
-                "Please specify the `id` field for the `Path` object." +
+                "[v-network-graph] Please specify the `id` field for the `Path` object." +
                   " Currently, this works for compatibility," +
                   " but in the future, the id field will be required."
               )

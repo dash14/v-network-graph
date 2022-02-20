@@ -130,8 +130,8 @@ import { defineComponent, PropType, readonly, ref, toRef } from "vue"
 import { computed, nextTick, watch } from "vue"
 import {
   EventHandlers,
-  InputNodes,
-  InputEdges,
+  Nodes,
+  Edges,
   InputPaths,
   Layouts,
   UserLayouts,
@@ -147,7 +147,7 @@ import { provideEventEmitter } from "@/composables/event-emitter"
 import { makeMarkerState } from "@/composables/marker"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
 import { provideZoomLevel } from "@/composables/zoom"
-import { useTranslateToObject, useTranslatePathsToObject } from "@/composables/object"
+import { useTranslatePathsToObject } from "@/composables/object"
 import { bindProp, bindPropKeySet } from "@/utils/props"
 import { translateFromSvgToDomCoordinates, translateFromDomToSvgCoordinates } from "@/utils/svg"
 import VNode from "./node.vue"
@@ -182,11 +182,11 @@ export default defineComponent({
   },
   props: {
     nodes: {
-      type: [Object, Array] as PropType<InputNodes>,
+      type: Object as PropType<Nodes>,
       default: () => ({}),
     },
     edges: {
-      type: [Object, Array] as PropType<InputEdges>,
+      type: Object as PropType<Edges>,
       default: () => ({}),
     },
     paths: {
@@ -238,8 +238,8 @@ export default defineComponent({
     "update:layouts",
   ],
   setup(props, { emit, slots }) {
-    const nodesRef = useTranslateToObject(toRef(props, "nodes"))
-    const edgesRef = useTranslateToObject(toRef(props, "edges"))
+    const nodesRef = toRef(props, "nodes")
+    const edgesRef = toRef(props, "edges")
     const { objects: pathsRef, isInCompatibilityModeForPath } = useTranslatePathsToObject(
       toRef(props, "paths")
     )

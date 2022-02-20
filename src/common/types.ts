@@ -19,6 +19,11 @@ export interface Size {
   height: number
 }
 
+/** An object with a field named id */
+export interface IdentifiedObject {
+  id: string
+}
+
 /* ------------------------------------------ *
  * Network graph elements
  * ------------------------------------------ */
@@ -30,6 +35,7 @@ export interface Node {
 }
 
 export type Nodes = Record<string, Node>
+export type NodeWithId = Node & IdentifiedObject
 
 export interface Edge {
   source: string
@@ -39,6 +45,7 @@ export interface Edge {
 }
 
 export type Edges = Record<string, Edge>
+export type EdgeWithId = Edge & IdentifiedObject
 
 export type LayerPosition =
   "paths"
@@ -105,6 +112,11 @@ export interface Path {
 
 export type Paths = Record<string, Path>
 
+// When specified in a list, the ID is not needed for a while to
+// keep compatibility.
+// TODO: After a while, remove `| Path[]`.
+export type InputPaths = Record<string, Path> | Path[]
+
 // line: point | curve: [control-point, control-point, target-point] | move to next point: null
 export type PositionOrCurve = Position | Position[] | null
 
@@ -169,27 +181,6 @@ export type EventHandlers = {
 
 export type OnClickHandler = (param: NodeEvent<MouseEvent>) => void
 export type OnDragHandler = (param: { [name: string]: Position }) => void
-
-/* ------------------------------------------ *
- * Input objects
- * ------------------------------------------ */
-
-/** An object with a field named id */
-export interface IdentifiedObject {
-  id: string
-}
-
-/** Supported formats as input (Object or Array) */
-export type InputObjects<T> = Record<string, T> | (IdentifiedObject & T)[]
-
-export type InputNodes = InputObjects<Node>
-export type InputEdges = InputObjects<Edge>
-
-// When specified in a list, the ID is not needed for a while to
-// keep compatibility.
-// TODO: After a while, make ID mandatory.
-export type InputPaths = Record<string, Path> | (IdentifiedObject & Path)[] | Path[]
-
 
 /* ------------------------------------------ *
  * SVG area
