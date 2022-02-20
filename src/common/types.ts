@@ -1,11 +1,13 @@
 import { RecursivePartial } from "./common"
-import { Point2D } from "@/modules/vector2d/core"
 
 /* ------------------------------------------ *
  * Core types
  * ------------------------------------------ */
 
-export type Position = Point2D
+export interface Position {
+  x: number
+  y: number
+}
 
 export interface LinePosition {
   p1: Position
