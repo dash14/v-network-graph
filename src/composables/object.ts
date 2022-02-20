@@ -11,7 +11,7 @@ export function isInputRecordType<T>(input: InputObjects<T>): input is Record<st
 export function useTranslateToObject<T>(input: Ref<InputObjects<T>>) {
   const objects: Ref<Objects<T>> = ref({})
   watch(
-    () => (input.value instanceof Array ? input.value : Object.keys(input.value)),
+    () => (input.value instanceof Array ? [ ...input.value ] : Object.keys(input.value)),
     () => {
       if (isInputRecordType(input.value)) {
         objects.value = input.value
