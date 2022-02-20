@@ -188,7 +188,7 @@ export type InputEdges = InputObjects<Edge>
 // When specified in a list, the ID is not needed for a while to
 // keep compatibility.
 // TODO: After a while, make ID mandatory.
-export type InputPaths = Record<string, IdentifiedObject & Path> | Path[]
+export type InputPaths = Record<string, Path> | (IdentifiedObject & Path)[] | Path[]
 
 
 /* ------------------------------------------ *
