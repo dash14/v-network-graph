@@ -6,8 +6,8 @@ import { NodeState } from "@/models/node"
 import { useNodeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
-import VShape from "./shape.vue"
-import VText from "./label-text.vue"
+import VShape from "@/components/base/VShape.vue"
+import VText from "@/components/base/VLabelText.vue"
 
 const props = defineProps({
   id: {

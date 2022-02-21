@@ -4,7 +4,7 @@ import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/configs"
 import { NodeState } from "@/models/node"
 import { useNodeConfig } from "@/composables/config"
-import VShape from "./shape.vue"
+import VShape from "@/components/base/VShape.vue"
 
 const props = defineProps({
   id: {

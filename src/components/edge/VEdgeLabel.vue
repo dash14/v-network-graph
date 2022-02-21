@@ -3,7 +3,7 @@ import { computed, PropType, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "@/common/configs"
 import { Edge, EdgeLabelArea } from "@/common/types"
 import { VectorLine } from "@/modules/calculation/line"
-import VText from "./label-text.vue"
+import VText from "@/components/base/VLabelText.vue"
 
 const props = defineProps({
   area: {

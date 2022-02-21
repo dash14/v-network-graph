@@ -3,8 +3,8 @@ import { PropType } from "vue"
 import { Position } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useEdgeConfig } from "@/composables/config"
-import VEdgeLine from "./line.vue"
-import VEdgeCurved from "./edge-curved.vue"
+import VLine from "@/components/base/VLine.vue"
+import VEdgeCurved from "./VEdgeCurved.vue"
 
 defineProps({
   id: {
@@ -33,7 +33,7 @@ defineExpose({ config })
 </script>
 
 <template>
-  <v-edge-line
+  <v-line
     v-if="config.type == 'straight' || !state.curve"
     v-bind="state.position"
     :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"

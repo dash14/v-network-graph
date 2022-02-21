@@ -7,8 +7,8 @@ import { useStates } from "@/composables/state"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { calculatePathPoints } from "@/modules/calculation/path"
-import VPathLine from "./path-line.vue"
 import { useMouseOperation } from "@/composables/mouse"
+import VPathLine from "./VPathLine.vue"
 
 const { pathZOrderedList, nodeStates, edgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()

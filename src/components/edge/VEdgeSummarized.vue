@@ -5,9 +5,9 @@ import { Config } from "@/common/configs"
 import { useEdgeConfig } from "@/composables/config"
 import { useStates } from "@/composables/state"
 import { useMouseOperation } from "@/composables/mouse"
-import VLine from "./line.vue"
-import VShape from "./shape.vue"
-import VText from "./label-text.vue"
+import VLine from "@/components/base/VLine.vue"
+import VShape from "@/components/base/VShape.vue"
+import VText from "@/components/base/VLabelText.vue"
 
 const props = defineProps({
   edges: {

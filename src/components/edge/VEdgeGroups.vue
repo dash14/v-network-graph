@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useStates, isSummarizedEdges } from "@/composables/state"
-import VEdge from "./edge.vue"
-import VEdgeSummarized from "./edge-summarized.vue"
+import VEdge from "./VEdge.vue"
+import VEdgeSummarized from "./VEdgeSummarized.vue"
 
 const { edgeStates, edgeZOrderedList, edgeGroupStates, layouts } = useStates()
 
