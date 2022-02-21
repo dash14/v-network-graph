@@ -1,6 +1,30 @@
 import { RecursivePartial } from "./common"
 
 /* ------------------------------------------ *
+ * Core types
+ * ------------------------------------------ */
+
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface LinePosition {
+  p1: Position
+  p2: Position
+}
+
+export interface Size {
+  width: number
+  height: number
+}
+
+/** An object with a field named id */
+export interface IdentifiedObject {
+  id: string
+}
+
+/* ------------------------------------------ *
  * Network graph elements
  * ------------------------------------------ */
 
@@ -11,6 +35,7 @@ export interface Node {
 }
 
 export type Nodes = Record<string, Node>
+export type NodeWithId = Node & IdentifiedObject
 
 export interface Edge {
   source: string
@@ -20,13 +45,7 @@ export interface Edge {
 }
 
 export type Edges = Record<string, Edge>
-
-export interface LinePosition {
-  x1: number
-  y1: number
-  x2: number
-  y2: number
-}
+export type EdgeWithId = Edge & IdentifiedObject
 
 export type LayerPosition =
   "paths"
@@ -52,16 +71,6 @@ export type Layers = Record<string, LayerPosition>
 /* ------------------------------------------ *
  * Layouts
  * ------------------------------------------ */
-
-export interface Position {
-  x: number
-  y: number
-}
-
-export interface Size {
-  width: number
-  height: number
-}
 
 export interface FixablePosition extends Position {
   fixed?: boolean
@@ -95,12 +104,18 @@ export interface EdgeLabelArea {
  * ------------------------------------------ */
 
 export interface Path {
+  id?: string
   edges: string[]
   // any properties
   [x: string]: any
 }
 
-export type Paths = Path[]
+export type Paths = Record<string, Path>
+
+// When specified in a list, the ID is not needed for a while to
+// keep compatibility.
+// TODO: After a while, remove `| Path[]`.
+export type InputPaths = Record<string, Path> | Path[]
 
 // line: point | curve: [control-point, control-point, target-point] | move to next point: null
 export type PositionOrCurve = Position | Position[] | null
@@ -112,7 +127,7 @@ export type PositionOrCurve = Position | Position[] | null
 export type ViewEvent<T extends Event> = { event: T }
 export type NodeEvent<T extends Event> = { node: string; event: T }
 export type EdgeEvent<T extends Event> = { edge: string; edges: string[], summarized: false; event: T } | { edge?: undefined, edges: string[]; summarized: true; event: T }
-export type PathEvent<T extends Event> = { path: Path, event: T }
+export type PathEvent<T extends Event> = { path: string, event: T }
 
 // For compatibility with previous versions
 export type NodePointerEvent = NodeEvent<PointerEvent>
@@ -121,7 +136,7 @@ export type EdgePointerEvent = EdgeEvent<PointerEvent>
 export type Events = {
   "view:load": undefined
   "view:unload": undefined
-  "view:mode": "default" | "node" | "edge"
+  "view:mode": "default" | "node" | "edge" | "path"
   "view:zoom": number
   "view:pan": { x: number; y: number }
   "view:fit": undefined
@@ -148,8 +163,13 @@ export type Events = {
   "edge:pointerout": EdgeEvent<PointerEvent>
   "edge:contextmenu": EdgeEvent<MouseEvent>
   "edge:select": string[]
+  "path:select": string[]
+  "path:pointerup": PathEvent<PointerEvent>
+  "path:pointerdown": PathEvent<PointerEvent>
   "path:click": PathEvent<MouseEvent>
   "path:dblclick": PathEvent<MouseEvent>
+  "path:pointerover": PathEvent<PointerEvent>
+  "path:pointerout": PathEvent<PointerEvent>
   "path:contextmenu": PathEvent<MouseEvent>
 }
 

@@ -7,9 +7,11 @@
   "cSpell.words": [
     "composables",
     "focusring",
+    "hoverable",
     "nuxt",
     "vite",
-    "vitejs"
+    "vitejs",
+    "vitest"
   ],
   "cSpell.ignorePaths": [
     ".git",

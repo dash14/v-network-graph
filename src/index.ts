@@ -29,6 +29,7 @@ export type { LayoutHandler } from "./layouts/handler"
 
 export * from "./common/types"
 export * from "./common/configs"
+export { Vector2D } from "./modules/vector2d"
 
 // Export for more advanced visualization. However, be aware of the
 // possibility of destructive specification changes in the future.

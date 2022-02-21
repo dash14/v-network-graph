@@ -9,6 +9,9 @@ const resolvePath = (str: string) => path.resolve(__dirname, str)
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: [{ find: "@/", replacement: path.join(__dirname, "./src/") }],
+  },
   build: {
     target: "es2015",
     minify: "terser",

@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { Position } from "../common/types"
+import { Position } from "@/common/types"
 import { SimpleLayout } from "./simple"
 
 const DEFAULT_GRID = 10

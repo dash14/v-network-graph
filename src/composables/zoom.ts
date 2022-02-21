@@ -1,6 +1,6 @@
-import { nonNull } from "../common/common"
-import { ViewConfig } from "../common/configs"
 import { provide, inject, InjectionKey, Ref, computed } from "vue"
+import { nonNull } from "@/common/common"
+import { ViewConfig } from "@/common/configs"
 
 interface ZoomProvides {
   zoomLevel: Ref<number>,

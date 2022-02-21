@@ -15,6 +15,9 @@ export function dtsBeforeWriteFile(filePath: string, _content: string) {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: [{ find: "@/", replacement: path.join(__dirname, "./src/") }],
+  },
   build: {
     target: "es2015",
     minify: "terser",
@@ -47,7 +50,7 @@ export default defineConfig({
       outputDir: resolvePath("lib"),
       staticImport: true,
       copyDtsFiles: false,
-      beforeWriteFile: dtsBeforeWriteFile
+      beforeWriteFile: dtsBeforeWriteFile,
     }),
   ],
 })

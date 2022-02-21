@@ -1,8 +1,7 @@
-
-import { nonNull } from "../common/common"
-import { Configs, UserConfigs } from "../common/configs"
-import { getConfigDefaults } from "../common/config-defaults"
 import { inject, InjectionKey, provide, reactive, Ref, watch } from "vue"
+import { nonNull } from "@/common/common"
+import { Configs, UserConfigs } from "@/common/configs"
+import { getConfigDefaults } from "@/common/config-defaults"
 import merge from "lodash-es/merge"
 
 const injectionKey = Symbol("style") as InjectionKey<Configs>

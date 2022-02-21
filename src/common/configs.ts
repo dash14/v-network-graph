@@ -1,4 +1,4 @@
-import { SvgPanZoomInstance } from "../utility/svg-pan-zoom-ex"
+import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
 import { RecursivePartial } from "./common"
 import { Node, Edge, Edges, Path } from "./types"
@@ -120,6 +120,13 @@ export interface ZOrderConfig<T> {
   bringToFrontOnSelected: boolean
 }
 
+/* Object common config */
+
+export interface ObjectConfigs<O> {
+  selectable: CallableValue<boolean, O> | number
+  zOrder: ZOrderConfig<O>
+}
+
 /* Node style */
 
 export enum NodeLabelDirection {
@@ -232,11 +239,21 @@ export type PathEndType = "centerOfNode" | "edgeOfNode"
 
 export interface PathConfig<P extends Path = Path> {
   visible: boolean
-  clickable: boolean
+  clickable: CallableValue<boolean, P>
+  hoverable: CallableValue<boolean, P>
   curveInNode: boolean
   end: PathEndType
   margin: CallableValue<number, P>
+
+  // @Deprecated
   path: CallableValues<PathStrokeStyle, P>
+
+  normal: CallableValues<PathStrokeStyle, P>
+  hover?: CallableValues<PathStrokeStyle, P>
+  selected: CallableValues<PathStrokeStyle, P>
+
+  selectable: CallableValue<boolean, P> | number
+  zOrder: ZOrderConfig<P>
   transition?: string
 }
 
