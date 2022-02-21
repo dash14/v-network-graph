@@ -6,14 +6,12 @@ import { PathState } from "@/models/path"
 import { useStates } from "@/composables/state"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
-import { useEventEmitter } from "@/composables/event-emitter"
 import { calculatePathPoints } from "@/modules/calculation/path"
 import VPathLine from "./path-line.vue"
 import { useMouseOperation } from "@/composables/mouse"
 
 const { pathZOrderedList, nodeStates, edgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()
-const emitter = useEventEmitter()
 const pathConfig = usePathConfig()
 
 const {
