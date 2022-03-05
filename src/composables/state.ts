@@ -5,9 +5,9 @@ import { watch, watchEffect } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
-import { StrokeStyle } from "@/common/configs"
+import { StrokeStyle, ShapeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
-import { LinePosition } from "@/common/types"
+import { LinePosition, Position } from "@/common/types"
 import { useId } from "@/composables/id"
 import * as NodeModel from "@/models/node"
 import * as EdgeModel from "@/models/edge"
@@ -15,9 +15,14 @@ import * as EdgeGroup from "@/modules/edge/group"
 import * as PathModel from "@/models/path"
 import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
+import * as PointUtils from "@/modules/calculation/point"
+import * as NodeUtils from "@/modules/node/node"
 import { VectorLine } from "@/modules/calculation/line"
 import { MarkerState, useMarker } from "./marker"
 import { useObjectState } from "./objectState"
+import { Vector2D } from "@/modules/vector2d"
+import * as V2D from "@/modules/vector2d"
+import { Point2D } from "@/modules/vector2d/core"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -361,8 +366,8 @@ function createNewEdgeState(
     const source = layouts.nodes[edge?.source]
     const target = layouts.nodes[edge?.target]
 
-    const sourceShape = nodeStates[edge?.source]?.staticShape
-    const targetShape = nodeStates[edge?.target]?.staticShape
+    const sourceShape = nodeStates[edge.source]?.staticShape
+    const targetShape = nodeStates[edge.target]?.staticShape
     if (!source || !target || !sourceShape || !targetShape) {
       return
     }
@@ -408,14 +413,37 @@ function createNewEdgeState(
       }
     }
 
-    if (config.margin === null || config.margin === undefined) {
-      if (l.source.type !== "none" || l.target.type !== "none") {
-        sourceMargin += sourceShapeMargin
-        targetMargin += targetShapeMargin
-      }
+    if (config.margin) {
+      sourceMargin += config.margin
+      targetMargin += config.margin
+    }
+
+    const isStartEdgeOfNode =
+      !!config.margin || l.source.type !== "none" || l.target.type !== "none"
+
+    // calculate self-loop edge
+    if (edge.source === edge.target) {
+      state.origin = LineUtils.toLinePosition(source, target)
+      const [position, arc] = calculateArcPositionAndState(
+        source,
+        sourceShape,
+        config,
+        isStartEdgeOfNode,
+        sourceMargin,
+        targetMargin,
+        s
+      )
+      state.position = position
+      state.loop = arc
+      state.curve = undefined
+      return
     } else {
-      sourceMargin += config.margin + sourceShapeMargin
-      targetMargin += config.margin + targetShapeMargin
+      state.loop = undefined
+    }
+
+    if (isStartEdgeOfNode) {
+      sourceMargin += sourceShapeMargin
+      targetMargin += targetShapeMargin
     }
 
     // calculate the line segments to be displayed with margins applied
@@ -604,6 +632,76 @@ function calculateCurvePositionAndState(
     control,
   }
   return [position, curve]
+}
+
+function calculateArcPositionAndState(
+  nodePos: Position,
+  nodeShape: ShapeStyle,
+  config: EdgeConfig,
+  isStartEdgeOfNode: boolean,
+  sourceMargin: number,
+  targetMargin: number,
+  scale: number
+): [LinePosition, EdgeModel.Arc] {
+  const s = scale
+
+  // calculate the center position of the Arc
+  const radius = config.selfLoop.radius * s
+  const d = config.selfLoop.offset * s + radius
+  const rad = (config.selfLoop.angle - 90) * (Math.PI / 180)
+  const center = Vector2D.fromObject({
+    x: nodePos.x + d * Math.cos(rad),
+    y: nodePos.y + d * Math.sin(rad),
+  })
+
+  const isClockwise = config.selfLoop.isClockwise
+
+  let p1: Point2D | undefined, p2: Point2D | undefined
+  if (isStartEdgeOfNode) {
+    const intersects = PointUtils.getIntersectionOfCircles(
+      center,
+      radius,
+      Vector2D.fromObject(nodePos),
+      NodeUtils.getNodeRadius(nodeShape) * s
+    )
+    if (intersects) {
+      ;[p1, p2] = intersects
+      let direction = 1
+      if (!isClockwise) {
+        ;[p1, p2] = [p2, p1]
+        direction = -1
+      }
+      if (sourceMargin !== 0 || targetMargin !== 0) {
+        const sourceMoveRad = ((sourceMargin * s) / radius) * direction
+        const targetMoveRad = ((targetMargin * s) / radius) * direction
+        p1 = v2d.moveOnCircumference(p1, center, sourceMoveRad)
+        p2 = v2d.moveOnCircumference(p2, center, -targetMoveRad)
+      }
+    }
+  }
+  if (p1 === undefined || p2 === undefined) {
+    const radiusLine = Vector2D.fromObject(nodePos)
+      .subtract(center)
+      .normalize()
+      .multiplyScalar(radius)
+    let rad = 1 * (Math.PI / 180)
+    if (!isClockwise) rad *= -1
+    p1 = center.clone().add(V2D.rotate(radiusLine, rad))
+    p2 = center.clone().add(V2D.rotate(radiusLine, -rad))
+  }
+  const a1 = Vector2D.fromObject(p1).subtract(center).angleDegree()
+  const a2 = Vector2D.fromObject(p2).subtract(center).angleDegree()
+  const angle = (a2 + 360 - a1) % 360
+
+  const isLargeArc = angle >= 180 ? true : false
+  return [
+    { p1, p2 },
+    {
+      radius: [radius, radius],
+      isLargeArc: isClockwise ? isLargeArc : !isLargeArc,
+      isClockwise,
+    },
+  ]
 }
 
 function createSummarizedEdgeStates(

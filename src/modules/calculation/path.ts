@@ -2,12 +2,13 @@ import { NodePositions, PositionOrCurve } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { EdgeStates, EdgeState } from "@/models/edge"
 import { EdgeLine, EdgeObject, PathState } from "@/models/path"
-import { AnyShapeStyle, PathEndType } from "@/common/configs"
+import { PathEndType } from "@/common/configs"
 import { findFirstNonNull } from "@/utils/collection"
 import * as v2d from "@/modules/calculation/2d"
 import * as PointUtils from "@/modules/calculation/point"
 import { VectorLine } from "@/modules/calculation/line"
 import * as LineUtils from "@/modules/calculation/line"
+import * as NodeUtils from "@/modules/node/node"
 import V, { Vector2D } from "@/modules/vector2d"
 
 const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
@@ -42,14 +43,14 @@ export function calculatePathPoints(
   // ----------------------------------------------------
   {
     const firstEdge = edgePos[0]
-    let nodeRadius = _getNodeRadius(nodeStates[firstEdge.source].shape) * scale
+    let nodeRadius = NodeUtils.getNodeRadius(nodeStates[firstEdge.source].shape) * scale
     const lineMargin = margin + (pathEndType === "edgeOfNode" ? nodeRadius : 0)
     const nextPoint =
       lineMargin <= 0
         ? firstEdge.line.source
         : _calculateEdgeOfNode(firstEdge, lineMargin, nodeLayouts, true)
     points.push(nextPoint)
-    nodeRadius = _getNodeRadius(nodeStates[firstEdge.target].shape) * scale
+    nodeRadius = NodeUtils.getNodeRadius(nodeStates[firstEdge.target].shape) * scale
     if (margin > 0) {
       const distance = V.distance(firstEdge.line.source, firstEdge.line.target)
       if (distance <= lineMargin + nodeRadius) {
@@ -76,7 +77,7 @@ export function calculatePathPoints(
     // calculate transit points so that the path line is smooth.
     //   Inner circle: [α] radius: `nodeCoreRadius`
     //   Node circle : [β]  radius: `nodeRadius`
-    const nodeRadius = _getNodeRadius(nodeStates[nodeId].shape) * scale
+    const nodeRadius = NodeUtils.getNodeRadius(nodeStates[nodeId].shape) * scale
     const nodeCoreRadius = Math.max(nodeRadius * (2 / 3), nodeRadius - 4 * scale)
     const prevCoreIp = _getIntersectionOfLineAndNode(prev, nodePos, nodeCoreRadius, true)
     const nextCoreIp = _getIntersectionOfLineAndNode(next, nodePos, nodeCoreRadius, false)
@@ -216,13 +217,13 @@ export function calculatePathPoints(
   // ----------------------------------------------------
   {
     const lastEdge = edgePos[edgePos.length - 1]
-    let nodeRadius = _getNodeRadius(nodeStates[lastEdge.target].shape) * scale
+    let nodeRadius = NodeUtils.getNodeRadius(nodeStates[lastEdge.target].shape) * scale
     const lineMargin = margin + (pathEndType === "edgeOfNode" ? nodeRadius : 0)
     const nextPoint =
       lineMargin <= 0
         ? lastEdge.line.target
         : _calculateEdgeOfNode(lastEdge, lineMargin, nodeLayouts, false)
-    nodeRadius = _getNodeRadius(nodeStates[lastEdge.source].shape) * scale
+    nodeRadius = NodeUtils.getNodeRadius(nodeStates[lastEdge.source].shape) * scale
     const curve = lastEdge.curve
     if (curve) {
       // curve
@@ -450,14 +451,6 @@ function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): E
     curve,
   }
   return result
-}
-
-function _getNodeRadius(shape: AnyShapeStyle) {
-  if (shape.type == "circle") {
-    return shape.radius
-  } else {
-    return Math.min(shape.width, shape.height) / 2
-  }
 }
 
 function _getSlope(pos: VectorLine) {

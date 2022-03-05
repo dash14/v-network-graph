@@ -167,7 +167,20 @@ export function getIntersectionOfCircles(
   center2: Vector2D,
   radius2: number,
   near: Vector2D
-): Vector2D | null {
+): Vector2D | null
+export function getIntersectionOfCircles(
+  center1: Vector2D,
+  radius1: number,
+  center2: Vector2D,
+  radius2: number
+): [Vector2D, Vector2D] | null
+export function getIntersectionOfCircles(
+  center1: Vector2D,
+  radius1: number,
+  center2: Vector2D,
+  radius2: number,
+  near?: Vector2D
+): Vector2D | [Vector2D, Vector2D] | null {
   const c1 = center1
   const c2 = center2
 
@@ -190,7 +203,7 @@ export function getIntersectionOfCircles(
   if (a === sumR) {
     const n = vC1C2.clone().normalize()
     const p = center1.clone().add(n.multiplyScalar(radius1))
-    return p
+    return near ? p : [p , p]
   }
 
   // When the circles are inscribed, [a] and the difference
@@ -203,7 +216,7 @@ export function getIntersectionOfCircles(
     // * C1 is larger : P = C1 + r1 * n
     // * C1 is smaller: P = C1 - r1 * n
     const p = center1.clone().add(n.multiplyScalar(isLarge ? radius1 : -radius1))
-    return p
+    return near ? p : [p , p]
   }
 
   // All three sides of triangle C1C2P are known.
@@ -237,8 +250,11 @@ export function getIntersectionOfCircles(
   const result1 = center1.clone().add(tn1).add(sn2)
   const result2 = center1.clone().add(tn1).subtract(sn2)
 
-  const d1 = result1.distance(near)
-  const d2 = result2.distance(near)
-
-  return d1 < d2 ? result1 : result2
+  if (near) {
+    const d1 = result1.distance(near)
+    const d2 = result2.distance(near)
+    return d1 < d2 ? result1 : result2
+  } else {
+    return [result1, result2]
+  }
 }
