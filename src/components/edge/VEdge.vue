@@ -4,6 +4,7 @@ import { Position } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useEdgeConfig } from "@/composables/config"
 import VLine from "@/components/base/VLine.vue"
+import VArc from "@/components/base/VArc.vue"
 import VEdgeCurved from "./VEdgeCurved.vue"
 
 defineProps({
@@ -33,8 +34,19 @@ defineExpose({ config })
 </script>
 
 <template>
+  <v-arc
+    v-if="state.loop"
+    v-bind="state.position"
+    :radius="state.loop.radius"
+    :is-large-arc="state.loop.isLargeArc"
+    :is-clockwise="state.loop.isClockwise"
+    :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
+    :config="state.line.stroke"
+    :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
+    :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+  />
   <v-line
-    v-if="config.type == 'straight' || !state.curve"
+    v-else-if="config.type == 'straight' || !state.curve"
     :data-edge-id="id"
     v-bind="state.position"
     :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
