@@ -52,7 +52,9 @@ const animationSpeed = computed(() => {
 const pathD = computed(() => {
   const { p1, p2, radius, isLargeArc, isClockwise } = props
   const [rx, ry] = radius
-  return `M ${p1.x} ${p1.y} A ${rx} ${ry} 0 ${isLargeArc ? 1 : 0} ${isClockwise ? 1 : 0} ${p2.x} ${p2.y}`
+  const f1 = isLargeArc ? 1 : 0
+  const f2 = isClockwise ? 1 : 0
+  return `M ${p1.x} ${p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p2.x} ${p2.y}`
 })
 
 defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
