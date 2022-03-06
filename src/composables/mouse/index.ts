@@ -79,6 +79,14 @@ export function provideMouseOperation(
     viewMode: ref("default"),
   }
 
+  if (selectedNodes.size > 0) {
+    modes.selectionMode.value = "node"
+  } else if (selectedEdges.size > 0) {
+    modes.selectionMode.value = "edge"
+  } else if (selectedPaths.size > 0) {
+    modes.selectionMode.value = "path"
+  }
+
   watch(modes.viewMode, mode => {
     emitter.emit("view:mode", mode)
   })
