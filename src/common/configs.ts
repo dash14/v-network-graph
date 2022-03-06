@@ -48,7 +48,9 @@ export interface ViewConfig {
   maxZoomLevel: number
   doubleClickZoomEnabled: boolean
   mouseWheelZoomEnabled: boolean
-  fit: boolean
+  fit?: boolean // Deprecated
+  autoPanAndZoomOnLoad: false | "center-zero" | "center-content" | "fit-content"
+  autoPanOnResize: boolean
   layoutHandler: LayoutHandler
   onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
   grid: GridConfig

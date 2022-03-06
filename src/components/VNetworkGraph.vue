@@ -336,14 +336,18 @@ export default defineComponent({
     const resizeObserver = globalThis.ResizeObserver
       ? new ResizeObserver(() => {
           svgPanZoom.value?.resize()
+          if (!configs.view.autoPanOnResize) return
+          // Pan to keep the view area centered
           const r = container.value?.getBoundingClientRect()
           if (r) {
             const x = -(rectSize.width - r.width) / 2
             const y = -(rectSize.height - r.height) / 2
             svgPanZoom.value?.panBy({ x, y })
             const { width, height } = r
-            Object.assign(rectSize, { width, height })
-            emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
+            if (rectSize.width !== width || rectSize.height !== height) {
+              Object.assign(rectSize, { width, height })
+              emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
+            }
           }
         })
       : undefined
@@ -567,28 +571,27 @@ export default defineComponent({
       updateBorderBox(() => {
         // pan to center
         const svg = nonNull(svgPanZoom.value, "svg-pan-zoom")
-        svg.center()
 
         // activate layout handler.
         // (calc the positions of nodes whose positions are not specified)
         configs.view.layoutHandler.activate(activateParams())
 
         nextTick(() => {
-          if (Object.keys(props.nodes).length > 0) {
-            // The center may change as a result of the position calculation above,
-            // so re-center.
-            if (configs.view.fit) {
+          const autoPanAndZoom = configs.view.autoPanAndZoomOnLoad
+          if (configs.view.fit || autoPanAndZoom !== false) {
+            const nodesEmpty = Object.keys(props.nodes).length == 0
+            if (nodesEmpty || (autoPanAndZoom === "center-zero")) {
+              // Pan (0, 0) to the center.
+              const sizes = svg.getSizes()
+              svg.pan({
+                x: sizes.width / 2,
+                y: sizes.height / 2,
+              })
+            } else if (autoPanAndZoom === "fit-content" || configs.view.fit) {
               fitToContents()
-            } else {
+            } else if (autoPanAndZoom === "center-content") {
               panToCenter()
             }
-          } else {
-            // Pan (0, 0) to the center.
-            const sizes = svg.getSizes()
-            svg.pan({
-              x: sizes.width / 2,
-              y: sizes.height / 2,
-            })
           }
 
           emitter.emit("view:load")

@@ -18,7 +18,8 @@ export function getConfigDefaults(): Configs {
       maxZoomLevel: 64,
       doubleClickZoomEnabled: true,
       mouseWheelZoomEnabled: true,
-      fit: false,
+      autoPanAndZoomOnLoad: "center-content",
+      autoPanOnResize: true,
       layoutHandler: new SimpleLayout(),
       onSvgPanZoomInitialized: undefined,
       grid: {
