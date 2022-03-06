@@ -65,9 +65,9 @@ export function useObjectState<
   // - update `{obj}.selected` flag
   watch(
     () => [...selected],
-    (nodes, prev) => {
-      const append = nodes.filter(n => !prev.includes(n))
-      const removed = prev.filter(n => !nodes.includes(n))
+    (objects, prev) => {
+      const append = prev ? objects.filter(n => !prev.includes(n)) : objects
+      const removed = prev ? prev.filter(n => !objects.includes(n)) : []
       append.forEach(id => {
         const state = states[id]
         if (state && !state.selected) state.selected = true
@@ -76,7 +76,8 @@ export function useObjectState<
         const state = states[id]
         if (state && state.selected) state.selected = false
       })
-    }
+    },
+    { immediate: true } // for specified from the beginning
   )
 
   // - update `node.hovered` flag
