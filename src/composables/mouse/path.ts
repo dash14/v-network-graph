@@ -2,7 +2,7 @@ import { Ref, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
-import { InteractionModes, PathPointerState } from "./core"
+import { ClickState, createClickEvents, InteractionModes, PathPointerState } from "./core"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
 import { Emitter } from "mitt"
@@ -18,6 +18,7 @@ export function makePathInteractionHandlers(
   const state = {
     pointers: new Map<number, PathPointerState>(), // <PointerId, ...>
     pointerPeekCount: 0,
+    clicks: new Map<number, ClickState>(),
   }
 
   function _makePathEventObject<T extends Event>(path: string, event: T): PathEvent<T> {
@@ -97,12 +98,24 @@ export function makePathInteractionHandlers(
     const path = pointerState.id
     emitter.emit("path:pointerup", _makePathEventObject(path, event))
 
+    // click handling
+    const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
+      state.clicks.get(pointerState.pointerId),
+      event
+    )
+    state.clicks.set(pointerState.pointerId, clickState)
+    handlePathClickEvent(path, clickEvent)
+    if (doubleClickEvent) {
+      handlePathDoubleClickEvent(path, doubleClickEvent)
+    }
+
     if (state.pointers.size === 0) {
       // reset state
       state.pointerPeekCount = 0
       entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
+      state.clicks.clear()
       modes.viewMode.value = "default"
     }
   }
@@ -150,9 +163,6 @@ export function makePathInteractionHandlers(
     if (!pathStates[path]?.clickable) {
       return
     }
-    if (state.pointers.size > 0 || state.pointerPeekCount > 0) {
-      return // ignore
-    }
 
     if (event.shiftKey && !["container", "path"].includes(modes.selectionMode.value)) {
       return
@@ -197,8 +207,6 @@ export function makePathInteractionHandlers(
     handlePathPointerDownEvent,
     handlePathPointerOverEvent,
     handlePathPointerOutEvent,
-    handlePathClickEvent,
-    handlePathDoubleClickEvent,
     handlePathContextMenu,
   }
 }

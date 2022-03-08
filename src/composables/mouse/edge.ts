@@ -5,7 +5,7 @@ import { Events, EdgeEvent } from "@/common/types"
 import { EdgeStates } from "@/models/edge"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
-import { EdgePointerState, InteractionModes } from "./core"
+import { ClickState, createClickEvents, EdgePointerState, InteractionModes } from "./core"
 
 export function makeEdgeInteractionHandlers(
   edgeStates: EdgeStates,
@@ -17,6 +17,7 @@ export function makeEdgeInteractionHandlers(
   const state = {
     pointers: new Map<number, EdgePointerState>(), // <PointerId, ...>
     pointerPeekCount: 0,
+    clicks: new Map<number, ClickState>()
   }
 
   const edgePointerHandlers = {
@@ -84,12 +85,24 @@ export function makeEdgeInteractionHandlers(
     const edge = pointerState.id
     emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
 
+    // click handling
+    const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
+      state.clicks.get(pointerState.pointerId),
+      event
+    )
+    state.clicks.set(pointerState.pointerId, clickState)
+    handleEdgeClickEvent(edge, clickEvent)
+    if (doubleClickEvent) {
+      handleEdgeDoubleClickEvent(edge, doubleClickEvent)
+    }
+
     if (state.pointers.size === 0) {
       // reset state
       state.pointerPeekCount = 0
       entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
+      state.clicks.clear()
       modes.viewMode.value = "default"
     }
   }
@@ -118,10 +131,6 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgeClickEvent(edge: string | string[], event: MouseEvent) {
-    if (state.pointers.size > 0 || state.pointerPeekCount > 0) {
-      return // ignore
-    }
-
     if (event.shiftKey && !["container", "edge"].includes(modes.selectionMode.value)) {
       return
     }
@@ -250,14 +259,10 @@ export function makeEdgeInteractionHandlers(
     handleEdgePointerDownEvent,
     handleEdgePointerOverEvent,
     handleEdgePointerOutEvent,
-    handleEdgeClickEvent,
-    handleEdgeDoubleClickEvent,
     handleEdgeContextMenu,
     handleEdgesPointerDownEvent,
     handleEdgesPointerOverEvent,
     handleEdgesPointerOutEvent,
-    handleEdgesClickEvent,
-    handleEdgesDoubleClickEvent,
     handleEdgesContextMenu,
   }
 }

@@ -18,8 +18,6 @@ const {
   handlePathPointerDownEvent,
   handlePathPointerOverEvent,
   handlePathPointerOutEvent,
-  handlePathClickEvent,
-  handlePathDoubleClickEvent,
   handlePathContextMenu,
 } = useMouseOperation()
 
@@ -45,8 +43,6 @@ defineExpose({
   handlePathPointerDownEvent,
   handlePathPointerOverEvent,
   handlePathPointerOutEvent,
-  handlePathClickEvent,
-  handlePathDoubleClickEvent,
   handlePathContextMenu,
 })
 </script>
@@ -67,8 +63,6 @@ defineExpose({
       @pointerdown="handlePathPointerDownEvent(path.id, $event)"
       @pointerenter.passive="handlePathPointerOverEvent(path.id, $event)"
       @pointerleave.passive="handlePathPointerOutEvent(path.id, $event)"
-      @click="handlePathClickEvent(path.id, $event)"
-      @dblclick="handlePathDoubleClickEvent(path.id, $event)"
       @contextmenu="handlePathContextMenu(path.id, $event)"
     />
   </transition-group>

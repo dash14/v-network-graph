@@ -5,18 +5,24 @@ import { Events, NodePositions, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
-import { InteractionModes, MOVE_DETECTION_THRESHOLD, NodePointerState } from "./core"
+import {
+  ClickState,
+  createClickEvents,
+  InteractionModes,
+  MOVE_DETECTION_THRESHOLD,
+  NodePointerState,
+} from "./core"
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
 
 interface NodeInteractionState {
   pointers: Map<number, NodePointerState> // <PointerId, ...>
-  prevPointers: Map<number, NodePointerState> // <PointerId, ...>
   follow: {
     followedPointerId: number
     nodeBasePositions: { [name: string]: Position }
   }
   hoveredNodesPre: Set<string> // to keep the hover state while dragging
+  clicks: Map<number, ClickState> // <PointerId, ...>
 }
 
 export function makeNodeInteractionHandlers(
@@ -30,12 +36,12 @@ export function makeNodeInteractionHandlers(
 ) {
   const state: NodeInteractionState = {
     pointers: new Map(),
-    prevPointers: new Map(),
     follow: {
       followedPointerId: -1,
       nodeBasePositions: {},
     },
     hoveredNodesPre: new Set(),
+    clicks: new Map(),
   }
 
   const nodePointerHandlers = {
@@ -124,15 +130,6 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodeClickEvent(node: string, event: MouseEvent) {
-    // Don't fire the click event if the node is being dragged
-    const pointerState = Array.from(state.prevPointers.values()).find(s => s.nodeId === node)
-    if (pointerState) {
-      const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
-      if (isMoved) {
-        return
-      }
-    }
-
     if (event.shiftKey && !["container", "node"].includes(modes.selectionMode.value)) {
       return
     }
@@ -237,7 +234,6 @@ export function makeNodeInteractionHandlers(
     }
 
     state.pointers.delete(event.pointerId)
-    state.prevPointers.set(event.pointerId, pointerState)
 
     const node = pointerState.nodeId
 
@@ -252,12 +248,26 @@ export function makeNodeInteractionHandlers(
       emitter.emit("node:pointerup", { node, event })
     }
 
-    if (state.pointers.size == 0) {
+    if (!isMoved /* Don't fire the click event if the node is being dragged */) {
+      // click handling
+      const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
+        state.clicks.get(pointerState.pointerId),
+        event
+      )
+      state.clicks.set(pointerState.pointerId, clickState)
+      handleNodeClickEvent(node, clickEvent)
+      if (doubleClickEvent) {
+        handleNodeDoubleClickEvent(node, doubleClickEvent)
+      }
+    }
+
+    if (state.pointers.size === 0) {
       // re-initialize state
       state.follow = { followedPointerId: -1, nodeBasePositions: {} }
       entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
+      state.clicks.clear()
       modes.viewMode.value = "default"
     } else {
       _updateFollowNodes(pointerState)
@@ -339,8 +349,6 @@ export function makeNodeInteractionHandlers(
     handleNodePointerDownEvent,
     handleNodePointerOverEvent,
     handleNodePointerOutEvent,
-    handleNodeClickEvent,
-    handleNodeDoubleClickEvent,
     handleNodeContextMenu,
   }
 }

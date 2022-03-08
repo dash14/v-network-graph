@@ -2,7 +2,7 @@ import { onMounted, onUnmounted, Ref } from "vue"
 import { Emitter } from "mitt"
 import { Events } from "@/common/types"
 import { entriesOf } from "@/utils/object"
-import { InteractionModes, MOVE_DETECTION_THRESHOLD } from "./core"
+import { ClickState, createClickEvents, InteractionModes, MOVE_DETECTION_THRESHOLD } from "./core"
 
 export function setupContainerInteractionHandlers(
   container: Ref<SVGSVGElement | undefined>,
@@ -12,7 +12,7 @@ export function setupContainerInteractionHandlers(
   const state = {
     moveCounter: 0,
     pointerCounter: 0,
-    allowClickEvent: false,
+    clickState: undefined as ClickState | undefined,
   }
 
   // measure the number of move events in the pointerdown state
@@ -24,7 +24,6 @@ export function setupContainerInteractionHandlers(
   }
 
   function handleContainerPointerDownEvent(_: PointerEvent) {
-    state.allowClickEvent = false
     state.moveCounter = 0
     if (state.pointerCounter === 0) {
       // Add to event listener
@@ -52,21 +51,27 @@ export function setupContainerInteractionHandlers(
           return
         }
         modes.selectionMode.value = "container"
-        state.allowClickEvent = true
+
+        // click handling
+        const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
+          state.clickState,
+          event
+        )
+        state.clickState = clickState
+        handleContainerClickEvent(clickEvent)
+        if (doubleClickEvent) {
+          handleContainerDoubleClickEvent(doubleClickEvent)
+        }
       }
     }
   }
 
   function handleContainerClickEvent(event: MouseEvent) {
-    if (state.allowClickEvent) {
-      emitter.emit("view:click", { event })
-    }
+    emitter.emit("view:click", { event })
   }
 
   function handleContainerDoubleClickEvent(event: MouseEvent) {
-    if (state.allowClickEvent) {
-      emitter.emit("view:dblclick", { event })
-    }
+    emitter.emit("view:dblclick", { event })
   }
 
   function handleContainerContextMenuEvent(event: MouseEvent) {
@@ -86,15 +91,11 @@ export function setupContainerInteractionHandlers(
     const c = container.value
     if (!c) return
     c.addEventListener("pointerdown", handleContainerPointerDownEvent, { passive: true })
-    c.addEventListener("click", handleContainerClickEvent, { passive: false })
-    c.addEventListener("dblclick", handleContainerDoubleClickEvent, { passive: false })
     c.addEventListener("contextmenu", handleContainerContextMenuEvent, { passive: false })
   })
 
   onUnmounted(() => {
     container.value?.removeEventListener("pointerdown", handleContainerPointerDownEvent)
-    container.value?.removeEventListener("click", handleContainerClickEvent)
-    container.value?.removeEventListener("dblclick", handleContainerDoubleClickEvent)
     container.value?.removeEventListener("contextmenu", handleContainerContextMenuEvent)
   })
 }

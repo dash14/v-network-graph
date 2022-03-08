@@ -35,8 +35,6 @@ const {
   handleNodePointerDownEvent,
   handleNodePointerOverEvent,
   handleNodePointerOutEvent,
-  handleNodeClickEvent,
-  handleNodeDoubleClickEvent,
   handleNodeContextMenu,
 } = useMouseOperation()
 
@@ -165,8 +163,6 @@ defineExpose({
   handleNodePointerDownEvent,
   handleNodePointerOverEvent,
   handleNodePointerOutEvent,
-  handleNodeClickEvent,
-  handleNodeDoubleClickEvent,
   handleNodeContextMenu,
   textAnchor,
   dominantBaseline,
@@ -183,8 +179,6 @@ defineExpose({
     @pointerdown.prevent.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
     @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
-    @click.prevent.stop="handleNodeClickEvent(id, $event)"
-    @dblclick.prevent.stop="handleNodeDoubleClickEvent(id, $event)"
     @contextmenu="handleNodeContextMenu(id, $event)"
   >
     <slot

@@ -30,8 +30,6 @@ interface MouseEventHandlers {
   handleNodePointerDownEvent: NodeEventHandler
   handleNodePointerOverEvent: NodeEventHandler
   handleNodePointerOutEvent: NodeEventHandler
-  handleNodeClickEvent: NodeEventHandler<MouseEvent>
-  handleNodeDoubleClickEvent: NodeEventHandler<MouseEvent>
   handleNodeContextMenu: NodeEventHandler<MouseEvent>
 
   // for Edges
@@ -44,16 +42,12 @@ interface MouseEventHandlers {
   handleEdgesPointerDownEvent: EdgesEventHandler
   handleEdgesPointerOverEvent: EdgesEventHandler
   handleEdgesPointerOutEvent: EdgesEventHandler
-  handleEdgesClickEvent: EdgesEventHandler<MouseEvent>
-  handleEdgesDoubleClickEvent: EdgesEventHandler<MouseEvent>
   handleEdgesContextMenu: EdgesEventHandler<MouseEvent>
 
   // for Paths
   handlePathPointerDownEvent: PathEventHandler
   handlePathPointerOverEvent: PathEventHandler
   handlePathPointerOutEvent: PathEventHandler
-  handlePathClickEvent: PathEventHandler<MouseEvent>
-  handlePathDoubleClickEvent: PathEventHandler<MouseEvent>
   handlePathContextMenu: PathEventHandler<MouseEvent>
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
