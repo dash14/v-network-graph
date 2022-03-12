@@ -2,7 +2,12 @@ import { onMounted, onUnmounted, Ref } from "vue"
 import { Emitter } from "mitt"
 import { Events } from "@/common/types"
 import { entriesOf } from "@/utils/object"
-import { ClickState, createClickEvents, InteractionModes, MOVE_DETECTION_THRESHOLD } from "./core"
+import {
+  ClickState,
+  createClickEvents,
+  getPointerMoveDetectionThreshold,
+  InteractionModes,
+} from "./core"
 
 export function setupContainerInteractionHandlers(
   container: Ref<SVGElement | undefined>,
@@ -45,7 +50,8 @@ export function setupContainerInteractionHandlers(
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
-      if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
+      const threshold = getPointerMoveDetectionThreshold(event.pointerType)
+      if (state.moveCounter <= threshold) {
         // Click container (without mouse move)
         if (event.shiftKey && modes.selectionMode.value !== "container") {
           return

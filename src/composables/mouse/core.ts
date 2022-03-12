@@ -1,7 +1,8 @@
 import { Ref } from "vue"
 import { Position } from "@/common/types"
 
-export const MOVE_DETECTION_THRESHOLD = 3 // Sensitivity to start dragging
+const MOUSE_MOVE_DETECTION_THRESHOLD = 3 // Sensitivity to start dragging
+const TOUCH_MOVE_DETECTION_THRESHOLD = 6 // Sensitivity to start dragging in touches
 export const DOUBLE_CLICK_THRESHOLD = 500
 
 export type ViewMode = "default" | "node" | "edge" | "path"
@@ -40,9 +41,13 @@ export interface InteractionModes {
   viewMode: Ref<ViewMode>
 }
 
+export function getPointerMoveDetectionThreshold(type: string): number {
+  return type === "touch" ? TOUCH_MOVE_DETECTION_THRESHOLD : MOUSE_MOVE_DETECTION_THRESHOLD
+}
+
 export function createClickEvents(
   clickState: ClickState | undefined,
-  event: MouseEvent,
+  event: MouseEvent
 ): [ClickState, MouseEvent, MouseEvent | undefined] {
   const now = Date.now()
   if (clickState && now - clickState.lastTime <= DOUBLE_CLICK_THRESHOLD) {
@@ -101,6 +106,6 @@ export function createClickEvents(
 export function cleanClickState(states: Map<number, ClickState>) {
   const now = Date.now()
   Array.from(states.entries())
-    .filter(([_, state]) => (now - state.lastTime) > DOUBLE_CLICK_THRESHOLD)
+    .filter(([_, state]) => now - state.lastTime > DOUBLE_CLICK_THRESHOLD)
     .map(([pointerId, _]) => states.delete(pointerId))
 }

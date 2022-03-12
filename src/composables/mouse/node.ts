@@ -9,8 +9,8 @@ import {
   cleanClickState,
   ClickState,
   createClickEvents,
+  getPointerMoveDetectionThreshold,
   InteractionModes,
-  MOVE_DETECTION_THRESHOLD,
   NodePointerState,
 } from "./core"
 
@@ -177,7 +177,8 @@ export function makeNodeInteractionHandlers(
     pointerState.latestPosition = { x: event.pageX, y: event.pageY }
     pointerState.moveCounter++
 
-    if (pointerState.moveCounter <= MOVE_DETECTION_THRESHOLD) {
+    const threshold = getPointerMoveDetectionThreshold(event.pointerType)
+    if (pointerState.moveCounter <= threshold) {
       return // pending for click and drag distinguish
     }
 
@@ -185,7 +186,7 @@ export function makeNodeInteractionHandlers(
       return
     }
 
-    if (pointerState.moveCounter === MOVE_DETECTION_THRESHOLD + 1) {
+    if (pointerState.moveCounter === threshold + 1) {
       const draggingNodes = _calculateNodeNewPosition(pointerState, {
         pointerId: pointerState.pointerId,
         pageX: pointerState.dragBasePosition.x,
@@ -209,7 +210,8 @@ export function makeNodeInteractionHandlers(
     for (pointerState of state.pointers.values()) {
       const node = pointerState.nodeId
 
-      const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
+      const threshold = getPointerMoveDetectionThreshold(event.pointerType)
+      const isMoved = pointerState.moveCounter > threshold
       if (isMoved) {
         // pageX/Y in cancel event are zero => use latest position
         const draggingNodes = _calculateNodeNewPosition(pointerState, {
@@ -244,7 +246,8 @@ export function makeNodeInteractionHandlers(
 
     const node = pointerState.nodeId
 
-    const isMoved = pointerState.moveCounter > MOVE_DETECTION_THRESHOLD
+    const threshold = getPointerMoveDetectionThreshold(event.pointerType)
+    const isMoved = pointerState.moveCounter > threshold
     if (isMoved) {
       if (nodeStates[pointerState.nodeId]?.draggable) {
         const draggingNodes = _calculateNodeNewPosition(pointerState, event)
