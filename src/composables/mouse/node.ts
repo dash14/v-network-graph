@@ -6,6 +6,7 @@ import { NodeStates } from "@/models/node"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
 import {
+  cleanClickState,
   ClickState,
   createClickEvents,
   InteractionModes,
@@ -130,6 +131,11 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodeClickEvent(node: string, event: MouseEvent) {
+    if (event.isTrusted) return // native event
+    // When a finger is placed on any object and another object is tapped,
+    // no click event is fired. Thus, click events are emulated by using
+    // pointerdown/up. The following is processing for emulated events only.
+
     if (event.shiftKey && !["container", "node"].includes(modes.selectionMode.value)) {
       return
     }
@@ -156,6 +162,7 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodeDoubleClickEvent(node: string, event: MouseEvent) {
+    if (event.isTrusted) return // native event
     emitter.emit("node:dblclick", { node, event })
   }
 
@@ -255,9 +262,9 @@ export function makeNodeInteractionHandlers(
         event
       )
       state.clicks.set(pointerState.pointerId, clickState)
-      handleNodeClickEvent(node, clickEvent)
+      pointerState.eventTarget?.dispatchEvent(clickEvent)
       if (doubleClickEvent) {
-        handleNodeDoubleClickEvent(node, doubleClickEvent)
+        pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
       }
     }
 
@@ -267,7 +274,7 @@ export function makeNodeInteractionHandlers(
       entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
-      state.clicks.clear()
+      cleanClickState(state.clicks)
       modes.viewMode.value = "default"
     } else {
       _updateFollowNodes(pointerState)
@@ -305,6 +312,7 @@ export function makeNodeInteractionHandlers(
       nodeBasePosition: _unwrapNodePosition(nodePositions, node),
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
+      eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)
 
@@ -349,6 +357,8 @@ export function makeNodeInteractionHandlers(
     handleNodePointerDownEvent,
     handleNodePointerOverEvent,
     handleNodePointerOutEvent,
+    handleNodeClickEvent,
+    handleNodeDoubleClickEvent,
     handleNodeContextMenu,
   }
 }

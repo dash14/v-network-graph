@@ -5,7 +5,13 @@ import { Events, EdgeEvent } from "@/common/types"
 import { EdgeStates } from "@/models/edge"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
-import { ClickState, createClickEvents, EdgePointerState, InteractionModes } from "./core"
+import {
+  cleanClickState,
+  ClickState,
+  createClickEvents,
+  EdgePointerState,
+  InteractionModes,
+} from "./core"
 
 export function makeEdgeInteractionHandlers(
   edgeStates: EdgeStates,
@@ -17,7 +23,7 @@ export function makeEdgeInteractionHandlers(
   const state = {
     pointers: new Map<number, EdgePointerState>(), // <PointerId, ...>
     pointerPeekCount: 0,
-    clicks: new Map<number, ClickState>()
+    clicks: new Map<number, ClickState>(),
   }
 
   const edgePointerHandlers = {
@@ -65,6 +71,7 @@ export function makeEdgeInteractionHandlers(
     const pointerState: EdgePointerState = {
       pointerId: event.pointerId,
       id: edge,
+      eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)
 
@@ -91,9 +98,9 @@ export function makeEdgeInteractionHandlers(
       event
     )
     state.clicks.set(pointerState.pointerId, clickState)
-    handleEdgeClickEvent(edge, clickEvent)
+    pointerState.eventTarget?.dispatchEvent(clickEvent)
     if (doubleClickEvent) {
-      handleEdgeDoubleClickEvent(edge, doubleClickEvent)
+      pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
     }
 
     if (state.pointers.size === 0) {
@@ -102,7 +109,7 @@ export function makeEdgeInteractionHandlers(
       entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
-      state.clicks.clear()
+      cleanClickState(state.clicks)
       modes.viewMode.value = "default"
     }
   }
@@ -131,6 +138,11 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgeClickEvent(edge: string | string[], event: MouseEvent) {
+    if (event.isTrusted) return // native event
+    // When a finger is placed on any object and another object is tapped,
+    // no click event is fired. Thus, click events are emulated by using
+    // pointerdown/up. The following is processing for emulated events only.
+
     if (event.shiftKey && !["container", "edge"].includes(modes.selectionMode.value)) {
       return
     }
@@ -185,6 +197,7 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgeDoubleClickEvent(edge: string | string[], event: MouseEvent) {
+    if (event.isTrusted) return // native event
     emitter.emit("edge:dblclick", _makeEdgeEventObject(edge, event))
   }
 
@@ -228,6 +241,7 @@ export function makeEdgeInteractionHandlers(
     const pointerState: EdgePointerState = {
       pointerId: event.pointerId,
       id: edges,
+      eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)
     emitter.emit("edge:pointerdown", _makeEdgeEventObject(edges, event))
@@ -259,10 +273,14 @@ export function makeEdgeInteractionHandlers(
     handleEdgePointerDownEvent,
     handleEdgePointerOverEvent,
     handleEdgePointerOutEvent,
+    handleEdgeClickEvent,
+    handleEdgeDoubleClickEvent,
     handleEdgeContextMenu,
     handleEdgesPointerDownEvent,
     handleEdgesPointerOverEvent,
     handleEdgesPointerOutEvent,
+    handleEdgesClickEvent,
+    handleEdgesDoubleClickEvent,
     handleEdgesContextMenu,
   }
 }

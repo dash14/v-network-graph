@@ -293,7 +293,7 @@ export default defineComponent({
     // SVG
     // -----------------------------------------------------------------------
     const container = ref<HTMLDivElement>()
-    const svg = ref<SVGSVGElement>()
+    const svg = ref<SVGElement & SVGSVGElement>()
     const viewport = ref<SVGGElement>()
     const state = ref<State>(State.INITIAL)
     const show = computed(() => state.value !== State.INITIAL)
@@ -717,7 +717,7 @@ export default defineComponent({
       const element = nonNull(this.svg, "svg")
       const viewport = nonNull(this.viewport, "svg viewport")
 
-      const target = element.cloneNode(true) as SVGSVGElement
+      const target = element.cloneNode(true) as SVGElement
 
       const box = viewport.getBBox()
       const z = 1 / this.scale

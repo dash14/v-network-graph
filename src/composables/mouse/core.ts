@@ -15,16 +15,19 @@ export interface NodePointerState {
   dragBasePosition: Position // drag started position
   nodeBasePosition: Position // node position at drag started
   latestPosition: Position // latest position
+  eventTarget: EventTarget | null // event target
 }
 
 export interface EdgePointerState {
   pointerId: number // pointer ID provided by the event
   id: string | string[] // pointer down edge ID
+  eventTarget: EventTarget | null // event target
 }
 
 export interface PathPointerState {
   pointerId: number // pointer ID provided by the event
   id: string // pointer down path ID
+  eventTarget: EventTarget | null // event target
 }
 
 export interface ClickState {
@@ -39,10 +42,10 @@ export interface InteractionModes {
 
 export function createClickEvents(
   clickState: ClickState | undefined,
-  event: PointerEvent
+  event: MouseEvent,
 ): [ClickState, MouseEvent, MouseEvent | undefined] {
   const now = Date.now()
-  if (clickState && now - clickState.lastTime < DOUBLE_CLICK_THRESHOLD) {
+  if (clickState && now - clickState.lastTime <= DOUBLE_CLICK_THRESHOLD) {
     // continuous clicked
     clickState.count++
     clickState.lastTime = now
@@ -51,23 +54,53 @@ export function createClickEvents(
     clickState = { count: 1, lastTime: now }
   }
 
-  // create MouseEvent object for "click" event
-  const fields: [string, any][] = []
-  for (const k in event) {
-    const v = (event as any)[k]
-    if (typeof v !== "function" && typeof v !== "object") {
-      fields.push([k, v])
-    }
+  const initDict = {
+    view: window,
+    screenX: event.screenX,
+    screenY: event.screenY,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    metaKey: event.metaKey,
+    button: event.button,
+    buttons: event.buttons,
+    detail: clickState.count,
   }
-  fields.push(["detail", clickState.count])
-  const initDict = Object.fromEntries(fields)
-  const clickEvent = new MouseEvent("click", initDict)
 
-  // create MouseEvent object for "dblclick" event
-  let doubleClickEvent = undefined
-  if (clickState.count === 2) {
-    doubleClickEvent = new MouseEvent("dblclick", initDict)
+  let clickEvent: MouseEvent
+  let doubleClickEvent: MouseEvent | undefined = undefined
+  if (event instanceof PointerEvent) {
+    Object.assign(initDict, {
+      pointerId: event.pointerId,
+      width: event.width,
+      height: event.height,
+      pressure: event.pressure,
+      tangentialPressure: event.tangentialPressure,
+      tiltX: event.tiltX,
+      tiltY: event.tiltY,
+      twist: event.twist,
+      pointerType: event.pointerType,
+      isPrimary: event.isPrimary,
+    })
+    clickEvent = new PointerEvent("click", initDict)
+    if (clickState.count === 2) {
+      doubleClickEvent = new PointerEvent("dblclick", initDict)
+    }
+  } else {
+    clickEvent = new MouseEvent("click", initDict)
+    if (clickState.count === 2) {
+      doubleClickEvent = new MouseEvent("dblclick", initDict)
+    }
   }
 
   return [clickState, clickEvent, doubleClickEvent]
+}
+
+export function cleanClickState(states: Map<number, ClickState>) {
+  const now = Date.now()
+  Array.from(states.entries())
+    .filter(([_, state]) => (now - state.lastTime) > DOUBLE_CLICK_THRESHOLD)
+    .map(([pointerId, _]) => states.delete(pointerId))
 }

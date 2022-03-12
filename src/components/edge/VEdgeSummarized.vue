@@ -25,6 +25,8 @@ const {
   handleEdgesPointerDownEvent,
   handleEdgesPointerOverEvent,
   handleEdgesPointerOutEvent,
+  handleEdgesClickEvent,
+  handleEdgesDoubleClickEvent,
   handleEdgesContextMenu,
 } = useMouseOperation()
 
@@ -62,6 +64,8 @@ defineExpose({
   handleEdgesPointerDownEvent,
   handleEdgesPointerOverEvent,
   handleEdgesPointerOutEvent,
+  handleEdgesClickEvent,
+  handleEdgesDoubleClickEvent,
   handleEdgesContextMenu,
   hovered,
   selectable,
@@ -75,6 +79,8 @@ defineExpose({
     @pointerdown.prevent.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
     @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
     @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
+    @click.prevent.stop="handleEdgesClickEvent(edgeIds, $event)"
+    @dblclick.prevent.stop="handleEdgesDoubleClickEvent(edgeIds, $event)"
     @contextmenu="handleEdgesContextMenu(edgeIds, $event)"
   >
     <v-line v-bind="pos" :config="strokeConfig" />

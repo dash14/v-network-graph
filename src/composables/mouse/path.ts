@@ -2,7 +2,13 @@ import { Ref, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
-import { ClickState, createClickEvents, InteractionModes, PathPointerState } from "./core"
+import {
+  cleanClickState,
+  ClickState,
+  createClickEvents,
+  InteractionModes,
+  PathPointerState,
+} from "./core"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
 import { Emitter } from "mitt"
@@ -78,6 +84,7 @@ export function makePathInteractionHandlers(
     const pointerState: PathPointerState = {
       pointerId: event.pointerId,
       id: path,
+      eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)
 
@@ -104,9 +111,9 @@ export function makePathInteractionHandlers(
       event
     )
     state.clicks.set(pointerState.pointerId, clickState)
-    handlePathClickEvent(path, clickEvent)
+    pointerState.eventTarget?.dispatchEvent(clickEvent)
     if (doubleClickEvent) {
-      handlePathDoubleClickEvent(path, doubleClickEvent)
+      pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
     }
 
     if (state.pointers.size === 0) {
@@ -115,7 +122,7 @@ export function makePathInteractionHandlers(
       entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
-      state.clicks.clear()
+      cleanClickState(state.clicks)
       modes.viewMode.value = "default"
     }
   }
@@ -160,6 +167,11 @@ export function makePathInteractionHandlers(
   }
 
   function handlePathClickEvent(path: string, event: MouseEvent) {
+    if (event.isTrusted) return // native event
+    // When a finger is placed on any object and another object is tapped,
+    // no click event is fired. Thus, click events are emulated by using
+    // pointerdown/up. The following is processing for emulated events only.
+
     if (!pathStates[path]?.clickable) {
       return
     }
@@ -190,13 +202,14 @@ export function makePathInteractionHandlers(
   }
 
   function handlePathDoubleClickEvent(path: string, event: MouseEvent) {
+    if (event.isTrusted) return // native event
     if (!pathStates[path]?.clickable) {
       return
     }
     emitter.emit("path:dblclick", _makePathEventObject(path, event))
   }
 
-  function handlePathContextMenu(path: string, event: PointerEvent) {
+  function handlePathContextMenu(path: string, event: MouseEvent) {
     if (!pathStates[path]?.clickable) {
       return
     }
@@ -207,6 +220,8 @@ export function makePathInteractionHandlers(
     handlePathPointerDownEvent,
     handlePathPointerOverEvent,
     handlePathPointerOutEvent,
+    handlePathClickEvent,
+    handlePathDoubleClickEvent,
     handlePathContextMenu,
   }
 }

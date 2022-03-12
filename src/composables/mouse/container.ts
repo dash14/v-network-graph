@@ -5,7 +5,7 @@ import { entriesOf } from "@/utils/object"
 import { ClickState, createClickEvents, InteractionModes, MOVE_DETECTION_THRESHOLD } from "./core"
 
 export function setupContainerInteractionHandlers(
-  container: Ref<SVGSVGElement | undefined>,
+  container: Ref<SVGElement | undefined>,
   modes: InteractionModes,
   emitter: Emitter<Events>
 ) {
@@ -58,19 +58,28 @@ export function setupContainerInteractionHandlers(
           event
         )
         state.clickState = clickState
-        handleContainerClickEvent(clickEvent)
+        container.value!.dispatchEvent(clickEvent)
         if (doubleClickEvent) {
-          handleContainerDoubleClickEvent(doubleClickEvent)
+          container.value!.dispatchEvent(doubleClickEvent)
         }
       }
     }
   }
 
   function handleContainerClickEvent(event: MouseEvent) {
+    if (event.isTrusted) return // native event
+    // When a finger is placed on any object and another object is tapped,
+    // no click event is fired. Thus, click events are emulated by using
+    // pointerdown/up. The following is processing for emulated events only.
+    event.stopPropagation()
+    event.preventDefault()
     emitter.emit("view:click", { event })
   }
 
   function handleContainerDoubleClickEvent(event: MouseEvent) {
+    if (event.isTrusted) return // native event
+    event.stopPropagation()
+    event.preventDefault()
     emitter.emit("view:dblclick", { event })
   }
 
@@ -91,11 +100,17 @@ export function setupContainerInteractionHandlers(
     const c = container.value
     if (!c) return
     c.addEventListener("pointerdown", handleContainerPointerDownEvent, { passive: true })
+    c.addEventListener("click", handleContainerClickEvent, { passive: false })
+    c.addEventListener("dblclick", handleContainerDoubleClickEvent, { passive: false })
     c.addEventListener("contextmenu", handleContainerContextMenuEvent, { passive: false })
   })
 
   onUnmounted(() => {
-    container.value?.removeEventListener("pointerdown", handleContainerPointerDownEvent)
-    container.value?.removeEventListener("contextmenu", handleContainerContextMenuEvent)
+    const c = container.value
+    if (!c) return
+    c.removeEventListener("pointerdown", handleContainerPointerDownEvent)
+    c.removeEventListener("click", handleContainerClickEvent)
+    c.removeEventListener("dblclick", handleContainerDoubleClickEvent)
+    c.removeEventListener("contextmenu", handleContainerContextMenuEvent)
   })
 }
