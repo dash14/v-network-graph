@@ -28,7 +28,7 @@ export function setupContainerInteractionHandlers(
     if (state.pointerCounter === 0) {
       // Add to event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        container.value?.addEventListener(ev, handler, { passive: true })
+        document.addEventListener(ev, handler, { passive: true })
       })
     }
     state.pointerCounter++
@@ -43,7 +43,7 @@ export function setupContainerInteractionHandlers(
     if (state.pointerCounter === 0) {
       // Remove from event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        container.value?.removeEventListener(ev, handler)
+        document.removeEventListener(ev, handler)
       })
       if (state.moveCounter <= MOVE_DETECTION_THRESHOLD) {
         // Click container (without mouse move)
