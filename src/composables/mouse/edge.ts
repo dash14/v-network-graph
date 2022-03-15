@@ -9,6 +9,7 @@ import {
   cleanClickState,
   ClickState,
   createClickEvents,
+  detectClicks,
   EdgePointerState,
   InteractionModes,
 } from "./core"
@@ -93,11 +94,12 @@ export function makeEdgeInteractionHandlers(
     emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
 
     // click handling
-    const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
-      state.clicks.get(pointerState.pointerId),
-      event
+    const [clickEvent, doubleClickEvent] = detectClicks(
+      state.clicks,
+      pointerState.pointerId,
+      edge instanceof Array ? edge.join(",") : edge,
+      event,
     )
-    state.clicks.set(pointerState.pointerId, clickState)
     pointerState.eventTarget?.dispatchEvent(clickEvent)
     if (doubleClickEvent) {
       pointerState.eventTarget?.dispatchEvent(doubleClickEvent)

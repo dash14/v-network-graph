@@ -34,6 +34,7 @@ export interface PathPointerState {
 export interface ClickState {
   lastTime: number
   count: number
+  id: string // clicked object ID
 }
 
 export interface InteractionModes {
@@ -45,9 +46,41 @@ export function getPointerMoveDetectionThreshold(type: string): number {
   return type === "touch" ? TOUCH_MOVE_DETECTION_THRESHOLD : MOUSE_MOVE_DETECTION_THRESHOLD
 }
 
+export function detectClicks(
+  clickStates: Map<number, ClickState>,
+  pointerId: number,
+  id: string,
+  event: MouseEvent,
+): [MouseEvent, MouseEvent | undefined] {
+  // search click states
+  let clickState = clickStates.get(pointerId)
+  if (clickState) {
+    if (clickState.id !== id) {
+      // click an other object
+      clickState = undefined
+    }
+  } else {
+    const idAndState = Array.from(clickStates.entries()).find(([_, state]) => state.id === id)
+    if (idAndState) {
+      const [oldPointerId, state] = idAndState
+      clickStates.delete(oldPointerId)
+      clickState = state
+    }
+  }
+
+  let clickEvent: MouseEvent, doubleClickEvent: MouseEvent | undefined
+  [clickState, clickEvent, doubleClickEvent] = createClickEvents(clickState, event, id)
+
+  // update
+  clickStates.set(pointerId, clickState)
+
+  return [ clickEvent, doubleClickEvent ]
+}
+
 export function createClickEvents(
   clickState: ClickState | undefined,
-  event: MouseEvent
+  event: MouseEvent,
+  id: string
 ): [ClickState, MouseEvent, MouseEvent | undefined] {
   const now = Date.now()
   if (clickState && now - clickState.lastTime <= DOUBLE_CLICK_THRESHOLD) {
@@ -56,7 +89,7 @@ export function createClickEvents(
     clickState.lastTime = now
   } else {
     // single clicked
-    clickState = { count: 1, lastTime: now }
+    clickState = { count: 1, lastTime: now, id }
   }
 
   const initDict = {

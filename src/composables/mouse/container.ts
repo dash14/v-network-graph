@@ -61,7 +61,8 @@ export function setupContainerInteractionHandlers(
         // click handling
         const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
           state.clickState,
-          event
+          event,
+          "view"
         )
         state.clickState = clickState
         container.value!.dispatchEvent(clickEvent)

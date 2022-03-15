@@ -5,7 +5,7 @@ import { PathStates } from "@/models/path"
 import {
   cleanClickState,
   ClickState,
-  createClickEvents,
+  detectClicks,
   InteractionModes,
   PathPointerState,
 } from "./core"
@@ -106,11 +106,12 @@ export function makePathInteractionHandlers(
     emitter.emit("path:pointerup", _makePathEventObject(path, event))
 
     // click handling
-    const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
-      state.clicks.get(pointerState.pointerId),
+    const [clickEvent, doubleClickEvent] = detectClicks(
+      state.clicks,
+      pointerState.pointerId,
+      path,
       event
     )
-    state.clicks.set(pointerState.pointerId, clickState)
     pointerState.eventTarget?.dispatchEvent(clickEvent)
     if (doubleClickEvent) {
       pointerState.eventTarget?.dispatchEvent(doubleClickEvent)

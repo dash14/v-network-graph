@@ -358,9 +358,11 @@ export default defineComponent({
       const r = c.getBoundingClientRect()
       const { width, height } = r
       Object.assign(rectSize, { width, height })
+      viewport.value?.addEventListener("touchstart", stopEventPropagation, { passive: false })
     })
     onSvgPanZoomUnmounted(() => {
       resizeObserver?.disconnect()
+      viewport.value?.removeEventListener("touchstart", stopEventPropagation)
     })
 
     const applyAbsoluteZoomLevel = (absoluteZoomLevel: number) => {
@@ -745,6 +747,10 @@ export default defineComponent({
     },
   },
 })
+
+function stopEventPropagation(event: Event) {
+  event.stopPropagation()
+}
 </script>
 
 <style lang="scss" scoped>

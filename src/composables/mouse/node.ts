@@ -8,7 +8,7 @@ import { MapUtil } from "@/utils/map"
 import {
   cleanClickState,
   ClickState,
-  createClickEvents,
+  detectClicks,
   getPointerMoveDetectionThreshold,
   InteractionModes,
   NodePointerState,
@@ -260,11 +260,12 @@ export function makeNodeInteractionHandlers(
 
     if (!isMoved /* Don't fire the click event if the node is being dragged */) {
       // click handling
-      const [clickState, clickEvent, doubleClickEvent] = createClickEvents(
-        state.clicks.get(pointerState.pointerId),
+      const [clickEvent, doubleClickEvent] = detectClicks(
+        state.clicks,
+        pointerState.pointerId,
+        node,
         event
       )
-      state.clicks.set(pointerState.pointerId, clickState)
       pointerState.eventTarget?.dispatchEvent(clickEvent)
       if (doubleClickEvent) {
         pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
