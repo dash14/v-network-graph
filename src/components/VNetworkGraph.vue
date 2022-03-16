@@ -314,6 +314,7 @@ export default defineComponent({
       fit: true,
       center: true,
       zoomEnabled: configs.view.zoomEnabled,
+      preventMouseEventsDefault: false,
       onZoom: _ => {
         if (state.value === State.UNLOADED) return
         const z = svgPanZoom.value?.getRealZoom() ?? 1
@@ -762,6 +763,9 @@ function stopEventPropagation(event: Event) {
   user-select: none;
 }
 .v-canvas {
+  // prevent to perform browser's default action
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
   width: 100%;
   height: 100%;
   // svgPanZoomライブラリが有効になるまでの乱れへの対応
