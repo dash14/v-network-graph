@@ -188,7 +188,7 @@ export function makeEdgeInteractionHandlers(
           } else if (!(typeof selectable === "number" && selectedEdges.size >= selectable)) {
             selectedEdges.add(edge)
           }
-        } else {
+        } else if (!selectedEdges.has(edge)) {
           // make the selectedEdges the clicked one
           selectedEdges.clear()
           selectedEdges.add(edge)
