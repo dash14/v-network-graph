@@ -354,6 +354,7 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodeContextMenu(node: string, event: MouseEvent) {
+    event.stopPropagation()
     emitter.emit("node:contextmenu", { node, event })
   }
 

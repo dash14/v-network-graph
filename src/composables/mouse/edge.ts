@@ -214,6 +214,7 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgeContextMenu(edge: string, event: MouseEvent) {
+    event.stopPropagation()
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edge, event))
   }
 
@@ -268,6 +269,7 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgesContextMenu(edges: string[], event: MouseEvent) {
+    event.stopPropagation()
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edges, event))
   }
 

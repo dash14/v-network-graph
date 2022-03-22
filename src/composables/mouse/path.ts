@@ -214,6 +214,7 @@ export function makePathInteractionHandlers(
     if (!pathStates[path]?.clickable) {
       return
     }
+    event.stopPropagation()
     emitter.emit("path:contextmenu", _makePathEventObject(path, event))
   }
 
