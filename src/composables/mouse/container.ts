@@ -45,7 +45,8 @@ export function setupContainerInteractionHandlers(
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
     state.pointerCounter--
-    if (state.pointerCounter === 0) {
+    if (state.pointerCounter <= 0) {
+      state.pointerCounter = 0
       // Remove from event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
