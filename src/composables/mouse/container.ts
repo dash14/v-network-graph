@@ -104,6 +104,10 @@ export function setupContainerInteractionHandlers(
     }
   }
 
+  const preventDefault = (e: MouseEvent) => {
+    e.preventDefault()
+  }
+
   onMounted(() => {
     const c = container.value
     if (!c) return
@@ -111,6 +115,7 @@ export function setupContainerInteractionHandlers(
     c.addEventListener("click", handleContainerClickEvent, { passive: false })
     c.addEventListener("dblclick", handleContainerDoubleClickEvent, { passive: false })
     c.addEventListener("contextmenu", handleContainerContextMenuEvent, { passive: false })
+    c.addEventListener("wheel", preventDefault, { passive: false })
   })
 
   onUnmounted(() => {
@@ -120,5 +125,6 @@ export function setupContainerInteractionHandlers(
     c.removeEventListener("click", handleContainerClickEvent)
     c.removeEventListener("dblclick", handleContainerDoubleClickEvent)
     c.removeEventListener("contextmenu", handleContainerContextMenuEvent)
+    c.removeEventListener("wheel", preventDefault)
   })
 }
