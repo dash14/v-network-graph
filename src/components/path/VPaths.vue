@@ -67,8 +67,8 @@ defineExpose({
       @pointerdown="handlePathPointerDownEvent(path.id, $event)"
       @pointerenter.passive="handlePathPointerOverEvent(path.id, $event)"
       @pointerleave.passive="handlePathPointerOutEvent(path.id, $event)"
-      @click.prevent.stop="handlePathClickEvent(path.id, $event)"
-      @dblclick.prevent.stop="handlePathDoubleClickEvent(path.id, $event)"
+      @click.stop="handlePathClickEvent(path.id, $event)"
+      @dblclick.stop="handlePathDoubleClickEvent(path.id, $event)"
       @contextmenu="handlePathContextMenu(path.id, $event)"
     />
   </transition-group>

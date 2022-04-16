@@ -73,11 +73,11 @@ defineExpose({
     stroke="transparent"
     :stroke-width="strokeWidth"
     fill="none"
-    @pointerdown.prevent.stop="handleEdgePointerDownEvent(id, $event)"
+    @pointerdown.stop="handleEdgePointerDownEvent(id, $event)"
     @pointerenter.passive="handleEdgePointerOverEvent(id, $event)"
     @pointerleave.passive="handleEdgePointerOutEvent(id, $event)"
-    @click.prevent.stop="handleEdgeClickEvent(id, $event)"
-    @dblclick.prevent.stop="handleEdgeDoubleClickEvent(id, $event)"
+    @click.stop="handleEdgeClickEvent(id, $event)"
+    @dblclick.stop="handleEdgeDoubleClickEvent(id, $event)"
     @contextmenu="handleEdgeContextMenu(id, $event)"
   />
 </template>

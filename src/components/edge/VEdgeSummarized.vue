@@ -76,11 +76,11 @@ defineExpose({
 <template>
   <g
     :class="{ 'v-line-summarized': true, hovered, selectable, selected }"
-    @pointerdown.prevent.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
+    @pointerdown.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
     @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
     @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
-    @click.prevent.stop="handleEdgesClickEvent(edgeIds, $event)"
-    @dblclick.prevent.stop="handleEdgesDoubleClickEvent(edgeIds, $event)"
+    @click.stop="handleEdgesClickEvent(edgeIds, $event)"
+    @dblclick.stop="handleEdgesDoubleClickEvent(edgeIds, $event)"
     @contextmenu="handleEdgesContextMenu(edgeIds, $event)"
   >
     <v-line v-bind="pos" :config="strokeConfig" />

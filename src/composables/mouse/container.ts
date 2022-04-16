@@ -80,14 +80,12 @@ export function setupContainerInteractionHandlers(
     // no click event is fired. Thus, click events are emulated by using
     // pointerdown/up. The following is processing for emulated events only.
     event.stopPropagation()
-    event.preventDefault()
     emitter.emit("view:click", { event })
   }
 
   function handleContainerDoubleClickEvent(event: MouseEvent) {
     if (event.isTrusted) return // native event
     event.stopPropagation()
-    event.preventDefault()
     emitter.emit("view:dblclick", { event })
   }
 

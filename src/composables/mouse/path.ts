@@ -62,7 +62,6 @@ export function makePathInteractionHandlers(
     if (event.button == 2 /* right button */) {
       return
     }
-    event.preventDefault()
     event.stopPropagation()
 
     if (!["default", "path"].includes(modes.viewMode.value)) {
@@ -97,7 +96,6 @@ export function makePathInteractionHandlers(
       return
     }
 
-    event.preventDefault()
     event.stopPropagation()
 
     state.pointers.delete(event.pointerId)
@@ -134,7 +132,6 @@ export function makePathInteractionHandlers(
       return
     }
 
-    event.preventDefault()
     event.stopPropagation()
 
     for (const pointerState of state.pointers.values()) {

@@ -167,7 +167,6 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodePointerMoveEvent(event: PointerEvent) {
-    event.preventDefault()
     event.stopPropagation()
 
     const pointerState = state.pointers.get(event.pointerId)
@@ -199,7 +198,6 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodePointerCancelEvent(event: PointerEvent) {
-    event.preventDefault()
     event.stopPropagation()
 
     let pointerState = state.pointers.get(event.pointerId)
@@ -234,7 +232,6 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodePointerUpEvent(event: PointerEvent) {
-    event.preventDefault()
     event.stopPropagation()
 
     const pointerState = state.pointers.get(event.pointerId)
@@ -293,7 +290,6 @@ export function makeNodeInteractionHandlers(
     if (event.button == 2 /* right button */) {
       return
     }
-    event.preventDefault()
     event.stopPropagation()
 
     if (!["default", "node"].includes(modes.viewMode.value)) {

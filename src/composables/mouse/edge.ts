@@ -50,7 +50,6 @@ export function makeEdgeInteractionHandlers(
     if (event.button == 2 /* right button */) {
       return
     }
-    event.preventDefault()
     event.stopPropagation()
 
     if (!["default", "edge"].includes(modes.viewMode.value)) {
@@ -80,7 +79,6 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgePointerUpEvent(event: PointerEvent) {
-    event.preventDefault()
     event.stopPropagation()
 
     const pointerState = state.pointers.get(event.pointerId)
@@ -117,7 +115,6 @@ export function makeEdgeInteractionHandlers(
   }
 
   function handleEdgePointerCancelEvent(event: PointerEvent) {
-    event.preventDefault()
     event.stopPropagation()
 
     const pointerState = state.pointers.get(event.pointerId)
@@ -222,7 +219,6 @@ export function makeEdgeInteractionHandlers(
     if (event.button == 2 /* right button */) {
       return
     }
-    event.preventDefault()
     event.stopPropagation()
 
     if (!["default", "edge"].includes(modes.viewMode.value)) {
