@@ -73,7 +73,7 @@ export function bindPropKeySet<T, K extends string & KeysOfType<T, string[]>>(
         filtered.forEach(bound.add, bound)
       }
     },
-    { immediate: true }
+    { deep: true, immediate: true }
   )
   watch(bound, () => {
     const array = Array.from(bound)
