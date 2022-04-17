@@ -23,7 +23,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@dash14/svg-pan-zoom": "^3.6.6",
+    "@dash14/svg-pan-zoom": "^3.6.7",
     "mitt": "^3.0.0"
   },
   "devDependencies": {
