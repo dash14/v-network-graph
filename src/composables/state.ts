@@ -339,8 +339,11 @@ function createNewEdgeState(
     return { stroke, normalWidth, source, target }
   })
   state.line = line
-  const edgeLayoutPoint = toRef(edgeGroupStates.edgeLayoutPoints, id)
-  const isEdgeSummarized = toRef(edgeGroupStates.summarizedEdges, id)
+  const edgeLayoutPoint: Ref<EdgeModel.EdgeLayoutPoint | undefined> = toRef(
+    edgeGroupStates.edgeLayoutPoints,
+    id
+  )
+  const isEdgeSummarized: Ref<true | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
 
   const stopCalcHandle = watchEffect(() => {
     const edge = edges.value[id]
@@ -358,7 +361,7 @@ function createNewEdgeState(
     // calculate the line segment between center of nodes
     const shiftedPosition = EdgeGroup.calculateEdgeShiftedPosition(
       edgeLayoutPoint.value,
-      isEdgeSummarized.value,
+      isEdgeSummarized.value ?? false,
       source,
       target,
       scale.value,
@@ -419,7 +422,10 @@ function createNewEdgeState(
     } else {
       // curve
       state.origin = LineUtils.toLinePosition(source, target)
-      const shift = edgeLayoutPoint.value.groupWidth / 2 - edgeLayoutPoint.value.pointInGroup
+
+      const shift = edgeLayoutPoint.value // undefined after node deletion
+        ? edgeLayoutPoint.value.groupWidth / 2 - edgeLayoutPoint.value.pointInGroup
+        : 0
 
       const [position, curve] = calculateCurvePositionAndState(
         state.origin,

@@ -83,7 +83,7 @@ export function makeEdgeGroupStates(
  * @returns the edge position by applying a shift
  */
 export function calculateEdgeShiftedPosition(
-  p: EdgeLayoutPoint,
+  p: EdgeLayoutPoint | undefined,
   isSummarized: boolean,
   source: Position,
   target: Position,
