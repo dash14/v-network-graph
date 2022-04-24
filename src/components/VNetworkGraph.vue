@@ -128,17 +128,10 @@
 <script lang="ts">
 import { defineComponent, PropType, readonly, ref, toRef } from "vue"
 import { computed, nextTick, watch } from "vue"
-import {
-  EventHandlers,
-  Nodes,
-  Edges,
-  InputPaths,
-  Layouts,
-  UserLayouts,
-} from "@/common/types"
+import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
-import { UserConfigs } from "@/common/configs"
+import { UserConfigs, ViewConfig } from "@/common/configs"
 import { provideContainers } from "@/composables/container"
 import { provideConfigs } from "@/composables/config"
 import { provideStates, makeStateInput } from "@/composables/state"
@@ -159,6 +152,7 @@ import VBackgroundViewport from "./background/VBackgroundViewport.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VPaths from "./path/VPaths.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
+import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 
 const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
 
@@ -309,8 +303,8 @@ export default defineComponent({
       viewportSelector: ".v-viewport",
       minZoom: configs.view.minZoomLevel, // temporary
       maxZoom: configs.view.maxZoomLevel, // temporary
-      dblClickZoomEnabled: configs.view.doubleClickZoomEnabled,
-      mouseWheelZoomEnabled: configs.view.mouseWheelZoomEnabled,
+      dblClickZoomEnabled: isDoubleClickZoomEnabled(configs.view),
+      mouseWheelZoomEnabled: isMouseWheelZoomEnabled(configs.view),
       fit: true,
       center: true,
       zoomEnabled: configs.view.zoomEnabled,
@@ -375,35 +369,24 @@ export default defineComponent({
     }
 
     watch(
-      () => configs.view.doubleClickZoomEnabled,
-      v => {
-        if (v) {
-          svgPanZoom.value?.enableDblClickZoom()
-        } else {
-          svgPanZoom.value?.disableDblClickZoom()
-        }
-      }
-    )
-    watch(
-      () => configs.view.mouseWheelZoomEnabled,
-      v => {
-        if (v) {
-          svgPanZoom.value?.enableMouseWheelZoom()
-        } else {
-          svgPanZoom.value?.disableMouseWheelZoom()
-        }
-      }
-    )
-    watch(
       () => configs.view.panEnabled,
       v => {
         svgPanZoom.value?.setPanEnabled(v)
       }
     )
     watch(
-      () => configs.view.zoomEnabled,
+      () => [
+        configs.view.zoomEnabled,
+        isDoubleClickZoomEnabled(configs.view),
+        isMouseWheelZoomEnabled(configs.view),
+      ],
       v => {
-        svgPanZoom.value?.setZoomEnabled(v)
+        applyZoomEnabled(
+          svgPanZoom.value!,
+          configs.view.zoomEnabled,
+          configs.view.doubleClickZoomEnabled,
+          configs.view.mouseWheelZoomEnabled
+        )
       }
     )
 
@@ -583,7 +566,7 @@ export default defineComponent({
           const autoPanAndZoom = configs.view.autoPanAndZoomOnLoad
           if (configs.view.fit || autoPanAndZoom !== false) {
             const nodesEmpty = Object.keys(props.nodes).length == 0
-            if (nodesEmpty || (autoPanAndZoom === "center-zero")) {
+            if (nodesEmpty || autoPanAndZoom === "center-zero") {
               // Pan (0, 0) to the center.
               const sizes = svg.getSizes()
               svg.pan({
@@ -748,6 +731,33 @@ export default defineComponent({
     },
   },
 })
+
+function applyZoomEnabled(
+  svgPanZoom: SvgPanZoomInstance,
+  enable: boolean,
+  enableDblClick: boolean,
+  enableMouseWheel: boolean
+): void {
+  svgPanZoom.setZoomEnabled(enable)
+  if (enable && enableDblClick) {
+    svgPanZoom.enableDblClickZoom()
+  } else {
+    svgPanZoom.disableDblClickZoom()
+  }
+  if (enable && enableMouseWheel) {
+    svgPanZoom.enableMouseWheelZoom()
+  } else {
+    svgPanZoom.disableMouseWheelZoom()
+  }
+}
+
+function isDoubleClickZoomEnabled(view: ViewConfig): boolean {
+  return view.zoomEnabled && view.doubleClickZoomEnabled
+}
+
+function isMouseWheelZoomEnabled(view: ViewConfig): boolean {
+  return view.zoomEnabled && view.mouseWheelZoomEnabled
+}
 
 function stopEventPropagation(event: Event) {
   event.stopPropagation()
