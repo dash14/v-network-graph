@@ -70,24 +70,24 @@ Add css to `nuxt.config.ts`
 
 ```ts
 // nuxt.config.ts
-import { defineNuxtConfig } from "nuxt3";
+import { defineNuxtConfig } from "nuxt3"
 
 // https://v3.nuxtjs.org/docs/directory-structure/nuxt.config
 export default defineNuxtConfig({
   css: ["v-network-graph/lib/style.css"],
-});
+})
 ```
 
 Make the plugin to `plugins/v-network-graph.ts`
 
 ```ts
 // plugins/v-network-graph.ts
-import { defineNuxtPlugin } from "#app";
-import VNetworkGraph from "v-network-graph";
+import { defineNuxtPlugin } from "#app"
+import VNetworkGraph from "v-network-graph"
 
-export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(VNetworkGraph);
-});
+export default defineNuxtPlugin(nuxtApp => {
+  nuxtApp.vueApp.use(VNetworkGraph)
+})
 ```
 
 ## Basic usage
