@@ -105,7 +105,11 @@ export class ForceLayout implements LayoutHandler {
     }
 
     const stopNetworkWatch = watch(
-      () => [Object.keys(nodes.value), edges.value],
+      () => [
+        Object.keys(nodes.value),
+        // Watch only for changes in links, not all properties of the edge objects.
+        Object.values(edges.value).map(e => `${e.source}=${e.target}`),
+      ],
       () => {
         // set new node's position to center of the view
         const area = svgPanZoom.getViewArea()
@@ -116,8 +120,7 @@ export class ForceLayout implements LayoutHandler {
           forceEdges.links(this.forceLayoutEdges(edges.value))
         }
         restartSimulation()
-      },
-      { deep: true }
+      }
     )
 
     emitter.on("node:dragstart", onDrag)
