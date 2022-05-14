@@ -49,47 +49,49 @@ function calculateDistanceToAvoidOverlapsWithRect(
   scale: number
 ) {
   const centerLine = VectorLine.fromPositions(sourcePos, targetPos)
-  const left = targetPos.x - (rect.width / 2) * scale
-  const top = targetPos.y - (rect.height / 2) * scale
-  const right = targetPos.x + (rect.width / 2) * scale
-  const bottom = targetPos.y + (rect.height / 2) * scale
-  const vertexes = []
-  const borderRadius = rect.borderRadius * scale
+  const halfWidth = ((rect.width + rect.strokeWidth) / 2) * scale
+  const halfHeight = ((rect.height + rect.strokeWidth) / 2) * scale
 
-  // Calculate the nearest neighbor points of the vertices
-  // and lines of a figure.
-  if (borderRadius == 0) {
-    // Since it is a simple rectangle, the four corners are the vertices.
-    vertexes.push(
-      new Vector2D(left, top),
-      new Vector2D(left, bottom),
-      new Vector2D(right, top),
-      new Vector2D(right, bottom)
-    )
+  const borderRadius =
+    rect.borderRadius > 0 ? (rect.borderRadius + rect.strokeWidth / 2) * scale : 0
+
+  // check whether it crosses over the vertical or horizontal boundary
+  const angleVRad = (centerLine.v.angle() - Math.PI / 2) % Math.PI
+  const angleHRad = Math.PI / 2 - (angleVRad % Math.PI)
+  const w = halfHeight * Math.abs(Math.tan(angleVRad))
+  const h = halfWidth * Math.abs(Math.tan(angleHRad))
+  const isCrossedVLine = w <= halfWidth - borderRadius
+  const isCrossedHLine = h <= halfHeight - borderRadius
+  if (isCrossedVLine || isCrossedHLine || borderRadius === 0) {
+    if (isCrossedVLine) {
+      return Math.sqrt(halfHeight ** 2 + w ** 2)
+    } else {
+      return Math.sqrt(halfWidth ** 2 + h ** 2)
+    }
   } else {
-    // The edge of each line and the center of the rounded corner are
-    // the vertices.
-    const hypo = borderRadius * Math.sin(Math.PI / 4) // 45deg
-    vertexes.push(
-      new Vector2D(left + borderRadius, top),
-      new Vector2D(left, top + borderRadius),
-      new Vector2D(left + borderRadius - hypo, top + borderRadius - hypo),
-      new Vector2D(left + borderRadius, bottom),
-      new Vector2D(left, bottom - borderRadius),
-      new Vector2D(left + borderRadius - hypo, bottom - borderRadius + hypo),
-      new Vector2D(right - borderRadius, top),
-      new Vector2D(right, top + borderRadius),
-      new Vector2D(right - borderRadius + hypo, top + borderRadius - hypo),
-      new Vector2D(right - borderRadius, bottom),
-      new Vector2D(right, bottom - borderRadius),
-      new Vector2D(right - borderRadius + hypo, bottom - borderRadius + hypo)
+    // on the border radius: calculate the center of circles
+    const left = targetPos.x - halfWidth + borderRadius
+    const top = targetPos.y - halfHeight + borderRadius
+    const right = targetPos.x + halfWidth - borderRadius
+    const bottom = targetPos.y + halfHeight - borderRadius
+    const vertexes = [
+      new Vector2D(left, top),
+      new Vector2D(right, top),
+      new Vector2D(right, bottom),
+      new Vector2D(left, bottom),
+    ]
+    const index = Math.floor(((centerLine.v.angleDegree() + 360) % 360) / 90)
+    const centerOfNearestCircle = vertexes[index]
+    const point = PointUtils.getIntersectionOfLineTargetAndCircle(
+      centerLine.source,
+      PointUtils.getNearestPoint(centerOfNearestCircle, centerLine),
+      centerOfNearestCircle,
+      borderRadius
     )
+    return point
+      ? LineUtils.toLineVector(point, centerLine.target).length()
+      : LineUtils.toLineVector(centerOfNearestCircle, centerLine.target).length() + borderRadius
   }
-  const hits = vertexes.map(p => PointUtils.getNearestPoint(p, centerLine))
-  const minP =
-    minBy(hits, p => LineUtils.toLineVector(centerLine.source, p).lengthSquared()) ??
-    centerLine.target
-  return LineUtils.toLineVector(minP, centerLine.target).length()
 }
 
 /**
