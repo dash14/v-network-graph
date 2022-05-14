@@ -162,7 +162,7 @@ export function calculateDistancesFromCenterOfNodeToEndOfNode(
   // source side
   let distance1: number
   if (sourceNodeShape.type === "circle") {
-    distance1 = sourceNodeShape.radius
+    distance1 = sourceNodeShape.radius + (sourceNodeShape.strokeWidth / 2)
   } else {
     distance1 = calculateDistanceToAvoidOverlapsWithRect(
       targetNodePos,
@@ -175,7 +175,7 @@ export function calculateDistancesFromCenterOfNodeToEndOfNode(
   // target side
   let distance2: number
   if (targetNodeShape.type === "circle") {
-    distance2 = targetNodeShape.radius
+    distance2 = targetNodeShape.radius + (targetNodeShape.strokeWidth / 2)
   } else {
     distance2 = calculateDistanceToAvoidOverlapsWithRect(
       sourceNodePos,
