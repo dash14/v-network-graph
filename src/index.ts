@@ -35,6 +35,8 @@ export { Vector2D } from "./modules/vector2d"
 // possibility of destructive specification changes in the future.
 export { useStates } from "./composables/state"
 
+export type { Box } from "./modules/svg-pan-zoom-ex"
+
 // // iife/cjs usage extends esm default export - so import it all
 // import plugin, * as components from '.';
 

@@ -1,6 +1,6 @@
 import svgPanZoom, * as SvgPanZoom from "@dash14/svg-pan-zoom"
 
-interface Box {
+export interface Box {
   top: number
   bottom: number
   left: number
@@ -15,6 +15,8 @@ interface ViewArea {
 export interface SvgPanZoomInstance extends SvgPanZoom.Instance {
   fitToContents(): SvgPanZoomInstance
   getViewArea(): ViewArea
+  getViewBox(): Box
+  setViewBox(box: Box): void
   getRealZoom(): number
   applyAbsoluteZoomLevel(zoomLevel: number, minZoomLevel: number, maxZoomLevel: number): void
   setPanEnabled(enabled: boolean): SvgPanZoomInstance
@@ -77,6 +79,38 @@ const methods: Partial<SvgPanZoomInternal> = {
         y: viewport.height / 2 - pan.y,
       },
     }
+  },
+  getViewBox(this: SvgPanZoomInternal): Box {
+    return this.getViewArea().box
+  },
+  setViewBox(this: SvgPanZoomInternal, box: Box) {
+    // Adjust zoom and pan to include the box.
+    // If the aspect ratio is different from the box, pan to
+    // include the box with keeping the center.
+    const width = box.right - box.left
+    const height = box.bottom - box.top
+    const { width: sizeWidth, height: sizeHeight } = this.getSizes()
+    const ratio = width / height
+    const currentRatio = sizeWidth / sizeHeight
+    const newWidth = ratio < currentRatio ? height * currentRatio : width
+    const newHeight = ratio > currentRatio ? width / currentRatio : height
+    const absoluteZoom = Math.min(
+      sizeWidth / newWidth,
+      sizeHeight / newHeight
+    )
+    const realZoom = this.getRealZoom()
+    const relativeZoom = this.getZoom()
+    const originalZoom = realZoom / relativeZoom
+    this.zoom(absoluteZoom / originalZoom)
+
+    const center = {
+      x: (box.left + width / 2) * absoluteZoom,
+      y: (box.top + height / 2) * absoluteZoom
+    }
+    this.pan({
+      x: -(center.x) + newWidth / 2 * absoluteZoom,
+      y: -(center.y) + newHeight / 2 * absoluteZoom
+    })
   },
   getRealZoom(this: SvgPanZoomInternal) {
     return this.getSizes().realZoom

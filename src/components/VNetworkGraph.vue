@@ -152,7 +152,7 @@ import VBackgroundViewport from "./background/VBackgroundViewport.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VPaths from "./path/VPaths.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
-import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
+import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 
 const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
 
@@ -435,6 +435,18 @@ export default defineComponent({
       })
     }
 
+    // Get viewport box
+    const getViewBox = () =>
+      svgPanZoom.value?.getViewBox() ?? {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      }
+
+    // Get viewport box
+    const setViewBox = (box: Box) => svgPanZoom.value?.setViewBox(box)
+
     // -----------------------------------------------------------------------
     // States of selected nodes/edges
     // -----------------------------------------------------------------------
@@ -626,6 +638,8 @@ export default defineComponent({
       // methods
       fitToContents,
       panToCenter,
+      getViewBox,
+      setViewBox
     }
   },
   methods: {
