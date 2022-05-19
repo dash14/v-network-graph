@@ -53,7 +53,8 @@ export function useMarker(markerState: MarkerState) {
     marker: MarkerStyle,
     isSource: boolean,
     previousId: string | undefined,
-    strokeColor: string
+    strokeColor: string,
+    instanceId: number
   ) {
     if (marker.type === "none") {
       clearMarker(previousId)
@@ -66,7 +67,7 @@ export function useMarker(markerState: MarkerState) {
     }
 
     const headMarker = toHeadMarker(marker, isSource, strokeColor)
-    const id = buildKey(headMarker)
+    const id = buildKey(headMarker, instanceId)
     if (id === previousId) {
       return id
     }
@@ -89,9 +90,12 @@ function toHeadMarker(marker: MarkerStyle, isSource: boolean, strokeColor: strin
   }
 }
 
-function buildKey(m: HeadMarker) {
-  const converted = convertToAscii(m.color)
-  return `marker_${m.type}_${m.width}_${m.height}_${m.margin}_${converted}_${
-    m.isSource ? "L" : "R"
-  }_${m.units === "strokeWidth" ? "rel" : "abs"}`
+function buildKey(m: HeadMarker, instanceId: number) {
+  // If the same marker ID exists in the previous instance and is hidden by
+  // `display: none`, the marker in the other instance will disappear.
+  // For safety, marker IDs will be unique in the entire page.
+  const c = convertToAscii(m.color)
+  const d = m.isSource ? "L" : "R"
+  const u = m.units === "strokeWidth" ? "rel" : "abs"
+  return `marker_${instanceId}_${m.type}_${m.width}_${m.height}_${m.margin}_${c}_${d}_${u}`
 }

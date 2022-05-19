@@ -8,6 +8,7 @@ import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/c
 import { StrokeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, NodePositions, Path, Paths } from "@/common/types"
 import { LinePosition } from "@/common/types"
+import { useId } from "@/composables/id"
 import * as NodeModel from "@/models/node"
 import * as EdgeModel from "@/models/edge"
 import * as EdgeGroup from "@/modules/edge/group"
@@ -114,6 +115,12 @@ export function provideStates(
   // -----------------------------------------------------------------------
   // States for edges
   // -----------------------------------------------------------------------
+  // Instance ID number for using to make marker ID generation unique for the
+  // entire page.
+  // If the same marker ID exists in the previous instance and is hidden by
+  // `display: none`, the marker in the other instance will disappear.
+  // To be safe, markers should be unique in the entire page.
+  const instanceId = useId()
 
   // grouping
   const edgeGroupStates = EdgeGroup.makeEdgeGroupStates(nodes.objects, edges.objects, configs)
@@ -139,7 +146,8 @@ export function provideStates(
         nodeStates,
         edgeGroupStates,
         layouts.nodes,
-        scale
+        scale,
+        instanceId
       )
     },
     (_edgeId, state) => {
@@ -300,7 +308,8 @@ function createNewEdgeState(
   nodeStates: NodeModel.NodeStates,
   edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
   layouts: NodePositions,
-  scale: Ref<number>
+  scale: Ref<number>,
+  instanceId: number
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
@@ -445,13 +454,15 @@ function createNewEdgeState(
       line.value.source,
       true /* isSource */,
       state.sourceMarkerId,
-      line.value.stroke.color
+      line.value.stroke.color,
+      instanceId
     )
     state.targetMarkerId = makeMarker(
       line.value.target,
       false /* isSource */,
       state.targetMarkerId,
-      line.value.stroke.color
+      line.value.stroke.color,
+      instanceId
     )
   })
 
