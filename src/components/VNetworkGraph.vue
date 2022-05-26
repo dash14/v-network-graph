@@ -782,9 +782,11 @@ function stopEventPropagation(event: Event) {
 .v-network-graph {
   padding: 0;
   position: relative;
+  user-select: none;
+}
+:where(.v-network-graph) {
   width: 100%;
   height: 100%;
-  user-select: none;
 }
 .v-canvas {
   // prevent to perform browser's default action
