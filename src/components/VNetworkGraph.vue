@@ -794,7 +794,7 @@ function stopEventPropagation(event: Event) {
   -webkit-tap-highlight-color: transparent;
   width: 100%;
   height: 100%;
-  // svgPanZoomライブラリが有効になるまでの乱れへの対応
+  // Respond to disorder until the svgPanZoom library is activated
   opacity: 0;
   &.show {
     opacity: 1;
