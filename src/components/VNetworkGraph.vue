@@ -42,7 +42,12 @@
       </v-background-viewport>
 
       <!-- viewport: pan/zoom target and within the range of SVG text retrieval. -->
-      <g ref="viewport" class="v-viewport">
+      <g
+        ref="viewport"
+        class="v-viewport"
+        :class="{ 'v-transition': transitionOption.enabled }"
+        :style="transitionStyles"
+      >
         <g v-for="layerName in layerDefs['base']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
@@ -126,7 +131,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, readonly, ref, toRef } from "vue"
+import { CSSProperties, defineComponent, PropType, readonly, ref, toRef } from "vue"
 import { computed, nextTick, watch } from "vue"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
@@ -140,6 +145,7 @@ import { provideEventEmitter } from "@/composables/event-emitter"
 import { makeMarkerState } from "@/composables/marker"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
 import { provideZoomLevel } from "@/composables/zoom"
+import { useTransitionWhile } from "@/composables/transition"
 import { useTranslatePathsToObject } from "@/composables/object"
 import { bindProp, bindPropKeySet } from "@/utils/props"
 import { translateFromSvgToDomCoordinates, translateFromDomToSvgCoordinates } from "@/utils/svg"
@@ -562,6 +568,24 @@ export default defineComponent({
     )
 
     // -----------------------------------------------------------------------
+    // Transition of element positions
+    // -----------------------------------------------------------------------
+
+    // #transitionWhile() method
+    const { transitionWhile, transitionOption } = useTransitionWhile()
+    const transitionStyles = computed(() => {
+      const o = transitionOption.value
+      return (
+        o.enabled
+          ? {
+              "--transition-duration": o.duration + "ms",
+              "--transition-function": o.timingFunction,
+            }
+          : {}
+      ) as CSSProperties
+    })
+
+    // -----------------------------------------------------------------------
     // Events
     // -----------------------------------------------------------------------
 
@@ -634,12 +658,15 @@ export default defineComponent({
       currentLayouts,
       visibleNodeFocusRing,
       visiblePaths,
+      transitionOption,
+      transitionStyles,
 
       // methods
       fitToContents,
       panToCenter,
       getViewBox,
-      setViewBox
+      setViewBox,
+      transitionWhile,
     }
   },
   methods: {
@@ -808,6 +835,23 @@ function stopEventPropagation(event: Event) {
   }
   :deep(.v-line) {
     transition: d 0s;
+  }
+}
+
+// transition options for #transitionWhile()
+.v-canvas {
+  --transition-duration: 300ms;
+  --transition-function: linear;
+  .v-viewport.v-transition {
+    ::v-deep(.v-node) {
+      transition: transform var(--transition-duration) var(--transition-function);
+    }
+    ::v-deep(.v-layer-edges) path {
+      transition: d var(--transition-duration) var(--transition-function);
+    }
+    ::v-deep(.v-path-line) {
+      transition: d var(--transition-duration) var(--transition-function);
+    }
   }
 }
 </style>
