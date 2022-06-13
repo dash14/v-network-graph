@@ -3,7 +3,7 @@
     <svg
       ref="svg"
       class="v-canvas"
-      :class="{ show, dragging }"
+      :class="{ show, dragging, touches }"
       width="500"
       height="500"
       viewBox="0 0 500 500"
@@ -513,6 +513,10 @@ export default defineComponent({
       }
     })
 
+    const touches = computed(() => {
+      return configs.view.panEnabled || configs.view.zoomEnabled || configs.node.draggable
+    })
+
     const { nodeStates, nodeZOrderedList, edgeStates, pathStates } = provideStates(
       makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
       makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
@@ -658,6 +662,7 @@ export default defineComponent({
       currentSelectedNodes,
       markers: markerState.markers,
       dragging,
+      touches,
       currentLayouts,
       visibleNodeFocusRing,
       visiblePaths,
@@ -819,8 +824,6 @@ function stopEventPropagation(event: Event) {
   height: 100%;
 }
 .v-canvas {
-  // prevent to perform browser's default action
-  touch-action: none;
   -webkit-tap-highlight-color: transparent;
   width: 100%;
   height: 100%;
@@ -839,6 +842,11 @@ function stopEventPropagation(event: Event) {
   :deep(.v-line) {
     transition: d 0s;
   }
+}
+
+.v-canvas.touches {
+  // prevent to perform browser's default action
+  touch-action: none;
 }
 
 // transition options for #transitionWhile()
