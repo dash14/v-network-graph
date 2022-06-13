@@ -523,6 +523,8 @@ export default defineComponent({
       scale
     )
 
+    const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
+
     // mouse and touch support
     provideMouseOperation(
       svg,
@@ -538,6 +540,7 @@ export default defineComponent({
       hoveredEdges,
       hoveredPaths,
       isInCompatibilityModeForPath,
+      isSvgWheelZoomEnabled,
       emitter
     )
 

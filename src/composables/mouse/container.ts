@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, Ref } from "vue"
+import { onMounted, onUnmounted, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { Events } from "@/common/types"
 import { entriesOf } from "@/utils/object"
@@ -12,6 +12,7 @@ import {
 export function setupContainerInteractionHandlers(
   container: Ref<SVGElement | undefined>,
   modes: InteractionModes,
+  isSvgWheelZoomEnabled: Ref<boolean>,
   emitter: Emitter<Events>
 ) {
   const state = {
@@ -113,7 +114,9 @@ export function setupContainerInteractionHandlers(
     c.addEventListener("click", handleContainerClickEvent, { passive: false })
     c.addEventListener("dblclick", handleContainerDoubleClickEvent, { passive: false })
     c.addEventListener("contextmenu", handleContainerContextMenuEvent, { passive: false })
-    c.addEventListener("wheel", preventDefault, { passive: false })
+    if (isSvgWheelZoomEnabled.value) {
+      c.addEventListener("wheel", preventDefault, { passive: false })
+    }
   })
 
   onUnmounted(() => {
@@ -123,6 +126,19 @@ export function setupContainerInteractionHandlers(
     c.removeEventListener("click", handleContainerClickEvent)
     c.removeEventListener("dblclick", handleContainerDoubleClickEvent)
     c.removeEventListener("contextmenu", handleContainerContextMenuEvent)
-    c.removeEventListener("wheel", preventDefault)
+    if (isSvgWheelZoomEnabled.value) {
+      c.removeEventListener("wheel", preventDefault)
+    }
+  })
+
+  watch(isSvgWheelZoomEnabled, (enabled, old) => {
+    const c = container.value
+    if (!c || enabled === old) return
+
+    if (enabled) {
+      c.addEventListener("wheel", preventDefault, { passive: false })
+    } else {
+      c.removeEventListener("wheel", preventDefault)
+    }
   })
 }

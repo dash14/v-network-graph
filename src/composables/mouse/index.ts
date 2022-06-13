@@ -72,6 +72,7 @@ export function provideMouseOperation(
   hoveredEdges: Reactive<Set<string>>,
   hoveredPaths: Reactive<Set<string>>,
   isInCompatibilityModeForPath: Ref<boolean>,
+  isSvgWheelZoomEnabled: Ref<boolean>,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
   const modes: InteractionModes = {
@@ -91,7 +92,7 @@ export function provideMouseOperation(
     emitter.emit("view:mode", mode)
   })
 
-  setupContainerInteractionHandlers(container, modes, emitter)
+  setupContainerInteractionHandlers(container, modes, isSvgWheelZoomEnabled, emitter)
 
   const provides = <MouseEventHandlers>{
     selectedNodes,
