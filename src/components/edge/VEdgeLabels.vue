@@ -18,7 +18,7 @@ const { nodeStates, edgeStates, edgeGroupStates, summarizedEdgeStates, layouts }
 const { scale } = useZoomLevel()
 
 // not summarized
-const indivisualEdgeGroups = computed(() =>
+const individualEdgeGroups = computed(() =>
   Object.fromEntries(
     Object.entries(edgeGroupStates.edgeGroups).filter(
       ([_, group]) => !group.summarize && Object.keys(group.edges).length > 0
@@ -27,18 +27,18 @@ const indivisualEdgeGroups = computed(() =>
 )
 
 const edgeGroups = computed(() => {
-  const indivisual: Record<string, EdgeGroup> = {}
+  const individual: Record<string, EdgeGroup> = {}
   const summarized: Record<string, EdgeGroup> = {}
   Object.entries(edgeGroupStates.edgeGroups).forEach(([id, group]) => {
     if (Object.keys(group.edges).length > 0) {
       if (group.summarize) {
         summarized[id] = group
       } else {
-        indivisual[id] = group
+        individual[id] = group
       }
     }
   })
-  return { indivisual, summarized }
+  return { individual, summarized }
 })
 
 const nodeShape = computed(() => (node: string) => {
@@ -76,7 +76,7 @@ const representativeEdgeState = computed(() => (group: EdgeGroup) => {
 })
 
 defineExpose({
-  indivisualEdgeGroups,
+  individualEdgeGroups,
   edgeGroups,
   nodeShape,
   labelAreaPosition,
@@ -90,7 +90,7 @@ defineExpose({
 
 <template>
   <g class="v-edge-labels">
-    <template v-for="(group, id) in edgeGroups.indivisual" :key="id">
+    <template v-for="(group, id) in edgeGroups.individual" :key="id">
       <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
         <slot
           name="edge-label"
