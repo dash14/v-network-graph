@@ -8,7 +8,6 @@ import { MapUtil } from "@/utils/map"
 import {
   cleanClickState,
   ClickState,
-  createClickEvents,
   detectClicks,
   EdgePointerState,
   InteractionModes,
