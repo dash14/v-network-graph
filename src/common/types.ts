@@ -19,6 +19,11 @@ export interface Size {
   height: number
 }
 
+export interface Rectangle {
+  pos: Position
+  size: Size
+}
+
 /** An object with a field named id */
 export interface IdentifiedObject {
   id: string
@@ -67,6 +72,12 @@ export const LayerPositions: readonly LayerPosition[] = [
   "root",
 ]
 export type Layers = Record<string, LayerPosition>
+
+/* ------------------------------------------ *
+ * View
+ * ------------------------------------------ */
+
+export type ViewMode = "default" | "node" | "edge" | "path" | "box-selection"
 
 /* ------------------------------------------ *
  * Layouts
@@ -136,7 +147,7 @@ export type EdgePointerEvent = EdgeEvent<PointerEvent>
 export type Events = {
   "view:load": undefined
   "view:unload": undefined
-  "view:mode": "default" | "node" | "edge" | "path"
+  "view:mode": ViewMode
   "view:zoom": number
   "view:pan": { x: number; y: number }
   "view:fit": undefined

@@ -1,11 +1,10 @@
 import { Ref } from "vue"
-import { Position } from "@/common/types"
+import { Position, ViewMode } from "@/common/types"
 
 const MOUSE_MOVE_DETECTION_THRESHOLD = 3 // Sensitivity to start dragging
 const TOUCH_MOVE_DETECTION_THRESHOLD = 6 // Sensitivity to start dragging in touches
 export const DOUBLE_CLICK_THRESHOLD = 500
 
-export type ViewMode = "default" | "node" | "edge" | "path"
 export type SelectionMode = "container" | "node" | "edge" | "path"
 
 // state for each pointer of multi touch

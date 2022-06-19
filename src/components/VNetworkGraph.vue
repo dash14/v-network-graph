@@ -3,7 +3,7 @@
     <svg
       ref="svg"
       class="v-canvas"
-      :class="{ show, dragging, touches }"
+      :class="{ show, dragging, touches, 'box-selection-mode': isBoxSelectionMode }"
       width="500"
       height="500"
       viewBox="0 0 500 500"
@@ -126,6 +126,18 @@
           <slot :name="layerName" :scale="scale" />
         </g>
       </g>
+
+      <!-- selection box -->
+      <rect
+        v-if="selectionBox"
+        :x="selectionBox.pos.x"
+        :y="selectionBox.pos.y"
+        :width="selectionBox.size.width"
+        :height="selectionBox.size.height"
+        fill="#0000aa80"
+        stroke="#0000aa"
+        stroke-width="1"
+      />
     </svg>
   </div>
 </template>
@@ -530,23 +542,24 @@ export default defineComponent({
     const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 
     // mouse and touch support
-    provideMouseOperation(
-      svg,
-      readonly(currentLayouts.nodes),
-      readonly(zoomLevel),
-      nodeStates,
-      edgeStates,
-      pathStates,
-      currentSelectedNodes,
-      currentSelectedEdges,
-      currentSelectedPaths,
-      hoveredNodes,
-      hoveredEdges,
-      hoveredPaths,
-      isInCompatibilityModeForPath,
-      isSvgWheelZoomEnabled,
-      emitter
-    )
+    const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
+      provideMouseOperation(
+        svg,
+        readonly(currentLayouts.nodes),
+        readonly(zoomLevel),
+        nodeStates,
+        edgeStates,
+        pathStates,
+        currentSelectedNodes,
+        currentSelectedEdges,
+        currentSelectedPaths,
+        hoveredNodes,
+        hoveredEdges,
+        hoveredPaths,
+        isInCompatibilityModeForPath,
+        isSvgWheelZoomEnabled,
+        emitter
+      )
 
     // -----------------------------------------------------------------------
     // Paths
@@ -668,6 +681,8 @@ export default defineComponent({
       visiblePaths,
       transitionOption,
       transitionStyles,
+      isBoxSelectionMode,
+      selectionBox,
 
       // methods
       fitToContents,
@@ -675,6 +690,8 @@ export default defineComponent({
       getViewBox,
       setViewBox,
       transitionWhile,
+      startBoxSelection,
+      stopBoxSelection,
     }
   },
   methods: {
@@ -847,6 +864,13 @@ function stopEventPropagation(event: Event) {
 .v-canvas.touches {
   // prevent to perform browser's default action
   touch-action: none;
+}
+
+.v-canvas.box-selection-mode {
+  cursor: crosshair !important;
+  :deep(*) {
+    cursor: crosshair !important;
+  }
 }
 
 // transition options for #transitionWhile()
