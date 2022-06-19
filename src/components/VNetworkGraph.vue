@@ -128,15 +128,10 @@
       </g>
 
       <!-- selection box -->
-      <rect
+      <v-selection-box
         v-if="selectionBox"
-        :x="selectionBox.pos.x"
-        :y="selectionBox.pos.y"
-        :width="selectionBox.size.width"
-        :height="selectionBox.size.height"
-        fill="#0000aa80"
-        stroke="#0000aa"
-        stroke-width="1"
+        :box="selectionBox"
+        :config="allConfigs.view.selection.box"
       />
     </svg>
   </div>
@@ -170,6 +165,7 @@ import VBackgroundViewport from "./background/VBackgroundViewport.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VPaths from "./path/VPaths.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
+import VSelectionBox from "./base/VSelectionBox.vue"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 
 const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
@@ -191,6 +187,7 @@ export default defineComponent({
     VBackgroundGrid,
     VPaths,
     VMarkerHead,
+    VSelectionBox,
   },
   props: {
     nodes: {

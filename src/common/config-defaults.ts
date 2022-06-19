@@ -37,6 +37,14 @@ export function getConfigDefaults(): Configs {
           dasharray: 0,
         },
       },
+      selection: {
+        box: {
+          color: "#0000ff20",
+          strokeWidth: 1,
+          strokeColor: "#aaaaff",
+          strokeDasharray: 0,
+        }
+      }
     },
     node: withSelf(self => ({
       normal: {

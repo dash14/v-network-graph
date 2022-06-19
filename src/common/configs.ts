@@ -40,6 +40,13 @@ export interface GridConfig {
   thick: GridLine
 }
 
+export interface BasicShapeStyle {
+  strokeWidth: number
+  strokeColor?: string
+  strokeDasharray?: string | number
+  color: string
+}
+
 export interface ViewConfig {
   scalingObjects: boolean
   panEnabled: boolean
@@ -54,16 +61,14 @@ export interface ViewConfig {
   layoutHandler: LayoutHandler
   onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void
   grid: GridConfig
+  selection: {
+    box: BasicShapeStyle
+  }
 }
 
 /* Shape style */
 
-export interface ShapeStyleBase {
-  strokeWidth: number
-  strokeColor?: string
-  strokeDasharray?: string | number
-  color: string
-}
+export interface ShapeStyleBase extends BasicShapeStyle {}
 
 export type ShapeType = "circle" | "rect"
 
