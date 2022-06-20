@@ -3,7 +3,7 @@
 import { inject, InjectionKey, provide, ref, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
-import { Events, NodePositions } from "@/common/types"
+import { Events, NodePositions, Rectangle } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { EdgeStates } from "@/models/edge"
 import { InteractionModes } from "./core"
@@ -12,6 +12,7 @@ import { makeEdgeInteractionHandlers } from "./edge"
 import { setupContainerInteractionHandlers } from "./container"
 import { PathStates } from "@/models/path"
 import { makePathInteractionHandlers } from "./path"
+import { BoxSelectionOption, makeBoxSelectionMethods } from "./boxSelection"
 
 type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
 type EdgeEventHandler<T extends Event = PointerEvent> = (edge: string, event: T) => void
@@ -55,6 +56,12 @@ interface MouseEventHandlers {
   handlePathClickEvent: PathEventHandler<MouseEvent>
   handlePathDoubleClickEvent: PathEventHandler<MouseEvent>
   handlePathContextMenu: PathEventHandler<MouseEvent>
+
+  // for Box Selection
+  isBoxSelectionMode: Ref<boolean>
+  selectionBox: Ref<Rectangle>
+  startBoxSelection: (options?: Partial<BoxSelectionOption>) => void
+  stopBoxSelection: () => void
 }
 const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<MouseEventHandlers>
 
@@ -125,6 +132,7 @@ export function provideMouseOperation(
       isInCompatibilityModeForPath,
       emitter
     ),
+    ...makeBoxSelectionMethods(container, modes, nodePositions, selectedNodes)
   }
   provide(mouseEventHandlersKey, provides)
   return provides

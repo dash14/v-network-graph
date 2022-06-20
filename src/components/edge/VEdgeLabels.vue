@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "@/common/types"
-import { AnyShapeStyle, StrokeStyle } from "@/common/configs"
+import { StrokeStyle } from "@/common/configs"
 import { EdgeGroup } from "@/models/edge"
 import { useStates } from "@/composables/state"
 import { useEdgeConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import * as v2d from "@/modules/calculation/2d"
-
-interface NodeShape {
-  pos: Position
-  shape: AnyShapeStyle
-}
 
 const edgeConfig = useEdgeConfig()
 const { nodeStates, edgeStates, edgeGroupStates, summarizedEdgeStates, layouts } = useStates()
@@ -48,17 +42,15 @@ const nodeShape = computed(() => (node: string) => {
   }
 })
 
-const labelAreaPosition = computed(
-  () => (edgeId: string, source: NodeShape, target: NodeShape, edgeStyle: StrokeStyle) => {
-    return v2d.calculateEdgeLabelArea(
-      edgeStates[edgeId].labelPosition,
-      edgeStyle,
-      edgeConfig.label.margin,
-      edgeConfig.label.padding,
-      scale.value
-    )
-  }
-)
+const labelAreaPosition = computed(() => (edgeId: string, edgeStyle: StrokeStyle) => {
+  return v2d.calculateEdgeLabelArea(
+    edgeStates[edgeId].labelPosition,
+    edgeStyle,
+    edgeConfig.label.margin,
+    edgeConfig.label.padding,
+    scale.value
+  )
+})
 
 const groupLabelAreaPosition = computed(() => (id: string, group: EdgeGroup) => {
   const edgeId = Object.keys(group.edges)[0]
@@ -97,14 +89,7 @@ defineExpose({
           :edge-id="edgeId"
           :edge="edge"
           :config="edgeConfig.label"
-          :area="
-            labelAreaPosition(
-              edgeId,
-              nodeShape(edge.source),
-              nodeShape(edge.target),
-              edgeStates[edgeId].line.stroke
-            )
-          "
+          :area="labelAreaPosition(edgeId, edgeStates[edgeId].line.stroke)"
           :hovered="edgeStates[edgeId].hovered"
           :selected="edgeStates[edgeId].selected"
           :scale="scale"

@@ -3,7 +3,7 @@
     <svg
       ref="svg"
       class="v-canvas"
-      :class="{ show, dragging, touches }"
+      :class="{ show, dragging, touches, 'box-selection-mode': isBoxSelectionMode }"
       width="500"
       height="500"
       viewBox="0 0 500 500"
@@ -126,6 +126,13 @@
           <slot :name="layerName" :scale="scale" />
         </g>
       </g>
+
+      <!-- selection box -->
+      <v-selection-box
+        v-if="selectionBox"
+        :box="selectionBox"
+        :config="allConfigs.view.selection.box"
+      />
     </svg>
   </div>
 </template>
@@ -158,6 +165,7 @@ import VBackgroundViewport from "./background/VBackgroundViewport.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VPaths from "./path/VPaths.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
+import VSelectionBox from "./base/VSelectionBox.vue"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 
 const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
@@ -179,6 +187,7 @@ export default defineComponent({
     VBackgroundGrid,
     VPaths,
     VMarkerHead,
+    VSelectionBox,
   },
   props: {
     nodes: {
@@ -530,23 +539,24 @@ export default defineComponent({
     const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 
     // mouse and touch support
-    provideMouseOperation(
-      svg,
-      readonly(currentLayouts.nodes),
-      readonly(zoomLevel),
-      nodeStates,
-      edgeStates,
-      pathStates,
-      currentSelectedNodes,
-      currentSelectedEdges,
-      currentSelectedPaths,
-      hoveredNodes,
-      hoveredEdges,
-      hoveredPaths,
-      isInCompatibilityModeForPath,
-      isSvgWheelZoomEnabled,
-      emitter
-    )
+    const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
+      provideMouseOperation(
+        svg,
+        readonly(currentLayouts.nodes),
+        readonly(zoomLevel),
+        nodeStates,
+        edgeStates,
+        pathStates,
+        currentSelectedNodes,
+        currentSelectedEdges,
+        currentSelectedPaths,
+        hoveredNodes,
+        hoveredEdges,
+        hoveredPaths,
+        isInCompatibilityModeForPath,
+        isSvgWheelZoomEnabled,
+        emitter
+      )
 
     // -----------------------------------------------------------------------
     // Paths
@@ -668,6 +678,8 @@ export default defineComponent({
       visiblePaths,
       transitionOption,
       transitionStyles,
+      isBoxSelectionMode,
+      selectionBox,
 
       // methods
       fitToContents,
@@ -675,6 +687,8 @@ export default defineComponent({
       getViewBox,
       setViewBox,
       transitionWhile,
+      startBoxSelection,
+      stopBoxSelection,
     }
   },
   methods: {
@@ -847,6 +861,13 @@ function stopEventPropagation(event: Event) {
 .v-canvas.touches {
   // prevent to perform browser's default action
   touch-action: none;
+}
+
+.v-canvas.box-selection-mode {
+  cursor: crosshair !important;
+  :deep(*) {
+    cursor: crosshair !important;
+  }
 }
 
 // transition options for #transitionWhile()
