@@ -109,7 +109,7 @@ export function makeBoxSelectionMethods(
     if (states.pointers.size === 0) {
       states.startPoint = point
 
-      _addEventListeners(nonNull(container.value, "container"), eventHandlersOnlyWhenActive)
+      _addEventListeners(document, eventHandlersOnlyWhenActive)
       states.selectedNodesAtSelectStarted.clear()
       selectedNodes.forEach(nodeId => states.selectedNodesAtSelectStarted.add(nodeId))
       if (states.options.selectionTypeWithShiftKey === "same") {
@@ -130,10 +130,11 @@ export function makeBoxSelectionMethods(
   function handlePointerUpEvent(event: PointerEvent) {
     states.pointers.delete(event.pointerId)
     if (states.pointers.size === 1) {
-      const point = { x: event.offsetX, y: event.offsetY }
+      const rect = nonNull(container.value).getBoundingClientRect()
+      const point = { x: event.x - rect.x, y: event.y - rect.y }
       states.startPoint = point
     } else if (states.pointers.size === 0) {
-      _removeEventListeners(nonNull(container.value, "container"), eventHandlersOnlyWhenActive)
+      _removeEventListeners(document, eventHandlersOnlyWhenActive)
       if (states.options.stopTrigger === "pointerup") {
         stopBoxSelection()
       }
@@ -143,7 +144,8 @@ export function makeBoxSelectionMethods(
   }
 
   function handlePointerMoveEvent(event: PointerEvent) {
-    const point = { x: event.offsetX, y: event.offsetY }
+    const rect = nonNull(container.value).getBoundingClientRect()
+    const point = { x: event.x - rect.x, y: event.y - rect.y }
     states.points.set(event.pointerId, point)
     updateRectangle()
     updateNodesSelection()
@@ -237,10 +239,8 @@ export function makeBoxSelectionMethods(
     modes.viewMode.value = "default"
 
     const c = nonNull(container.value, "container")
-    _removeEventListeners(nonNull(container.value, "container"), {
-      ...eventHandlers,
-      ...eventHandlersOnlyWhenActive,
-    })
+    _removeEventListeners(nonNull(container.value, "container"), eventHandlers)
+    _removeEventListeners(document, eventHandlersOnlyWhenActive)
 
     document.removeEventListener("keydown", handleKeyDownEvent, { capture: true })
   }
@@ -307,7 +307,7 @@ function _updateNodesSelection(
   }
 }
 
-function _addEventListeners(container: SVGElement, handlers: EventHandlers) {
+function _addEventListeners(container: SVGElement | Document, handlers: EventHandlers) {
   const options = { capture: true, passive: false }
   Object.entries(handlers).forEach(([type, handler]) => {
     // @ts-ignore
@@ -315,7 +315,7 @@ function _addEventListeners(container: SVGElement, handlers: EventHandlers) {
   })
 }
 
-function _removeEventListeners(container: SVGElement, handlers: EventHandlers) {
+function _removeEventListeners(container: SVGElement | Document, handlers: EventHandlers) {
   const options = { capture: true }
   Object.entries(handlers).forEach(([type, handler]) => {
     // @ts-ignore
