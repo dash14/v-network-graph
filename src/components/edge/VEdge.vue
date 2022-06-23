@@ -35,6 +35,7 @@ defineExpose({ config })
 <template>
   <v-line
     v-if="config.type == 'straight' || !state.curve"
+    :data-edge-id="id"
     v-bind="state.position"
     :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
     :config="state.line.stroke"
@@ -43,6 +44,7 @@ defineExpose({ config })
   />
   <v-edge-curved
     v-else
+    :data-edge-id="id"
     :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
     :state="state"
     :config="state.line.stroke"

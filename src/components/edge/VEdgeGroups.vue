@@ -2,6 +2,14 @@
 import { useStates, isSummarizedEdges } from "@/composables/state"
 import VEdge from "./VEdge.vue"
 import VEdgeSummarized from "./VEdgeSummarized.vue"
+import VEdgeOverlay from "./VEdgeOverlay.vue"
+
+defineProps({
+  hasEdgeOverlaySlot: {
+    type: Boolean,
+    required: true,
+  },
+})
 
 const { edgeStates, edgeZOrderedList, edgeGroupStates, layouts } = useStates()
 
@@ -42,6 +50,17 @@ defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
         :edges="entry.group.edges"
         :layouts="layouts.nodes"
       />
+      <v-edge-overlay
+        v-if="hasEdgeOverlaySlot"
+        :key="entry.key"
+        :edges="entry.group.edges"
+        :state="edgeStates[Object.keys(entry.group.edges)[0]]"
+        :is-summarized="true"
+      >
+        <template #default="slotProps">
+          <slot v-bind="slotProps" />
+        </template>
+      </v-edge-overlay>
     </template>
     <template v-else>
       <v-edge
@@ -51,6 +70,18 @@ defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
         :source-pos="layouts.nodes[entry.edge.source]"
         :target-pos="layouts.nodes[entry.edge.target]"
       />
+      <v-edge-overlay
+        v-if="hasEdgeOverlaySlot"
+        :key="entry.key"
+        :edge-id="entry.key"
+        :edge="entry.edge"
+        :state="edgeStates[entry.key]"
+        :is-summarized="false"
+      >
+        <template #default="slotProps">
+          <slot v-bind="slotProps" />
+        </template>
+      </v-edge-overlay>
     </template>
   </template>
 </template>

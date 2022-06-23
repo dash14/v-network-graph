@@ -83,7 +83,7 @@ defineExpose({
     @dblclick.stop="handleEdgesDoubleClickEvent(edgeIds, $event)"
     @contextmenu="handleEdgesContextMenu(edgeIds, $event)"
   >
-    <v-line v-bind="pos" :config="strokeConfig" />
+    <v-line v-bind="pos" :config="strokeConfig" :data-edge-id="edgeIds[0]" />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
       :text="Object.keys(edges).length.toString()"

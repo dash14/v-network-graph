@@ -55,7 +55,11 @@
         <!-- edges -->
         <g class="v-layer-edges">
           <v-edge-backgrounds />
-          <v-edge-groups />
+          <v-edge-groups :hasEdgeOverlaySlot="hasEdgeOverlaySlot">
+            <template #default="slotProps">
+              <slot name="edge-overlay" v-bind="slotProps" />
+            </template>
+          </v-edge-groups>
         </g>
 
         <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
@@ -63,15 +67,14 @@
         </g>
 
         <!-- edge labels -->
-        <v-edge-labels v-if="overrideEdgeLabels">
-          <template #edge-label="slotProps">
+        <v-edge-labels v-if="hasEdgeLabelSlot || hasEdgesLabelSlot">
+          <!-- edge labels -->
+          <template v-if="hasEdgeLabelSlot" #edge-label="slotProps">
             <slot name="edge-label" v-bind="slotProps" />
           </template>
-        </v-edge-labels>
 
-        <!-- summarized edges labels -->
-        <v-edge-labels v-if="overrideEdgesLabels">
-          <template #edges-label="slotProps">
+          <!-- summarized edges labels -->
+          <template v-if="hasEdgesLabelSlot" #edges-label="slotProps">
             <slot name="edges-label" v-bind="slotProps" />
           </template>
         </v-edge-labels>
@@ -106,11 +109,11 @@
             :pos="currentLayouts.nodes[state.id]"
           >
             <!-- override the node -->
-            <template v-if="overrideNodes" #override-node="slotProps">
+            <template v-if="hasOverrideNodeSlot" #override-node="slotProps">
               <slot name="override-node" v-bind="slotProps" />
             </template>
             <!-- override the node label -->
-            <template v-if="overrideNodeLabels" #override-node-label="slotProps">
+            <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
               <slot name="override-node-label" v-bind="slotProps" />
             </template>
           </v-node>
@@ -168,7 +171,13 @@ import VMarkerHead from "./marker/VMarkerHead.vue"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 
-const SYSTEM_SLOTS = ["override-node", "override-node-label", "edge-label", "edges-label"]
+const SYSTEM_SLOTS = [
+  "override-node",
+  "override-node-label",
+  "edge-overlay",
+  "edge-label",
+  "edges-label",
+]
 
 enum State {
   INITIAL = 0,
@@ -292,11 +301,12 @@ export default defineComponent({
       return isShowGrid.value || layers["background"].length > 0 || layers["grid"].length > 0
     })
 
-    // overrides
-    const overrideNodes = computed(() => "override-node" in slots)
-    const overrideNodeLabels = computed(() => "override-node-label" in slots)
-    const overrideEdgeLabels = computed(() => "edge-label" in slots)
-    const overrideEdgesLabels = computed(() => "edges-label" in slots)
+    // slots
+    const hasOverrideNodeSlot = computed(() => "override-node" in slots)
+    const hasOverrideNodeLabelSlot = computed(() => "override-node-label" in slots)
+    const hasEdgeOverlaySlot = computed(() => "edge-overlay" in slots)
+    const hasEdgeLabelSlot = computed(() => "edge-label" in slots)
+    const hasEdgesLabelSlot = computed(() => "edges-label" in slots)
 
     // -----------------------------------------------------------------------
     // SVG
@@ -662,10 +672,11 @@ export default defineComponent({
       layerDefs,
       isShowGrid,
       isShowBackgroundViewport,
-      overrideNodes,
-      overrideNodeLabels,
-      overrideEdgeLabels,
-      overrideEdgesLabels,
+      hasOverrideNodeSlot,
+      hasOverrideNodeLabelSlot,
+      hasEdgeOverlaySlot,
+      hasEdgeLabelSlot,
+      hasEdgesLabelSlot,
       scale,
       nodeStates,
       nodeZOrderedList,

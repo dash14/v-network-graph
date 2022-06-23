@@ -99,6 +99,11 @@ export type UserLayouts = RecursivePartial<Layouts>
  * Edge labels
  * ------------------------------------------ */
 
+export interface EdgePosition {
+  source: Position
+  target: Position
+}
+
 export interface EdgeLabelArea {
   source: {
     above: Position
