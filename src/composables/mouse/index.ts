@@ -13,6 +13,7 @@ import { setupContainerInteractionHandlers } from "./container"
 import { PathStates } from "@/models/path"
 import { makePathInteractionHandlers } from "./path"
 import { BoxSelectionOption, makeBoxSelectionMethods } from "./boxSelection"
+import { Configs, ViewConfig } from "@/common/configs"
 
 type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
 type EdgeEventHandler<T extends Event = PointerEvent> = (edge: string, event: T) => void
@@ -80,6 +81,7 @@ export function provideMouseOperation(
   hoveredPaths: Reactive<Set<string>>,
   isInCompatibilityModeForPath: Ref<boolean>,
   isSvgWheelZoomEnabled: Ref<boolean>,
+  configs: Configs,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
   const modes: InteractionModes = {
@@ -117,13 +119,7 @@ export function provideMouseOperation(
       zoomLevel,
       emitter
     ),
-    ...makeEdgeInteractionHandlers(
-      edgeStates,
-      modes,
-      hoveredEdges,
-      selectedEdges,
-      emitter
-    ),
+    ...makeEdgeInteractionHandlers(edgeStates, modes, hoveredEdges, selectedEdges, emitter),
     ...makePathInteractionHandlers(
       pathStates,
       modes,
@@ -132,7 +128,14 @@ export function provideMouseOperation(
       isInCompatibilityModeForPath,
       emitter
     ),
-    ...makeBoxSelectionMethods(container, modes, nodePositions, selectedNodes)
+    ...makeBoxSelectionMethods(
+      container,
+      modes,
+      nodePositions,
+      nodeStates,
+      selectedNodes,
+      configs
+    ),
   }
   provide(mouseEventHandlersKey, provides)
   return provides

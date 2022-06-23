@@ -565,6 +565,7 @@ export default defineComponent({
         hoveredPaths,
         isInCompatibilityModeForPath,
         isSvgWheelZoomEnabled,
+        configs,
         emitter
       )
 

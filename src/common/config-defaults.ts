@@ -18,6 +18,7 @@ export function getConfigDefaults(): Configs {
       maxZoomLevel: 64,
       doubleClickZoomEnabled: true,
       mouseWheelZoomEnabled: true,
+      boxSelectionEnabled: false,
       autoPanAndZoomOnLoad: "center-content",
       autoPanOnResize: true,
       layoutHandler: new SimpleLayout(),
@@ -43,6 +44,10 @@ export function getConfigDefaults(): Configs {
           strokeWidth: 1,
           strokeColor: "#aaaaff",
           strokeDasharray: 0,
+        },
+        detector: (event: KeyboardEvent) => {
+          const detect = /Mac OS/.test(navigator.userAgent) ? event.metaKey : event.ctrlKey
+          return (event.type === "keydown") ? detect : !detect
         }
       }
     },

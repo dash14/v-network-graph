@@ -1,10 +1,12 @@
-import { computed, onMounted, onUnmounted, ref, Ref } from "vue"
+import { computed, onMounted, onUnmounted, ref, Ref, watch } from "vue"
+import { debounce } from "lodash-es"
 import { nonNull, Reactive } from "@/common/common"
+import { Configs } from "@/common/configs"
 import { NodePositions, Point, Rectangle } from "@/common/types"
 import { Vector2D } from "@/modules/vector2d"
-import { InteractionModes } from "./core"
+import { NodeStates } from "@/models/node"
 import { translateFromDomToSvgCoordinates } from "@/utils/svg"
-import { debounce } from "lodash-es"
+import { InteractionModes } from "./core"
 
 // ------------------------------------------------------------------
 // Types
@@ -12,10 +14,6 @@ import { debounce } from "lodash-es"
 
 export type StopTrigger = "pointerup" | "click" | "manual"
 export type SelectionType = "append" | "invert"
-
-type EventHandlers = {
-  [K in keyof SVGElementEventMap]?: (this: SVGElement, ev: SVGElementEventMap[K]) => void
-}
 
 export interface BoxSelectionOption {
   stop: StopTrigger
@@ -31,24 +29,14 @@ export function makeBoxSelectionMethods(
   container: Ref<SVGElement | undefined>,
   modes: InteractionModes,
   nodePositions: Readonly<NodePositions>,
-  selectedNodes: Reactive<Set<string>>
+  nodeStates: NodeStates,
+  selectedNodes: Reactive<Set<string>>,
+  configs: Configs
 ) {
+  const isBoxSelectionEnabled = computed(
+    () => !!configs.node.selectable && configs.view.boxSelectionEnabled
+  )
   const isBoxSelectionMode = computed(() => modes.viewMode.value === "box-selection")
-
-  // ------------------------------------------------------------------
-  // Constants
-  // ------------------------------------------------------------------
-  const eventHandlers: EventHandlers = {
-    pointerdown: handlePointerDownEvent,
-    click: handleClickEvent,
-    pointerenter: ignoreEvent,
-    pointerleave: ignoreEvent,
-  }
-
-  const eventHandlersOnlyWhenActive: EventHandlers = {
-    pointermove: handlePointerMoveEvent,
-    pointerup: handlePointerUpEvent,
-  }
 
   // ------------------------------------------------------------------
   // States
@@ -80,6 +68,7 @@ export function makeBoxSelectionMethods(
         nonNull(viewport.value, "viewport"),
         selectionBox,
         nodePositions,
+        nodeStates,
         selectedNodes,
         states.selectedNodesAtSelectStarted,
         states.selectionType
@@ -89,7 +78,17 @@ export function makeBoxSelectionMethods(
     { maxWait: 100 }
   )
 
-  // Event Handlers ---
+  // ------------------------------------------------------------------
+  // Pointer event handlers
+  // ------------------------------------------------------------------
+  const pointerEventHandler = new PointerEventRegistrar(
+    container,
+    handlePointerDownEvent,
+    handlePointerUpEvent,
+    handlePointerMoveEvent,
+    handleClickEvent,
+    handleKeyDownEvent
+  )
 
   function handleClickEvent(event: MouseEvent) {
     if (states.options.stopTrigger !== "click") return
@@ -109,7 +108,8 @@ export function makeBoxSelectionMethods(
     if (states.pointers.size === 0) {
       states.startPoint = point
 
-      _addEventListeners(document, eventHandlersOnlyWhenActive)
+      pointerEventHandler.activate()
+
       states.selectedNodesAtSelectStarted.clear()
       selectedNodes.forEach(nodeId => states.selectedNodesAtSelectStarted.add(nodeId))
       if (states.options.selectionTypeWithShiftKey === "same") {
@@ -134,7 +134,7 @@ export function makeBoxSelectionMethods(
       const point = { x: event.x - rect.x, y: event.y - rect.y }
       states.startPoint = point
     } else if (states.pointers.size === 0) {
-      _removeEventListeners(document, eventHandlersOnlyWhenActive)
+      pointerEventHandler.deactivate()
       if (states.options.stopTrigger === "pointerup") {
         stopBoxSelection()
       }
@@ -156,10 +156,6 @@ export function makeBoxSelectionMethods(
       event.stopPropagation()
       stopBoxSelection()
     }
-  }
-
-  function ignoreEvent(event: MouseEvent) {
-    event.stopPropagation()
   }
 
   function updateRectangle() {
@@ -203,14 +199,57 @@ export function makeBoxSelectionMethods(
   }
 
   // ------------------------------------------------------------------
+  // Ctrl/Cmd key box selection
+  // ------------------------------------------------------------------
+  const keyEventRegistrar = new KeyEventRegistrar(
+    container,
+    // key down
+    (event: KeyboardEvent) => {
+      if (!isBoxSelectionEnabled.value) return
+      if (configs.view.selection.detector(event)) {
+        startBoxSelection({
+          stop: "manual",
+          type: "append",
+          withShiftKey: "invert",
+        })
+        keyEventRegistrar.activate()
+      }
+    },
+    // key up
+    (event: KeyboardEvent) => {
+      if (!isBoxSelectionEnabled.value) return
+      if (configs.view.selection.detector(event)) {
+        stopBoxSelection()
+        keyEventRegistrar.deactivate()
+      }
+    }
+  )
+
+  watch(isBoxSelectionEnabled, value => {
+    if (value) {
+      keyEventRegistrar.register()
+    } else {
+      keyEventRegistrar.unregister()
+    }
+  })
+
+  // ------------------------------------------------------------------
   // Lifecycle process
   // ------------------------------------------------------------------
 
   onMounted(() => {
     viewport.value = container.value?.querySelector(".v-viewport") as SVGGElement
+    if (isBoxSelectionEnabled.value) {
+      keyEventRegistrar.register()
+    }
   })
 
-  onUnmounted(() => stopBoxSelection())
+  onUnmounted(() => {
+    stopBoxSelection()
+    if (isBoxSelectionEnabled.value) {
+      keyEventRegistrar.unregister()
+    }
+  })
 
   // ------------------------------------------------------------------
   // Expose functions
@@ -228,21 +267,13 @@ export function makeBoxSelectionMethods(
     modes.viewMode.value = "box-selection"
 
     states.pointers.clear()
-
-    _addEventListeners(nonNull(container.value, "container"), eventHandlers)
-
-    document.addEventListener("keydown", handleKeyDownEvent, { capture: true, passive: false })
+    pointerEventHandler.register()
   }
 
   function stopBoxSelection() {
     if (modes.viewMode.value !== "box-selection") return
     modes.viewMode.value = "default"
-
-    const c = nonNull(container.value, "container")
-    _removeEventListeners(nonNull(container.value, "container"), eventHandlers)
-    _removeEventListeners(document, eventHandlersOnlyWhenActive)
-
-    document.removeEventListener("keydown", handleKeyDownEvent, { capture: true })
+    pointerEventHandler.unregister()
   }
 
   return { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection }
@@ -257,6 +288,7 @@ function _updateNodesSelection(
   viewport: SVGGElement,
   selectionBox: Ref<Rectangle | undefined>,
   nodePositions: Readonly<NodePositions>,
+  nodeStates: Readonly<NodeStates>,
   selectedNodes: Reactive<Set<string>>,
   selectedNodesAtSelectStarted: Set<string>,
   selectionType: SelectionType
@@ -279,46 +311,155 @@ function _updateNodesSelection(
   )
 
   if (selectionType === "append") {
-    enclosedNodes.forEach(nodeId => selectedNodes.add(nodeId))
     selectedNodes.forEach(nodeId => {
       if (!enclosedNodes.has(nodeId)) {
         selectedNodes.delete(nodeId)
+      }
+    })
+    enclosedNodes.forEach(nodeId => {
+      const selectable = nodeStates[nodeId]?.selectable ?? false
+      if (
+        selectable === true ||
+        (typeof selectable === "number" && selectedNodes.size < selectable)
+      ) {
+        selectedNodes.add(nodeId)
       }
     })
   } else {
     // selectionType === "invert"
+    const temporary = new Set<string>(selectedNodesAtSelectStarted)
+    temporary.forEach(nodeId => {
+      if (enclosedNodes.has(nodeId)) {
+        temporary.delete(nodeId)
+      }
+    })
     enclosedNodes.forEach(nodeId => {
-      if (selectedNodesAtSelectStarted.has(nodeId)) {
-        selectedNodes.delete(nodeId)
-      } else {
-        selectedNodes.add(nodeId)
+      if (!selectedNodesAtSelectStarted.has(nodeId)) {
+        const selectable = nodeStates[nodeId]?.selectable ?? false
+        if (
+          selectable === true ||
+          (typeof selectable === "number" && temporary.size < selectable)
+        ) {
+          temporary.add(nodeId)
+        }
       }
     })
-    selectedNodesAtSelectStarted.forEach(nodeId => {
-      if (!enclosedNodes.has(nodeId)) {
-        selectedNodes.add(nodeId)
-      }
-    })
-    selectedNodes.forEach(nodeId => {
-      if (!selectedNodesAtSelectStarted.has(nodeId) && !enclosedNodes.has(nodeId)) {
-        selectedNodes.delete(nodeId)
-      }
-    })
+    // replace
+    selectedNodes.clear()
+    temporary.forEach(nodeId => selectedNodes.add(nodeId))
   }
 }
 
-function _addEventListeners(container: SVGElement | Document, handlers: EventHandlers) {
-  const options = { capture: true, passive: false }
-  Object.entries(handlers).forEach(([type, handler]) => {
-    // @ts-ignore
-    container.addEventListener(type, handler, options)
-  })
+// ------------------------------------------------------------------
+// Event register/unregister
+// ------------------------------------------------------------------
+
+type KeyboardEventHandler = (event: KeyboardEvent) => void
+type PointerEventHandler = (event: PointerEvent) => void
+type MouseEventHandler = (event: MouseEvent) => void
+
+class PointerEventRegistrar {
+  _container: Ref<SVGElement | undefined>
+  _handlePointerDownEvent: PointerEventHandler
+  _handlePointerUpEvent: PointerEventHandler
+  _handlePointerMoveEvent: PointerEventHandler
+  _handleClickEvent: MouseEventHandler
+  _handleKeyDownEvent: KeyboardEventHandler
+  _ignoreEvent: PointerEventHandler
+
+  constructor(
+    container: Ref<SVGElement | undefined>,
+    handlePointerDownEvent: PointerEventHandler,
+    handlePointerUpEvent: PointerEventHandler,
+    handlePointerMoveEvent: PointerEventHandler,
+    handleClickEvent: MouseEventHandler,
+    handleKeyDownEvent: KeyboardEventHandler
+  ) {
+    this._container = container
+    this._handlePointerDownEvent = handlePointerDownEvent
+    this._handlePointerUpEvent = handlePointerUpEvent
+    this._handlePointerMoveEvent = handlePointerMoveEvent
+    this._handleClickEvent = handleClickEvent
+    this._handleKeyDownEvent = handleKeyDownEvent
+    this._ignoreEvent = (event: PointerEvent) => event.stopPropagation()
+  }
+
+  register() {
+    const options = { capture: true, passive: false }
+    const container = nonNull(this._container.value, "container")
+    container.addEventListener("pointerdown", this._handlePointerDownEvent, options)
+    container.addEventListener("click", this._handleClickEvent, options)
+    container.addEventListener("pointerenter", this._ignoreEvent, options)
+    container.addEventListener("pointerleave", this._ignoreEvent, options)
+    document.addEventListener("keydown", this._handleKeyDownEvent, options)
+  }
+
+  activate() {
+    const options = { capture: true, passive: false }
+    document.addEventListener("pointermove", this._handlePointerMoveEvent, options)
+    document.addEventListener("pointerup", this._handlePointerUpEvent, options)
+  }
+
+  deactivate() {
+    const options = { capture: true }
+    document.removeEventListener("pointermove", this._handlePointerMoveEvent, options)
+    document.removeEventListener("pointerup", this._handlePointerUpEvent, options)
+  }
+
+  unregister() {
+    this.deactivate()
+    const options = { capture: true }
+    if (this._container.value) {
+      const container = this._container.value
+      container.removeEventListener("pointerdown", this._handlePointerDownEvent, options)
+      container.removeEventListener("click", this._handleClickEvent, options)
+      container.removeEventListener("pointerenter", this._ignoreEvent, options)
+      container.removeEventListener("pointerleave", this._ignoreEvent, options)
+      document.removeEventListener("keydown", this._handleKeyDownEvent, options)
+    }
+  }
 }
 
-function _removeEventListeners(container: SVGElement | Document, handlers: EventHandlers) {
-  const options = { capture: true }
-  Object.entries(handlers).forEach(([type, handler]) => {
-    // @ts-ignore
-    container.removeEventListener(type, handler, options)
-  })
+class KeyEventRegistrar {
+  _container: Ref<SVGElement | undefined>
+  _handleKeyDownEvent: KeyboardEventHandler
+  _handleKeyUpEvent: KeyboardEventHandler
+  _preventDefault: MouseEventHandler
+
+  constructor(
+    container: Ref<SVGElement | undefined>,
+    handleKeyDownEvent: KeyboardEventHandler,
+    handleKeyUpEvent: KeyboardEventHandler
+  ) {
+    this._container = container
+    this._handleKeyDownEvent = handleKeyDownEvent
+    this._handleKeyUpEvent = handleKeyUpEvent
+    this._preventDefault = (event: MouseEvent) => {
+      event.stopPropagation()
+      event.preventDefault()
+    }
+  }
+
+  register() {
+    document.addEventListener("keydown", this._handleKeyDownEvent, { capture: true, passive: true })
+  }
+
+  activate() {
+    document.addEventListener("keyup", this._handleKeyUpEvent, { capture: true, passive: true })
+    const container = nonNull(this._container.value, "container")
+    container.addEventListener("contextmenu", this._preventDefault, { passive: false })
+  }
+
+  deactivate() {
+    document.removeEventListener("keyup", this._handleKeyUpEvent, { capture: true })
+    if (this._container.value) {
+      const container = this._container.value
+      container.removeEventListener("contextmenu", this._preventDefault)
+    }
+  }
+
+  unregister() {
+    this.deactivate()
+    document.removeEventListener("keydown", this._handleKeyDownEvent, { capture: true })
+  }
 }

@@ -55,6 +55,7 @@ export interface ViewConfig {
   maxZoomLevel: number
   doubleClickZoomEnabled: boolean
   mouseWheelZoomEnabled: boolean
+  boxSelectionEnabled: boolean
   fit?: boolean // Deprecated
   autoPanAndZoomOnLoad: false | "center-zero" | "center-content" | "fit-content"
   autoPanOnResize: boolean
@@ -63,6 +64,7 @@ export interface ViewConfig {
   grid: GridConfig
   selection: {
     box: BasicShapeStyle
+    detector: (event: KeyboardEvent) => boolean
   }
 }
 
