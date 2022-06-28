@@ -219,7 +219,11 @@ export function makeBoxSelectionMethods(
     (event: KeyboardEvent) => {
       if (!isBoxSelectionEnabled.value) return
       if (configs.view.selection.detector(event)) {
-        stopBoxSelection()
+        if (states.pointers.size === 0) {
+          stopBoxSelection()
+        } else {
+          states.options.stopTrigger = "pointerup"
+        }
         keyEventRegistrar.deactivate()
       }
     }
