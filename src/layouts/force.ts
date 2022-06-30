@@ -36,7 +36,10 @@ export class ForceLayout implements LayoutHandler {
     const { layouts, nodes, edges, emitter, svgPanZoom } = parameters
     let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, { x: 0, y: 0 })
 
-    const simulation = this.createSimulation(nodeLayouts, this.forceLayoutEdges(edges.value))
+    const simulation = this.createSimulation(
+      nodeLayouts,
+      this.forceLayoutEdges(edges.value, nodes.value)
+    )
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
         const layout = layouts?.[node.id]
@@ -117,7 +120,7 @@ export class ForceLayout implements LayoutHandler {
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {
-          forceEdges.links(this.forceLayoutEdges(edges.value))
+          forceEdges.links(this.forceLayoutEdges(edges.value, nodes.value))
         }
         restartSimulation()
       }
@@ -179,13 +182,15 @@ export class ForceLayout implements LayoutHandler {
     })
   }
 
-  private forceLayoutEdges(edges: Edges): ForceEdgeDatum[] {
+  private forceLayoutEdges(edges: Edges, nodes: Nodes): ForceEdgeDatum[] {
     // d3-force replaces the source/target in the edge with NodeDatum
     // objects, so build own link objects.
-    return Object.values(edges).map(v => ({
-      source: v.source,
-      target: v.target,
-    }))
+    return Object.values(edges)
+      .filter(edge => edge.source in nodes && edge.target in nodes)
+      .map(v => ({
+        source: v.source,
+        target: v.target,
+      }))
   }
 
   private getNodeLayout(layouts: NodePositions, node: string) {
