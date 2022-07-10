@@ -431,6 +431,7 @@ function createNewEdgeState(
         isStartEdgeOfNode,
         sourceMargin,
         targetMargin,
+        edgeLayoutPoint.value?.pointInGroup ?? 0,
         s
       )
       state.position = position
@@ -641,12 +642,13 @@ function calculateArcPositionAndState(
   isStartEdgeOfNode: boolean,
   sourceMargin: number,
   targetMargin: number,
+  pointInGroup: number,
   scale: number
 ): [LinePosition, EdgeModel.Arc] {
   const s = scale
 
   // calculate the center position of the Arc
-  const radius = config.selfLoop.radius * s
+  const radius = (config.selfLoop.radius + pointInGroup / 2) * s
   const d = config.selfLoop.offset * s + radius
   const rad = (config.selfLoop.angle - 90) * (Math.PI / 180)
   const center = Vector2D.fromObject({
@@ -697,6 +699,7 @@ function calculateArcPositionAndState(
   return [
     { p1, p2 },
     {
+      center,
       radius: [radius, radius],
       isLargeArc: isClockwise ? isLargeArc : !isLargeArc,
       isClockwise,

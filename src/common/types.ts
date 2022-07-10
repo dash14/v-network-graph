@@ -133,8 +133,8 @@ export type Paths = Record<string, Path>
 // TODO: After a while, remove `| Path[]`.
 export type InputPaths = Record<string, Path> | Path[]
 
-// line: point | curve: [control-point, control-point, target-point] | move to next point: null
-export type PositionOrCurve = Position | Position[] | null
+// line: point | curve: [control-point, control-point, target-point] | "arc" | move to next point: null
+export type PositionOrCurve = Position | Position[] | string | null
 
 /* ------------------------------------------ *
  * Events

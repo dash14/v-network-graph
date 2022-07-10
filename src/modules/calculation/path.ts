@@ -170,10 +170,10 @@ export function calculatePathPoints(
       }
     }
 
-    // ----------------------------------------------------
-    // Specify points on the curve.
-    // ----------------------------------------------------
-    if (prev.curve) {
+    if (prev.curve || prev.loop) {
+      // ----------------------------------------------------
+      // Specify points on the curve.
+      // ----------------------------------------------------
       // The starting point has already been added to `points`.
       const lastPoints = points[points.length - 1]
       if (lastPoints) {
@@ -187,16 +187,51 @@ export function calculatePathPoints(
         } else {
           nextPoint = pos
         }
-        const control = v2d.calculateBezierCurveControlPoint(
-          lastPoint,
-          prev.curve.circle.center,
-          nextPoint,
-          prev.curve.theta
-        )
-        if (pos instanceof Array && curveInNode) {
-          points.push([...control, ...pos])
-        } else {
-          points.push([...control, nextPoint])
+        if (prev.curve) {
+          const control = v2d.calculateBezierCurveControlPoint(
+            lastPoint,
+            prev.curve.circle.center,
+            nextPoint,
+            prev.curve.theta
+          )
+          if (pos instanceof Array && curveInNode) {
+            points.push([...control, ...pos])
+          } else {
+            points.push([...control, nextPoint])
+          }
+        } else if (prev.loop) {
+          // prev.loop
+          const { radius, isClockwise } = prev.loop
+          const [rx, ry] = radius
+          const ends = PointUtils.getIntersectionOfCircles(
+            nodePos,
+            nodeRadius,
+            prev.loop.center,
+            prev.loop.radius[0],
+          )
+          let [end1, end2] = ends ? ends.reverse() : [prev.line.source, prev.line.target]
+          if (!isClockwise) {
+            [end1, end2] = [end2, end1]
+          }
+          const p1 = findFirstNonNull(end1, prev.line.source)
+          const p2 = findFirstNonNull(end2, prev.line.target)
+
+          // TODO: 終端処理に備えて関数化
+          const a1 = Vector2D.fromObject(p1).subtract(prev.loop.center).angleDegree()
+          const a2 = Vector2D.fromObject(p2).subtract(prev.loop.center).angleDegree()
+          const angle = (a2 + 360 - a1) % 360
+          let largeArc = angle >= 180 ? true : false
+          largeArc = isClockwise ? largeArc : !largeArc
+          const f1 = largeArc ? 1 : 0
+          const f2 = isClockwise ? 1 : 0
+
+          points.push(p1)
+          points.push(`A ${rx} ${ry} 0 ${f1} ${f2} ${p2.x} ${p2.y}` as any)
+          if (pos instanceof Array && curveInNode) {
+            points.push([p2, pos[1], pos[2]])
+          } else {
+            points.push(pos[2])
+          }
         }
       }
     } else {
@@ -224,6 +259,8 @@ export function calculatePathPoints(
         ? lastEdge.line.target
         : _calculateEdgeOfNode(lastEdge, lineMargin, nodeLayouts, false)
     nodeRadius = NodeUtils.getNodeRadius(nodeStates[lastEdge.source].shape) * scale
+    const loop = lastEdge.loop
+    // TODO: implement
     const curve = lastEdge.curve
     if (curve) {
       // curve
@@ -353,7 +390,9 @@ function _getIntersectionOfLines(
   nodePos: Vector2D
 ): Vector2D | null {
   let crossPoint: Vector2D | null = null
-  if (prev.curve) {
+  if (prev.loop || next.loop) {
+    crossPoint = null // not exist intersection point
+  } else if (prev.curve) {
     if (next.curve) {
       if (prev.line.target.isEqualTo(next.line.source)) {
         return prev.line.target.clone()
@@ -407,7 +446,15 @@ function _getIntersectionOfLineAndNode(
   nodeRadius: number,
   targetSide: boolean
 ): Vector2D | null {
-  if (edge.curve) {
+  if (edge.loop) {
+    const points = PointUtils.getIntersectionOfCircles(
+      nodeCenter,
+      nodeRadius,
+      edge.loop.center,
+      edge.loop.radius[0],
+    )
+    return points ? (targetSide ? points[0] : points[1]) : null
+  } else if (edge.curve) {
     return PointUtils.getIntersectionOfCircles(
       nodeCenter,
       nodeRadius,
@@ -430,6 +477,10 @@ function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): E
   let source = edge.edge.source
   let target = edge.edge.target
   let curve = state.curve
+  const loop = state.loop
+  if (loop) {
+    position = state.position
+  }
   if (!direction) {
     position = LineUtils.inverseLine(position)
     source = edge.edge.target
@@ -445,6 +496,7 @@ function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): E
     target,
     line,
     curve,
+    loop,
   }
   return result
 }

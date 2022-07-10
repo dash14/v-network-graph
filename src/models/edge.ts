@@ -18,10 +18,16 @@ export interface EdgeGroup {
   summarize: boolean
 }
 
+// export interface EdgeInNode {
+//   opposite: string
+// }
+// export type EdgesInNodes = Record<string, EdgeInNode>
+
 export interface EdgeGroupStates {
   edgeLayoutPoints: Record<string, EdgeLayoutPoint>
   edgeGroups: Record<string, EdgeGroup>
   summarizedEdges: Record<string, true>
+  // edgesInNodes: Record<string, EdgesInNodes>
 }
 
 // States of edges
@@ -43,6 +49,7 @@ export interface Curve {
 }
 
 export interface Arc {
+  center: Vector2D
   radius: [number, number]
   isLargeArc: boolean
   isClockwise: boolean
