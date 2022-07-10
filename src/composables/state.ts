@@ -6,7 +6,7 @@ import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
 import { StrokeStyle } from "@/common/configs"
-import { Edge, Edges, Layouts, Node, Nodes, NodePositions, Path, Paths } from "@/common/types"
+import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { LinePosition } from "@/common/types"
 import { useId } from "@/composables/id"
 import * as NodeModel from "@/models/node"
@@ -145,7 +145,7 @@ export function provideStates(
         makerState,
         nodeStates,
         edgeGroupStates,
-        layouts.nodes,
+        layouts,
         scale,
         instanceId
       )
@@ -307,7 +307,7 @@ function createNewEdgeState(
   makerState: MarkerState,
   nodeStates: NodeModel.NodeStates,
   edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
-  layouts: NodePositions,
+  layouts: Layouts,
   scale: Ref<number>,
   instanceId: number
 ) {
@@ -358,8 +358,8 @@ function createNewEdgeState(
     const edge = edges.value[id]
     if (!edge) return
 
-    const source = layouts[edge?.source]
-    const target = layouts[edge?.target]
+    const source = layouts.nodes[edge?.source]
+    const target = layouts.nodes[edge?.target]
 
     const sourceShape = nodeStates[edge?.source]?.staticShape
     const targetShape = nodeStates[edge?.target]?.staticShape

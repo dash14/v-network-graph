@@ -2,7 +2,7 @@ import { computed, onMounted, onUnmounted, ref, Ref, watch } from "vue"
 import { debounce } from "lodash-es"
 import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"
-import { NodePositions, Point, Rectangle } from "@/common/types"
+import { Layouts, NodePositions, Point, Rectangle } from "@/common/types"
 import { Vector2D } from "@/modules/vector2d"
 import { NodeStates } from "@/models/node"
 import { translateFromDomToSvgCoordinates } from "@/utils/svg"
@@ -28,7 +28,7 @@ export interface BoxSelectionOption {
 export function makeBoxSelectionMethods(
   container: Ref<SVGElement | undefined>,
   modes: InteractionModes,
-  nodePositions: Readonly<NodePositions>,
+  layouts: Readonly<Layouts>,
   nodeStates: NodeStates,
   selectedNodes: Reactive<Set<string>>,
   configs: Configs
@@ -67,7 +67,7 @@ export function makeBoxSelectionMethods(
         nonNull(container.value, "container") as SVGSVGElement,
         nonNull(viewport.value, "viewport"),
         selectionBox,
-        nodePositions,
+        layouts.nodes,
         nodeStates,
         selectedNodes,
         states.selectedNodesAtSelectStarted,

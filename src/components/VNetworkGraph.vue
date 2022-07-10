@@ -552,7 +552,7 @@ export default defineComponent({
     const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
       provideMouseOperation(
         svg,
-        readonly(currentLayouts.nodes),
+        readonly(currentLayouts),
         readonly(zoomLevel),
         nodeStates,
         edgeStates,

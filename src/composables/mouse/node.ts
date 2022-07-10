@@ -1,7 +1,7 @@
 import { watch } from "vue"
 import { Emitter } from "mitt"
 import { Reactive, ReadonlyRef } from "@/common/common"
-import { Events, NodePositions, Position } from "@/common/types"
+import { Events, Layouts, NodePositions, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
@@ -28,7 +28,7 @@ interface NodeInteractionState {
 
 export function makeNodeInteractionHandlers(
   nodeStates: NodeStates,
-  nodePositions: Readonly<NodePositions>,
+  layouts: Readonly<Layouts>,
   modes: InteractionModes,
   hoveredNodes: Reactive<Set<string>>,
   selectedNodes: Reactive<Set<string>>,
@@ -82,10 +82,10 @@ export function makeNodeInteractionHandlers(
         Array.from(selectedNodes)
           .filter(n => !userGrabs.includes(n))
           .filter(n => nodeStates[n]?.draggable)
-          .map(n => [n, _unwrapNodePosition(nodePositions, n)])
+          .map(n => [n, _unwrapNodePosition(layouts.nodes, n)])
       )
       pointerState.dragBasePosition = { ...pointerState.latestPosition }
-      pointerState.nodeBasePosition = _unwrapNodePosition(nodePositions, pointerState.nodeId)
+      pointerState.nodeBasePosition = _unwrapNodePosition(layouts.nodes, pointerState.nodeId)
     }
   }
 
@@ -309,7 +309,7 @@ export function makeNodeInteractionHandlers(
       pointerId: event.pointerId,
       nodeId: node,
       moveCounter: 0,
-      nodeBasePosition: _unwrapNodePosition(nodePositions, node),
+      nodeBasePosition: _unwrapNodePosition(layouts.nodes, node),
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
       eventTarget: event.currentTarget,

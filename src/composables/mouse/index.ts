@@ -3,7 +3,7 @@
 import { inject, InjectionKey, provide, ref, Ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
-import { Events, NodePositions, Rectangle } from "@/common/types"
+import { Events, Layouts, Rectangle } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { EdgeStates } from "@/models/edge"
 import { InteractionModes } from "./core"
@@ -68,7 +68,7 @@ const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<Mouse
 
 export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
-  nodePositions: Readonly<NodePositions>,
+  layouts: Readonly<Layouts>,
   zoomLevel: ReadonlyRef<number>,
   nodeStates: NodeStates,
   edgeStates: EdgeStates,
@@ -112,7 +112,7 @@ export function provideMouseOperation(
     hoveredPaths,
     ...makeNodeInteractionHandlers(
       nodeStates,
-      nodePositions,
+      layouts,
       modes,
       hoveredNodes,
       selectedNodes,
@@ -131,7 +131,7 @@ export function provideMouseOperation(
     ...makeBoxSelectionMethods(
       container,
       modes,
-      nodePositions,
+      layouts,
       nodeStates,
       selectedNodes,
       configs
