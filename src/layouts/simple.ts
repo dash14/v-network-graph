@@ -10,17 +10,17 @@ export class SimpleLayout implements LayoutHandler {
   private onDeactivate?: () => void
 
   activate(parameters: LayoutActivateParameters): void {
-    const { layouts, nodes, configs, emitter, scale, svgPanZoom } = parameters
+    const { nodePositions, nodes, configs, emitter, scale, svgPanZoom } = parameters
     const onDrag: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
-        const layout = this.getOrCreateNodePosition(layouts, id)
+        const layout = this.getOrCreateNodePosition(nodePositions, id)
         this.setNodePosition(layout, pos)
       }
     }
 
     const setNewNodePositions = (nodeIds: string[]) => {
       // decide new node's position
-      const newNodes = nodeIds.filter(n => !(n in layouts))
+      const newNodes = nodeIds.filter(n => !(n in nodePositions.value))
       const area = svgPanZoom.getViewArea()
       const s = scale.value
       for (const nodeId of newNodes) {
@@ -29,7 +29,7 @@ export class SimpleLayout implements LayoutHandler {
         const candidate = { ...area.center }
         for (;;) {
           let collision = false
-          for (const [id, pos] of Object.entries(layouts)) {
+          for (const [id, pos] of Object.entries(nodePositions.value)) {
             if (nodeId === id) continue
             const targetNode = nodes.value[id]
             if (!targetNode) continue
@@ -51,7 +51,7 @@ export class SimpleLayout implements LayoutHandler {
             break
           }
         }
-        const layout = this.getOrCreateNodePosition(layouts, nodeId)
+        const layout = this.getOrCreateNodePosition(nodePositions, nodeId)
         this.setNodePosition(layout, candidate)
       }
     }
@@ -82,8 +82,8 @@ export class SimpleLayout implements LayoutHandler {
     nodeLayout.value.y = round(pos.y, 3)
   }
 
-  private getOrCreateNodePosition(layouts: NodePositions, node: string) {
-    const layout = toRef(layouts, node)
+  private getOrCreateNodePosition(nodePositions: Ref<NodePositions>, node: string) {
+    const layout = toRef(nodePositions.value, node)
     if (!layout.value) {
       layout.value = { x: 0, y: 0 }
     }

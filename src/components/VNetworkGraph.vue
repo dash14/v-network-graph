@@ -579,7 +579,8 @@ export default defineComponent({
     // -----------------------------------------------------------------------
 
     const activateParams = () => ({
-      layouts: Reactive(currentLayouts.nodes),
+      layouts: Reactive(currentLayouts.nodes), // deprecated parameter.
+      nodePositions: toRef(currentLayouts, "nodes"),
       nodes: nodesRef,
       edges: edgesRef,
       configs: readonly(configs),

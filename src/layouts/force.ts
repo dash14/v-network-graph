@@ -1,4 +1,4 @@
-import { toRef, watch } from "vue"
+import { Ref, toRef, watch } from "vue"
 import { Edges, NodePositions, Nodes, Position } from "@/common/types"
 import { OnClickHandler, OnDragHandler } from "@/common/types"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
@@ -33,8 +33,11 @@ export class ForceLayout implements LayoutHandler {
   constructor(private options: ForceLayoutParameters = {}) {}
 
   activate(parameters: LayoutActivateParameters): void {
-    const { layouts, nodes, edges, emitter, svgPanZoom } = parameters
-    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, { x: 0, y: 0 })
+    const { nodePositions, nodes, edges, emitter, svgPanZoom } = parameters
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions, {
+      x: 0,
+      y: 0,
+    })
 
     const simulation = this.createSimulation(
       nodeLayouts,
@@ -42,7 +45,7 @@ export class ForceLayout implements LayoutHandler {
     )
     simulation.on("tick", () => {
       for (const node of nodeLayouts) {
-        const layout = layouts?.[node.id]
+        const layout = nodePositions.value?.[node.id]
         if (layout) {
           layout.x = node.x ?? 0
           layout.y = node.y ?? 0
@@ -65,7 +68,7 @@ export class ForceLayout implements LayoutHandler {
 
     const onDragEnd: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
-        const layout = this.getNodeLayout(layouts, id)
+        const layout = this.getNodeLayout(nodePositions, id)
         const nodePos: d3.SimulationNodeDatum = nodeLayoutMap?.[id] ?? { x: 0, y: 0 }
         if (layout.value.fixed || this.options.positionFixedByDrag) {
           nodePos.fx = pos.x
@@ -83,7 +86,7 @@ export class ForceLayout implements LayoutHandler {
 
     const onClick: OnClickHandler = ({ node, event }) => {
       if (this.options.positionFixedByClickWithAltKey && event.altKey) {
-        const layout = this.getNodeLayout(layouts, node)
+        const layout = this.getNodeLayout(nodePositions, node)
         let nodePos: ForceNodeDatum | undefined = nodeLayoutMap?.[node]
         if (!nodePos) {
           nodePos = { id: node, x: 0, y: 0 }
@@ -116,7 +119,11 @@ export class ForceLayout implements LayoutHandler {
       () => {
         // set new node's position to center of the view
         const area = svgPanZoom.getViewArea()
-        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, layouts, area.center))
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(
+          nodes.value,
+          nodePositions,
+          area.center
+        ))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {
@@ -165,13 +172,17 @@ export class ForceLayout implements LayoutHandler {
     }
   }
 
-  private buildNodeLayouts(nodes: Readonly<Nodes>, layouts: NodePositions, newPosition: Position) {
-    const newNodes = Object.keys(nodes).filter(n => !(n in layouts))
+  private buildNodeLayouts(
+    nodes: Readonly<Nodes>,
+    nodePositions: Ref<NodePositions>,
+    newPosition: Position
+  ) {
+    const newNodes = Object.keys(nodes).filter(n => !(n in nodePositions.value))
     for (const nodeId of newNodes) {
-      layouts[nodeId] = { ...newPosition }
+      nodePositions.value[nodeId] = { ...newPosition }
     }
 
-    const nodeLayouts = this.forceNodeLayouts(layouts)
+    const nodeLayouts = this.forceNodeLayouts(nodePositions.value)
     const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
     return { nodeLayouts, nodeLayoutMap }
   }
@@ -193,8 +204,8 @@ export class ForceLayout implements LayoutHandler {
       }))
   }
 
-  private getNodeLayout(layouts: NodePositions, node: string) {
-    const layout = toRef(layouts, node)
+  private getNodeLayout(nodePositions: Ref<NodePositions>, node: string) {
+    const layout = toRef(nodePositions.value, node)
     if (!layout.value) {
       layout.value = { x: 0, y: 0 }
     }

@@ -6,7 +6,10 @@ import { Configs } from "@/common/configs"
 import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 
 export interface LayoutActivateParameters {
-  layouts: Reactive<NodePositions>
+  layouts: Reactive<NodePositions> // deprecated.
+  // Unable to track objects in `layouts.nodes` when rewriting reference.
+
+  nodePositions: Ref<NodePositions>
   nodes: Ref<Nodes>
   edges: Ref<Edges>
   configs: Readonly<Configs>
