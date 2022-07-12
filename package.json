@@ -31,8 +31,8 @@
     "@types/d3-force": "^3.0.3",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.0.3",
-    "@typescript-eslint/eslint-plugin": "^5.30.5",
-    "@typescript-eslint/parser": "^5.30.5",
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
     "@vitejs/plugin-vue": "^2.3.3",
     "@vue/compiler-sfc": "^3.2.37",
     "eslint": "^8.19.0",
@@ -47,7 +47,7 @@
     "vite": "^2.9.14",
     "vite-plugin-dts": "^1.2.1",
     "vitest": "^0.18.0",
-    "vue-tsc": "^0.38.3"
+    "vue-tsc": "^0.38.5"
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
