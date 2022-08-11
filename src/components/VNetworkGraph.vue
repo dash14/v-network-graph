@@ -796,6 +796,7 @@ export default defineComponent({
       v.removeAttribute("style")
 
       target.setAttribute("viewBox", `0 0 ${svg.width} ${svg.height}`)
+      target.removeAttribute("style")
 
       let data = target.outerHTML
 
