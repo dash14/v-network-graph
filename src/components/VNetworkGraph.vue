@@ -4,9 +4,8 @@
       ref="svg"
       class="v-canvas"
       :class="{ show, dragging, touches, 'box-selection-mode': isBoxSelectionMode }"
-      width="500"
-      height="500"
-      viewBox="0 0 500 500"
+      width="100%"
+      height="100%"
     >
       <!-- outside of viewport -->
       <slot
