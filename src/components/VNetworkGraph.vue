@@ -840,15 +840,19 @@ function stopEventPropagation(event: Event) {
 }
 </script>
 
+
+<style lang="scss">
+:where(.v-network-graph) {
+  width: 100%;
+  height: 100%;
+}
+</style>
+
 <style lang="scss" scoped>
 .v-network-graph {
   padding: 0;
   position: relative;
   user-select: none;
-}
-:where(.v-network-graph) {
-  width: 100%;
-  height: 100%;
 }
 .v-canvas {
   -webkit-tap-highlight-color: transparent;
