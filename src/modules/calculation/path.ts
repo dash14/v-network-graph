@@ -336,13 +336,17 @@ function _calculateEdgeOfNode(
       target = edge.line.target
     }
     // straight
-    const p = PointUtils.getIntersectionOfLineTargetAndCircle(
-      source,
-      target,
-      Vector2D.fromObject(nodeLayouts[nodeId]),
-      nodeRadius
-    )
-    return p === null ? source : p
+    if (nodeLayouts[nodeId]) {
+      const p = PointUtils.getIntersectionOfLineTargetAndCircle(
+        source,
+        target,
+        Vector2D.fromObject(nodeLayouts[nodeId]),
+        nodeRadius
+      )
+      return p === null ? source : p
+    } else {
+      return source
+    }
   }
 }
 
