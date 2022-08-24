@@ -20,7 +20,6 @@ export default defineConfig({
   },
   build: {
     target: "es2015",
-    minify: "terser",
     lib: {
       entry: resolvePath("src/index.ts"),
       name: "v-network-graph",
