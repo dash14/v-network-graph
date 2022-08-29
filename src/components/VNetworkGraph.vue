@@ -94,29 +94,52 @@
         </g>
 
         <!-- nodes -->
-        <transition-group
-          :name="allConfigs.node.transition"
-          :css="!!allConfigs.node.transition"
-          tag="g"
-          class="v-layer-nodes"
-        >
-          <v-node
-            v-for="state in nodeZOrderedList"
-            :id="state.id"
-            :key="state.id"
-            :state="state"
-            :pos="currentLayouts.nodes[state.id]"
+        <template v-if="hasOverrideNodeSlot || hasOverrideNodeLabelSlot">
+          <transition-group
+            :name="allConfigs.node.transition"
+            :css="!!allConfigs.node.transition"
+            tag="g"
+            class="v-layer-nodes"
           >
-            <!-- override the node -->
-            <template v-if="hasOverrideNodeSlot" #override-node="slotProps">
-              <slot name="override-node" v-bind="slotProps" />
-            </template>
-            <!-- override the node label -->
-            <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
-              <slot name="override-node-label" v-bind="slotProps" />
-            </template>
-          </v-node>
-        </transition-group>
+            <v-node
+              v-for="state in nodeZOrderedList"
+              :id="state.id"
+              :key="state.id"
+              :state="state"
+              :pos="currentLayouts.nodes[state.id]"
+            >
+              <!-- override the node -->
+              <template v-if="hasOverrideNodeSlot" #override-node="slotProps">
+                <slot name="override-node" v-bind="slotProps" />
+              </template>
+              <!-- override the node label -->
+              <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
+                <slot name="override-node-label" v-bind="slotProps" />
+              </template>
+            </v-node>
+          </transition-group>
+        </template>
+        <template v-else>
+          <!--
+            If a `v-node` contains a slot and no external slot is specified,
+            `v-layer-nodes` element will be needlessly redrawn and all `v-node`
+            components get update notifications. Therefore, if there is no
+            external slot, do not specify a slot in the `v-node` component. -->
+          <transition-group
+            :name="allConfigs.node.transition"
+            :css="!!allConfigs.node.transition"
+            tag="g"
+            class="v-layer-nodes"
+          >
+            <v-node
+              v-for="state in nodeZOrderedList"
+              :id="state.id"
+              :key="state.id"
+              :state="state"
+              :pos="currentLayouts.nodes[state.id]"
+            />
+          </transition-group>
+        </template>
 
         <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
           <slot :name="layerName" :scale="scale" />
