@@ -27,6 +27,8 @@ const d = computed(() => {
   return props.points.map(p => {
     if (p === null) {
       move = true
+    } else if (typeof(p) === 'string') {
+      return p
     } else if (p instanceof Array) {
       p = [...p]
       const list = []

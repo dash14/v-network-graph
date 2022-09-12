@@ -1,4 +1,5 @@
 import { NodePositions, PositionOrCurve } from "@/common/types"
+import { nonNull } from "@/common/common"
 import { NodeStates } from "@/models/node"
 import { EdgeStates, EdgeState } from "@/models/edge"
 import { EdgeLine, EdgeObject, PathState } from "@/models/path"
@@ -76,13 +77,15 @@ export function calculatePathPoints(
     // Place another small circle inside the node's circle and
     // calculate transit points so that the path line is smooth.
     //   Inner circle: [α] radius: `nodeCoreRadius`
-    //   Node circle : [β]  radius: `nodeRadius`
+    //   Node circle : [β] radius: `nodeRadius`
     const nodeRadius = NodeUtils.getNodeRadius(nodeStates[nodeId].shape) * scale
     const nodeCoreRadius = Math.max(nodeRadius * (2 / 3), nodeRadius - 4 * scale)
-    const prevCoreIp = _getIntersectionOfLineAndNode(prev, nodePos, nodeCoreRadius, true)
-    const nextCoreIp = _getIntersectionOfLineAndNode(next, nodePos, nodeCoreRadius, false)
-    const prevNodeIp = _getIntersectionOfLineAndNode(prev, nodePos, nodeRadius, true)
-    const nextNodeIp = _getIntersectionOfLineAndNode(next, nodePos, nodeRadius, false)
+    const isForwardPrev = _isForward(prev)
+    const isForwardNext = _isForward(next)
+    const prevCoreIp = _getIntersectionOfLineAndNode(prev, nodePos, nodeCoreRadius, isForwardPrev)
+    const nextCoreIp = _getIntersectionOfLineAndNode(next, nodePos, nodeCoreRadius, !isForwardNext)
+    const prevNodeIp = _getIntersectionOfLineAndNode(prev, nodePos, nodeRadius, isForwardPrev)
+    const nextNodeIp = _getIntersectionOfLineAndNode(next, nodePos, nodeRadius, !isForwardNext)
 
     // ----------------------------------------------------
     // Calculate transit points in the node.
@@ -170,10 +173,10 @@ export function calculatePathPoints(
       }
     }
 
-    // ----------------------------------------------------
-    // Specify points on the curve.
-    // ----------------------------------------------------
     if (prev.curve) {
+      // ----------------------------------------------------
+      // Specify points on the curve.
+      // ----------------------------------------------------
       // The starting point has already been added to `points`.
       const lastPoints = points[points.length - 1]
       if (lastPoints) {
@@ -199,12 +202,23 @@ export function calculatePathPoints(
           points.push([...control, nextPoint])
         }
       }
+    } else if (prev.loop) {
+      const [p1, p2, arc] = _makeArcString(nodePos, prev, nodeRadius)
+      points.push(p1)
+      points.push(arc)
+      if (pos instanceof Array && curveInNode) {
+        points.push([p2, pos[1], pos[2]])
+      } else {
+        points.push(pos[2])
+      }
     } else {
       if (curveInNode || !(pos instanceof Array)) {
         points.push(pos)
       } else {
         if (next.curve) {
           points.push(pos[1]) // use control point as transit point
+        } else if (next.loop) {
+          points.push(pos[0])
         } else {
           points.push(pos[0], pos[2]) // without control point to avoid smoothness
         }
@@ -224,16 +238,20 @@ export function calculatePathPoints(
         ? lastEdge.line.target
         : _calculateEdgeOfNode(lastEdge, lineMargin, nodeLayouts, false)
     nodeRadius = NodeUtils.getNodeRadius(nodeStates[lastEdge.source].shape) * scale
-    const curve = lastEdge.curve
-    if (curve) {
+    if (lastEdge.loop) {
+      const nodePos = Vector2D.fromObject(nodeLayouts[lastEdge.target] ?? { x: 0, y: 0 })
+      const [p1, _, arc] = _makeArcString(nodePos, lastEdge, nodeRadius)
+      points.push(p1)
+      points.push(arc)
+    } else if (lastEdge.curve) {
       // curve
       const pos = points[points.length - 1]
       const lastPoint = pos instanceof Array ? pos[pos.length - 1] : pos
       const control = v2d.calculateBezierCurveControlPoint(
         lastPoint,
-        curve.circle.center,
+        lastEdge.curve.circle.center,
         nextPoint,
-        curve.theta
+        lastEdge.curve.theta
       )
       points.push([...control, nextPoint])
     } else {
@@ -270,10 +288,10 @@ function _detectDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
 
   const directions: boolean[] = [] // true: forward, false: reverse
   let lastNode: string | null = null
+  let isForward = true
   for (let i = 0; i < length; i++) {
     const source = edges[i].edge.source
     const target = edges[i].edge.target
-    let isForward
     if (i === 0) {
       if (length > 2) {
         // If the next edge is an edge between the same nodes,
@@ -295,12 +313,15 @@ function _detectDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
       } else {
         isForward = [edges[1].edge.source, edges[1].edge.target].includes(target)
       }
+    } else if (source === target) {
+      // do nothing: use same as previous value
     } else {
       isForward = lastNode === source
     }
     directions.push(isForward)
     lastNode = isForward ? target : source
   }
+
   return directions
 }
 
@@ -357,7 +378,9 @@ function _getIntersectionOfLines(
   nodePos: Vector2D
 ): Vector2D | null {
   let crossPoint: Vector2D | null = null
-  if (prev.curve) {
+  if (prev.loop || next.loop) {
+    crossPoint = null // not exist intersection point
+  } else if (prev.curve) {
     if (next.curve) {
       if (prev.line.target.isEqualTo(next.line.source)) {
         return prev.line.target.clone()
@@ -411,7 +434,15 @@ function _getIntersectionOfLineAndNode(
   nodeRadius: number,
   targetSide: boolean
 ): Vector2D | null {
-  if (edge.curve) {
+  if (edge.loop) {
+    const points = PointUtils.getIntersectionOfCircles(
+      nodeCenter,
+      nodeRadius,
+      edge.loop.center,
+      edge.loop.radius[0]
+    )
+    return points ? (targetSide ? points[0] : points[1]) : null
+  } else if (edge.curve) {
     return PointUtils.getIntersectionOfCircles(
       nodeCenter,
       nodeRadius,
@@ -434,7 +465,10 @@ function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): E
   let source = edge.edge.source
   let target = edge.edge.target
   let curve = state.curve
-  if (!direction) {
+  const loop = state.loop
+  if (loop) {
+    position = state.position
+  } else if (!direction) {
     position = LineUtils.inverseLine(position)
     source = edge.edge.target
     target = edge.edge.source
@@ -448,11 +482,48 @@ function _getEdgeLine(edge: EdgeObject, direction: boolean, state: EdgeState): E
     source,
     target,
     line,
+    direction,
     curve,
+    loop,
   }
   return result
 }
 
 function _getSlope(pos: VectorLine) {
   return (pos.target.y - pos.source.y) / (pos.target.x - pos.source.x)
+}
+
+function _makeArcString(
+  nodePos: Vector2D,
+  edge: EdgeLine,
+  nodeRadius: number
+): [Vector2D, Vector2D, any] {
+  const { radius, center } = nonNull(edge.loop, "Loop of edge parameter")
+  const [rx, ry] = radius
+  const ends = PointUtils.getIntersectionOfCircles(nodePos, nodeRadius, center, radius[0])
+  let [end1, end2] = ends ? ends.reverse() : [edge.line.source, edge.line.target]
+  const isClockwise = _isForward(edge)
+  if (!isClockwise) {
+    ;[end1, end2] = [end2, end1]
+  }
+  const p1 = end1
+  const p2 = end2
+
+  const a1 = Vector2D.fromObject(p1).subtract(center).angleDegree()
+  const a2 = Vector2D.fromObject(p2).subtract(center).angleDegree()
+  const angle = (a2 + 360 - a1) % 360
+  let largeArc = angle >= 180 ? true : false
+  largeArc = isClockwise ? largeArc : !largeArc
+  const f1 = largeArc ? 1 : 0
+  const f2 = isClockwise ? 1 : 0
+
+  return [p1, p2, `A ${rx} ${ry} 0 ${f1} ${f2} ${p2.x} ${p2.y}`]
+}
+
+function _isForward(edge: EdgeLine) {
+  if (edge.loop) {
+    return edge.direction ? edge.loop.isClockwise : !edge.loop.isClockwise
+  } else {
+    return true
+  }
 }

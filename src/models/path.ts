@@ -1,7 +1,7 @@
 import { ComputedRef, UnwrapRef } from "vue"
 import { Edge, Path } from "@/common/types"
 import { VectorLine } from "@/modules/calculation/line"
-import { Curve } from "@/models/edge"
+import { Arc, Curve } from "@/models/edge"
 
 export interface EdgeObject {
   edgeId: string
@@ -29,5 +29,7 @@ export interface EdgeLine {
   source: string
   target: string
   line: VectorLine
+  direction: boolean
   curve?: Curve
+  loop?: Arc
 }

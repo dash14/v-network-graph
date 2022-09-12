@@ -43,6 +43,7 @@ export interface Curve {
 }
 
 export interface Arc {
+  center: Vector2D
   radius: [number, number]
   isLargeArc: boolean
   isClockwise: boolean
