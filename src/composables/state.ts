@@ -4,7 +4,7 @@ import { computed, ComputedRef, reactive, ref, Ref, toRef, unref } from "vue"
 import { watch, watchEffect } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
-import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
+import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig, SelfLoopEdgeStyle } from "@/common/configs"
 import { StrokeStyle, ShapeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { LinePosition, Position } from "@/common/types"
@@ -424,10 +424,12 @@ function createNewEdgeState(
     // calculate self-loop edge
     if (edge.source === edge.target) {
       state.origin = LineUtils.toLinePosition(source, target)
+
+      const selfLoopStyle = Config.values(config.selfLoop, edge)
       const [position, arc] = calculateArcPositionAndState(
         source,
         sourceShape,
-        config,
+        selfLoopStyle,
         isStartEdgeOfNode,
         sourceMargin,
         targetMargin,
@@ -638,7 +640,7 @@ function calculateCurvePositionAndState(
 function calculateArcPositionAndState(
   nodePos: Position,
   nodeShape: ShapeStyle,
-  config: EdgeConfig,
+  selfLoopStyle: SelfLoopEdgeStyle,
   isStartEdgeOfNode: boolean,
   sourceMargin: number,
   targetMargin: number,
@@ -648,15 +650,15 @@ function calculateArcPositionAndState(
   const s = scale
 
   // calculate the center position of the Arc
-  const radius = (config.selfLoop.radius + pointInGroup / 2) * s
-  const d = config.selfLoop.offset * s + radius
-  const rad = (config.selfLoop.angle - 90) * (Math.PI / 180)
+  const radius = (selfLoopStyle.radius + pointInGroup / 2) * s
+  const d = selfLoopStyle.offset * s + radius
+  const rad = (selfLoopStyle.angle - 90) * (Math.PI / 180)
   const center = Vector2D.fromObject({
     x: nodePos.x + d * Math.cos(rad),
     y: nodePos.y + d * Math.sin(rad),
   })
 
-  const isClockwise = config.selfLoop.isClockwise
+  const isClockwise = selfLoopStyle.isClockwise
 
   let p1: Point2D | undefined, p2: Point2D | undefined
   if (isStartEdgeOfNode) {

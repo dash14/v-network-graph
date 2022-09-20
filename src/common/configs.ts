@@ -241,7 +241,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
     shape: CallableValues<ShapeStyle, Record<string, E>>
     stroke: CallableValues<StrokeStyle, Record<string, E>>
   }
-  selfLoop: SelfLoopEdgeStyle
+  selfLoop: CallableValues<SelfLoopEdgeStyle, E>
   keepOrder: EdgeKeepOrderType
   label: EdgeLabelStyle
   zOrder: ZOrderConfig<E>
