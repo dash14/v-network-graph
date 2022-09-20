@@ -42,6 +42,13 @@ export interface Curve {
   control: Position[]
 }
 
+export interface Arc {
+  center: Vector2D
+  radius: [number, number]
+  isLargeArc: boolean
+  isClockwise: boolean
+}
+
 export interface EdgeStateDatum {
   id: string
   line: Ref<Line>
@@ -52,6 +59,7 @@ export interface EdgeStateDatum {
   labelPosition: LinePosition // line segment between the outermost of the nodes for labels
   position: LinePosition // line segments to be displayed with margins applied
   curve?: Curve
+  loop?: Arc
   sourceMarkerId?: string
   targetMarkerId?: string
   zIndex: ComputedRef<number>

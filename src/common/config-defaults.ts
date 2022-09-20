@@ -194,6 +194,12 @@ export function getConfigDefaults(): Configs {
           animationSpeed: 50,
         },
       },
+      selfLoop: {
+        radius: 12,
+        isClockwise: true,
+        offset: 10,
+        angle: 270,
+      },
       keepOrder: "clock",
       label: {
         fontFamily: undefined,

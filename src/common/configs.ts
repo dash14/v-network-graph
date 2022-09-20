@@ -216,6 +216,13 @@ export type EdgeType = "straight" | "curve"
 //   "horizontal": Keep the horizontal alignment.
 export type EdgeKeepOrderType = "clock" | "vertical" | "horizontal"
 
+export interface SelfLoopEdgeStyle {
+  radius: number
+  offset: number
+  angle: number
+  isClockwise: boolean
+}
+
 export interface EdgeConfig<E extends Edge = Edge> {
   normal: CallableValues<StrokeStyle, E>
   hover?: CallableValues<StrokeStyle, E>
@@ -234,6 +241,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
     shape: CallableValues<ShapeStyle, Record<string, E>>
     stroke: CallableValues<StrokeStyle, Record<string, E>>
   }
+  selfLoop: CallableValues<SelfLoopEdgeStyle, E>
   keepOrder: EdgeKeepOrderType
   label: EdgeLabelStyle
   zOrder: ZOrderConfig<E>

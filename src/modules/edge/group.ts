@@ -117,8 +117,12 @@ function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: E
   const edgeLayoutPoints: Record<string, EdgeLayoutPoint> = {}
   const edgeGroups: Record<string, EdgeGroup> = {}
 
-  // make edge groups that between same nodes
+  // edges in nodes
+  // const edgesInNodes: Record<string, EdgesInNodes> = {}
+
+  // edge groups between same nodes
   const map: Record<string, Edges> = {}
+
   for (const [id, edge] of Object.entries(edges)) {
     if (!(edge.source in nodes && edge.target in nodes)) {
       // reject if no node ID is found on the nodes
@@ -128,6 +132,11 @@ function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: E
     const values = map[key] || {}
     values[id] = edge
     map[key] = values
+
+    // edgesInNodes[edge.source] ||= {}
+    // edgesInNodes[edge.target] ||= {}
+    // edgesInNodes[edge.source][id] = { opposite: edge.target }
+    // edgesInNodes[edge.target][id] = { opposite: edge.source }
   }
 
   // Calculate the following:

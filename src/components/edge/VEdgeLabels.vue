@@ -85,6 +85,7 @@ defineExpose({
     <template v-for="(group, id) in edgeGroups.individual" :key="id">
       <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
         <slot
+          v-if="!edgeStates[edgeId].loop"
           name="edge-label"
           :edge-id="edgeId"
           :edge="edge"
@@ -98,6 +99,7 @@ defineExpose({
     </template>
     <template v-for="(group, id) in edgeGroups.summarized" :key="id">
       <slot
+        v-if="!representativeEdgeState(group).loop"
         name="edges-label"
         :edges="group.edges"
         :config="edgeConfig.label"

@@ -42,7 +42,13 @@ const {
 
 const pathD = computed(() => {
   const p = props.state.position
-  if (config.type === "straight" || !props.state.curve) {
+  if (props.state.loop) {
+    const { radius, isLargeArc, isClockwise } = props.state.loop
+    const [rx, ry] = radius
+    const f1 = isLargeArc ? 1 : 0
+    const f2 = isClockwise ? 1 : 0
+    return `M ${p.p1.x} ${p.p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p.p2.x} ${p.p2.y}`
+  } else if (config.type === "straight" || !props.state.curve) {
     return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`
   } else {
     const points = [ ...props.state.curve.control, { x: p.p2.x, y: p.p2.y }]
