@@ -92,7 +92,7 @@ export type NodePositions = Record<string, FixablePosition>
 export interface Layouts {
   nodes: NodePositions
 }
-/** ユーザ指定用 optionalな指定のためのinterface */
+/** for User Specified */
 export type UserLayouts = RecursivePartial<Layouts>
 
 /* ------------------------------------------ *
