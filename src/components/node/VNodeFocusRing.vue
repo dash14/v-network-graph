@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { computed, PropType, reactive, watchEffect } from "vue"
+import { computed, reactive, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/configs"
 import { NodeState } from "@/models/node"
 import { useNodeConfig } from "@/composables/config"
 import VShape from "@/components/base/VShape.vue"
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<NodeState>,
-    required: true,
-  },
-  pos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: NodeState
+  pos: Position
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  pos: undefined,
 })
 
 const x = computed(() => props.pos?.x || 0)

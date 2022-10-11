@@ -1,56 +1,32 @@
 <script setup lang="ts">
-import { computed, PropType, Ref, ref, watchEffect } from "vue"
+import { computed, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "@/common/configs"
 import { Edge, EdgeLabelArea } from "@/common/types"
 import { VectorLine } from "@/modules/calculation/line"
 import VText from "@/components/base/VLabelText.vue"
 
-const props = defineProps({
-  area: {
-    type: Object as PropType<EdgeLabelArea>,
-    required: true,
-  },
-  config: {
-    type: Object as PropType<EdgeLabelStyle>,
-    required: true,
-  },
-  text: {
-    type: String,
-    required: false,
-    default: "",
-  },
-  align: {
-    type: String as PropType<"center" | "source" | "target">,
-    required: false,
-    default: "center",
-  },
-  verticalAlign: {
-    type: String as PropType<"center" | "above" | "below">,
-    required: false,
-    default: "center",
-  },
+interface Props {
+  area: EdgeLabelArea
+  config: EdgeLabelStyle
+  text?: string,
+  align?: "center" | "source" | "target"
+  verticalAlign?: "center" | "above" | "below"
   // The followings are the definitions to avoid passing unwanted
   // items to <text> when they are specified in v-bind.
-  edge: {
-    type: Object as PropType<Edge>,
-    required: false,
-    default: undefined
-  },
-  hovered: {
-    type: Boolean,
-    required: false,
-    default: false
-  },
-  selected: {
-    type: Boolean,
-    required: false,
-    default: false
-  },
-  scale: {
-    type: Number,
-    required: false,
-    default: undefined
-  }
+  edge?: Edge
+  hovered?: boolean,
+  selected?: boolean
+  scale?: number
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  text: "",
+  align: "center",
+  verticalAlign: "center",
+  edge: undefined,
+  hovered: undefined,
+  selected: undefined,
+  scale: undefined
 })
 
 const x = ref(0)

@@ -1,33 +1,14 @@
 <script setup lang="ts">
-import { PropType } from "vue"
 import { MarkerUnits } from "@/common/configs"
 
-const props = defineProps({
-  width: {
-    type: Number,
-    required: true,
-  },
-  height: {
-    type: Number,
-    required: true,
-  },
-  refX: {
-    type: Number,
-    required: true,
-  },
-  color: {
-    type: String,
-    required: true,
-  },
-  isSource: {
-    type: Boolean,
-    required: true,
-  },
-  units: {
-    type: String as PropType<MarkerUnits>,
-    required: true,
-  }
-})
+defineProps<{
+  width: number
+  height: number
+  refX: number
+  color: string
+  isSource: boolean
+  units: MarkerUnits
+}>()
 </script>
 
 <template>

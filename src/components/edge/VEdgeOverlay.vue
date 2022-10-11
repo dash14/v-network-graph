@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PropType } from "vue"
 import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom";
@@ -7,30 +6,18 @@ import { useContainers } from "@/composables/container";
 import { Config } from "@/common/configs";
 import { useEdgeConfig } from "@/composables/config";
 
-const props = defineProps({
-  edgeId: {
-    type: String,
-    required: false,
-    default: undefined
-  },
-  edge: {
-    type: Object as PropType<Edge>,
-    required: false,
-    default: undefined
-  },
-  edges: {
-    type: Object as PropType<Edges>,
-    required: false,
-    default: () => {}
-  },
-  state: {
-    type: Object as PropType<EdgeState>,
-    required: true
-  },
-  isSummarized: {
-    type: Boolean,
-    required: true
-  }
+interface Props {
+  edgeId?: string
+  edge?: Edge
+  edges?: Edges
+  state: EdgeState
+  isSummarized: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  edgeId: undefined,
+  edge: undefined,
+  edges: () => ({})
 })
 
 const { svg } = useContainers()

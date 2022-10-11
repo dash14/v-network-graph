@@ -1,18 +1,12 @@
 <script setup lang="ts">
-import { PropType } from "vue"
 import { Rectangle } from "@/common/types"
 import { BasicShapeStyle } from "@/common/configs"
 
-defineProps({
-  box: {
-    type: Object as PropType<Rectangle>,
-    required: true
-  },
-  config: {
-    type: Object as PropType<BasicShapeStyle>,
-    required: true
-  }
-})
+defineProps<{
+  box: Rectangle,
+  config: BasicShapeStyle
+}>()
+
 </script>
 
 <template>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PropType } from "vue"
 import { Position } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useEdgeConfig } from "@/composables/config"
@@ -7,25 +6,16 @@ import VLine from "@/components/base/VLine.vue"
 import VArc from "@/components/base/VArc.vue"
 import VEdgeCurved from "./VEdgeCurved.vue"
 
-defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<EdgeState>,
-    required: true,
-  },
-  sourcePos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
-  targetPos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: EdgeState
+  sourcePos?: Position
+  targetPos?: Position
+}
+
+withDefaults(defineProps<Props>(), {
+  sourcePos: undefined,
+  targetPos: undefined,
 })
 
 const config = useEdgeConfig()

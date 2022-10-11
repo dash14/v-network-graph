@@ -4,14 +4,11 @@ import VEdge from "./VEdge.vue"
 import VEdgeSummarized from "./VEdgeSummarized.vue"
 import VEdgeOverlay from "./VEdgeOverlay.vue"
 
-defineProps({
-  hasEdgeOverlaySlot: {
-    type: Boolean,
-    required: true,
-  },
-})
+defineProps<{
+  hasEdgeOverlaySlot: boolean
+}>()
 
-const { edgeStates, edgeZOrderedList, edgeGroupStates, layouts } = useStates()
+const { edgeStates, edgeZOrderedList, layouts } = useStates()
 
 // type FlattenEdge = {
 //     key: string

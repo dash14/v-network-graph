@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import { PropType, ref, watchEffect } from "vue"
+import { ref, watchEffect } from "vue"
 import { AnyShapeStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray } from "@/utils/visual"
 
-const props = defineProps({
-  baseX: {
-    type: Number,
-    default: 0,
-  },
-  baseY: {
-    type: Number,
-    default: 0,
-  },
-  config: {
-    type: Object as PropType<AnyShapeStyle>,
-    required: true,
-  },
+interface Props {
+  baseX?: number
+  baseY?: number
+  config: AnyShapeStyle
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  baseX: 0,
+  baseY: 0,
 })
 
 const { scale } = useZoomLevel()

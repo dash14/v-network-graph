@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, PropType, ref, watchEffect } from "vue"
+import { computed, ref, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { NodeLabelDirection } from "@/common/configs"
 import { NodeState } from "@/models/node"
@@ -9,20 +9,14 @@ import { useZoomLevel } from "@/composables/zoom"
 import VShape from "@/components/base/VShape.vue"
 import VText from "@/components/base/VLabelText.vue"
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<NodeState>,
-    required: true,
-  },
-  pos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: NodeState
+  pos?: Position
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  pos: undefined
 })
 
 const x = computed(() => props.pos?.x || 0)

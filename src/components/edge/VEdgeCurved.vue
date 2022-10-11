@@ -1,30 +1,21 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue"
+import { computed } from "vue"
 import { StrokeStyle } from "@/common/configs"
 import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 import chunk from "lodash-es/chunk"
 
-const props = defineProps({
-  state: {
-    type: Object as PropType<EdgeState>,
-    required: true,
-  },
-  config: {
-    type: Object as PropType<StrokeStyle>,
-    required: true,
-  },
-  markerStart: {
-    type: String,
-    required: false,
-    default: undefined
-  },
-  markerEnd: {
-    type: String,
-    required: false,
-    default: undefined
-  }
+interface Props {
+  state: EdgeState
+  config: StrokeStyle
+  markerStart?: string
+  markerEnd?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  markerStart: undefined,
+  markerEnd: undefined,
 })
 
 const { scale } = useZoomLevel()

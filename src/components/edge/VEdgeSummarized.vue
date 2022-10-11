@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, PropType, ref, watchEffect } from "vue"
+import { computed, ref, watchEffect } from "vue"
 import { Edges, NodePositions, LinePosition, Position } from "@/common/types"
 import { Config } from "@/common/configs"
 import { useEdgeConfig } from "@/composables/config"
@@ -9,16 +9,10 @@ import VLine from "@/components/base/VLine.vue"
 import VShape from "@/components/base/VShape.vue"
 import VText from "@/components/base/VLabelText.vue"
 
-const props = defineProps({
-  edges: {
-    type: Object as PropType<Edges>,
-    required: true,
-  },
-  layouts: {
-    type: Object as PropType<NodePositions>,
-    required: true,
-  },
-})
+const props = defineProps<{
+  edges: Edges
+  layouts: NodePositions
+}>()
 
 const config = useEdgeConfig()
 const {
