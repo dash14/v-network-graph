@@ -62,7 +62,6 @@ watchEffect(() => {
   }
 })
 
-defineExpose({ x, y, shapeConfig })
 </script>
 
 <template>

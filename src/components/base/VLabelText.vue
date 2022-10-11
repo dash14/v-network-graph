@@ -90,8 +90,6 @@ onUnmounted(() => {
   observer = undefined
 })
 
-defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
-
 function updateBackgroundPosition(
   element: SVGTextElement,
   pos: Rect,

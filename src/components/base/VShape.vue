@@ -46,17 +46,6 @@ watchEffect(() => {
   }
 })
 
-defineExpose({
-  x,
-  y,
-  strokeWidth,
-  strokeColor,
-  strokeDasharray,
-  radius,
-  width,
-  height,
-  borderRadius,
-})
 </script>
 
 <template>

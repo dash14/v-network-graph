@@ -38,17 +38,6 @@ const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
   )
 })
 
-defineExpose({
-  pathConfig,
-  pathZOrderedList,
-  calcPathPoints,
-  handlePathPointerDownEvent,
-  handlePathPointerOverEvent,
-  handlePathPointerOutEvent,
-  handlePathClickEvent,
-  handlePathDoubleClickEvent,
-  handlePathContextMenu,
-})
 </script>
 
 <template>

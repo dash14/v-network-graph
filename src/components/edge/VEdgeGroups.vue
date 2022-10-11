@@ -35,8 +35,6 @@ const { edgeStates, edgeZOrderedList, layouts } = useStates()
 //   }
 //   return results
 // })
-
-defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
 </script>
 
 <template>

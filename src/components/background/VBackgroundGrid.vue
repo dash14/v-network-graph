@@ -122,12 +122,6 @@ watchEffect(() => {
   normalVerticals.value = normalV
 })
 
-defineExpose({
-  thickVerticals,
-  thickHorizontals,
-  normalVerticals,
-  normalHorizontals,
-})
 </script>
 
 <template>

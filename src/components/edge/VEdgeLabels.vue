@@ -67,17 +67,6 @@ const representativeEdgeState = computed(() => (group: EdgeGroup) => {
   return edgeStates[Object.keys(group.edges)[0]]
 })
 
-defineExpose({
-  individualEdgeGroups,
-  edgeGroups,
-  nodeShape,
-  labelAreaPosition,
-  groupLabelAreaPosition,
-  representativeEdgeState,
-  edgeStates,
-  edgeConfig,
-  scale,
-})
 </script>
 
 <template>

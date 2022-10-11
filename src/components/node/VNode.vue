@@ -151,23 +151,6 @@ const labelY = computed(() => {
   }
 })
 
-defineExpose({
-  x,
-  y,
-  config,
-  labelVisibility,
-  handleNodePointerDownEvent,
-  handleNodePointerOverEvent,
-  handleNodePointerOutEvent,
-  handleNodeClickEvent,
-  handleNodeDoubleClickEvent,
-  handleNodeContextMenu,
-  textAnchor,
-  dominantBaseline,
-  labelX,
-  labelY,
-  scale,
-})
 </script>
 
 <template>

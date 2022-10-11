@@ -127,7 +127,6 @@ const updatedConfig = computed(() => {
   }
 })
 
-defineExpose({ x, y, textAnchor, dominantBaseline, angle, updatedConfig })
 </script>
 
 <template>

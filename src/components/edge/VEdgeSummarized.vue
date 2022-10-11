@@ -51,20 +51,6 @@ const hovered = computed(() => edgeIds.value.some(edge => edgeStates[edge].hover
 const selectable = computed(() => edgeIds.value.some(edge => edgeStates[edge].selectable))
 const selected = computed(() => edgeIds.value.some(edge => edgeStates[edge].selected))
 
-defineExpose({
-  config,
-  pos,
-  centerPos,
-  handleEdgesPointerDownEvent,
-  handleEdgesPointerOverEvent,
-  handleEdgesPointerOutEvent,
-  handleEdgesClickEvent,
-  handleEdgesDoubleClickEvent,
-  handleEdgesContextMenu,
-  hovered,
-  selectable,
-  selected,
-})
 </script>
 
 <template>

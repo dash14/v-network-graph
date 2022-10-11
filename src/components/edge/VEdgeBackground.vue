@@ -52,15 +52,6 @@ const pathD = computed(() => {
 
 const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.value)
 
-defineExpose({
-  config,
-  handleEdgePointerDownEvent,
-  handleEdgePointerOverEvent,
-  handleEdgePointerOutEvent,
-  handleEdgeClickEvent,
-  handleEdgeDoubleClickEvent,
-  handleEdgeContextMenu,
-})
 </script>
 
 <template>

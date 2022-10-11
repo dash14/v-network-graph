@@ -39,7 +39,6 @@ const pathD = computed(() => {
   return `M ${p1.x} ${p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p2.x} ${p2.y}`
 })
 
-defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
 </script>
 
 <template>

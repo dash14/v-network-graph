@@ -4,7 +4,6 @@ import VEdgeBackground from "./VEdgeBackground.vue"
 
 const { edgeStates, edgeGroupStates, layouts } = useStates()
 
-defineExpose({ edgeStates, edgeGroupStates, layouts })
 </script>
 
 <template>

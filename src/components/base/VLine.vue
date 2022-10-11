@@ -28,7 +28,6 @@ const animationSpeed = computed(() => {
   return speed ? `--animation-speed:${speed}` : undefined
 })
 
-defineExpose({ strokeWidth, strokeDasharray, animationSpeed })
 </script>
 
 <template>

@@ -35,7 +35,6 @@ onUnmounted(() => {
   observer.disconnect()
 })
 
-defineExpose({ background })
 </script>
 
 <template>

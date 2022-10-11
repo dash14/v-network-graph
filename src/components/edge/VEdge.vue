@@ -20,7 +20,6 @@ withDefaults(defineProps<Props>(), {
 
 const config = useEdgeConfig()
 
-defineExpose({ config })
 </script>
 
 <template>
