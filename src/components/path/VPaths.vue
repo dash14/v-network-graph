@@ -45,7 +45,7 @@ const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
     :name="pathConfig.transition"
     :css="!!pathConfig.transition"
     tag="g"
-    class="v-paths"
+    class="v-ng-paths"
   >
     <v-path-line
       v-for="path in pathZOrderedList"
@@ -63,7 +63,7 @@ const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
   </transition-group>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
 .v-path-line {

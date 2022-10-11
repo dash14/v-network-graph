@@ -74,7 +74,7 @@ function calculatePointAtLength(distance: number): Point {
 </script>
 
 <template>
-  <g class="v-edge-overlay">
+  <g class="v-ng-edge-overlay">
     <slot
       v-if="isSummarized"
       :edges="edges"

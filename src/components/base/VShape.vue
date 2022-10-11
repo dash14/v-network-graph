@@ -51,7 +51,7 @@ watchEffect(() => {
 <template>
   <circle
     v-if="config.type === 'circle'"
-    class="v-shape-circle"
+    class="v-ng-shape-circle"
     :cx="x"
     :cy="y"
     :r="radius"
@@ -62,7 +62,7 @@ watchEffect(() => {
   />
   <rect
     v-else
-    class="v-shape-rect"
+    class="v-ng-shape-rect"
     :x="x"
     :y="y"
     :width="width"

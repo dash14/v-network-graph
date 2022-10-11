@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
   <rect
-    class="selection-box"
+    class="v-ng-selection-box"
     :x="Math.round(box.pos.x)"
     :y="Math.round(box.pos.y)"
     :width="Math.ceil(box.size.width)"
@@ -23,8 +23,8 @@ defineProps<{
   />
 </template>
 
-<style scoped>
-.selection-box {
+<style lang="scss">
+.v-ng-selection-box {
   shape-rendering: crispEdges;
 }
 </style>

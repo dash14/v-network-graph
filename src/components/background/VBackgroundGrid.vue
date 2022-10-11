@@ -125,7 +125,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <g class="v-background-grid" shape-rendering="crispEdges">
+  <g class="v-ng-background-grid" shape-rendering="crispEdges">
     <!-- normal -->
     <path
       v-for="([i, v, x, w, attrs]) in normalHorizontals"
@@ -159,8 +159,8 @@ watchEffect(() => {
   </g>
 </template>
 
-<style>
-.v-background-grid {
+<style lang="scss">
+.v-ng-background-grid {
   pointer-events: none;
 }
 </style>

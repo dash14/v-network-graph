@@ -67,7 +67,7 @@ const animationSpeed = computed(() => {
 
 <template>
   <path
-    :class="{ 'v-path-line': true, animate: config.animate }"
+    :class="{ 'v-ng-path-line': true, animate: config.animate }"
     :d="d"
     fill="none"
     :stroke="config.color"
@@ -78,16 +78,3 @@ const animationSpeed = computed(() => {
     :style="animationSpeed"
   />
 </template>
-
-<style scoped>
-.v-path-line.animate {
-  --animation-speed: 100;
-  animation: dash 10s linear infinite;
-  stroke-dashoffset: var(--animation-speed);
-}
-@keyframes dash {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-</style>

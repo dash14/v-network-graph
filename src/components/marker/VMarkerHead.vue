@@ -45,7 +45,7 @@ const refX = computed(() => {
     :refY="height / 2"
     orient="auto"
     :markerUnits="marker.units"
-    class="v-marker"
+    class="v-ng-marker"
   >
     <component
       :is="types[marker.type]"

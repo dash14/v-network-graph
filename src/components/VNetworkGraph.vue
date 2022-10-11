@@ -154,7 +154,7 @@ const zoomLevel = bindProp(props, "zoomLevel", emit, v => {
 
 // SVG pan / zoom
 const { svgPanZoom, onSvgPanZoomMounted, onSvgPanZoomUnmounted } = useSvgPanZoom(svg, {
-  viewportSelector: ".v-viewport",
+  viewportSelector: ".v-ng-viewport",
   minZoom: configs.view.minZoomLevel, // temporary
   maxZoom: configs.view.maxZoomLevel, // temporary
   dblClickZoomEnabled: isDoubleClickZoomEnabled(configs.view),
@@ -583,7 +583,7 @@ function getAsSvg(): string {
   target.setAttribute("width", svgRect.width.toString())
   target.setAttribute("height", svgRect.height.toString())
 
-  const v = target.querySelector(".v-viewport") as SVGGElement
+  const v = target.querySelector(".v-ng-viewport") as SVGGElement
   v.setAttribute("transform", `translate(${-svgRect.x} ${-svgRect.y}), scale(${z})`)
   v.removeAttribute("style")
 
@@ -654,10 +654,10 @@ function stopEventPropagation(event: Event) {
 </script>
 
 <template>
-  <div ref="container" class="v-network-graph">
+  <div ref="container" class="v-network-graph v-ng-container">
     <svg
       ref="svg"
-      class="v-canvas"
+      class="v-ng-canvas"
       :class="{ show, dragging, touches, 'box-selection-mode': isBoxSelectionMode }"
       width="100%"
       height="100%"
@@ -683,14 +683,14 @@ function stopEventPropagation(event: Event) {
       <!-- background-viewport:
            area outside the scope of SVG text retrieval but targeted by pan/zoom. -->
       <v-background-viewport v-if="isShowBackgroundViewport">
-        <g v-for="layerName in layerDefs['background']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['background']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
 
         <!-- grid -->
         <v-background-grid v-if="isShowGrid" />
 
-        <g v-for="layerName in layerDefs['grid']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['grid']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
       </v-background-viewport>
@@ -698,16 +698,16 @@ function stopEventPropagation(event: Event) {
       <!-- viewport: pan/zoom target and within the range of SVG text retrieval. -->
       <g
         ref="viewport"
-        class="v-viewport"
-        :class="{ 'v-transition': transitionOption.enabled }"
+        class="v-ng-viewport"
+        :class="{ 'v-ng-transition': transitionOption.enabled }"
         :style="transitionStyles"
       >
-        <g v-for="layerName in layerDefs['base']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['base']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
 
         <!-- edges -->
-        <g class="v-layer-edges">
+        <g class="v-ng-layer-edges">
           <v-edge-backgrounds />
           <v-edge-groups :hasEdgeOverlaySlot="hasEdgeOverlaySlot">
             <template #default="slotProps">
@@ -716,7 +716,7 @@ function stopEventPropagation(event: Event) {
           </v-edge-groups>
         </g>
 
-        <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
 
@@ -734,7 +734,7 @@ function stopEventPropagation(event: Event) {
         </v-edge-labels>
 
         <!-- node selections (focus ring) -->
-        <g v-if="visibleNodeFocusRing" class="v-layer-nodes-selections">
+        <g v-if="visibleNodeFocusRing" class="v-ng-layer-nodes-selections">
           <v-node-focus-ring
             v-for="nodeId in currentSelectedNodes"
             :id="nodeId"
@@ -744,7 +744,7 @@ function stopEventPropagation(event: Event) {
           />
         </g>
 
-        <g v-for="layerName in layerDefs['focusring']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['focusring']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
 
@@ -754,7 +754,7 @@ function stopEventPropagation(event: Event) {
             :name="configs.node.transition"
             :css="!!configs.node.transition"
             tag="g"
-            class="v-layer-nodes"
+            class="v-ng-layer-nodes"
           >
             <v-node
               v-for="state in nodeZOrderedList"
@@ -777,14 +777,14 @@ function stopEventPropagation(event: Event) {
         <template v-else>
           <!--
             If a `v-node` contains a slot and no external slot is specified,
-            `v-layer-nodes` element will be needlessly redrawn and all `v-node`
-            components get update notifications. Therefore, if there is no
-            external slot, do not specify a slot in the `v-node` component. -->
+            `v-ng-layer-nodes` element will be needlessly redrawn and all
+            `v-node` components get update notifications. Therefore, if there is
+            no external slot, do not specify a slot in the `v-node` component. -->
           <transition-group
             :name="configs.node.transition"
             :css="!!configs.node.transition"
             tag="g"
-            class="v-layer-nodes"
+            class="v-ng-layer-nodes"
           >
             <v-node
               v-for="state in nodeZOrderedList"
@@ -796,13 +796,13 @@ function stopEventPropagation(event: Event) {
           </transition-group>
         </template>
 
-        <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
 
         <v-paths v-if="visiblePaths" />
 
-        <g v-for="layerName in layerDefs['paths']" :key="layerName" class="v-layer">
+        <g v-for="layerName in layerDefs['paths']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
         </g>
       </g>
@@ -818,19 +818,18 @@ function stopEventPropagation(event: Event) {
 </template>
 
 <style lang="scss">
-:where(.v-network-graph) {
+:where(.v-ng-container) {
   width: 100%;
   height: 100%;
 }
-</style>
 
-<style lang="scss" scoped>
-.v-network-graph {
+.v-ng-container {
   padding: 0;
   position: relative;
   user-select: none;
 }
-.v-canvas {
+
+.v-ng-canvas {
   -webkit-tap-highlight-color: transparent;
   width: 100%;
   height: 100%;
@@ -842,41 +841,53 @@ function stopEventPropagation(event: Event) {
   }
 }
 
-.v-canvas.dragging {
-  :deep(*) {
+.v-ng-canvas.dragging {
+  * {
     cursor: grabbing !important;
   }
-  :deep(.v-line) {
+  .v-ng-line {
     transition: d 0s;
   }
 }
 
-.v-canvas.touches {
+.v-ng-canvas.touches {
   // prevent to perform browser's default action
   touch-action: none;
 }
 
-.v-canvas.box-selection-mode {
+.v-ng-canvas.box-selection-mode {
   cursor: crosshair !important;
-  :deep(*) {
+  * {
     cursor: crosshair !important;
   }
 }
 
 // transition options for #transitionWhile()
-.v-canvas {
+.v-ng-canvas {
   --transition-duration: 300ms;
   --transition-function: linear;
-  .v-viewport.v-transition {
-    ::v-deep(.v-node) {
+  .v-ng-viewport.v-ng-transition {
+    ::v-deep(.v-ng-node) {
       transition: transform var(--transition-duration) var(--transition-function);
     }
-    ::v-deep(.v-layer-edges) path {
+    ::v-deep(.v-ng-layer-edges) path {
       transition: d var(--transition-duration) var(--transition-function);
     }
-    ::v-deep(.v-path-line) {
+    ::v-deep(.v-ng-path-line) {
       transition: d var(--transition-duration) var(--transition-function);
     }
+  }
+}
+
+.v-ng-line.animate,
+.v-ng-path-line.animate {
+  --animation-speed: 100;
+  animation: v-ng-dash 10s linear infinite;
+  stroke-dashoffset: var(--animation-speed);
+}
+@keyframes v-ng-dash {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 </style>

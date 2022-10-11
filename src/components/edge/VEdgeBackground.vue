@@ -56,7 +56,7 @@ const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.
 
 <template>
   <path
-    :class="{ 'v-line-background': true, selectable: state.selectable }"
+    :class="{ 'v-ng-line-background': true, selectable: state.selectable }"
     :d="pathD"
     stroke="transparent"
     :stroke-width="strokeWidth"
@@ -70,8 +70,8 @@ const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.
   />
 </template>
 
-<style lang="scss" scoped>
-.v-line-background {
+<style lang="scss">
+.v-ng-line-background {
   &.selectable {
     cursor: pointer;
   }

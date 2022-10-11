@@ -131,7 +131,7 @@ const updatedConfig = computed(() => {
 
 <template>
   <v-text
-    class="v-edge-label"
+    class="v-ng-edge-label"
     :text="text"
     :x="x"
     :y="y"

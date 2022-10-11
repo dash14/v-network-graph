@@ -38,7 +38,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <g ref="background" class="v-background-viewport">
+  <g ref="background" class="v-ng-background-viewport">
     <slot />
   </g>
 </template>

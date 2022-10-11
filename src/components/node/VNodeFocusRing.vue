@@ -66,28 +66,28 @@ watchEffect(() => {
 
 <template>
   <v-shape
-    class="v-node-focus-ring"
+    class="v-ng-node-focus-ring"
     :base-x="x"
     :base-y="y"
     :config="shapeConfig"
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
-.v-node-focus-ring {
+.v-ng-node-focus-ring {
   pointer-events: none;
 }
 
-:where(.v-shape-circle) {
+:where(.v-ng-shape-circle) {
   transition: r $transition;
 }
-:where(.v-shape-rect) {
+:where(.v-ng-shape-rect) {
   transition: x $transition, y $transition, width $transition, height $transition;
 }
-:where(.dragging .v-shape-circleg),
-:where(.dragging .v-shape-rect) {
+:where(.dragging .v-ng-shape-circle),
+:where(.dragging .v-ng-shape-rect) {
   transition: none;
 }
 </style>

@@ -242,7 +242,7 @@ export function makeBoxSelectionMethods(
   // ------------------------------------------------------------------
 
   onMounted(() => {
-    viewport.value = container.value?.querySelector(".v-viewport") as SVGGElement
+    viewport.value = container.value?.querySelector(".v-ng-viewport") as SVGGElement
     if (isBoxSelectionEnabled.value) {
       keyEventRegistrar.register()
     }

@@ -155,7 +155,7 @@ const labelY = computed(() => {
 
 <template>
   <g
-    :class="{ 'v-node': true, hover: state.hovered, selected: state.selected }"
+    :class="{ 'v-ng-node': true, hover: state.hovered, selected: state.selected }"
     :transform="`translate(${x} ${y})`"
     @pointerdown.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
@@ -201,32 +201,33 @@ const labelY = computed(() => {
   </g>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
-:where(.v-shape-circle) {
-  pointer-events: none;
-  transition: fill $transition, stroke $transition, stroke-width $transition,
-  r $transition;
-}
-:where(.v-shape-rect) {
-  pointer-events: none;
-  transition: fill $transition, stroke $transition, stroke-width $transition,
-    x $transition, y $transition, width $transition, height $transition;
-}
-.v-node {
-  :deep(.draggable),
-  :deep(.selectable) {
+.v-ng-node {
+  :where(.v-ng-shape-circle) {
+    pointer-events: none;
+    transition: fill $transition, stroke $transition, stroke-width $transition,
+    r $transition;
+  }
+  :where(.v-ng-shape-rect) {
+    pointer-events: none;
+    transition: fill $transition, stroke $transition, stroke-width $transition,
+      x $transition, y $transition, width $transition, height $transition;
+  }
+  :where(.v-ng-text) {
+    transition: x $transition, y $transition;
+  }
+
+  .draggable,
+  .selectable {
     pointer-events: all;
     cursor: pointer;
   }
-  :deep(.v-text) {
+  .v-ng-text {
     pointer-events: none;
     user-select: none;
     cursor: default;
-  }
-  :where(.v-text) {
-    transition: x $transition, y $transition;
   }
 }
 

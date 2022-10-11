@@ -55,7 +55,7 @@ const selected = computed(() => edgeIds.value.some(edge => edgeStates[edge].sele
 
 <template>
   <g
-    :class="{ 'v-line-summarized': true, hovered, selectable, selected }"
+    :class="{ 'v-ng-line-summarized': true, hovered, selectable, selected }"
     @pointerdown.stop="handleEdgesPointerDownEvent(edgeIds, $event)"
     @pointerenter.passive="handleEdgesPointerOverEvent(edgeIds, $event)"
     @pointerleave.passive="handleEdgesPointerOutEvent(edgeIds, $event)"
@@ -76,8 +76,8 @@ const selected = computed(() => edgeIds.value.some(edge => edgeStates[edge].sele
   </g>
 </template>
 
-<style lang="scss" scoped>
-.v-line-summarized {
+<style lang="scss">
+.v-ng-line-summarized {
   &.selectable {
     cursor: pointer;
   }

@@ -33,6 +33,7 @@ const config = useEdgeConfig()
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+    class="v-ng-edge"
   />
   <v-line
     v-else-if="config.type == 'straight' || !state.curve"
@@ -42,6 +43,7 @@ const config = useEdgeConfig()
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+    class="v-ng-edge"
   />
   <v-edge-curved
     v-else
@@ -51,13 +53,14 @@ const config = useEdgeConfig()
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+    class="v-ng-edge"
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
-:where(.v-line) {
+.v-ng-edge {
   transition: stroke $transition, stroke-width $transition;
   pointer-events: none;
 }
