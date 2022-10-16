@@ -1,3 +1,5 @@
+const path = require("path");
+
 module.exports = {
   "stories": [
     "../src/**/*.stories.mdx",
@@ -14,5 +16,16 @@ module.exports = {
   },
   "features": {
     "storyStoreV7": true
-  }
+  },
+  async viteFinal(config) {
+    return {
+      ...config,
+      resolve: {
+        alias: [
+          { find: "vue", replacement: "vue/dist/vue.esm-bundler.js" },
+          { find: "@/", replacement: path.join(__dirname, "../src/")}
+        ],
+      },
+    };
+  },
 }
