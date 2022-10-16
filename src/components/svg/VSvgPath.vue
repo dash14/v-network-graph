@@ -17,7 +17,7 @@ withDefaults(defineProps<Props>(), {
 <template>
   <path
     :d="d"
-    class="v-ng-path"
+    class="v-ng-svg-path"
     :class="{ animate: config.animate }"
     :stroke="config.color"
     :stroke-width="config.width * scale"
@@ -29,12 +29,12 @@ withDefaults(defineProps<Props>(), {
 </template>
 
 <style lang="scss">
-.v-ng-path.animate {
+.v-ng-svg-path.animate {
   --animation-speed: 100;
-  animation: v-ng-path-dash 10s linear infinite;
+  animation: v-ng-svg-path-dash 10s linear infinite;
   stroke-dashoffset: var(--animation-speed);
 }
-@keyframes v-ng-path-dash {
+@keyframes v-ng-svg-path-dash {
   to {
     stroke-dashoffset: 0;
   }
