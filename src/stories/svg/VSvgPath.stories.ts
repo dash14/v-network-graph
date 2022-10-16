@@ -1,3 +1,4 @@
+import { Meta, Story } from "@storybook/vue3"
 import VSvgPath from "@/components/svg/VSvgPath.vue"
 
 // More on default export: https://storybook.js.org/docs/vue/writing-stories/introduction#default-export
@@ -5,14 +6,14 @@ export default {
   title: "SVG/VSvgPath",
   component: VSvgPath,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
   argTypes: {
     d: {
       control: { type: "select" },
       options: [
         "M 10 10 L 80 80", // line
-        "M 50 20 A 24 24 0 1 0 50 40" // arc
+        "M 50 20 A 24 24 0 1 0 50 40", // arc
       ],
     },
     width: {
@@ -41,10 +42,10 @@ export default {
       control: { type: "range", min: 1, max: 10, step: 1 },
     },
   },
-}
+} as Meta
 
 // More on component templates: https://storybook.js.org/docs/vue/writing-stories/introduction#using-args
-const Template = args => ({
+const Template: Story = args => ({
   // Components used in your story `template` are defined in the `components` object
   components: { VSvgPath },
   // The story's `args` need to be mapped into the template through the `setup()` method
@@ -64,8 +65,10 @@ const Template = args => ({
       },
     }
   },
-  template:
-    '<svg class="story-short"><v-svg-path v-bind="args" /></svg>',
+  template: `
+    <svg class="story-short"  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <v-svg-path v-bind="args" />
+    </svg>`,
 })
 
 export const Path = Template.bind({})
