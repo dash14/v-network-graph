@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { StrokeStyle } from "@/common/configs"
-import { useStrokeAttributes } from "@/composables/svg"
+import { applyScaleToDasharray, getAnimationSpeed } from "@/utils/visual"
 
 interface Props {
   d: string
@@ -8,15 +8,24 @@ interface Props {
   scale?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   scale: 1.0
 })
 
-const attrs = useStrokeAttributes(props)
 </script>
 
 <template>
-  <path class="v-ng-path" :d="d" v-bind="attrs" />
+  <path
+    :d="d"
+    class="v-ng-path"
+    :class="{ animate: config.animate }"
+    :stroke="config.color"
+    :stroke-width="config.width * scale"
+    :stroke-dasharray="applyScaleToDasharray(config.dasharray, scale)"
+    :stroke-linecap="config.linecap"
+    :style="getAnimationSpeed('--animation-speed', config, scale)"
+    fill="none"
+  />
 </template>
 
 <style lang="scss">
