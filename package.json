@@ -20,7 +20,9 @@
     "build:lib:main": "vite build",
     "build:lib:force": "vite --config vite-lib-force.config.ts build",
     "clean": "rimraf lib",
-    "test": "vitest"
+    "test": "vitest",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "dependencies": {
     "@dash14/svg-pan-zoom": "^3.6.9",
@@ -28,6 +30,13 @@
   },
   "devDependencies": {
     "@babel/types": "^7.19.0",
+    "@storybook/addon-actions": "^6.5.12",
+    "@storybook/addon-essentials": "^6.5.12",
+    "@storybook/addon-interactions": "^6.5.12",
+    "@storybook/addon-links": "^6.5.12",
+    "@storybook/builder-vite": "^0.2.4",
+    "@storybook/testing-library": "^0.0.13",
+    "@storybook/vue3": "^6.5.12",
     "@types/d3-force": "^3.0.3",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.7.21",
