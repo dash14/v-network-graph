@@ -192,7 +192,11 @@ See [LICENSE](https://github.com/dash14/v-network-graph/blob/main/LICENSE) file 
 I love to hear from people using it, giving me the motivation to keep working on this project.  
 If you find this library helpful, please consider giving it a star ⭐ on GitHub!
 
-You may [buy me a coffee](https://www.buymeacoffee.com/dash14.ack) if you would
-like to show some support for this open-source project.
-It will be greatly appreciated!  
+You may [GitHub Sponsors](https://github.com/sponsors/dash14) or
+[Buy Me a Coffee](https://www.buymeacoffee.com/dash14.ack) if you would like to show
+some support for this open-source project.
+It will be greatly appreciated!
+
+[!["Github Sponsors"](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/dash14)
+
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/dash14.ack)
