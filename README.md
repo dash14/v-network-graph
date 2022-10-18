@@ -178,6 +178,33 @@ With the above, we would like to contribute to helping application
 developers to focus on developing application-specific requirements
 for handling network graphs.
 
+## Roadmap to v1.0 📜
+
+Currently, working on internal refactoring, and implementing the
+following features.
+
+* More flexible edge enhancement and customization
+  * Enables flexible replacement of straight lines, bezier curves,
+    whether animation specifications, etc.
+  * Includes support for self-loop edge
+    (Some features are already available)
+* More flexible label display customization
+  * As the edges extend, the label must also extend more flexibly
+  * Supports display of labels on self-loop edges
+  * Allows changing the z-order between labels and other objects
+* Simpler css class name specification overall
+  * To make it easier to override the design
+* Other minor improvements
+* Enrich related documentation
+
+These are planned to be released in phases, but since this is a
+personal project for dash14 and is ongoing on the side of other
+commercial work, I cannot give a detailed timeline.  
+Your support is especially encouraging!  
+I' d appreciate it if you could support this project with a GitHub
+starring, an issue/PR submission, a code contribution, a message of
+cheer, a sponsorship, or anything else!
+
 ## Contributing
 
 If you find any bugs and/or want to contribute, feel free to submit issues or pull requests.
