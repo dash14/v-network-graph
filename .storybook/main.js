@@ -12,5 +12,16 @@ module.exports = {
   "framework": {
     "name": "@storybook/vue3-vite",
     "options": {}
+  },
+  async viteFinal(config) {
+    return {
+      ...config,
+      resolve: {
+        alias: [
+          { find: "vue", replacement: "vue/dist/vue.esm-bundler.js" },
+          { find: "@/", replacement: path.join(__dirname, "../src/")}
+        ]
+      }
+    }
   }
 }
