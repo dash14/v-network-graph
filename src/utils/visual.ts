@@ -70,9 +70,9 @@ export function getDasharrayUnit(dasharray: number | string | undefined) {
   return result
 }
 
-export function getAnimationSpeed(key: string, config: StrokeStyle, scale: number): Record<string, number|false> {
+export function getAnimationSpeed(key: string, config: StrokeStyle, scale: number): Record<string, number|undefined> {
   const speed = config.animate
     ? getDasharrayUnit(config.dasharray) * config.animationSpeed * scale
-    : false
+    : undefined
   return {[key]: speed}
 }
