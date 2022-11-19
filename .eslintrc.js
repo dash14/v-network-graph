@@ -25,10 +25,8 @@ module.exports = {
     "vue/singleline-html-element-content-newline": 0,
     "vue/multiline-html-element-content-newline": 0,
     "vue/max-attributes-per-line": ["error", {
-      "singleline": {
-        "max": 3,
-        "allowFirstLine": true
-      }
+      "singleline": 3,
+      "multiline": 1
     }],
     // "no-unused-vars": ["warn", { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     "@typescript-eslint/explicit-module-boundary-types": 0,
