@@ -70,7 +70,7 @@ export interface ViewConfig {
 
 /* Shape style */
 
-export interface ShapeStyleBase extends BasicShapeStyle {}
+export type ShapeStyleBase = BasicShapeStyle
 
 export type ShapeType = "circle" | "rect"
 

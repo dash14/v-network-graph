@@ -234,9 +234,11 @@ watch(
     isDoubleClickZoomEnabled(configs.view),
     isMouseWheelZoomEnabled(configs.view),
   ],
-  v => {
+  () => {
+    const svgPanZoomInstance = svgPanZoom.value
+    if (!svgPanZoomInstance) return
     applyZoomEnabled(
-      svgPanZoom.value!,
+      svgPanZoomInstance,
       configs.view.zoomEnabled,
       configs.view.doubleClickZoomEnabled,
       configs.view.mouseWheelZoomEnabled
