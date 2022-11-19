@@ -3,7 +3,7 @@ import { StrokeStyle } from ".."
 export function wrapSvg(element: string, className?: string): string {
   const classAttrs = `class="${className}" `
   return  `
-    <svg ${classAttrs}xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg ${classAttrs}>
       ${element}
     </svg>`
 }
