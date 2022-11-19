@@ -1,7 +1,8 @@
 {
   "eslint.run": "onType",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true,
   },
   "volar.tsPlugin": true,
   "cSpell.words": [
