@@ -28,6 +28,7 @@ module.exports = {
       "singleline": 3,
       "multiline": 1
     }],
+    "vue/attribute-hyphenation": ["never", { "ignore": ["custom-prop"] }],
     // "no-unused-vars": ["warn", { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     "@typescript-eslint/explicit-module-boundary-types": 0,
     "@typescript-eslint/no-explicit-any": 0,
