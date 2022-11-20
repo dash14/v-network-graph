@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue"
+import chunk from "lodash-es/chunk"
 import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
 import { PathState } from "@/models/path"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
-import chunk from "lodash-es/chunk"
 
 const props = defineProps<{
   points: PositionOrCurve[]

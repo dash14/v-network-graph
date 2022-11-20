@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue"
-import { useContainers } from "@/composables/container"
+import { onMounted, onUnmounted, ref } from "vue";
+import { useContainers } from "@/composables/container";
 
 // By detecting and copying changes in the `transform` and `style`
 // attributes reflected by svg-pan-zoom, it follows changes in the

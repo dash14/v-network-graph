@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, Ref, ref, useAttrs, watch } from "vue"
-import { onMounted, onUnmounted } from "vue"
+import { computed, reactive, Ref, ref, useAttrs, watch , onMounted, onUnmounted } from "vue"
 import { LabelStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
 

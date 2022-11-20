@@ -59,8 +59,8 @@ const { edgeStates, edgeZOrderedList, layouts } = useStates()
     </template>
     <template v-else>
       <v-edge
-        :key="entry.key"
         :id="entry.key"
+        :key="entry.key"
         :state="edgeStates[entry.key]"
         :source-pos="layouts.nodes[entry.edge.source]"
         :target-pos="layouts.nodes[entry.edge.target]"

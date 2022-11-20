@@ -3,7 +3,6 @@ import { computed, ref, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { NodeLabelDirection } from "@/common/configs"
 import { NodeState } from "@/models/node"
-import { useNodeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
 import VShape from "@/components/base/VShape.vue"
@@ -22,7 +21,6 @@ const props = withDefaults(defineProps<Props>(), {
 const x = computed(() => props.pos?.x || 0)
 const y = computed(() => props.pos?.y || 0)
 
-const config = useNodeConfig()
 const { scale } = useZoomLevel()
 
 const {

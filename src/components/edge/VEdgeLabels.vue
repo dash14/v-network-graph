@@ -66,7 +66,6 @@ const groupLabelAreaPosition = computed(() => (id: string, group: EdgeGroup) => 
 const representativeEdgeState = computed(() => (group: EdgeGroup) => {
   return edgeStates[Object.keys(group.edges)[0]]
 })
-
 </script>
 
 <template>

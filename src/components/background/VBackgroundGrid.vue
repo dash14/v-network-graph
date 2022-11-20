@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref, watchEffect } from "vue"
 import { Point, Size } from "@/common/types"
-import { useZoomLevel } from "@/composables/zoom"
+import { useViewConfig } from "@/composables/config"
 import { useContainers } from "@/composables/container"
 import { useEventEmitter } from "@/composables/event-emitter"
-import { useViewConfig } from "@/composables/config"
+import { useZoomLevel } from "@/composables/zoom"
 
 // [index, pos, start, end, attrs][]
 type LineDefinitions = [number, number, number, number, Record<string, any>][]

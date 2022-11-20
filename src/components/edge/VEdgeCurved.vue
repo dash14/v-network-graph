@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue"
+import chunk from "lodash-es/chunk"
 import { StrokeStyle } from "@/common/configs"
 import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
-import chunk from "lodash-es/chunk"
 
 interface Props {
   state: EdgeState

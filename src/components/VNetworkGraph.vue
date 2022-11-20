@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { CSSProperties, readonly, ref, toRef, useSlots } from "vue"
-import { computed, nextTick, watch } from "vue"
-import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
-import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
+import { readonly, ref, toRef, useSlots , computed, nextTick, watch, CSSProperties } from "vue"
+import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts , Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig } from "@/common/configs"
 import { provideContainers } from "@/composables/container"
@@ -18,18 +16,16 @@ import { useTranslatePathsToObject } from "@/composables/object"
 import { bindProp, bindPropKeySet } from "@/utils/props"
 import { translateFromSvgToDomCoordinates, translateFromDomToSvgCoordinates } from "@/utils/svg"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
-
-// Sub components
-import VNode from "./node/VNode.vue"
-import VNodeFocusRing from "./node/VNodeFocusRing.vue"
-import VEdgeGroups from "./edge/VEdgeGroups.vue"
-import VEdgeBackgrounds from "./edge/VEdgeBackgrounds.vue"
-import VEdgeLabels from "./edge/VEdgeLabels.vue"
-import VBackgroundViewport from "./background/VBackgroundViewport.vue"
-import VBackgroundGrid from "./background/VBackgroundGrid.vue"
-import VPaths from "./path/VPaths.vue"
-import VMarkerHead from "./marker/VMarkerHead.vue"
 import VSelectionBox from "./base/VSelectionBox.vue"
+import VMarkerHead from "./marker/VMarkerHead.vue"
+import VPaths from "./path/VPaths.vue"
+import VBackgroundGrid from "./background/VBackgroundGrid.vue"
+import VBackgroundViewport from "./background/VBackgroundViewport.vue"
+import VEdgeLabels from "./edge/VEdgeLabels.vue"
+import VEdgeBackgrounds from "./edge/VEdgeBackgrounds.vue"
+import VEdgeGroups from "./edge/VEdgeGroups.vue"
+import VNodeFocusRing from "./node/VNodeFocusRing.vue"
+import VNode from "./node/VNode.vue"
 
 const SYSTEM_SLOTS = [
   "override-node",
@@ -711,7 +707,7 @@ function stopEventPropagation(event: Event) {
         <!-- edges -->
         <g class="v-ng-layer-edges">
           <v-edge-backgrounds />
-          <v-edge-groups :hasEdgeOverlaySlot="hasEdgeOverlaySlot">
+          <v-edge-groups :has-edge-overlay-slot="hasEdgeOverlaySlot">
             <template #default="slotProps">
               <slot name="edge-overlay" v-bind="slotProps" />
             </template>
@@ -759,11 +755,11 @@ function stopEventPropagation(event: Event) {
             class="v-ng-layer-nodes"
           >
             <v-node
-              v-for="state in nodeZOrderedList"
-              :id="state.id"
-              :key="state.id"
-              :state="state"
-              :pos="currentLayouts.nodes[state.id]"
+              v-for="nodeState in nodeZOrderedList"
+              :id="nodeState.id"
+              :key="nodeState.id"
+              :state="nodeState"
+              :pos="currentLayouts.nodes[nodeState.id]"
             >
               <!-- override the node -->
               <template v-if="hasOverrideNodeSlot" #override-node="slotProps">
@@ -789,11 +785,11 @@ function stopEventPropagation(event: Event) {
             class="v-ng-layer-nodes"
           >
             <v-node
-              v-for="state in nodeZOrderedList"
-              :id="state.id"
-              :key="state.id"
-              :state="state"
-              :pos="currentLayouts.nodes[state.id]"
+              v-for="nodeState in nodeZOrderedList"
+              :id="nodeState.id"
+              :key="nodeState.id"
+              :state="nodeState"
+              :pos="currentLayouts.nodes[nodeState.id]"
             />
           </transition-group>
         </template>
