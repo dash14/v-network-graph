@@ -16,6 +16,7 @@ import { useTranslatePathsToObject } from "@/composables/object"
 import { bindProp, bindPropKeySet } from "@/utils/props"
 import * as svgUtils from "@/utils/svg"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
+import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/utils/svg"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 import VPaths from "./path/VPaths.vue"
@@ -563,37 +564,37 @@ function translateFromSvgToDomCoordinates(coordinates: Point): Point {
 /**
  * Get graph as SVG text.
  * @return {string} SVG text
+ * @deprecated
  */
 function getAsSvg(): string {
-  const element = nonNull(svg.value, "svg")
-  const svgViewport = nonNull(viewport.value, "svg viewport")
+  const target = exportSvgElement(
+    nonNull(svg.value, "svg"),
+    nonNull(viewport.value, "viewport"),
+    scale.value
+  )
+  return target.outerHTML
+}
 
-  const target = element.cloneNode(true) as SVGElement
+/**
+ * Export graph as SVG text.
+ * @return {string} SVG text
+ */
+ async function exportAsSvgText(options: Partial<ExportOptions> = {}): Promise<string> {
+  const target = exportAsSvgElement(options)
+  return (await target).outerHTML
+}
 
-  const box = svgViewport.getBBox()
-  const z = 1 / scale.value
-  const svgRect = {
-    x: Math.floor((box.x - 10) * z),
-    y: Math.floor((box.y - 10) * z),
-    width: Math.ceil((box.width + 20) * z),
-    height: Math.ceil((box.height + 20) * z),
-  }
-  target.setAttribute("width", svgRect.width.toString())
-  target.setAttribute("height", svgRect.height.toString())
-
-  const v = target.querySelector(".v-ng-viewport") as SVGGElement
-  v.setAttribute("transform", `translate(${-svgRect.x} ${-svgRect.y}), scale(${z})`)
-  v.removeAttribute("style")
-
-  target.setAttribute("viewBox", `0 0 ${svgRect.width} ${svgRect.height}`)
-  target.removeAttribute("style")
-
-  let data = target.outerHTML
-
-  // cleanup
-  data = data.replaceAll(/ data-v-[0-9a-z]+=""/g, "")
-  data = data.replaceAll(/<!--[\s\S]*?-->/gm, "")
-  return data
+/**
+ * Export graph as SVG element.
+ * @return {SVGElement} SVG element
+ */
+async function exportAsSvgElement(options: Partial<ExportOptions> = {}): Promise<SVGElement> {
+  return exportSvgElementWithOptions(
+    nonNull(svg.value, "svg"),
+    nonNull(viewport.value, "viewport"),
+    scale.value,
+    options
+  )
 }
 
 defineExpose({
@@ -613,7 +614,9 @@ defineExpose({
   getSizes,
   translateFromDomToSvgCoordinates,
   translateFromSvgToDomCoordinates,
-  getAsSvg
+  getAsSvg,
+  exportAsSvgText,
+  exportAsSvgElement
 })
 
 // local functions
