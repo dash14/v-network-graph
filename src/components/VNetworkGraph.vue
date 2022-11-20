@@ -14,7 +14,7 @@ import { provideZoomLevel } from "@/composables/zoom"
 import { useTransitionWhile } from "@/composables/transition"
 import { useTranslatePathsToObject } from "@/composables/object"
 import { bindProp, bindPropKeySet } from "@/utils/props"
-import { translateFromSvgToDomCoordinates, translateFromDomToSvgCoordinates } from "@/utils/svg"
+import * as svgUtils from "@/utils/svg"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
@@ -540,8 +540,8 @@ function getSizes(): Sizes {
  * Translate from DOM to SVG coordinates
  * @return {Point} coordinates in the SVG
  */
-function translateFromDomToSvgCoordinatesWrapper(coordinates: Point): Point {
-  return translateFromDomToSvgCoordinates(
+function translateFromDomToSvgCoordinates(coordinates: Point): Point {
+  return svgUtils.translateFromDomToSvgCoordinates(
     nonNull(svg.value, "svg"),
     nonNull(viewport.value, "viewport"),
     coordinates
@@ -552,8 +552,8 @@ function translateFromDomToSvgCoordinatesWrapper(coordinates: Point): Point {
  * Translate from SVG to DOM coordinates
  * @return {Point} coordinates in the DOM
  */
-function translateFromSvgToDomCoordinatesWrapper(coordinates: Point): Point {
-  return translateFromSvgToDomCoordinates(
+function translateFromSvgToDomCoordinates(coordinates: Point): Point {
+  return svgUtils.translateFromSvgToDomCoordinates(
     nonNull(svg.value, "svg"),
     nonNull(viewport.value, "viewport"),
     coordinates
@@ -611,8 +611,8 @@ defineExpose({
   panBy,
   getPan,
   getSizes,
-  translateFromDomToSvgCoordinates: translateFromDomToSvgCoordinatesWrapper,
-  translateFromSvgToDomCoordinates: translateFromSvgToDomCoordinatesWrapper,
+  translateFromDomToSvgCoordinates,
+  translateFromSvgToDomCoordinates,
   getAsSvg
 })
 
