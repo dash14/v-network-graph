@@ -14,6 +14,7 @@
     "lib"
   ],
   "scripts": {
+    "lint": "eslint -c .eslintrc.js src/**/*.vue src/**/*.ts",
     "build": "run-s clean build:tc build:lib",
     "build:tc": "vue-tsc --noEmit",
     "build:lib": "run-p build:lib:*",
@@ -46,6 +47,8 @@
     "@vue/compiler-sfc": "^3.2.45",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-typescript": "^3.5.2",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.7.0",
     "lodash-es": "^4.17.21",

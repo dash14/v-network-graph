@@ -5,6 +5,7 @@ module.exports = {
   },
   extends: [
     "eslint:recommended",
+    "plugin:import/recommended",
     "plugin:vue/base",
     "plugin:vue/vue3-recommended",
     "plugin:@typescript-eslint/recommended",
@@ -18,10 +19,18 @@ module.exports = {
   plugins: [
     "vue",
     "@typescript-eslint",
+    "import",
     "prettier"
   ],
   rules: {
+    "import/order": [
+      "error",
+      {
+        groups: ["builtin", "external", "internal", "parent", "sibling", "index", "object"],
+      },
+    ],
     "no-console": process.env.NODE_ENV === "production" ? 2 : 0,
+    "import/no-duplicates": 0,
     "vue/singleline-html-element-content-newline": 0,
     "vue/multiline-html-element-content-newline": 0,
     "vue/max-attributes-per-line": ["error", {
@@ -35,6 +44,9 @@ module.exports = {
     "@typescript-eslint/no-empty-function": 0,
     "no-unused-vars": 0,
     "@typescript-eslint/no-unused-vars": ["warn", { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+  },
+  settings: {
+    "import/resolver": { typescript: [] },
   },
   globals: {
     defineProps: "readonly",
