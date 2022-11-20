@@ -25,6 +25,7 @@ export default defineConfig({
       name: "v-network-graph",
       fileName: format => (format == "es" ? "index.mjs" : "index.js"),
     },
+    emptyOutDir: false,
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
