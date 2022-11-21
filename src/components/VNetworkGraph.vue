@@ -864,19 +864,17 @@ function stopEventPropagation(event: Event) {
 }
 
 // transition options for #transitionWhile()
-.v-ng-canvas {
+.v-ng-viewport.v-ng-transition {
   --transition-duration: 300ms;
   --transition-function: linear;
-  .v-ng-viewport.v-ng-transition {
-    ::v-deep(.v-ng-node) {
-      transition: transform var(--transition-duration) var(--transition-function);
-    }
-    ::v-deep(.v-ng-layer-edges) path {
-      transition: d var(--transition-duration) var(--transition-function);
-    }
-    ::v-deep(.v-ng-path-line) {
-      transition: d var(--transition-duration) var(--transition-function);
-    }
+  .v-ng-node {
+    transition: all var(--transition-duration) var(--transition-function);
+  }
+  .v-ng-layer-edges path {
+    transition: all var(--transition-duration) var(--transition-function);
+  }
+  .v-ng-path-line {
+    transition: all var(--transition-duration) var(--transition-function);
   }
 }
 
