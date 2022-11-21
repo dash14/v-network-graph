@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref, watchEffect } from "vue"
 import { Point, Size } from "@/common/types"
-import { useZoomLevel } from "@/composables/zoom"
+import { useViewConfig } from "@/composables/config"
 import { useContainers } from "@/composables/container"
 import { useEventEmitter } from "@/composables/event-emitter"
-import { useViewConfig } from "@/composables/config"
+import { useZoomLevel } from "@/composables/zoom"
 
 // [index, pos, start, end, attrs][]
 type LineDefinitions = [number, number, number, number, Record<string, any>][]
@@ -122,16 +122,10 @@ watchEffect(() => {
   normalVerticals.value = normalV
 })
 
-defineExpose({
-  thickVerticals,
-  thickHorizontals,
-  normalVerticals,
-  normalHorizontals,
-})
 </script>
 
 <template>
-  <g class="v-background-grid" shape-rendering="crispEdges">
+  <g class="v-ng-background-grid" shape-rendering="crispEdges">
     <!-- normal -->
     <path
       v-for="([i, v, x, w, attrs]) in normalHorizontals"
@@ -165,8 +159,8 @@ defineExpose({
   </g>
 </template>
 
-<style>
-.v-background-grid {
+<style lang="scss">
+.v-ng-background-grid {
   pointer-events: none;
 }
 </style>

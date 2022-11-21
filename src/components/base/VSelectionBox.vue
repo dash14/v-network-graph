@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import { PropType } from "vue"
 import { Rectangle } from "@/common/types"
 import { BasicShapeStyle } from "@/common/configs"
 
-defineProps({
-  box: {
-    type: Object as PropType<Rectangle>,
-    required: true
-  },
-  config: {
-    type: Object as PropType<BasicShapeStyle>,
-    required: true
-  }
-})
+defineProps<{
+  box: Rectangle,
+  config: BasicShapeStyle
+}>()
+
 </script>
 
 <template>
   <rect
-    class="selection-box"
+    class="v-ng-selection-box"
     :x="Math.round(box.pos.x)"
     :y="Math.round(box.pos.y)"
     :width="Math.ceil(box.size.width)"
@@ -29,8 +23,8 @@ defineProps({
   />
 </template>
 
-<style scoped>
-.selection-box {
+<style lang="scss">
+.v-ng-selection-box {
   shape-rendering: crispEdges;
 }
 </style>

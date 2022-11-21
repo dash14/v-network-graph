@@ -2,10 +2,10 @@ import { watch, reactive, ref, Ref } from "vue"
 import isEqual from "lodash-es/isEqual"
 import { Reactive } from "../common/common"
 
-export function bindProp<T, K extends string & keyof T>(
+export function bindProp<T extends object, K extends keyof T>(
   props: T,
   name: K,
-  emit: (event: `update:${K}`, ...args: any[]) => void,
+  emit: (event: `update:${K & string}`, ...args: any[]) => void,
   filter?: (arg: T[K]) => T[K]
 ): Ref<T[K]> {
   // Build two-way binding ties.
@@ -20,13 +20,13 @@ export function bindProp<T, K extends string & keyof T>(
         prop.value = filtered
       }
       if (!isEqual(filtered, props[name])) {
-        emit(`update:${name}` as const, filtered)
+        emit(`update:${name as string & K}`, filtered)
       }
     }
     watch(() => filter(prop.value), update)
     watch(() => props[name],v => update(filter(v)))
     if (prop.value !== props[name]) {
-      emit(`update:${name}` as const, prop.value)
+      emit(`update:${name as string & K}`, prop.value)
     }
     return prop
   }
@@ -42,7 +42,7 @@ export function bindProp<T, K extends string & keyof T>(
   )
   watch(prop, v => {
     if (!isEqual(v, props[name])) {
-      emit(`update:${name}` as const, v)
+      emit(`update:${name as string & K}`, v)
     }
   })
   return prop
@@ -52,11 +52,11 @@ type KeysOfType<Obj, Val> = {
   [K in keyof Obj]-?: Obj[K] extends Val ? K : never
 }[keyof Obj]
 
-export function bindPropKeySet<T, K extends string & KeysOfType<T, string[]>>(
+export function bindPropKeySet<T extends object, K extends string & KeysOfType<T, string[]>>(
   props: T,
   name: K,
   sourceObject: Ref<{ [name: string]: any }>,
-  emit: (event: `update:${K}`, ...args: any[]) => void
+  emit: (event: `update:${K & string}`, ...args: any[]) => void
 ): Reactive<Set<string>> {
   // Generate two-way bindings for a given prop.
   // Assumes that the specified prop indicates the key of the object.

@@ -1,62 +1,20 @@
 <script setup lang="ts">
-import { computed, PropType, reactive, Ref, ref, useAttrs, watch } from "vue"
-import { onMounted, onUnmounted } from "vue"
+import { computed, reactive, Ref, ref, useAttrs, watch , onMounted, onUnmounted } from "vue"
 import { LabelStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
 
 type Rect = { x: number; y: number; width: number; height: number }
 
-function updateBackgroundPosition(
-  element: SVGTextElement,
-  pos: Rect,
-  transform: Ref<string | undefined>
-) {
-  const bbox = element.getBBox()
-  pos.x = bbox.x
-  pos.y = bbox.y
-  pos.width = bbox.width
-  pos.height = bbox.height
-  transform.value = element.getAttribute("transform") ?? undefined
+interface Props {
+  text: string
+  x: number
+  y: number
+  dominantBaseline?: string
+  config: LabelStyle
 }
 
-function enableMutationObserver(
-  element: SVGTextElement,
-  pos: Rect,
-  transform: Ref<string | undefined>
-) {
-  const observer = new MutationObserver(() => {
-    updateBackgroundPosition(element, pos, transform)
-  })
-  observer.observe(element, {
-    attributes: true,
-    attributeFilter: ["x", "y", "transform", "font-size"],
-  })
-  updateBackgroundPosition(element, pos, transform)
-  return observer
-}
-
-const props = defineProps({
-  text: {
-    type: String,
-    required: true,
-  },
-  x: {
-    type: Number,
-    required: true,
-  },
-  y: {
-    type: Number,
-    required: true,
-  },
-  dominantBaseline: {
-    type: String,
-    required: false,
-    default: "central"
-  },
-  config: {
-    type: Object as PropType<LabelStyle>,
-    required: true,
-  },
+const props = withDefaults(defineProps<Props>(), {
+  dominantBaseline: "central"
 })
 
 const attrs = useAttrs()
@@ -131,13 +89,41 @@ onUnmounted(() => {
   observer = undefined
 })
 
-defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
+function updateBackgroundPosition(
+  element: SVGTextElement,
+  pos: Rect,
+  transform: Ref<string | undefined>
+) {
+  const bbox = element.getBBox()
+  pos.x = bbox.x
+  pos.y = bbox.y
+  pos.width = bbox.width
+  pos.height = bbox.height
+  transform.value = element.getAttribute("transform") ?? undefined
+}
+
+function enableMutationObserver(
+  element: SVGTextElement,
+  pos: Rect,
+  transform: Ref<string | undefined>
+) {
+  const observer = new MutationObserver(() => {
+    updateBackgroundPosition(element, pos, transform)
+  })
+  observer.observe(element, {
+    attributes: true,
+    attributeFilter: ["x", "y", "transform", "font-size"],
+  })
+  updateBackgroundPosition(element, pos, transform)
+  return observer
+}
+
 </script>
 
 <template>
   <rect
     v-if="config.background && config.background.visible"
-    class="v-text-background"
+    class="v-ng-text-background"
     v-bind="backgroundRectPos"
     :rx="(config.background?.borderRadius ?? 0) * scale"
     :ry="(config.background?.borderRadius ?? 0) * scale"
@@ -146,7 +132,7 @@ defineExpose({ fontSize, element, transform, backgroundRectPos, scale })
   />
   <text
     ref="element"
-    class="v-text"
+    class="v-ng-text"
     v-bind="$attrs"
     :x="x"
     :y="y"

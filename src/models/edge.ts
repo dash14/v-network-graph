@@ -1,9 +1,6 @@
-import { ComputedRef, Ref, UnwrapRef } from "vue"
-import { WatchStopHandle } from "vue"
-import { MarkerStyle } from "@/common/configs"
-import { StrokeStyle } from "@/common/configs"
-import { Edge, Edges } from "@/common/types"
-import { LinePosition, Position } from "@/common/types"
+import { ComputedRef, Ref, UnwrapRef , WatchStopHandle } from "vue"
+import { MarkerStyle , StrokeStyle } from "@/common/configs"
+import { Edge, Edges , LinePosition, Position } from "@/common/types"
 import { Vector2D } from "@/modules/vector2d"
 
 export interface EdgeLayoutPoint {

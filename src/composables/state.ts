@@ -18,11 +18,11 @@ import * as LineUtils from "@/modules/calculation/line"
 import * as PointUtils from "@/modules/calculation/point"
 import * as NodeUtils from "@/modules/node/node"
 import { VectorLine } from "@/modules/calculation/line"
-import { MarkerState, useMarker } from "./marker"
-import { useObjectState } from "./objectState"
 import { Vector2D } from "@/modules/vector2d"
 import * as V2D from "@/modules/vector2d"
 import { Point2D } from "@/modules/vector2d/core"
+import { useObjectState } from "./objectState"
+import { MarkerState, useMarker } from "./marker"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -669,10 +669,10 @@ function calculateArcPositionAndState(
       NodeUtils.getNodeRadius(nodeShape) * s
     )
     if (intersects) {
-      ;[p1, p2] = intersects
+      [p1, p2] = intersects
       let direction = 1
       if (!isClockwise) {
-        ;[p1, p2] = [p2, p1]
+        [p1, p2] = [p2, p1]
         direction = -1
       }
       if (sourceMargin !== 0 || targetMargin !== 0) {

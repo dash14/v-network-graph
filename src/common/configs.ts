@@ -1,7 +1,7 @@
 import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
 import { RecursivePartial } from "./common"
-import { Node, Edge, Edges, Path } from "./types"
+import { Edge, Edges, Node, Path } from "./types"
 
 type CallableValue<V, T> = V | ((target: T) => V)
 
@@ -70,7 +70,7 @@ export interface ViewConfig {
 
 /* Shape style */
 
-export interface ShapeStyleBase extends BasicShapeStyle {}
+export type ShapeStyleBase = BasicShapeStyle
 
 export type ShapeType = "circle" | "rect"
 

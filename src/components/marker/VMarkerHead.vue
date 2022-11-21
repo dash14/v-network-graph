@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue"
+import { computed } from "vue"
 import { EdgeHeadType } from "@/common/configs"
 import { HeadMarker } from "@/composables/marker"
 import VMarkerHeadArrow from "./VMarkerHeadArrow.vue"
@@ -14,20 +14,11 @@ const types: Record<MarkerType, any> = {
   circle: VMarkerHeadCircle
 }
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  marker: {
-    type: Object as PropType<HeadMarker>,
-    required: true,
-  },
-  scale: {
-    type: Number,
-    required: true,
-  },
-})
+const props = defineProps<{
+  id: string
+  marker: HeadMarker
+  scale: number
+}>()
 
 const width = computed(
   () => props.marker.width * (props.marker.units === "strokeWidth" ? 1 : props.scale)
@@ -54,7 +45,7 @@ const refX = computed(() => {
     :refY="height / 2"
     orient="auto"
     :markerUnits="marker.units"
-    class="v-marker"
+    class="v-ng-marker"
   >
     <component
       :is="types[marker.type]"

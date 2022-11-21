@@ -4,14 +4,11 @@ import VEdge from "./VEdge.vue"
 import VEdgeSummarized from "./VEdgeSummarized.vue"
 import VEdgeOverlay from "./VEdgeOverlay.vue"
 
-defineProps({
-  hasEdgeOverlaySlot: {
-    type: Boolean,
-    required: true,
-  },
-})
+defineProps<{
+  hasEdgeOverlaySlot: boolean
+}>()
 
-const { edgeStates, edgeZOrderedList, edgeGroupStates, layouts } = useStates()
+const { edgeStates, edgeZOrderedList, layouts } = useStates()
 
 // type FlattenEdge = {
 //     key: string
@@ -38,8 +35,6 @@ const { edgeStates, edgeZOrderedList, edgeGroupStates, layouts } = useStates()
 //   }
 //   return results
 // })
-
-defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
 </script>
 
 <template>
@@ -64,8 +59,8 @@ defineExpose({ edgeStates, edgeZOrderedList, edgeGroupStates, layouts })
     </template>
     <template v-else>
       <v-edge
-        :key="entry.key"
         :id="entry.key"
+        :key="entry.key"
         :state="edgeStates[entry.key]"
         :source-pos="layouts.nodes[entry.edge.source]"
         :target-pos="layouts.nodes[entry.edge.target]"

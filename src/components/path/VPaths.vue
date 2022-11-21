@@ -38,17 +38,6 @@ const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
   )
 })
 
-defineExpose({
-  pathConfig,
-  pathZOrderedList,
-  calcPathPoints,
-  handlePathPointerDownEvent,
-  handlePathPointerOverEvent,
-  handlePathPointerOutEvent,
-  handlePathClickEvent,
-  handlePathDoubleClickEvent,
-  handlePathContextMenu,
-})
 </script>
 
 <template>
@@ -56,7 +45,7 @@ defineExpose({
     :name="pathConfig.transition"
     :css="!!pathConfig.transition"
     tag="g"
-    class="v-paths"
+    class="v-ng-paths"
   >
     <v-path-line
       v-for="path in pathZOrderedList"
@@ -74,7 +63,7 @@ defineExpose({
   </transition-group>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
 .v-path-line {

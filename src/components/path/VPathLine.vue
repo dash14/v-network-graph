@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue"
+import { computed } from "vue"
+import chunk from "lodash-es/chunk"
 import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
 import { PathState } from "@/models/path"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
-import chunk from "lodash-es/chunk"
 
-const props = defineProps({
-  points: {
-    type: Array as PropType<PositionOrCurve[]>,
-    required: true,
-  },
-  path: {
-    type: Object as PropType<PathState>,
-    required: true,
-  }
-})
+const props = defineProps<{
+  points: PositionOrCurve[]
+  path: PathState
+}>()
 
 const { scale } = useZoomLevel()
 const pathConfig = usePathConfig()
@@ -69,12 +63,11 @@ const animationSpeed = computed(() => {
   return speed ? `--animation-speed:${speed}` : undefined
 })
 
-defineExpose({ d, scale, config, strokeDasharray, animationSpeed })
 </script>
 
 <template>
   <path
-    :class="{ 'v-path-line': true, animate: config.animate }"
+    :class="{ 'v-ng-path-line': true, animate: config.animate }"
     :d="d"
     fill="none"
     :stroke="config.color"
@@ -85,16 +78,3 @@ defineExpose({ d, scale, config, strokeDasharray, animationSpeed })
     :style="animationSpeed"
   />
 </template>
-
-<style scoped>
-.v-path-line.animate {
-  --animation-speed: 100;
-  animation: dash 10s linear infinite;
-  stroke-dashoffset: var(--animation-speed);
-}
-@keyframes dash {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-</style>

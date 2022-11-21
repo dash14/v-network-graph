@@ -1,9 +1,8 @@
 {
   "eslint.run": "onType",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": true,
   },
-  "volar.tsPlugin": true,
   "cSpell.words": [
     "composables",
     "focusring",
@@ -22,6 +21,10 @@
     ".prettierrc",
     ".eslintrc.js"
   ],
+  "[javascript]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[typescript]": {
     "editor.tabSize": 2,
     "editor.defaultFormatter": "esbenp.prettier-vscode"

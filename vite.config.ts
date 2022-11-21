@@ -1,7 +1,7 @@
+import path from "path"
 import { defineConfig } from "vite"
 import vue from "@vitejs/plugin-vue"
 import dts from "vite-plugin-dts"
-import path from "path"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
@@ -25,6 +25,7 @@ export default defineConfig({
       name: "v-network-graph",
       fileName: format => (format == "es" ? "index.mjs" : "index.js"),
     },
+    emptyOutDir: false,
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library

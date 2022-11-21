@@ -1,34 +1,26 @@
 <script setup lang="ts">
-import { computed, PropType, ref, watchEffect } from "vue"
+import { computed, ref, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { NodeLabelDirection } from "@/common/configs"
 import { NodeState } from "@/models/node"
-import { useNodeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
 import VShape from "@/components/base/VShape.vue"
 import VText from "@/components/base/VLabelText.vue"
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<NodeState>,
-    required: true,
-  },
-  pos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: NodeState
+  pos?: Position
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  pos: undefined
 })
 
 const x = computed(() => props.pos?.x || 0)
 const y = computed(() => props.pos?.y || 0)
 
-const config = useNodeConfig()
 const { scale } = useZoomLevel()
 
 const {
@@ -157,28 +149,11 @@ const labelY = computed(() => {
   }
 })
 
-defineExpose({
-  x,
-  y,
-  config,
-  labelVisibility,
-  handleNodePointerDownEvent,
-  handleNodePointerOverEvent,
-  handleNodePointerOutEvent,
-  handleNodeClickEvent,
-  handleNodeDoubleClickEvent,
-  handleNodeContextMenu,
-  textAnchor,
-  dominantBaseline,
-  labelX,
-  labelY,
-  scale,
-})
 </script>
 
 <template>
   <g
-    :class="{ 'v-node': true, hover: state.hovered, selected: state.selected }"
+    :class="{ 'v-ng-node': true, hover: state.hovered, selected: state.selected }"
     :transform="`translate(${x} ${y})`"
     @pointerdown.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
@@ -224,32 +199,33 @@ defineExpose({
   </g>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
-:where(.v-shape-circle) {
-  pointer-events: none;
-  transition: fill $transition, stroke $transition, stroke-width $transition,
-  r $transition;
-}
-:where(.v-shape-rect) {
-  pointer-events: none;
-  transition: fill $transition, stroke $transition, stroke-width $transition,
-    x $transition, y $transition, width $transition, height $transition;
-}
-.v-node {
-  :deep(.draggable),
-  :deep(.selectable) {
+.v-ng-node {
+  :where(.v-ng-shape-circle) {
+    pointer-events: none;
+    transition: fill $transition, stroke $transition, stroke-width $transition,
+    r $transition;
+  }
+  :where(.v-ng-shape-rect) {
+    pointer-events: none;
+    transition: fill $transition, stroke $transition, stroke-width $transition,
+      x $transition, y $transition, width $transition, height $transition;
+  }
+  :where(.v-ng-text) {
+    transition: x $transition, y $transition;
+  }
+
+  .draggable,
+  .selectable {
     pointer-events: all;
     cursor: pointer;
   }
-  :deep(.v-text) {
+  .v-ng-text {
     pointer-events: none;
     user-select: none;
     cursor: default;
-  }
-  :where(.v-text) {
-    transition: x $transition, y $transition;
   }
 }
 

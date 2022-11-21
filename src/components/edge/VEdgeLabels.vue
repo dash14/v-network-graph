@@ -66,22 +66,10 @@ const groupLabelAreaPosition = computed(() => (id: string, group: EdgeGroup) => 
 const representativeEdgeState = computed(() => (group: EdgeGroup) => {
   return edgeStates[Object.keys(group.edges)[0]]
 })
-
-defineExpose({
-  individualEdgeGroups,
-  edgeGroups,
-  nodeShape,
-  labelAreaPosition,
-  groupLabelAreaPosition,
-  representativeEdgeState,
-  edgeStates,
-  edgeConfig,
-  scale,
-})
 </script>
 
 <template>
-  <g class="v-edge-labels">
+  <g class="v-ng-edge-labels">
     <template v-for="(group, id) in edgeGroups.individual" :key="id">
       <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
         <slot
@@ -112,10 +100,10 @@ defineExpose({
   </g>
 </template>
 
-<style lang="scss" scoped>
-.v-edge-labels {
-  :deep(.v-text),
-  :deep(.v-text-background) {
+<style lang="scss">
+.v-ng-edge-labels {
+  .v-ng-text,
+  .v-ng-text-background {
     pointer-events: none;
   }
 }

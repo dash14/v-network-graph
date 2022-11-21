@@ -1,5 +1,5 @@
 import { Node, Position, Size } from "@/common/types"
-import { Config, NodeConfig } from "@/common/configs"
+import { Config, NodeConfig, StrokeStyle } from "@/common/configs"
 
 export function getNodeSize(node: Node, style: NodeConfig, scale: number): Size {
   const shape = Config.values(style.normal, node)
@@ -68,4 +68,11 @@ export function getDasharrayUnit(dasharray: number | string | undefined) {
     result = dasharray * 2 // 2 <- border and space
   }
   return result
+}
+
+export function getAnimationSpeed(key: string, config: StrokeStyle, scale: number): Record<string, number|undefined> {
+  const speed = config.animate
+    ? getDasharrayUnit(config.dasharray) * config.animationSpeed * scale
+    : undefined
+  return {[key]: speed}
 }

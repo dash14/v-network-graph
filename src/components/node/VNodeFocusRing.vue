@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { computed, PropType, reactive, watchEffect } from "vue"
+import { computed, reactive, watchEffect } from "vue"
 import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/configs"
 import { NodeState } from "@/models/node"
 import { useNodeConfig } from "@/composables/config"
 import VShape from "@/components/base/VShape.vue"
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<NodeState>,
-    required: true,
-  },
-  pos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: NodeState
+  pos: Position
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  pos: undefined,
 })
 
 const x = computed(() => props.pos?.x || 0)
@@ -68,33 +62,32 @@ watchEffect(() => {
   }
 })
 
-defineExpose({ x, y, shapeConfig })
 </script>
 
 <template>
   <v-shape
-    class="v-node-focus-ring"
+    class="v-ng-node-focus-ring"
     :base-x="x"
     :base-y="y"
     :config="shapeConfig"
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
-.v-node-focus-ring {
+.v-ng-node-focus-ring {
   pointer-events: none;
 }
 
-:where(.v-shape-circle) {
+:where(.v-ng-shape-circle) {
   transition: r $transition;
 }
-:where(.v-shape-rect) {
+:where(.v-ng-shape-rect) {
   transition: x $transition, y $transition, width $transition, height $transition;
 }
-:where(.dragging .v-shape-circleg),
-:where(.dragging .v-shape-rect) {
+:where(.dragging .v-ng-shape-circle),
+:where(.dragging .v-ng-shape-rect) {
   transition: none;
 }
 </style>

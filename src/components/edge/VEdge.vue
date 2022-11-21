@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PropType } from "vue"
 import { Position } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useEdgeConfig } from "@/composables/config"
@@ -7,30 +6,20 @@ import VLine from "@/components/base/VLine.vue"
 import VArc from "@/components/base/VArc.vue"
 import VEdgeCurved from "./VEdgeCurved.vue"
 
-defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<EdgeState>,
-    required: true,
-  },
-  sourcePos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
-  targetPos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: EdgeState
+  sourcePos?: Position
+  targetPos?: Position
+}
+
+withDefaults(defineProps<Props>(), {
+  sourcePos: undefined,
+  targetPos: undefined,
 })
 
 const config = useEdgeConfig()
 
-defineExpose({ config })
 </script>
 
 <template>
@@ -44,6 +33,7 @@ defineExpose({ config })
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+    class="v-ng-edge"
   />
   <v-line
     v-else-if="config.type == 'straight' || !state.curve"
@@ -53,6 +43,7 @@ defineExpose({ config })
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+    class="v-ng-edge"
   />
   <v-edge-curved
     v-else
@@ -62,13 +53,14 @@ defineExpose({ config })
     :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
+    class="v-ng-edge"
   />
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 $transition: 0.1s linear;
 
-:where(.v-line) {
+.v-ng-edge {
   transition: stroke $transition, stroke-width $transition;
   pointer-events: none;
 }

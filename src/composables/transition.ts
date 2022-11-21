@@ -9,7 +9,7 @@ interface TransitionParameters {
   timingFunction: TimingFunction
 }
 
-type Function = () => void | Promise<void>
+type CallbackFunction = () => void | Promise<void>
 
 function isPromise(obj: any): boolean {
   return obj instanceof Promise || (obj && typeof obj.then === "function")
@@ -24,8 +24,8 @@ export function useTransitionWhile() {
   })
 
   function transitionWhile(
-    func: Function,
-    duration: number = 300,
+    func: CallbackFunction,
+    duration = 300,
     timingFunction: TimingFunction = "linear"
   ) {
     if (timerId) {

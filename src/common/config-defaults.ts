@@ -1,8 +1,8 @@
-import { reactive } from "vue"
-import { NodeLabelDirection, Configs, withSelf, Config, UserConfigs } from "./configs"
-import { Node, Edge, Path, Edges } from "./types"
-import { SimpleLayout } from "../layouts/simple"
 import merge from "lodash-es/merge"
+import { reactive } from "vue"
+import { SimpleLayout } from "../layouts/simple"
+import { Config, Configs, NodeLabelDirection, UserConfigs, withSelf } from "./configs"
+import { Edge, Edges, Node, Path } from "./types"
 
 /**
  * Get all default configs.
@@ -47,9 +47,9 @@ export function getConfigDefaults(): Configs {
         },
         detector: (event: KeyboardEvent) => {
           const detect = /Mac OS/.test(navigator.userAgent) ? event.metaKey : event.ctrlKey
-          return (event.type === "keydown") ? detect : !detect
-        }
-      }
+          return event.type === "keydown" ? detect : !detect
+        },
+      },
     },
     node: withSelf(self => ({
       normal: {
@@ -109,9 +109,9 @@ export function getConfigDefaults(): Configs {
         enabled: false,
         zIndex: 0,
         bringToFrontOnHover: true,
-        bringToFrontOnSelected: true
+        bringToFrontOnSelected: true,
       },
-      transition: undefined
+      transition: undefined,
     })),
     edge: withSelf(self => ({
       normal: {
@@ -151,7 +151,7 @@ export function getConfigDefaults(): Configs {
           height: 5,
           margin: -1,
           units: "strokeWidth",
-          color: null
+          color: null,
         },
         target: {
           type: "none",
@@ -159,7 +159,7 @@ export function getConfigDefaults(): Configs {
           height: 5,
           margin: -1,
           units: "strokeWidth",
-          color: null
+          color: null,
         },
       },
       margin: null,
@@ -217,14 +217,14 @@ export function getConfigDefaults(): Configs {
         //   borderRadius: 2
         // },
         margin: 4,
-        padding: 4
+        padding: 4,
       },
       zOrder: {
         enabled: false,
         zIndex: 0,
         bringToFrontOnHover: true,
-        bringToFrontOnSelected: true
-      }
+        bringToFrontOnSelected: true,
+      },
     })),
     path: withSelf(self => ({
       visible: false,
@@ -303,14 +303,16 @@ export function getConfigDefaults(): Configs {
         enabled: false,
         zIndex: 0,
         bringToFrontOnHover: true,
-        bringToFrontOnSelected: true
+        bringToFrontOnSelected: true,
       },
-      transition: undefined
+      transition: undefined,
     })),
   }
 }
 
-export function getFullConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(config?: UserConfigs<N, E, P>): Configs {
+export function getFullConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(
+  config?: UserConfigs<N, E, P>
+): Configs {
   const configs = getConfigDefaults()
   if (config) {
     merge(configs, config)

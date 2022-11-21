@@ -1,31 +1,22 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue"
+import { computed } from "vue"
+import chunk from "lodash-es/chunk"
 import { Position } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useEdgeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
-import chunk from "lodash-es/chunk"
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: Object as PropType<EdgeState>,
-    required: true,
-  },
-  sourcePos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
-  targetPos: {
-    type: Object as PropType<Position>,
-    required: false,
-    default: undefined,
-  },
+interface Props {
+  id: string
+  state: EdgeState
+  sourcePos?: Position
+  targetPos?: Position
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  sourcePos: undefined,
+  targetPos: undefined,
 })
 
 const { scale } = useZoomLevel()
@@ -61,20 +52,11 @@ const pathD = computed(() => {
 
 const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.value)
 
-defineExpose({
-  config,
-  handleEdgePointerDownEvent,
-  handleEdgePointerOverEvent,
-  handleEdgePointerOutEvent,
-  handleEdgeClickEvent,
-  handleEdgeDoubleClickEvent,
-  handleEdgeContextMenu,
-})
 </script>
 
 <template>
   <path
-    :class="{ 'v-line-background': true, selectable: state.selectable }"
+    :class="{ 'v-ng-line-background': true, selectable: state.selectable }"
     :d="pathD"
     stroke="transparent"
     :stroke-width="strokeWidth"
@@ -88,8 +70,8 @@ defineExpose({
   />
 </template>
 
-<style lang="scss" scoped>
-.v-line-background {
+<style lang="scss">
+.v-ng-line-background {
   &.selectable {
     cursor: pointer;
   }
