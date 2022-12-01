@@ -4,8 +4,8 @@ import { computed, ComputedRef, reactive, ref, Ref, toRef, unref } from "vue"
 import { watch, watchEffect } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
-import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig, SelfLoopEdgeStyle } from "@/common/configs"
-import { StrokeStyle, ShapeStyle } from "@/common/configs"
+import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
+import { StrokeStyle, ShapeStyle, SelfLoopEdgeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { LinePosition, Position } from "@/common/types"
 import { useId } from "@/composables/id"
@@ -21,6 +21,7 @@ import { VectorLine } from "@/modules/calculation/line"
 import { Vector2D } from "@/modules/vector2d"
 import * as V2D from "@/modules/vector2d"
 import { Point2D } from "@/modules/vector2d/core"
+import { updateObjectDiff } from "@/utils/object"
 import { useObjectState } from "./objectState"
 import { MarkerState, useMarker } from "./marker"
 
@@ -100,6 +101,22 @@ export function provideStates(
   // States for nodes
   // -----------------------------------------------------------------------
 
+  // { nodeId: { edgeId: opposingNodeId } }
+  const opposingNodes = Reactive<Record<string, Record<string, string>>>({})
+  watchEffect(() => {
+    const _nodes = Object.fromEntries(
+      Object.keys(nodes.objects.value).map(k => [k, {} as Record<string, string>])
+    )
+    Object.entries(edges.objects.value).forEach(([id, e]) => {
+      if (e.source === e.target) return
+      if (!_nodes?.[e.source]) _nodes[e.source] = {}
+      if (!_nodes?.[e.target]) _nodes[e.target] = {}
+      _nodes[e.source][id] = e.target
+      _nodes[e.target][id] = e.source
+    })
+    updateObjectDiff(opposingNodes, _nodes)
+  })
+
   const {
     states: nodeStates,
     zOrderedList: nodeZOrderedList, //
@@ -109,7 +126,14 @@ export function provideStates(
     nodes.selected,
     nodes.hovered,
     (nodes, id, newState) => {
-      createNewNodeState(nodes, id, newState as NodeModel.NodeStateDatum, configs.node)
+      createNewNodeState(
+        nodes,
+        id,
+        newState as NodeModel.NodeStateDatum,
+        configs.node,
+        opposingNodes,
+        layouts
+      )
     },
     (nodeId, _state) => {
       const positions = layouts.nodes
@@ -254,7 +278,9 @@ function createNewNodeState(
   nodes: Ref<Nodes>,
   id: string,
   state: NodeModel.NodeStateDatum,
-  config: NodeConfig
+  config: NodeConfig,
+  opposingNodes: Reactive<Record<string, Record<string, string>>>,
+  layouts: Reactive<Layouts>
 ) {
   state.shape = computed(() => {
     if (!nodes.value[id]) return unref(state.shape) // Return the previous value
@@ -283,6 +309,16 @@ function createNewNodeState(
   state.draggable = computed(() => {
     if (!nodes.value[id]) return unref(state.draggable) // Return the previous value
     return Config.value(config.draggable, nodes.value[id])
+  })
+
+  state.opposingNodes = toRef(opposingNodes, id)
+
+  state.opposingLayouts = computed<Record<string, Position>>(() => {
+    return Object.values(state.opposingNodes).reduce((nodes, nodeId) => {
+      const pos = layouts.nodes[nodeId]
+      if (pos) nodes[nodeId] = { x: pos.x, y: pos.y }
+      return nodes
+    }, {} as Record<string, Position>)
   })
 }
 
