@@ -98,6 +98,7 @@ export function getConfigDefaults(): Configs {
         margin: 4,
         direction: NodeLabelDirection.SOUTH,
         text: "name",
+        handleNodeEvents: true,
       },
       focusring: {
         visible: true,

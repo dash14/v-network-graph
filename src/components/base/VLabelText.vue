@@ -7,13 +7,15 @@ type Rect = { x: number; y: number; width: number; height: number }
 
 interface Props {
   text: string
-  x: number
-  y: number
+  x?: number
+  y?: number
   dominantBaseline?: string
   config: LabelStyle
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  x: 0,
+  y: 0,
   dominantBaseline: "central"
 })
 

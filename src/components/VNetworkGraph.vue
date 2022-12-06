@@ -27,6 +27,7 @@ import VEdgeBackgrounds from "./edge/VEdgeBackgrounds.vue"
 import VEdgeGroups from "./edge/VEdgeGroups.vue"
 import VNodeFocusRing from "./node/VNodeFocusRing.vue"
 import VNode from "./node/VNode.vue"
+import VNodeLabel from "./node/VNodeLabel.vue"
 
 const SYSTEM_SLOTS = [
   "override-node",
@@ -750,7 +751,7 @@ function stopEventPropagation(event: Event) {
         </g>
 
         <!-- nodes -->
-        <template v-if="hasOverrideNodeSlot || hasOverrideNodeLabelSlot">
+        <template v-if="hasOverrideNodeSlot">
           <transition-group
             :name="configs.node.transition"
             :css="!!configs.node.transition"
@@ -768,10 +769,6 @@ function stopEventPropagation(event: Event) {
               <template v-if="hasOverrideNodeSlot" #override-node="slotProps">
                 <slot name="override-node" v-bind="slotProps" />
               </template>
-              <!-- override the node label -->
-              <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
-                <slot name="override-node-label" v-bind="slotProps" />
-              </template>
             </v-node>
           </transition-group>
         </template>
@@ -788,6 +785,45 @@ function stopEventPropagation(event: Event) {
             class="v-ng-layer-nodes"
           >
             <v-node
+              v-for="nodeState in nodeZOrderedList"
+              :id="nodeState.id"
+              :key="nodeState.id"
+              :state="nodeState"
+              :pos="currentLayouts.nodes[nodeState.id]"
+            />
+          </transition-group>
+        </template>
+
+        <!-- node-labels -->
+        <template v-if="configs.node.label.visible && hasOverrideNodeLabelSlot">
+          <transition-group
+            :name="configs.node.transition"
+            :css="!!configs.node.transition"
+            tag="g"
+            class="v-ng-layer-node-labels"
+          >
+            <v-node-label
+              v-for="nodeState in nodeZOrderedList"
+              :id="nodeState.id"
+              :key="nodeState.id"
+              :state="nodeState"
+              :pos="currentLayouts.nodes[nodeState.id]"
+            >
+              <!-- override the node label -->
+              <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
+                <slot name="override-node-label" v-bind="slotProps" />
+              </template>
+            </v-node-label>
+          </transition-group>
+        </template>
+        <template v-else>
+          <transition-group
+            :name="configs.node.transition"
+            :css="!!configs.node.transition"
+            tag="g"
+            class="v-ng-layer-node-labels"
+          >
+            <v-node-label
               v-for="nodeState in nodeZOrderedList"
               :id="nodeState.id"
               :key="nodeState.id"

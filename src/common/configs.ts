@@ -157,6 +157,7 @@ export interface NodeLabelStyle extends LabelStyle {
   margin: number
   direction: NodeLabelDirectionType
   text: string
+  handleNodeEvents: boolean
 }
 
 export interface NodeFocusRingStyle {
