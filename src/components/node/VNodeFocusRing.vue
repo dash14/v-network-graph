@@ -61,7 +61,6 @@ watchEffect(() => {
     Object.assign(shapeConfig, shape)
   }
 })
-
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, Ref, ref, useAttrs, watch , onMounted, onUnmounted } from "vue"
+import { computed, reactive, Ref, ref, useAttrs, watch, onMounted, onUnmounted } from "vue"
 import { LabelStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
 
@@ -16,7 +16,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   x: 0,
   y: 0,
-  dominantBaseline: "central"
+  dominantBaseline: "central",
 })
 
 const attrs = useAttrs()
@@ -26,7 +26,7 @@ const { scale } = useZoomLevel()
 const texts = computed(() => props.text?.toString().split(/\r?\n/) ?? "")
 
 const fontSize = computed(() => {
-  return attrs['font-size'] as number ?? (props.config.fontSize * scale.value)
+  return (attrs["font-size"] as number) ?? props.config.fontSize * scale.value
 })
 
 const lineHeight = computed(() => fontSize.value * props.config.lineHeight)
@@ -60,7 +60,7 @@ const backgroundRectPos = computed(() => {
   const lineMargin = lineHeight.value - fontSize.value
   return {
     x: pos.x - paddingHorizontal * scale.value,
-    y: pos.y - paddingVertical * scale.value - (lineMargin / 2),
+    y: pos.y - paddingVertical * scale.value - lineMargin / 2,
     width: pos.width + paddingHorizontal * 2 * scale.value,
     height: pos.height + paddingVertical * 2 * scale.value + lineMargin,
   }
@@ -119,7 +119,6 @@ function enableMutationObserver(
   updateBackgroundPosition(element, pos, transform)
   return observer
 }
-
 </script>
 
 <template>

@@ -45,7 +45,6 @@ watchEffect(() => {
     y.value = props.baseY - height.value / 2
   }
 })
-
 </script>
 
 <template>

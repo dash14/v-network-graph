@@ -19,7 +19,6 @@ withDefaults(defineProps<Props>(), {
 })
 
 const config = useEdgeConfig()
-
 </script>
 
 <template>

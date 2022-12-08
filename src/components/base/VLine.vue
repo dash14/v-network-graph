@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "@/common/types";
+import { Position } from "@/common/types"
 import { StrokeStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
@@ -27,7 +27,6 @@ const animationSpeed = computed(() => {
     : false
   return speed ? `--animation-speed:${speed}` : undefined
 })
-
 </script>
 
 <template>

@@ -11,7 +11,7 @@ type MarkerType = Exclude<EdgeHeadType, "none" | "custom">
 const types: Record<MarkerType, any> = {
   arrow: VMarkerHeadArrow,
   angle: VMarkerHeadAngle,
-  circle: VMarkerHeadCircle
+  circle: VMarkerHeadCircle,
 }
 
 const props = defineProps<{
@@ -32,7 +32,6 @@ const refX = computed(() => {
   const margin = props.marker.margin * (props.marker.units === "strokeWidth" ? 1 : props.scale)
   return props.marker.isSource ? width.value + margin : -margin
 })
-
 </script>
 
 <template>

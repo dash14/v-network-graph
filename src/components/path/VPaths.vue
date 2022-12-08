@@ -37,7 +37,6 @@ const calcPathPoints = computed(() => (path: PathState): PositionOrCurve[] => {
     margin
   )
 })
-
 </script>
 
 <template>

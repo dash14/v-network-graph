@@ -13,7 +13,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pos: undefined
+  pos: undefined,
 })
 
 const x = computed(() => props.pos?.x || 0)
@@ -78,5 +78,4 @@ $transition: 0.1s linear;
     cursor: pointer;
   }
 }
-
 </style>

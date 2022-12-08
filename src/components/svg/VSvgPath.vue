@@ -9,9 +9,8 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  scale: 1.0
+  scale: 1.0,
 })
-
 </script>
 
 <template>

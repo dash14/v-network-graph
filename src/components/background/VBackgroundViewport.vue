@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
-import { useContainers } from "@/composables/container";
+import { onMounted, onUnmounted, ref } from "vue"
+import { useContainers } from "@/composables/container"
 
 // By detecting and copying changes in the `transform` and `style`
 // attributes reflected by svg-pan-zoom, it follows changes in the
@@ -25,7 +25,7 @@ onMounted(() => {
   const attrs = ["transform", "style"]
   observer.observe(viewport.value, {
     attributes: true,
-    attributeFilter: attrs
+    attributeFilter: attrs,
   })
   if (!background.value) return
   updateAttributes(attrs, background.value, viewport.value)
@@ -34,7 +34,6 @@ onMounted(() => {
 onUnmounted(() => {
   observer.disconnect()
 })
-
 </script>
 
 <template>

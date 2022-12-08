@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { readonly, ref, toRef, useSlots , computed, nextTick, watch, CSSProperties } from "vue"
-import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts , Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
+import { readonly, ref, toRef, useSlots, computed, nextTick, watch, CSSProperties } from "vue"
+import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
+import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig } from "@/common/configs"
 import { provideContainers } from "@/composables/container"
@@ -72,15 +73,14 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  (e: 'update:zoomLevel', v: number): void,
-  (e: 'update:selectedNodes', v: string[]): void
-  (e: 'update:selectedEdges', v: string[]): void
-  (e: 'update:selectedPaths', v: string[]): void
-  (e: 'update:layouts', v: Layouts): void
+  (e: "update:zoomLevel", v: number): void
+  (e: "update:selectedNodes", v: string[]): void
+  (e: "update:selectedEdges", v: string[]): void
+  (e: "update:selectedPaths", v: string[]): void
+  (e: "update:layouts", v: Layouts): void
 }>()
 
 const slots = useSlots()
-
 
 const nodesRef = toRef(props, "nodes")
 const edgesRef = toRef(props, "edges")
@@ -133,7 +133,6 @@ const hasOverrideNodeLabelSlot = computed(() => "override-node-label" in slots)
 const hasEdgeOverlaySlot = computed(() => "edge-overlay" in slots)
 const hasEdgeLabelSlot = computed(() => "edge-label" in slots)
 const hasEdgesLabelSlot = computed(() => "edges-label" in slots)
-
 
 // -----------------------------------------------------------------------
 // SVG
@@ -580,7 +579,7 @@ function getAsSvg(): string {
  * Export graph as SVG text.
  * @return {string} SVG text
  */
- async function exportAsSvgText(options: Partial<ExportOptions> = {}): Promise<string> {
+async function exportAsSvgText(options: Partial<ExportOptions> = {}): Promise<string> {
   const target = exportAsSvgElement(options)
   return (await target).outerHTML
 }
@@ -617,7 +616,7 @@ defineExpose({
   translateFromSvgToDomCoordinates,
   getAsSvg,
   exportAsSvgText,
-  exportAsSvgElement
+  exportAsSvgElement,
 })
 
 // local functions
@@ -652,7 +651,6 @@ function isMouseWheelZoomEnabled(view: ViewConfig): boolean {
 function stopEventPropagation(event: Event) {
   event.stopPropagation()
 }
-
 </script>
 
 <template>

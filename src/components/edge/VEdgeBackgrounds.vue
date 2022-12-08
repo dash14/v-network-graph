@@ -3,11 +3,10 @@ import { useStates } from "@/composables/state"
 import VEdgeBackground from "./VEdgeBackground.vue"
 
 const { edgeStates, edgeGroupStates, layouts } = useStates()
-
 </script>
 
 <template>
-  <template v-for="({ summarize, edges }) in edgeGroupStates.edgeGroups">
+  <template v-for="{ summarize, edges } in edgeGroupStates.edgeGroups">
     <template v-if="!summarize">
       <template v-for="(edge, id) in edges" :key="id">
         <v-edge-background

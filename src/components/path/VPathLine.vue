@@ -18,27 +18,29 @@ const pathConfig = usePathConfig()
 
 const d = computed(() => {
   let move = true
-  return props.points.map(p => {
-    if (p === null) {
-      move = true
-    } else if (typeof(p) === 'string') {
-      return p
-    } else if (p instanceof Array) {
-      p = [...p]
-      const list = []
-      if (p.length % 2 === 1) {
-        const x = p[0]
-        p = p.slice(1)
-        list.push(`L ${x.x} ${x.y}`)
+  return props.points
+    .map(p => {
+      if (p === null) {
+        move = true
+      } else if (typeof p === "string") {
+        return p
+      } else if (p instanceof Array) {
+        p = [...p]
+        const list = []
+        if (p.length % 2 === 1) {
+          const x = p[0]
+          p = p.slice(1)
+          list.push(`L ${x.x} ${x.y}`)
+        }
+        chunk(p, 2).map(([p1, p2]) => list.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
+        return list.join(" ")
+      } else {
+        const m = move
+        move = false
+        return `${m ? "M " : "L "}${p.x} ${p.y}`
       }
-      chunk(p, 2).map(([p1, p2]) => list.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
-      return list.join(" ")
-    } else {
-      const m = move
-      move = false
-      return `${m ? "M " : "L "}${p.x} ${p.y}`
-    }
-  }).join(" ")
+    })
+    .join(" ")
 })
 
 const config = computed(() => {
@@ -62,7 +64,6 @@ const animationSpeed = computed(() => {
     : false
   return speed ? `--animation-speed:${speed}` : undefined
 })
-
 </script>
 
 <template>

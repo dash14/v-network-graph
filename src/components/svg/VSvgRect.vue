@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RectangleShapeStyle } from "@/common/configs"
-import { applyScaleToDasharray } from "@/utils/visual";
+import { applyScaleToDasharray } from "@/utils/visual"
 
 interface Props {
   x: number
@@ -12,9 +12,8 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  scale: 1.0
+  scale: 1.0,
 })
-
 </script>
 
 <template>

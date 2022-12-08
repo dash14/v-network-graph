@@ -50,7 +50,6 @@ const strokeConfig = computed(() => Config.values(config.summarized.stroke, prop
 const hovered = computed(() => edgeIds.value.some(edge => edgeStates[edge].hovered))
 const selectable = computed(() => edgeIds.value.some(edge => edgeStates[edge].selectable))
 const selected = computed(() => edgeIds.value.some(edge => edgeStates[edge].selected))
-
 </script>
 
 <template>

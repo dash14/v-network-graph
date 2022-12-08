@@ -78,14 +78,14 @@ watchEffect(() => {
     stroke: config.grid.thick.color,
     "stroke-width": config.grid.thick.width,
     "stroke-dasharray": thickDasharray,
-    "stroke-dashoffset": thickDasharray ? x / s : undefined
+    "stroke-dashoffset": thickDasharray ? x / s : undefined,
   }
 
   let normalAttrs = {
     stroke: config.grid.line.color,
     "stroke-width": config.grid.line.width,
     "stroke-dasharray": normalDasharray,
-    "stroke-dashoffset": normalDasharray ? x / s : undefined
+    "stroke-dashoffset": normalDasharray ? x / s : undefined,
   }
 
   // horizontal lines
@@ -121,40 +121,39 @@ watchEffect(() => {
   normalHorizontals.value = normalH
   normalVerticals.value = normalV
 })
-
 </script>
 
 <template>
   <g class="v-ng-background-grid" shape-rendering="crispEdges">
     <!-- normal -->
     <path
-      v-for="([i, v, x, w, attrs]) in normalHorizontals"
+      v-for="[i, v, x, w, attrs] in normalHorizontals"
       :key="`nv${i}`"
       :d="`M ${x} ${v} L ${w} ${v}`"
       v-bind="attrs"
-      style="vector-effect: non-scaling-stroke;"
+      style="vector-effect: non-scaling-stroke"
     />
     <path
-      v-for="([i, v, y, h, attrs]) in normalVerticals"
+      v-for="[i, v, y, h, attrs] in normalVerticals"
       :key="`nh${i}`"
       :d="`M ${v} ${y} L ${v} ${h}`"
       v-bind="attrs"
-      style="vector-effect: non-scaling-stroke;"
+      style="vector-effect: non-scaling-stroke"
     />
     <!-- thick -->
     <path
-      v-for="([i, v, x, w, attrs]) in thickHorizontals"
+      v-for="[i, v, x, w, attrs] in thickHorizontals"
       :key="`tv${i}`"
       :d="`M ${x} ${v} L ${w} ${v}`"
       v-bind="attrs"
-      style="vector-effect: non-scaling-stroke;"
+      style="vector-effect: non-scaling-stroke"
     />
     <path
-      v-for="([i, v, y, h, attrs]) in thickVerticals"
+      v-for="[i, v, y, h, attrs] in thickVerticals"
       :key="`th${i}`"
       :d="`M ${v} ${y} L ${v} ${h}`"
       v-bind="attrs"
-      style="vector-effect: non-scaling-stroke;"
+      style="vector-effect: non-scaling-stroke"
     />
   </g>
 </template>

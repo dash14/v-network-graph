@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { EdgeState } from "@/models/edge"
-import { useZoomLevel } from "@/composables/zoom";
-import { useContainers } from "@/composables/container";
-import { Config } from "@/common/configs";
-import { useEdgeConfig } from "@/composables/config";
+import { useZoomLevel } from "@/composables/zoom"
+import { useContainers } from "@/composables/container"
+import { Config } from "@/common/configs"
+import { useEdgeConfig } from "@/composables/config"
 
 interface Props {
   edgeId?: string
@@ -17,7 +17,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   edgeId: undefined,
   edge: undefined,
-  edges: () => ({})
+  edges: () => ({}),
 })
 
 const { svg } = useContainers()

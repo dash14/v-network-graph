@@ -7,9 +7,7 @@ describe("calculateSubpath", () => {
     const segments = parsePathD(pathD)
     it("should calculate correctly: applying margin", () => {
       let subpath = calculateSubpath(segments, 0, 0)
-      expect(subpath).equals(
-        "M 80 80 Q 120 63 160 63 Q 200 63 240 80"
-      )
+      expect(subpath).equals("M 80 80 Q 120 63 160 63 Q 200 63 240 80")
 
       subpath = calculateSubpath(segments, 30, 30)
       expect(subpath).equals(
@@ -54,4 +52,4 @@ describe("calculateSubpath", () => {
   //     )
   //   })
   // })
-});
+})

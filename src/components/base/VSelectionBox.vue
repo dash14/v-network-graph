@@ -3,10 +3,9 @@ import { Rectangle } from "@/common/types"
 import { BasicShapeStyle } from "@/common/configs"
 
 defineProps<{
-  box: Rectangle,
+  box: Rectangle
   config: BasicShapeStyle
 }>()
-
 </script>
 
 <template>

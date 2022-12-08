@@ -20,7 +20,6 @@ const arrowPoints = computed(() => {
     return `0 0, ${w} ${h / 2}, 0 ${h}`
   }
 })
-
 </script>
 
 <template>

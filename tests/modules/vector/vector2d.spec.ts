@@ -215,8 +215,8 @@ describe("instance methods", () => {
 
   describe("#isEqualTo", () => {
     const v = new Vector2D(10, 10)
-    const result1 = v.isEqualTo({x: 10, y: 10})
-    const result2 = v.isEqualTo({x: -10, y: 10})
+    const result1 = v.isEqualTo({ x: 10, y: 10 })
+    const result2 = v.isEqualTo({ x: -10, y: 10 })
 
     it("should clone, different instance", () => {
       expect(result1).to.be.equal(true)

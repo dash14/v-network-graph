@@ -151,7 +151,6 @@ describe("handleNodeLabelAutoAdjustment", () => {
   })
 })
 
-
 describe("handleNodeLabelAutoAdjustment with self-loop", () => {
   describe("avoid west widely", () => {
     const direction = handleNodeLabelAutoAdjustment(

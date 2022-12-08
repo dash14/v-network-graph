@@ -8,13 +8,13 @@ import VText from "@/components/base/VLabelText.vue"
 interface Props {
   area: EdgeLabelArea
   config: EdgeLabelStyle
-  text?: string,
+  text?: string
   align?: "center" | "source" | "target"
   verticalAlign?: "center" | "above" | "below"
   // The followings are the definitions to avoid passing unwanted
   // items to <text> when they are specified in v-bind.
   edge?: Edge
-  hovered?: boolean,
+  hovered?: boolean
   selected?: boolean
   scale?: number
 }
@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   edge: undefined,
   hovered: undefined,
   selected: undefined,
-  scale: undefined
+  scale: undefined,
 })
 
 const x = ref(0)
@@ -119,14 +119,13 @@ const updatedConfig = computed(() => {
           vertical: 1,
           horizontal: 4,
         },
-        borderRadius: 2
-      }
+        borderRadius: 2,
+      },
     }
   } else {
     return props.config
   }
 })
-
 </script>
 
 <template>

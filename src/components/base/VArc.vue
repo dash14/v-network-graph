@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "@/common/types";
+import { Position } from "@/common/types"
 import { StrokeStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
@@ -38,7 +38,6 @@ const pathD = computed(() => {
   const f2 = isClockwise ? 1 : 0
   return `M ${p1.x} ${p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p2.x} ${p2.y}`
 })
-
 </script>
 
 <template>
