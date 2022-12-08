@@ -5,8 +5,10 @@ import { NodeLabelDirection } from "@/common/configs"
 import { NodeState } from "@/models/node"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
-import VText from "@/components/base/VLabelText.vue"
 import { useNodeConfig } from "@/composables/config"
+import { useStates } from "@/composables/state"
+import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
+import VText from "@/components/base/VLabelText.vue"
 
 interface Props {
   id: string
@@ -19,10 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const configs = useNodeConfig()
-
-const x = computed(() => props.pos?.x || 0)
-const y = computed(() => props.pos?.y || 0)
-
+const { edgeStates } = useStates()
 const { scale } = useZoomLevel()
 
 const {
@@ -34,12 +33,8 @@ const {
   handleNodeContextMenu,
 } = useMouseOperation()
 
-const labelVisibility = computed(() => {
-  if (props.state.label.visible) {
-    return props.state.labelText ?? false
-  }
-  return false
-})
+const x = computed(() => props.pos?.x || 0)
+const y = computed(() => props.pos?.y || 0)
 
 const labelMargin = computed(() => {
   if (props.state.label.direction === NodeLabelDirection.CENTER) {
@@ -54,8 +49,35 @@ const labelShiftH = ref(0) // Amount of label shift (horizontal)
 const labelDiagonalShiftV = ref(0) // Amount of shift in diagonal direction (vertical)
 const labelDiagonalShiftH = ref(0) // Amount of shift in diagonal direction (horizontal)
 
+const labelDirection = computed(() => {
+  const direction = props.state.label.direction
+  const autoAdjustment = props.state.label.directionAutoAdjustment
+  if (autoAdjustment === false) {
+    return direction
+  }
+
+  const pos = { x: x.value, y: y.value }
+  if (autoAdjustment === true) {
+    return handleNodeLabelAutoAdjustment(
+      props.state.id,
+      pos,
+      props.state.oppositeNodes,
+      (edgeId: string) => edgeStates[edgeId]?.loop?.center,
+      direction
+    )
+  } else {
+    return (
+      autoAdjustment({
+        nodeId: props.state.id,
+        pos,
+        oppositeNodes: props.state.oppositeNodes,
+      }) ?? direction
+    )
+  }
+})
+
 const textAnchor = computed(() => {
-  switch (props.state.label.direction) {
+  switch (labelDirection.value) {
     case NodeLabelDirection.CENTER:
     case NodeLabelDirection.NORTH:
     case NodeLabelDirection.SOUTH:
@@ -71,8 +93,9 @@ const textAnchor = computed(() => {
       return "end"
   }
 })
+
 const dominantBaseline = computed(() => {
-  switch (props.state.label.direction) {
+  switch (labelDirection.value) {
     case NodeLabelDirection.NORTH:
     case NodeLabelDirection.NORTH_EAST:
     case NodeLabelDirection.NORTH_WEST:
@@ -88,8 +111,9 @@ const dominantBaseline = computed(() => {
       return "central"
   }
 })
+
 const labelX = computed(() => {
-  switch (props.state.label.direction) {
+  switch (labelDirection.value) {
     case NodeLabelDirection.CENTER:
     case NodeLabelDirection.NORTH:
     case NodeLabelDirection.SOUTH:
@@ -107,8 +131,9 @@ const labelX = computed(() => {
       return -labelDiagonalShiftH.value
   }
 })
+
 const labelY = computed(() => {
-  switch (props.state.label.direction) {
+  switch (labelDirection.value) {
     case NodeLabelDirection.NORTH:
       return -labelShiftV.value
     case NodeLabelDirection.SOUTH:
@@ -190,16 +215,15 @@ const labelClasses = computed(() => {
   const handleEvents = configs.label.handleNodeEvents
   return {
     draggable: handleEvents && props.state.draggable,
-    selectable: handleEvents && props.state.selectable
+    selectable: handleEvents && props.state.selectable,
   }
 })
 </script>
 
 <template>
   <g
-    v-if="labelVisibility"
     :class="groupClasses"
-    :transform="`translate(${x + labelX} ${y + labelY})`"
+    :transform="`translate(${x} ${y})`"
     v-on="eventHandlers(id)"
   >
     <slot
@@ -207,8 +231,8 @@ const labelClasses = computed(() => {
       :node-id="id"
       :scale="scale"
       :text="state.labelText"
-      :x="0"
-      :y="0"
+      :x="labelX"
+      :y="labelY"
       :config="state.label"
       :shape="state.shape"
       :text-anchor="textAnchor"
@@ -223,6 +247,7 @@ const labelClasses = computed(() => {
         :text-anchor="textAnchor"
         :dominant-baseline="dominantBaseline"
         :class="labelClasses"
+        :transform="`translate(${labelX} ${labelY})`"
       />
     </slot>
   </g>
@@ -234,10 +259,10 @@ $transition: 0.1s linear;
 :where(.v-ng-node-label) {
   transition: transform $transition;
 
-  :where(.v-ng-text) {
+  > :where(*) {
     cursor: default;
     user-select: none;
-    transition: x $transition, y $transition;
+    transition: transform $transition;
   }
 
   .draggable,
@@ -247,10 +272,8 @@ $transition: 0.1s linear;
   }
 }
 
-:where(.dragging .v-ng-node-label) {
+:where(.dragging .v-ng-node-label),
+:where(.v-ng-node-label.v-move) {
   transition: none;
-  .v-ng-text {
-    transition: none;
-  }
 }
 </style>

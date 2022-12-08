@@ -1,7 +1,7 @@
 import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
 import { RecursivePartial } from "./common"
-import { Edge, Edges, Node, Path } from "./types"
+import { Edge, Edges, Node, Path, Position } from "./types"
 
 type CallableValue<V, T> = V | ((target: T) => V)
 
@@ -150,12 +150,40 @@ export enum NodeLabelDirection {
   NORTH_WEST = "north-west",
 }
 
-export type NodeLabelDirectionType = "center" | "north" | "north-east" | "east" | "south-east" | "south" | "south-west" | "west" | "north-west"
+export type NodeLabelDirectionType =
+  | "center"
+  | "north"
+  | "north-east"
+  | "east"
+  | "south-east"
+  | "south"
+  | "south-west"
+  | "west"
+  | "north-west"
+
+export interface OppositeNode {
+  nodeId: string
+  pos: Position
+}
+
+// { edgeId: { nodeId, pos } }
+export type OppositeNodes = Record<string, OppositeNode>
+
+export interface NodeLabelDirectionHandlerParams {
+  nodeId: string
+  pos: Position
+  oppositeNodes: OppositeNodes
+}
+
+export type NodeLabelDirectionAutoAdjustmentHandler = (
+  params: NodeLabelDirectionHandlerParams
+) => NodeLabelDirectionType | null
 
 export interface NodeLabelStyle extends LabelStyle {
   visible: boolean
   margin: number
   direction: NodeLabelDirectionType
+  directionAutoAdjustment: boolean | NodeLabelDirectionAutoAdjustmentHandler
   text: string
   handleNodeEvents: boolean
 }

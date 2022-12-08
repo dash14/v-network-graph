@@ -802,18 +802,19 @@ function stopEventPropagation(event: Event) {
             tag="g"
             class="v-ng-layer-node-labels"
           >
-            <v-node-label
-              v-for="nodeState in nodeZOrderedList"
-              :id="nodeState.id"
-              :key="nodeState.id"
-              :state="nodeState"
-              :pos="currentLayouts.nodes[nodeState.id]"
-            >
-              <!-- override the node label -->
-              <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
-                <slot name="override-node-label" v-bind="slotProps" />
-              </template>
-            </v-node-label>
+            <template v-for="nodeState in nodeZOrderedList" :key="nodeState.id">
+              <v-node-label
+                v-if="nodeState.label.visible && (nodeState.labelText ?? false)"
+                :id="nodeState.id"
+                :state="nodeState"
+                :pos="currentLayouts.nodes[nodeState.id]"
+              >
+                <!-- override the node label -->
+                <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
+                  <slot name="override-node-label" v-bind="slotProps" />
+                </template>
+              </v-node-label>
+            </template>
           </transition-group>
         </template>
         <template v-else>
@@ -823,13 +824,14 @@ function stopEventPropagation(event: Event) {
             tag="g"
             class="v-ng-layer-node-labels"
           >
-            <v-node-label
-              v-for="nodeState in nodeZOrderedList"
-              :id="nodeState.id"
-              :key="nodeState.id"
-              :state="nodeState"
-              :pos="currentLayouts.nodes[nodeState.id]"
-            />
+            <template v-for="nodeState in nodeZOrderedList" :key="nodeState.id">
+              <v-node-label
+                v-if="nodeState.label.visible && (nodeState.labelText ?? false)"
+                :id="nodeState.id"
+                :state="nodeState"
+                :pos="currentLayouts.nodes[nodeState.id]"
+              />
+            </template>
           </transition-group>
         </template>
 

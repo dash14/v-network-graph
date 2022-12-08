@@ -4,7 +4,7 @@ import { computed, ComputedRef, reactive, ref, Ref, toRef, unref } from "vue"
 import { watch, watchEffect } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
-import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig } from "@/common/configs"
+import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig, OppositeNode } from "@/common/configs"
 import { StrokeStyle, ShapeStyle, SelfLoopEdgeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { LinePosition, Position } from "@/common/types"
@@ -108,7 +108,6 @@ export function provideStates(
       Object.keys(nodes.objects.value).map(k => [k, {} as Record<string, string>])
     )
     Object.entries(edges.objects.value).forEach(([id, e]) => {
-      if (e.source === e.target) return
       if (!_nodes?.[e.source]) _nodes[e.source] = {}
       if (!_nodes?.[e.target]) _nodes[e.target] = {}
       _nodes[e.source][id] = e.target
@@ -279,7 +278,7 @@ function createNewNodeState(
   id: string,
   state: NodeModel.NodeStateDatum,
   config: NodeConfig,
-  opposingNodes: Reactive<Record<string, Record<string, string>>>,
+  oppositeNodeIds: Reactive<Record<string, Record<string, string>>>,
   layouts: Reactive<Layouts>
 ) {
   state.shape = computed(() => {
@@ -311,14 +310,15 @@ function createNewNodeState(
     return Config.value(config.draggable, nodes.value[id])
   })
 
-  state.opposingNodes = toRef(opposingNodes, id)
+  state.oppositeNodeIds = toRef(oppositeNodeIds, id)
 
-  state.opposingLayouts = computed<Record<string, Position>>(() => {
-    return Object.values(state.opposingNodes).reduce((nodes, nodeId) => {
+  state.oppositeNodes = computed<Record<string, OppositeNode>>(() => {
+    return Object.entries(state.oppositeNodeIds).reduce((nodes, entry) => {
+      const [edgeId, nodeId] = entry as [string, string]
       const pos = layouts.nodes[nodeId]
-      if (pos) nodes[nodeId] = { x: pos.x, y: pos.y }
+      if (pos) nodes[edgeId] = { nodeId, pos: { ...pos } }
       return nodes
-    }, {} as Record<string, Position>)
+    }, {} as Record<string, OppositeNode>)
   })
 }
 

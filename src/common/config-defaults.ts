@@ -97,6 +97,7 @@ export function getConfigDefaults(): Configs {
         // },
         margin: 4,
         direction: NodeLabelDirection.SOUTH,
+        directionAutoAdjustment: false,
         text: "name",
         handleNodeEvents: true,
       },
