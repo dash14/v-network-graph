@@ -1,24 +1,42 @@
 <script setup lang="ts">
-import { computed } from "vue"
 import chunk from "lodash-es/chunk"
+import { computed, onUpdated, watch } from "vue"
 import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
 import { PathState } from "@/models/path"
 import { usePathConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
+import { useStates } from "@/composables/state"
+import { calculatePathPoints } from "@/modules/calculation/path"
 
 const props = defineProps<{
-  points: PositionOrCurve[]
   path: PathState
 }>()
 
+const { nodeStates, edgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()
 const pathConfig = usePathConfig()
 
-const d = computed(() => {
+function calcPathPoints(path: PathState): PositionOrCurve[] {
+  if (path.edges.length === 0) return []
+  const margin = Config.value(pathConfig.margin, path.path) * scale.value
+  return calculatePathPoints(
+    path,
+    nodeStates,
+    layouts.nodes,
+    edgeStates,
+    scale.value,
+    pathConfig.curveInNode,
+    pathConfig.end,
+    margin
+  )
+}
+
+function calcPathD(path: PathState) {
+  const points = calcPathPoints(path)
   let move = true
-  return props.points
+  return points
     .map(p => {
       if (p === null) {
         move = true
@@ -41,7 +59,7 @@ const d = computed(() => {
       }
     })
     .join(" ")
-})
+}
 
 const config = computed(() => {
   const state = props.path
@@ -64,12 +82,28 @@ const animationSpeed = computed(() => {
     : false
   return speed ? `--animation-speed:${speed}` : undefined
 })
+
+onUpdated(() => {
+  console.log(props.path.id, "updated")
+})
+watch(
+  () => config.value,
+  () => {
+    console.log(props.path.id, "watch")
+  },
+  { deep: true }
+)
 </script>
 
 <template>
   <path
-    :class="{ 'v-ng-path-line': true, animate: config.animate }"
-    :d="d"
+    :class="{
+      'v-ng-path': true,
+      animate: config.animate,
+      clickable: path.clickable,
+      hoverable: path.hoverable,
+    }"
+    :d="calcPathD(path)"
     fill="none"
     :stroke="config.color"
     :stroke-width="config.width * scale"
@@ -79,3 +113,20 @@ const animationSpeed = computed(() => {
     :style="animationSpeed"
   />
 </template>
+
+<style lang="scss">
+$transition: 0.1s linear;
+
+.v-path {
+  pointer-events: none;
+  transition: stroke $transition, stroke-width $transition;
+
+  &.clickable {
+    pointer-events: stroke;
+    cursor: pointer;
+  }
+  &.hoverable {
+    pointer-events: stroke;
+  }
+}
+</style>
