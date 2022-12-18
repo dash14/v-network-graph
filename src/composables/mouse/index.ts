@@ -6,14 +6,14 @@ import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
 import { Events, Layouts, Rectangle } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { EdgeStates } from "@/models/edge"
+import { PathStates } from "@/models/path"
+import { Configs } from "@/common/configs"
 import { InteractionModes } from "./core"
 import { makeNodeInteractionHandlers } from "./node"
 import { makeEdgeInteractionHandlers } from "./edge"
 import { setupContainerInteractionHandlers } from "./container"
-import { PathStates } from "@/models/path"
 import { makePathInteractionHandlers } from "./path"
 import { BoxSelectionOption, makeBoxSelectionMethods } from "./boxSelection"
-import { Configs, ViewConfig } from "@/common/configs"
 
 type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
 type EdgeEventHandler<T extends Event = PointerEvent> = (edge: string, event: T) => void
