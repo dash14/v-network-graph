@@ -1,24 +1,23 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { StrokeStyle } from "@/common/configs"
 import { EdgeGroup } from "@/models/edge"
 import { useStates } from "@/composables/state"
 import { useEdgeConfig } from "@/composables/config"
-import { useZoomLevel } from "@/composables/zoom"
-import * as v2d from "@/modules/calculation/2d"
+import VEdgeLabelPlace from "./VEdgeLabelPlace.vue"
+import VEdgeLabelsPlace from "./VEdgeLabelsPlace.vue"
+
+interface Props {
+  enableEdgeLabel: boolean
+  enableEdgesLabel: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  enableEdgeLabel: false,
+  enableEdgesLabel: false,
+})
 
 const edgeConfig = useEdgeConfig()
-const { nodeStates, edgeStates, edgeGroupStates, summarizedEdgeStates, layouts } = useStates()
-const { scale } = useZoomLevel()
-
-// not summarized
-const individualEdgeGroups = computed(() =>
-  Object.fromEntries(
-    Object.entries(edgeGroupStates.edgeGroups).filter(
-      ([_, group]) => !group.summarize && Object.keys(group.edges).length > 0
-    )
-  )
-)
+const { edgeStates, edgeGroupStates, summarizedEdgeStates } = useStates()
 
 const edgeGroups = computed(() => {
   const individual: Record<string, EdgeGroup> = {}
@@ -35,67 +34,42 @@ const edgeGroups = computed(() => {
   return { individual, summarized }
 })
 
-const nodeShape = computed(() => (node: string) => {
-  return {
-    pos: layouts.nodes[node] ?? { x: 0, y: 0 },
-    shape: nodeStates[node].shape,
-  }
-})
-
-const labelAreaPosition = computed(() => (edgeId: string, edgeStyle: StrokeStyle) => {
-  return v2d.calculateEdgeLabelArea(
-    edgeStates[edgeId].labelPosition,
-    edgeStyle,
-    edgeConfig.label.margin,
-    edgeConfig.label.padding,
-    scale.value
-  )
-})
-
-const groupLabelAreaPosition = computed(() => (id: string, group: EdgeGroup) => {
-  const edgeId = Object.keys(group.edges)[0]
-  return v2d.calculateEdgeLabelArea(
-    edgeStates[edgeId].labelPosition,
-    summarizedEdgeStates[id]?.stroke ?? edgeStates[edgeId].line.stroke,
-    edgeConfig.label.margin,
-    edgeConfig.label.padding,
-    scale.value
-  )
-})
-
-const representativeEdgeState = computed(() => (group: EdgeGroup) => {
-  return edgeStates[Object.keys(group.edges)[0]]
-})
+function getRepresentativeEdgeKey(group: EdgeGroup) {
+  return Object.keys(group.edges)[0]
+}
 </script>
 
 <template>
   <g class="v-ng-edge-labels">
-    <template v-for="(group, id) in edgeGroups.individual" :key="id">
-      <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
-        <slot
-          v-if="!edgeStates[edgeId].loop"
-          name="edge-label"
-          :edge-id="edgeId"
-          :edge="edge"
-          :config="edgeConfig.label"
-          :area="labelAreaPosition(edgeId, edgeStates[edgeId].line.stroke)"
-          :hovered="edgeStates[edgeId].hovered"
-          :selected="edgeStates[edgeId].selected"
-          :scale="scale"
-        />
+    <template v-if="enableEdgeLabel">
+      <template v-for="(group, id) in edgeGroups.individual" :key="id">
+        <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
+          <v-edge-label-place
+            :edge-id="edgeId"
+            :edge="edge"
+            :config="edgeConfig.label"
+            :state="edgeStates[edgeId]"
+          >
+            <template #default="slotProps">
+              <slot name="edge-label" v-bind="slotProps" />
+            </template>
+          </v-edge-label-place>
+        </template>
       </template>
     </template>
-    <template v-for="(group, id) in edgeGroups.summarized" :key="id">
-      <slot
-        v-if="!representativeEdgeState(group).loop"
-        name="edges-label"
-        :edges="group.edges"
-        :config="edgeConfig.label"
-        :area="groupLabelAreaPosition(id, group)"
-        :hovered="representativeEdgeState(group).hovered"
-        :selected="representativeEdgeState(group).selected"
-        :scale="scale"
-      />
+    <template v-if="enableEdgesLabel">
+      <template v-for="(group, id) in edgeGroups.summarized" :key="id">
+        <v-edge-labels-place
+          :edges="group.edges"
+          :config="edgeConfig.label"
+          :state="edgeStates[getRepresentativeEdgeKey(group)]"
+          :summarize-state="summarizedEdgeStates[getRepresentativeEdgeKey(group)]"
+        >
+          <template #default="slotProps">
+            <slot name="edges-label" v-bind="slotProps" />
+          </template>
+        </v-edge-labels-place>
+      </template>
     </template>
   </g>
 </template>
