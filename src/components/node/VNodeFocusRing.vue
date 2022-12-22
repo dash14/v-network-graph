@@ -65,7 +65,7 @@ watchEffect(() => {
 
 <template>
   <v-shape
-    class="v-ng-node-focus-ring"
+    class="v-ng-node-focusring"
     :base-x="x"
     :base-y="y"
     :config="shapeConfig"
@@ -75,7 +75,7 @@ watchEffect(() => {
 <style lang="scss">
 $transition: 0.1s linear;
 
-.v-ng-node-focus-ring {
+.v-ng-node-focusring {
   pointer-events: none;
 }
 

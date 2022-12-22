@@ -854,19 +854,21 @@ function stopEventPropagation(event: Event) {
 .v-ng-viewport.v-ng-transition {
   --transition-duration: 300ms;
   --transition-function: linear;
-  .v-ng-node {
+  .v-ng-node,
+  .v-ng-node-label,
+  .v-ng-node-focusring,
+  .v-ng-edge,
+  .v-ng-edge-label,
+  .v-ng-path {
     transition: all var(--transition-duration) var(--transition-function);
-  }
-  .v-ng-layer-edges path {
-    transition: all var(--transition-duration) var(--transition-function);
-  }
-  .v-ng-path-line {
-    transition: all var(--transition-duration) var(--transition-function);
+    > * {
+      transition: all var(--transition-duration) var(--transition-function);
+    }
   }
 }
 
 .v-ng-line.animate,
-.v-ng-path-line.animate {
+.v-ng-path.animate {
   --animation-speed: 100;
   animation: v-ng-dash 10s linear infinite;
   stroke-dashoffset: var(--animation-speed);
