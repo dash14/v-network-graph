@@ -1,17 +1,27 @@
 import { inject, InjectionKey, provide, reactive, Ref, watch } from "vue"
 import merge from "lodash-es/merge"
+import mergeWith from "lodash-es/mergeWith"
+import isPlainObject from "lodash-es/isPlainObject"
 import { nonNull } from "@/common/common"
 import { Configs, UserConfigs } from "@/common/configs"
 import { getConfigDefaults } from "@/common/config-defaults"
 
 const injectionKey = Symbol("style") as InjectionKey<Configs>
 
+function merger(destination: any, source: any) {
+  if (isPlainObject(destination)) {
+    return merge(destination, source)
+  } else {
+    return source // overwrite
+  }
+}
+
 export function provideConfigs(configs: Ref<UserConfigs>) {
   const results: Configs = reactive(getConfigDefaults())
   const styleKeys = Object.keys(results) as (keyof Configs)[]
   for (const key of styleKeys) {
     watch(() => configs.value[key], () => {
-      merge(results[key], configs.value[key] || {})
+      mergeWith(results[key], configs.value[key] || {}, merger)
     }, { immediate: true, deep: true })
   }
 
