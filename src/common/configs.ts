@@ -66,7 +66,7 @@ export interface ViewConfig {
     box: BasicShapeStyle
     detector: (event: KeyboardEvent) => boolean
   }
-  builtInLayerOrder: LayerName[]
+  builtInLayerOrder: Readonly<LayerName[]>
 }
 
 /* Shape style */

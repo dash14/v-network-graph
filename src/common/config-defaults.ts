@@ -50,6 +50,7 @@ export function getConfigDefaults(): Configs {
           return event.type === "keydown" ? detect : !detect
         },
       },
+      builtInLayerOrder: [],
     },
     node: withSelf(self => ({
       normal: {

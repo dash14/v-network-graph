@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { readonly, ref, toRef, useSlots, computed, nextTick, watch, CSSProperties } from "vue"
-import uniq from "lodash-es/uniq"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
-import { Layers, LayerPosition, LayerPositions, LayerName, Point, Sizes } from "@/common/types"
+import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig } from "@/common/configs"
 import { provideContainers } from "@/composables/container"
@@ -19,10 +18,9 @@ import { bindProp, bindPropKeySet } from "@/utils/props"
 import * as svgUtils from "@/utils/svg"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/utils/svg"
-import { pairwise } from "@/modules/collection/iterate"
-import { insertAfter, removeItem } from "@/modules/collection/array"
 import { provideSelections } from "@/composables/selection"
 import { provideLayouts } from "@/composables/layout"
+import { useBuiltInLayerOrder } from "@/composables/layer"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
@@ -131,39 +129,7 @@ const isShowBackgroundViewport = computed(() => {
   return isShowGrid.value || layers["background"].length > 0 || layers["grid"].length > 0
 })
 
-const builtInLayers: LayerName[] = ["edges", "edge-labels", "focusring", "nodes", "node-labels", "paths"]
-const builtInLayerOrders = computed<LayerName[]>(() => {
-  const request = uniq(configs.view.builtInLayerOrder)
-    .filter(layer => {
-      const defined = builtInLayers.includes(layer)
-      if (!defined) {
-        console.warn(`Layer ${layer} is not a built-in layer.`)
-      }
-      return defined
-    })
-    .reverse()
-  const order = [...builtInLayers]
-  pairwise(request, (lower, higher) => {
-    removeItem(order, higher)
-    insertAfter(order, lower, higher)
-  })
-
-  // Remove unused layers
-  if (!("edge-label" in slots || "edges-label" in slots)) {
-    removeItem(order, "edge-labels")
-  }
-  if (!configs.node.focusring.visible) {
-    removeItem(order, "focusring")
-  }
-  if (configs.node.label.visible === false) {
-    removeItem(order, "node-labels")
-  }
-  if (!configs.path.visible) {
-    removeItem(order, "paths")
-  }
-
-  return order
-})
+const builtInLayerOrder = useBuiltInLayerOrder(configs, slots)
 
 // -----------------------------------------------------------------------
 // SVG
@@ -733,7 +699,7 @@ function stopEventPropagation(event: Event) {
         </g>
 
         <!-- Sortable built-in layers -->
-        <template v-for="layerName in builtInLayerOrders" :key="layerName">
+        <template v-for="layerName in builtInLayerOrder" :key="layerName">
           <!-- Edges -->
           <template v-if="layerName === 'edges'">
             <v-edges-layer>

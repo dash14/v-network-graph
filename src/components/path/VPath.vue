@@ -82,17 +82,6 @@ const animationSpeed = computed(() => {
     : false
   return speed ? `--animation-speed:${speed}` : undefined
 })
-
-onUpdated(() => {
-  console.log(props.path.id, "updated")
-})
-watch(
-  () => config.value,
-  () => {
-    console.log(props.path.id, "watch")
-  },
-  { deep: true }
-)
 </script>
 
 <template>

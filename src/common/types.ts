@@ -60,8 +60,10 @@ export type Layers = Record<string, LayerPosition>
 
 export const LayerPositions: readonly LayerPosition[] = [
   "paths",
+  "node-labels",
   "nodes",
   "focusring",
+  "edge-labels",
   "edges",
   "base",
   "grid",
