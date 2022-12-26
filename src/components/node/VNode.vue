@@ -51,7 +51,11 @@ const {
     >
       <v-shape
         :config="state.shape"
-        :class="{ draggable: state.draggable, selectable: state.selectable }"
+        :class="{
+          'v-ng-node-default': true,
+          draggable: state.draggable,
+          selectable: state.selectable,
+        }"
       />
     </slot>
   </g>
@@ -62,14 +66,18 @@ $transition: 0.1s linear;
 
 .v-ng-node {
   :where(.v-ng-shape-circle) {
-    pointer-events: none;
-    transition: fill $transition, stroke $transition, stroke-width $transition,
-    r $transition;
+    transition: fill $transition, stroke $transition, stroke-width $transition, r $transition;
   }
   :where(.v-ng-shape-rect) {
+    transition: fill $transition, stroke $transition, stroke-width $transition, x $transition,
+      y $transition, width $transition, height $transition;
+  }
+
+  :where(.v-ng-node-default.v-ng-shape-circle) {
     pointer-events: none;
-    transition: fill $transition, stroke $transition, stroke-width $transition,
-      x $transition, y $transition, width $transition, height $transition;
+  }
+  :where(.v-ng-node-default.v-ng-shape-rect) {
+    pointer-events: none;
   }
 
   .draggable,

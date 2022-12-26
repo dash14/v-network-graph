@@ -52,26 +52,24 @@ export interface Edge {
 export type Edges = Record<string, Edge>
 export type EdgeWithId = Edge & IdentifiedObject
 
-export type LayerPosition =
-  "paths"
-  | "nodes"
-  | "focusring"
-  | "edges"
-  | "base"
-  | "grid"
-  | "background"
-  | "root"
+export type LayerName = "edges" | "edge-labels" | "focusring" | "nodes" | "node-labels" | "paths"
+
+export type LayerPosition = LayerName | "base" | "grid" | "background" | "root"
+
+export type Layers = Record<string, LayerPosition>
+
 export const LayerPositions: readonly LayerPosition[] = [
   "paths",
+  "node-labels",
   "nodes",
   "focusring",
+  "edge-labels",
   "edges",
   "base",
   "grid",
   "background",
   "root",
 ]
-export type Layers = Record<string, LayerPosition>
 
 /* ------------------------------------------ *
  * View
@@ -142,8 +140,10 @@ export type PositionOrCurve = Position | Position[] | string | null
 
 export type ViewEvent<T extends Event> = { event: T }
 export type NodeEvent<T extends Event> = { node: string; event: T }
-export type EdgeEvent<T extends Event> = { edge: string; edges: string[], summarized: false; event: T } | { edge?: undefined, edges: string[]; summarized: true; event: T }
-export type PathEvent<T extends Event> = { path: string, event: T }
+export type EdgeEvent<T extends Event> =
+  | { edge: string; edges: string[]; summarized: false; event: T }
+  | { edge?: undefined; edges: string[]; summarized: true; event: T }
+export type PathEvent<T extends Event> = { path: string; event: T }
 
 // For compatibility with previous versions
 export type NodePointerEvent = NodeEvent<PointerEvent>
