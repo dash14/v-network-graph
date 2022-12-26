@@ -8,7 +8,7 @@ import { useZoomLevel } from "@/composables/zoom"
 import { useNodeConfig } from "@/composables/config"
 import { useStates } from "@/composables/state"
 import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
-import VText from "@/components/base/VLabelText.vue"
+import VLabelText from "@/components/base/VLabelText.vue"
 
 interface Props {
   id: string
@@ -239,7 +239,7 @@ const labelClasses = computed(() => {
       :dominant-baseline="dominantBaseline"
       :class="labelClasses"
     >
-      <v-text
+      <v-label-text
         :text="state.labelText"
         :x="0"
         :y="0"
@@ -257,8 +257,6 @@ const labelClasses = computed(() => {
 $transition: 0.1s linear;
 
 :where(.v-ng-node-label) {
-  transition: transform $transition;
-
   > :where(*) {
     cursor: default;
     user-select: none;
@@ -270,10 +268,5 @@ $transition: 0.1s linear;
     pointer-events: all;
     cursor: pointer;
   }
-}
-
-:where(.dragging .v-ng-node-label),
-:where(.v-ng-node-label.v-move) {
-  transition: none;
 }
 </style>

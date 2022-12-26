@@ -18,17 +18,19 @@ import { bindProp, bindPropKeySet } from "@/utils/props"
 import * as svgUtils from "@/utils/svg"
 import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/utils/svg"
+import { provideSelections } from "@/composables/selection"
+import { provideLayouts } from "@/composables/layout"
+import { useBuiltInLayerOrder } from "@/composables/layer"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
-import VPaths from "./path/VPaths.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VBackgroundViewport from "./background/VBackgroundViewport.vue"
-import VEdgeLabels from "./edge/VEdgeLabels.vue"
-import VEdgeBackgrounds from "./edge/VEdgeBackgrounds.vue"
-import VEdgeGroups from "./edge/VEdgeGroups.vue"
-import VNodeFocusRing from "./node/VNodeFocusRing.vue"
-import VNode from "./node/VNode.vue"
-import VNodeLabel from "./node/VNodeLabel.vue"
+import VEdgesLayer from "./layers/VEdgesLayer.vue"
+import VEdgeLabelsLayer from "./layers/VEdgeLabelsLayer.vue"
+import VFocusringLayer from "./layers/VFocusringLayer.vue"
+import VNodesLayer from "./layers/VNodesLayer.vue"
+import VNodeLabelsLayer from "./layers/VNodeLabelsLayer.vue"
+import VPathsLayer from "./layers/VPathsLayer.vue"
 
 const SYSTEM_SLOTS = [
   "override-node",
@@ -127,12 +129,7 @@ const isShowBackgroundViewport = computed(() => {
   return isShowGrid.value || layers["background"].length > 0 || layers["grid"].length > 0
 })
 
-// slots
-const hasOverrideNodeSlot = computed(() => "override-node" in slots)
-const hasOverrideNodeLabelSlot = computed(() => "override-node-label" in slots)
-const hasEdgeOverlaySlot = computed(() => "edge-overlay" in slots)
-const hasEdgeLabelSlot = computed(() => "edge-label" in slots)
-const hasEdgesLabelSlot = computed(() => "edges-label" in slots)
+const builtInLayerOrder = useBuiltInLayerOrder(configs, slots)
 
 // -----------------------------------------------------------------------
 // SVG
@@ -312,10 +309,14 @@ watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edge
 const currentSelectedPaths = bindPropKeySet(props, "selectedPaths", pathsRef, emit)
 watch(currentSelectedPaths, paths => emitter.emit("path:select", Array.from(paths)))
 
+provideSelections(currentSelectedNodes, currentSelectedEdges, currentSelectedPaths)
+
 const hoveredNodes = Reactive(new Set<string>())
 const hoveredEdges = Reactive(new Set<string>())
 const hoveredPaths = Reactive(new Set<string>())
 const currentLayouts = Reactive<Layouts>({ nodes: {} })
+
+provideLayouts(currentLayouts)
 
 // two-way binding
 watch(
@@ -324,10 +325,6 @@ watch(
   { deep: true, immediate: true }
 )
 watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
-
-const visibleNodeFocusRing = computed(() => {
-  return configs.node.focusring.visible
-})
 
 // -----------------------------------------------------------------------
 // SVG Markers
@@ -364,7 +361,7 @@ const touches = computed(() => {
   return configs.view.panEnabled || configs.view.zoomEnabled || configs.node.draggable
 })
 
-const { nodeStates, nodeZOrderedList, edgeStates, pathStates } = provideStates(
+const { nodeStates, edgeStates, pathStates } = provideStates(
   makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
   makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
   makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
@@ -396,11 +393,6 @@ const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } 
     configs,
     emitter
   )
-
-// -----------------------------------------------------------------------
-// Paths
-// -----------------------------------------------------------------------
-const visiblePaths = computed(() => configs.path.visible)
 
 // -----------------------------------------------------------------------
 // Node layout handler
@@ -706,142 +698,67 @@ function stopEventPropagation(event: Event) {
           <slot :name="layerName" :scale="scale" />
         </g>
 
-        <!-- edges -->
-        <g class="v-ng-layer-edges">
-          <v-edge-backgrounds />
-          <v-edge-groups :has-edge-overlay-slot="hasEdgeOverlaySlot">
-            <template #default="slotProps">
-              <slot name="edge-overlay" v-bind="slotProps" />
-            </template>
-          </v-edge-groups>
-        </g>
-
-        <g v-for="layerName in layerDefs['edges']" :key="layerName" class="v-ng-layer">
-          <slot :name="layerName" :scale="scale" />
-        </g>
-
-        <!-- edge labels -->
-        <v-edge-labels v-if="hasEdgeLabelSlot || hasEdgesLabelSlot">
-          <!-- edge labels -->
-          <template v-if="hasEdgeLabelSlot" #edge-label="slotProps">
-            <slot name="edge-label" v-bind="slotProps" />
+        <!-- Sortable built-in layers -->
+        <template v-for="layerName in builtInLayerOrder" :key="layerName">
+          <!-- Edges -->
+          <template v-if="layerName === 'edges'">
+            <v-edges-layer>
+              <template #edge-overlay="slotProps">
+                <slot name="edge-overlay" v-bind="slotProps" />
+              </template>
+            </v-edges-layer>
           </template>
 
-          <!-- summarized edges labels -->
-          <template v-if="hasEdgesLabelSlot" #edges-label="slotProps">
-            <slot name="edges-label" v-bind="slotProps" />
-          </template>
-        </v-edge-labels>
-
-        <!-- node selections (focus ring) -->
-        <g v-if="visibleNodeFocusRing" class="v-ng-layer-nodes-selections">
-          <v-node-focus-ring
-            v-for="nodeId in currentSelectedNodes"
-            :id="nodeId"
-            :key="nodeId"
-            :state="nodeStates[nodeId]"
-            :pos="currentLayouts.nodes[nodeId]"
-          />
-        </g>
-
-        <g v-for="layerName in layerDefs['focusring']" :key="layerName" class="v-ng-layer">
-          <slot :name="layerName" :scale="scale" />
-        </g>
-
-        <!-- nodes -->
-        <template v-if="hasOverrideNodeSlot">
-          <transition-group
-            :name="configs.node.transition"
-            :css="!!configs.node.transition"
-            tag="g"
-            class="v-ng-layer-nodes"
-          >
-            <v-node
-              v-for="nodeState in nodeZOrderedList"
-              :id="nodeState.id"
-              :key="nodeState.id"
-              :state="nodeState"
-              :pos="currentLayouts.nodes[nodeState.id]"
+          <!-- Edge labels -->
+          <template v-else-if="layerName === 'edge-labels'">
+            <v-edge-labels-layer
+              :enable-edge-label="'edge-label' in slots"
+              :enable-edges-label="'edges-label' in slots"
             >
-              <!-- override the node -->
-              <template v-if="hasOverrideNodeSlot" #override-node="slotProps">
+              <template #edge-label="slotProps">
+                <slot name="edge-label" v-bind="slotProps" />
+              </template>
+              <template #edges-label="slotProps">
+                <slot name="edges-label" v-bind="slotProps" />
+              </template>
+            </v-edge-labels-layer>
+          </template>
+
+          <!-- Node focusring -->
+          <template v-else-if="layerName === 'focusring'">
+            <v-focusring-layer />
+          </template>
+
+          <!-- Nodes -->
+          <template v-else-if="layerName === 'nodes'">
+            <v-nodes-layer>
+              <template #override-node="slotProps">
                 <slot name="override-node" v-bind="slotProps" />
               </template>
-            </v-node>
-          </transition-group>
-        </template>
-        <template v-else>
-          <!--
-            If a `v-node` contains a slot and no external slot is specified,
-            `v-ng-layer-nodes` element will be needlessly redrawn and all
-            `v-node` components get update notifications. Therefore, if there is
-            no external slot, do not specify a slot in the `v-node` component. -->
-          <transition-group
-            :name="configs.node.transition"
-            :css="!!configs.node.transition"
-            tag="g"
-            class="v-ng-layer-nodes"
-          >
-            <v-node
-              v-for="nodeState in nodeZOrderedList"
-              :id="nodeState.id"
-              :key="nodeState.id"
-              :state="nodeState"
-              :pos="currentLayouts.nodes[nodeState.id]"
-            />
-          </transition-group>
-        </template>
+            </v-nodes-layer>
+          </template>
 
-        <!-- node-labels -->
-        <template v-if="configs.node.label.visible && hasOverrideNodeLabelSlot">
-          <transition-group
-            :name="configs.node.transition"
-            :css="!!configs.node.transition"
-            tag="g"
-            class="v-ng-layer-node-labels"
-          >
-            <template v-for="nodeState in nodeZOrderedList" :key="nodeState.id">
-              <v-node-label
-                v-if="nodeState.label.visible && (nodeState.labelText ?? false)"
-                :id="nodeState.id"
-                :state="nodeState"
-                :pos="currentLayouts.nodes[nodeState.id]"
-              >
-                <!-- override the node label -->
-                <template v-if="hasOverrideNodeLabelSlot" #override-node-label="slotProps">
-                  <slot name="override-node-label" v-bind="slotProps" />
-                </template>
-              </v-node-label>
-            </template>
-          </transition-group>
+          <!-- Node labels -->
+          <template v-else-if="layerName === 'node-labels'">
+            <v-node-labels-layer>
+              <template #override-node-label="slotProps">
+                <slot name="override-node-label" v-bind="slotProps" />
+              </template>
+            </v-node-labels-layer>
+          </template>
+
+          <!-- Paths -->
+          <template v-else-if="layerName === 'paths'">
+            <v-paths-layer />
+          </template>
+
+          <!-- User defined layer -->
+          <template v-for="customLayerName in layerDefs[layerName]" :key="customLayerName">
+            <g class="v-ng-layer">
+              <slot :name="customLayerName" :scale="scale" />
+            </g>
+          </template>
         </template>
-        <template v-else>
-          <transition-group
-            :name="configs.node.transition"
-            :css="!!configs.node.transition"
-            tag="g"
-            class="v-ng-layer-node-labels"
-          >
-            <template v-for="nodeState in nodeZOrderedList" :key="nodeState.id">
-              <v-node-label
-                v-if="nodeState.label.visible && (nodeState.labelText ?? false)"
-                :id="nodeState.id"
-                :state="nodeState"
-                :pos="currentLayouts.nodes[nodeState.id]"
-              />
-            </template>
-          </transition-group>
-        </template>
-
-        <g v-for="layerName in layerDefs['nodes']" :key="layerName" class="v-ng-layer">
-          <slot :name="layerName" :scale="scale" />
-        </g>
-
-        <v-paths v-if="visiblePaths" />
-
-        <g v-for="layerName in layerDefs['paths']" :key="layerName" class="v-ng-layer">
-          <slot :name="layerName" :scale="scale" />
-        </g>
       </g>
 
       <!-- selection box -->
@@ -903,19 +820,21 @@ function stopEventPropagation(event: Event) {
 .v-ng-viewport.v-ng-transition {
   --transition-duration: 300ms;
   --transition-function: linear;
-  .v-ng-node {
+  .v-ng-node,
+  .v-ng-node-label,
+  .v-ng-node-focusring,
+  .v-ng-edge,
+  .v-ng-edge-label,
+  .v-ng-path {
     transition: all var(--transition-duration) var(--transition-function);
-  }
-  .v-ng-layer-edges path {
-    transition: all var(--transition-duration) var(--transition-function);
-  }
-  .v-ng-path-line {
-    transition: all var(--transition-duration) var(--transition-function);
+    > * {
+      transition: all var(--transition-duration) var(--transition-function);
+    }
   }
 }
 
 .v-ng-line.animate,
-.v-ng-path-line.animate {
+.v-ng-path.animate {
   --animation-speed: 100;
   animation: v-ng-dash 10s linear infinite;
   stroke-dashoffset: var(--animation-speed);
