@@ -192,7 +192,7 @@ following features.
   * ✅ Adjustments node label position automatically
   * As the edges extend, the label must also extend more flexibly
   * Supports display of labels on self-loop edges
-  * Allows changing the z-order between labels and other objects
+  * ✅ Allows changing the z-order between labels and other objects
 * ✅ Simpler css class name specification overall
   * To make it easier to override the design
 * Other minor improvements
