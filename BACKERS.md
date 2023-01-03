@@ -17,7 +17,12 @@ If you'd like to join them, please consider sponsoring v-network-graph developme
 
 ## Backers/Sponsors via GitHub Sponsors
 
-* *[Become a sponsor](https://github.com/sponsors/dash14)*
+* Robin Oster ([@prine](https://github.com/prine))
+
+
+*[Become a sponsor](https://github.com/sponsors/dash14)*
+
+---
 
 ## Backers via Buy Me A Coffee ☕️
 
