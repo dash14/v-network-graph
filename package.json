@@ -41,7 +41,6 @@
     "@types/d3-force": "^3.0.3",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.11.17",
-    "@types/react": "file:stub/types__react",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "@vitejs/plugin-vue": "^4.0.0",
@@ -66,6 +65,9 @@
   "peerDependencies": {
     "d3-force": "^3.0.0",
     "vue": "^3.2.45"
+  },
+  "overrides": {
+    "@types/react": "file:stub/types__react"
   },
   "exports": {
     ".": {
