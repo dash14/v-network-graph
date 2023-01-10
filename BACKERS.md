@@ -33,6 +33,7 @@ If you'd like to join them, please consider sponsoring v-network-graph developme
 ### Backer
 
 * Zulfi
+* Michael Dunn
 * dtk
 * [@RainBoltz](https://twitter.com/RainBoltz)
 * violent-boomerang
