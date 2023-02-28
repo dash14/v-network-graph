@@ -1,6 +1,7 @@
 import "./style.scss";
 
 export const parameters = {
+  layout: "fullscreen",
   actions: { argTypesRegex: "^on[A-Z].*" },
   controls: {
     matchers: {
@@ -8,4 +9,7 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  backgrounds: {
+    default: 'light'
+  }
 }
