@@ -2,10 +2,12 @@ body {
     background-color: white;
 }
 svg.story-short {
+    display: block;
     width: 100vw;
     height: 150px;
 }
 svg.story-full {
+    display: block;
     width: 100vw;
     height: 100vh;
 }
