@@ -451,6 +451,7 @@ onSvgPanZoomMounted(() => {
       const autoPanAndZoom = configs.view.autoPanAndZoomOnLoad
       if (configs.view.fit || autoPanAndZoom !== false) {
         const nodesEmpty = Object.keys(props.nodes).length == 0
+        const pan1 = svg.getPan()
         if (nodesEmpty || autoPanAndZoom === "center-zero") {
           // Pan (0, 0) to the center.
           const sizes = svg.getSizes()
@@ -463,6 +464,16 @@ onSvgPanZoomMounted(() => {
         } else if (autoPanAndZoom === "center-content") {
           panToCenter()
         }
+
+        // If the pan position does not change, the onPan event of svg-pan-zoom
+        // is not fired, but v-network-graph always fires the `view:pan` event
+        // when initialized.
+        nextTick(() => {
+          const pan2 = svg.getPan()
+          if (pan1.x === pan2.x && pan1.y === pan2.y) {
+            emitter.emit("view:pan", pan2)
+          }
+        })
       }
 
       emitter.emit("view:load")
