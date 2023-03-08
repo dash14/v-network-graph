@@ -1,10 +1,10 @@
 import { AnyShapeStyle, RectangleShapeStyle, StrokeStyle } from "@/common/configs"
 import { EdgeLabelArea, LinePosition, Position } from "@/common/types"
 import V, { Vector2D } from "@/modules/vector2d"
+import { Point2D } from "@/modules/vector2d/core"
 import * as PointUtils from "./point"
 import * as LineUtils from "./line"
 import { VectorLine } from "./line"
-import minBy from "lodash-es/minBy"
 
 // /**
 //  * Calculate whether a point is contained in a circle.
@@ -309,4 +309,20 @@ export function calculateCircleCenterAndRadiusBy3Points(
   const radius = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2))
   const center = new Vector2D(x, y)
   return [center, radius]
+}
+
+/**
+ * Returns whether the corner ABC is clockwise or not.
+ * @param a Point of A
+ * @param b Point of B
+ * @param c Point of C
+ * @returns clockwise or not
+ */
+export function isClockwise(a: Point2D, b: Point2D, c: Point2D): boolean {
+  const va = Vector2D.fromObject(a)
+  const vb = Vector2D.fromObject(b)
+  const vc = Vector2D.fromObject(c)
+  const line1 = LineUtils.toLineVector(vb, va).normalize()
+  const line2 = LineUtils.toLineVector(vb, vc).normalize()
+  return line1.cross(line2) <= 0
 }

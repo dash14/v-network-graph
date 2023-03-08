@@ -113,6 +113,17 @@ export interface EdgeLabelArea {
   }
 }
 
+export interface LabelRectangle {
+  source: {
+    top: Position
+    bottom: Position
+  }
+  target: {
+    top: Position
+    bottom: Position
+  }
+}
+
 /* ------------------------------------------ *
  * Paths
  * ------------------------------------------ */
