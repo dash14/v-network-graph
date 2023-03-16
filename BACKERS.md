@@ -34,6 +34,7 @@ If you'd like to join them, please consider sponsoring v-network-graph developme
 
 * Zulfi
 * Michael Dunn
+* Lukas Hrmo
 * dtk
 * [@RainBoltz](https://twitter.com/RainBoltz)
 * violent-boomerang
