@@ -2,6 +2,7 @@ import path from "path"
 import { defineConfig } from "vite"
 import vue from "@vitejs/plugin-vue"
 import dts from "vite-plugin-dts"
+import { visualizer } from "rollup-plugin-visualizer";
 
 import { dtsBeforeWriteFile } from "./vite.config"
 
@@ -45,5 +46,6 @@ export default defineConfig({
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile
     }),
+    visualizer({ filename: "stats-force.html" })
   ],
 })
