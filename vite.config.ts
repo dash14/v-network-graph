@@ -7,7 +7,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
 const TYPES_SRC_DIR = resolvePath("lib/src")
-export function dtsBeforeWriteFile(filePath: string, _content: string) {
+function dtsBeforeWriteFile(filePath: string, _content: string) {
   if (filePath.startsWith(TYPES_SRC_DIR)) {
     filePath = __dirname + "/lib" + filePath.substring(TYPES_SRC_DIR.length)
   }
@@ -22,23 +22,25 @@ export default defineConfig({
   build: {
     target: "es2015",
     lib: {
-      entry: resolvePath("src/index.ts"),
+      formats: ["es"],
+      entry: [
+        resolvePath("src/index.ts"),
+        resolvePath("src/force-layout.ts"),
+      ],
       name: "v-network-graph",
-      fileName: format => (format == "es" ? "index.mjs" : "index.js"),
     },
     emptyOutDir: false,
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ["vue"],
+      external: ["vue", "lodash-es", "d3-force"], // bundle mitt
       output: {
-        exports: "named",
+        // preserveModules: true,
+        // preserveModulesRoot: "src",
+        // entryFileNames: ({ name: fileName }) => {
+        //   return `${fileName}.js`;
+        // },
         dir: resolvePath("lib"),
-        // Provide global variables to use in the UMD build
-        // for externalized deps
-        globals: {
-          vue: "Vue",
-        },
       },
     },
     cssCodeSplit: false,
@@ -53,6 +55,10 @@ export default defineConfig({
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile,
     }),
-    visualizer({ filename: "stats-main.html" })
+    visualizer({
+      filename: "stats-es.html",
+      gzipSize: true,
+      brotliSize: true,
+    })
   ],
 })
