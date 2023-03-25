@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import chunk from "lodash-es/chunk"
-import { computed, onUpdated, watch } from "vue"
+import { chunk } from "lodash-es"
+import { computed } from "vue"
 import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
 import { PathState } from "@/models/path"

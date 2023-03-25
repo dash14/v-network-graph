@@ -1,4 +1,4 @@
-import merge from "lodash-es/merge"
+import { merge } from "lodash-es"
 import { reactive } from "vue"
 import { SimpleLayout } from "../layouts/simple"
 import { Config, Configs, NodeLabelDirection, UserConfigs, withSelf } from "./configs"

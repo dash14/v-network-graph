@@ -82,5 +82,7 @@
     },
     "./lib/*": "./lib/*"
   },
-  "sideEffects": ["*.css"]
+  "sideEffects": [
+    "*.css"
+  ]
 }
