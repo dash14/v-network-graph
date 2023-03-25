@@ -14,9 +14,9 @@ export default defineConfig({
     target: "es2015",
     lib: {
       formats: ["umd"],
-      entry: resolvePath("src/force-layout.ts"),
-      name: "v-network-graph",
-      fileName: () => "[name].js",
+      entry: resolvePath("src/force-layout.umd.ts"),
+      name: "VNetworkGraphForceLayout",
+      fileName: () => "force-layout.js",
     },
     emptyOutDir: false,
     rollupOptions: {

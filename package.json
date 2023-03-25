@@ -81,8 +81,5 @@
       "require": "./umd/force-layout.js"
     },
     "./lib/*": "./lib/*"
-  },
-  "sideEffects": [
-    "*.css"
-  ]
+  }
 }

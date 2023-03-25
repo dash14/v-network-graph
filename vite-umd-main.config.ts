@@ -14,9 +14,9 @@ export default defineConfig({
     target: "es2015",
     lib: {
       formats: ["umd"],
-      entry: resolvePath("src/index.ts"),
-      name: "v-network-graph",
-      fileName: () => "[name].js",
+      entry: resolvePath("src/index.umd.ts"),
+      name: "VNetworkGraph",
+      fileName: () => "index.js",
     },
     emptyOutDir: false,
     rollupOptions: {
