@@ -1,5 +1,5 @@
 import { computed, ComputedRef, Slots } from "vue"
-import uniq from "lodash-es/uniq"
+import { uniq } from "lodash-es"
 import { Configs } from "@/common/configs"
 import { LayerName } from "@/common/types"
 import { pairwise } from "@/modules/collection/iterate"

@@ -5,7 +5,7 @@
 //   Copyright © 2008-2013 Sencha Labs (http://sencha.com)
 //   Licensed under the MIT (http://dmitrybaranovskiy.github.io/raphael/license.html) license.
 
-import cloneDeep from "lodash-es/cloneDeep"
+import { cloneDeep } from "lodash-es"
 
 interface SubPaths {
   start: string

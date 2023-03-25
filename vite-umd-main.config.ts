@@ -1,9 +1,7 @@
 import path from "path"
 import { defineConfig } from "vite"
 import vue from "@vitejs/plugin-vue"
-import dts from "vite-plugin-dts"
-
-import { dtsBeforeWriteFile } from "./vite.config"
+import { visualizer } from "rollup-plugin-visualizer"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
@@ -15,18 +13,19 @@ export default defineConfig({
   build: {
     target: "es2015",
     lib: {
-      entry: resolvePath("src/force-layout.ts"),
-      name: "v-network-graph",
-      fileName: format => (format == "es" ? "force-layout.mjs" : "force-layout.js"),
+      formats: ["umd"],
+      entry: resolvePath("src/index.umd.ts"),
+      name: "VNetworkGraph",
+      fileName: () => "index.js",
     },
     emptyOutDir: false,
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ["vue"],
+      external: ["vue"], // bundle lodash-es, mitt
       output: {
         exports: "named",
-        dir: resolvePath("lib"),
+        dir: resolvePath("umd"),
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
@@ -34,16 +33,16 @@ export default defineConfig({
         },
       },
     },
+    cssCodeSplit: false,
     sourcemap: true,
   },
   publicDir: false,
   plugins: [
     vue(),
-    dts({
-      outputDir: resolvePath("lib"),
-      staticImport: true,
-      copyDtsFiles: false,
-      beforeWriteFile: dtsBeforeWriteFile
+    visualizer({
+      filename: "stats-umd-main.html",
+      gzipSize: true,
+      brotliSize: true,
     }),
   ],
 })

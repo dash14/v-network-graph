@@ -1,7 +1,5 @@
 import { inject, InjectionKey, provide, reactive, Ref, watch } from "vue"
-import merge from "lodash-es/merge"
-import mergeWith from "lodash-es/mergeWith"
-import isPlainObject from "lodash-es/isPlainObject"
+import { isPlainObject, merge, mergeWith } from "lodash-es"
 import { nonNull } from "@/common/common"
 import { Configs, UserConfigs } from "@/common/configs"
 import { getConfigDefaults } from "@/common/config-defaults"

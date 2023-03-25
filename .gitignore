@@ -1,6 +1,8 @@
 node_modules
 .DS_Store
-lib
+/lib
+/umd
 dist-ssr
 *.local
 /docs/.vitepress/dist
+/stats-*.html

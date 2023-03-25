@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import chunk from "lodash-es/chunk"
+import { chunk } from "lodash-es"
 import { StrokeStyle } from "@/common/configs"
 import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"

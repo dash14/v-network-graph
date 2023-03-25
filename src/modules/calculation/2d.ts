@@ -4,7 +4,6 @@ import V, { Vector2D } from "@/modules/vector2d"
 import * as PointUtils from "./point"
 import * as LineUtils from "./line"
 import { VectorLine } from "./line"
-import minBy from "lodash-es/minBy"
 
 // /**
 //  * Calculate whether a point is contained in a circle.

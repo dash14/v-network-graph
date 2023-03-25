@@ -1,4 +1,4 @@
-import isEqual from "lodash-es/isEqual"
+import { isEqual } from "lodash-es"
 
 export function keyOf<T extends object>(obj: T): (keyof T)[] {
   return Object.keys(obj) as Array<keyof T>
