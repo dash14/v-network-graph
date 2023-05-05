@@ -3,13 +3,10 @@
 
 An interactive SVG based network-graph visualization component for Vue 3.
 
-<p align="center">
-  <br>
-  <img
-    src="./public/logo@2x.png"
-    alt="the logo of v-network-graph" width="547"
-  />
-</p>
+<br/>
+
+![the logo of v-network-graph](./public/main-logo-light.svg#gh-light-mode-only)
+![the logo of v-network-graph](./public/main-logo-dark.svg#gh-dark-mode-only)
 
 [Live examples](https://dash14.github.io/v-network-graph/examples/)
 
