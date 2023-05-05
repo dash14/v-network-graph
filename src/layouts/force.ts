@@ -24,11 +24,13 @@ type CreateSimulationFunction = (
 export type ForceLayoutParameters = {
   positionFixedByDrag?: boolean
   positionFixedByClickWithAltKey?: boolean
+  noAutoRestartSimulation?: boolean
   createSimulation?: CreateSimulationFunction
 }
 
 export class ForceLayout implements LayoutHandler {
   private onDeactivate?: () => void
+  private onTick?: () => void
 
   constructor(private options: ForceLayoutParameters = {}) {}
 
@@ -43,27 +45,43 @@ export class ForceLayout implements LayoutHandler {
       nodeLayouts,
       this.forceLayoutEdges(edges.value, nodes.value)
     )
-    simulation.on("tick", () => {
+    this.onTick = () => {
       for (const node of nodeLayouts) {
         const layout = nodePositions.value?.[node.id]
         if (layout) {
-          layout.x = node.x ?? 0
-          layout.y = node.y ?? 0
+          const x = node.x ?? 0
+          const y = node.y ?? 0
+          if (layout.x !== x) layout.x = x
+          if (layout.y !== x) layout.y = y
         }
       }
-    })
+    }
+    simulation.on("tick", this.onTick)
+
+    // for ticked manually
+    this.onTick()
 
     const restartSimulation = () => {
-      simulation.alpha(0.1).restart()
+      if (!this.options.noAutoRestartSimulation) {
+        simulation.alpha(0.1).restart()
+      }
     }
 
     const onDrag: OnDragHandler = positions => {
-      for (const [id, pos] of Object.entries(positions)) {
-        const nodePos = nodeLayoutMap[id]
-        nodePos.fx = pos.x
-        nodePos.fy = pos.y
+      if (this.options.noAutoRestartSimulation) {
+        for (const [id, pos] of Object.entries(positions)) {
+          const nodePos = nodePositions.value?.[id]
+          nodePos.x = pos.x
+          nodePos.y = pos.y
+        }
+      } else {
+        for (const [id, pos] of Object.entries(positions)) {
+          const nodePos = nodeLayoutMap[id]
+          nodePos.fx = pos.x
+          nodePos.fy = pos.y
+        }
+        restartSimulation()
       }
-      restartSimulation()
     }
 
     const onDragEnd: OnDragHandler = positions => {
@@ -151,6 +169,12 @@ export class ForceLayout implements LayoutHandler {
   deactivate(): void {
     if (this.onDeactivate) {
       this.onDeactivate()
+    }
+  }
+
+  ticked(): void {
+    if (this.onTick) {
+      this.onTick()
     }
   }
 
