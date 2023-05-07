@@ -16,6 +16,7 @@ module.exports = {
   async viteFinal(config) {
     return {
       ...config,
+      define: { 'process.env': {} },
       resolve: {
         alias: [
           { find: "vue", replacement: "vue/dist/vue.esm-bundler.js" },
