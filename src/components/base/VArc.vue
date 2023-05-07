@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { CSSProperties, computed } from "vue"
 import { Position } from "@/common/types"
 import { StrokeStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
@@ -28,7 +28,7 @@ const animationSpeed = computed(() => {
   const speed = props.config.animate
     ? getDasharrayUnit(props.config.dasharray) * props.config.animationSpeed * scale.value
     : false
-  return speed ? `--animation-speed:${speed}` : undefined
+  return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
 })
 
 const pathD = computed(() => {

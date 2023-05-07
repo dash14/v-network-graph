@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { chunk } from "lodash-es"
-import { computed } from "vue"
+import { CSSProperties, computed } from "vue"
 import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
 import { PathState } from "@/models/path"
@@ -80,7 +80,7 @@ const animationSpeed = computed(() => {
   const speed = config.value.animate
     ? getDasharrayUnit(config.value.dasharray) * config.value.animationSpeed * scale.value
     : false
-  return speed ? `--animation-speed:${speed}` : undefined
+  return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
 })
 </script>
 

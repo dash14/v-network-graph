@@ -9,6 +9,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
+    "types": ["vue", "node"],
     "baseUrl": "./",
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,

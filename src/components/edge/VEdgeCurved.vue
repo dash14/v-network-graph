@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue"
+import { CSSProperties, computed } from "vue"
 import { chunk } from "lodash-es"
 import { StrokeStyle } from "@/common/configs"
 import { EdgeState } from "@/models/edge"
@@ -41,7 +41,7 @@ const animationSpeed = computed(() => {
   const speed = props.config.animate
     ? getDasharrayUnit(props.config.dasharray) * props.config.animationSpeed * scale.value
     : false
-  return speed ? `--animation-speed:${speed}` : undefined
+  return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
 })
 </script>
 
