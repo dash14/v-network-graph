@@ -20,7 +20,7 @@
     "package.json",
     "package-lock.json",
     ".prettierrc",
-    ".eslintrc.js"
+    ".eslintrc.cjs"
   ],
   "[javascript]": {
     "editor.tabSize": 2,

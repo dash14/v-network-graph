@@ -17,7 +17,7 @@
     "umd"
   ],
   "scripts": {
-    "lint": "eslint -c .eslintrc.js **/*.vue **/*.ts **/*.spec.ts --fix",
+    "lint": "eslint -c .eslintrc.cjs **/*.vue **/*.ts **/*.spec.ts --fix",
     "format": "prettier --write **/*.vue **/*.ts **/*.spec.ts",
     "build": "run-s clean build:tc build:lib",
     "build:tc": "vue-tsc --noEmit",
