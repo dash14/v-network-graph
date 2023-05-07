@@ -1,6 +1,6 @@
 import { Ref, toRef, watch } from "vue"
 import * as d3 from "d3-force"
-import { Edges, NodePositions, Nodes, Position } from "@/common/types"
+import { Edges, NodePositions, Nodes } from "@/common/types"
 import { OnClickHandler, OnDragHandler } from "@/common/types"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
 
@@ -35,24 +35,28 @@ export class ForceLayout implements LayoutHandler {
   constructor(private options: ForceLayoutParameters = {}) {}
 
   activate(parameters: LayoutActivateParameters): void {
-    const { nodePositions, nodes, edges, emitter, svgPanZoom } = parameters
-    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions, {
-      x: 0,
-      y: 0,
-    })
+    const { nodePositions, nodes, edges, emitter } = parameters
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions)
 
     const simulation = this.createSimulation(
       nodeLayouts,
       this.forceLayoutEdges(edges.value, nodes.value)
     )
+
     this.onTick = () => {
       for (const node of nodeLayouts) {
         const layout = nodePositions.value?.[node.id]
         if (layout) {
           const x = node.x ?? 0
           const y = node.y ?? 0
-          if (layout.x !== x) layout.x = x
-          if (layout.y !== x) layout.y = y
+          if (layout.x !== x || layout.y !== x) {
+            Object.assign(layout, { x, y })
+          }
+        } else {
+          nodePositions.value[node.id] = {
+            x: node.x ?? 0,
+            y: node.y ?? 0,
+          }
         }
       }
     }
@@ -136,12 +140,7 @@ export class ForceLayout implements LayoutHandler {
       ],
       () => {
         // set new node's position to center of the view
-        const area = svgPanZoom.getViewArea()
-        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(
-          nodes.value,
-          nodePositions,
-          area.center
-        ))
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {
@@ -170,12 +169,11 @@ export class ForceLayout implements LayoutHandler {
     if (this.onDeactivate) {
       this.onDeactivate()
     }
+    this.onTick = undefined
   }
 
   ticked(): void {
-    if (this.onTick) {
-      this.onTick()
-    }
+    this.onTick?.()
   }
 
   private createSimulation(
@@ -196,25 +194,19 @@ export class ForceLayout implements LayoutHandler {
     }
   }
 
-  private buildNodeLayouts(
-    nodes: Readonly<Nodes>,
-    nodePositions: Ref<NodePositions>,
-    newPosition: Position
-  ) {
+  private buildNodeLayouts(nodes: Readonly<Nodes>, nodePositions: Ref<NodePositions>) {
     const newNodes = Object.keys(nodes).filter(n => !(n in nodePositions.value))
-    for (const nodeId of newNodes) {
-      nodePositions.value[nodeId] = { ...newPosition }
-    }
-
-    const nodeLayouts = this.forceNodeLayouts(nodePositions.value)
+    const nodeLayouts = this.forceNodeLayouts(nodePositions.value, newNodes)
     const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
     return { nodeLayouts, nodeLayoutMap }
   }
 
-  private forceNodeLayouts(layouts: NodePositions): ForceNodeDatum[] {
-    return Object.entries(layouts).map(([id, v]) => {
+  private forceNodeLayouts(layouts: NodePositions, newNodes: string[]): ForceNodeDatum[] {
+    const data: ForceNodeDatum[] = Object.entries(layouts).map(([id, v]) => {
       return v.fixed ? { id, ...v, fx: v.x, fy: v.y } : { id, ...v }
     })
+    newNodes.map(id => ({ id })).forEach(n => data.push(n))
+    return data
   }
 
   private forceLayoutEdges(edges: Edges, nodes: Nodes): ForceEdgeDatum[] {
