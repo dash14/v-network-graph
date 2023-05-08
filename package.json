@@ -1,7 +1,7 @@
 {
   "name": "v-network-graph",
   "description": "An interactive network graph visualization component for Vue 3",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "main": "./umd/index.js",
   "module": "./lib/index.js",
   "types": "./lib/index.d.ts",
