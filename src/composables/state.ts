@@ -399,14 +399,14 @@ function createNewEdgeState(
     const edge = edges.value[id]
     if (!edge) return
 
-    const source = layouts.nodes[edge?.source]
-    const target = layouts.nodes[edge?.target]
-
     const sourceShape = nodeStates[edge.source]?.staticShape
     const targetShape = nodeStates[edge.target]?.staticShape
-    if (!source || !target || !sourceShape || !targetShape) {
+    if (!sourceShape || !targetShape) {
       return
     }
+
+    const source = layouts.nodes[edge?.source] ?? { x: 0, y: 0 }
+    const target = layouts.nodes[edge?.target] ?? { x: 0, y: 0 }
 
     // calculate the line segment between center of nodes
     const shiftedPosition = EdgeGroup.calculateEdgeShiftedPosition(

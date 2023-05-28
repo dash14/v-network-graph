@@ -135,11 +135,11 @@ export class ForceLayout implements LayoutHandler {
     const stopNetworkWatch = watch(
       () => [
         Object.keys(nodes.value),
+        Object.keys(nodePositions.value),
         // Watch only for changes in links, not all properties of the edge objects.
         Object.values(edges.value).map(e => `${e.source}=${e.target}`),
       ],
       () => {
-        // set new node's position to center of the view
         ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")

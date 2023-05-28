@@ -1,5 +1,5 @@
 import { Ref, toRef, watch } from "vue"
-import { round } from "lodash-es"
+import { isEqual, round } from "lodash-es"
 import { NodePositions, OnDragHandler, Position } from "@/common/types"
 import { getNodeSize, areNodesCollision } from "@/utils/visual"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
@@ -57,7 +57,12 @@ export class SimpleLayout implements LayoutHandler {
     }
 
     setNewNodePositions(Object.keys(nodes.value))
-    const stopNodeWatch = watch(() => Object.keys(nodes.value), setNewNodePositions)
+    const stopNodeWatch = watch(
+      () => isEqual(new Set(Object.keys(nodes.value)), new Set(Object.keys(nodePositions.value))),
+      (equality: boolean) => {
+        if (!equality) setNewNodePositions(Object.keys(nodes.value))
+      }
+    )
 
     emitter.on("node:dragstart", onDrag)
     emitter.on("node:pointermove", onDrag)
