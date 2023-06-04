@@ -42,3 +42,4 @@ If you'd like to join them, please consider sponsoring v-network-graph developme
 
 * [@EbnerMarkus49](https://twitter.com/EbnerMarkus49)
 * Adrien Ortola
+* hank.wang
