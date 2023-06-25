@@ -155,8 +155,8 @@ const { svgPanZoom, onSvgPanZoomMounted, onSvgPanZoomUnmounted } = useSvgPanZoom
   maxZoom: configs.view.maxZoomLevel, // temporary
   dblClickZoomEnabled: isDoubleClickZoomEnabled(configs.view),
   mouseWheelZoomEnabled: isMouseWheelZoomEnabled(configs.view),
-  fit: true,
-  center: true,
+  fit: configs.view.autoPanAndZoomOnLoad === "fit-content",
+  center: configs.view.autoPanAndZoomOnLoad !== false,
   zoomEnabled: configs.view.zoomEnabled,
   preventMouseEventsDefault: false,
   onZoom: _ => {
