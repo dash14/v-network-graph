@@ -21,6 +21,8 @@ import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/
 import { provideSelections } from "@/composables/selection"
 import { provideLayouts } from "@/composables/layout"
 import { useBuiltInLayerOrder } from "@/composables/layer"
+import { asyncNextTick } from "@/modules/vue/nextTick"
+import { isPromise } from "@/utils/object"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
@@ -153,8 +155,8 @@ const { svgPanZoom, onSvgPanZoomMounted, onSvgPanZoomUnmounted } = useSvgPanZoom
   maxZoom: configs.view.maxZoomLevel, // temporary
   dblClickZoomEnabled: isDoubleClickZoomEnabled(configs.view),
   mouseWheelZoomEnabled: isMouseWheelZoomEnabled(configs.view),
-  fit: true,
-  center: true,
+  fit: configs.view.autoPanAndZoomOnLoad === "fit-content",
+  center: configs.view.autoPanAndZoomOnLoad !== false,
   zoomEnabled: configs.view.zoomEnabled,
   preventMouseEventsDefault: false,
   onZoom: _ => {
@@ -259,30 +261,26 @@ onSvgPanZoomMounted(() => {
 
 // To resolve the problem that the center position and
 // magnification rate may not be recognized.
-const updateBorderBox = (callback: () => void) => {
+const updateBorderBox = async () => {
   if (Object.keys(props.nodes).length > 0) {
     svgPanZoom.value?.updateBBox()
-    nextTick(callback)
-  } else {
-    callback()
+    await asyncNextTick()
   }
 }
 
 // Scales the content to fit in the SVG area.
-const fitToContents = () => {
-  updateBorderBox(() => {
-    if (svgPanZoom.value) {
-      svgPanZoom.value.fitToContents()
-      emitter.emit("view:fit", undefined)
-    }
-  })
+const fitToContents = async () => {
+  await updateBorderBox()
+  if (svgPanZoom.value) {
+    svgPanZoom.value.fitToContents()
+    emitter.emit("view:fit", undefined)
+  }
 }
 
 // Place content in the center of the SVG area.
-const panToCenter = () => {
-  updateBorderBox(() => {
-    svgPanZoom.value?.center()
-  })
+const panToCenter = async () => {
+  await updateBorderBox()
+  svgPanZoom.value?.center()
 }
 
 // Get viewport box
@@ -438,50 +436,63 @@ const transitionStyles = computed(() => {
 // Events
 // -----------------------------------------------------------------------
 
-onSvgPanZoomMounted(() => {
-  updateBorderBox(() => {
-    // pan to center
-    const svg = nonNull(svgPanZoom.value, "svg-pan-zoom")
+onSvgPanZoomMounted(async () => {
+  // Wait promise for network loading
+  if (configs.view.onBeforeInitialDisplay) {
+    const promise = configs.view.onBeforeInitialDisplay()
+    if (isPromise(promise)) {
+      await promise
+    }
+  }
 
-    // activate layout handler.
-    // (calc the positions of nodes whose positions are not specified)
-    configs.view.layoutHandler.activate(activateParams())
+  // pan to center
+  const svg = nonNull(svgPanZoom.value, "svg-pan-zoom")
 
+  // activate layout handler.
+  // (calc the positions of nodes whose positions are not specified)
+  configs.view.layoutHandler.activate(activateParams())
+
+  // Wait for applying network/layout changes such as nodes, layouts, etc.
+  // by onBeforeInitialDisplay/LayoutHandler
+  await asyncNextTick()
+
+  const autoPanAndZoom = configs.view.autoPanAndZoomOnLoad
+  if (configs.view.fit || autoPanAndZoom !== false) {
+    const nodesEmpty = Object.keys(props.nodes).length == 0
+    const pan1 = svg.getPan()
+    if (nodesEmpty || autoPanAndZoom === "center-zero") {
+      await updateBorderBox()
+      // Pan (0, 0) to the center.
+      const sizes = svg.getSizes()
+      svg.pan({
+        x: sizes.width / 2,
+        y: sizes.height / 2,
+      })
+    } else if (autoPanAndZoom === "fit-content" || configs.view.fit) {
+      await fitToContents()
+    } else if (autoPanAndZoom === "center-content") {
+      await panToCenter()
+    } else {
+      await updateBorderBox()
+    }
+
+    // If the pan position does not change, the onPan event of svg-pan-zoom
+    // is not fired, but v-network-graph always fires the `view:pan` event
+    // when initialized.
     nextTick(() => {
-      const autoPanAndZoom = configs.view.autoPanAndZoomOnLoad
-      if (configs.view.fit || autoPanAndZoom !== false) {
-        const nodesEmpty = Object.keys(props.nodes).length == 0
-        const pan1 = svg.getPan()
-        if (nodesEmpty || autoPanAndZoom === "center-zero") {
-          // Pan (0, 0) to the center.
-          const sizes = svg.getSizes()
-          svg.pan({
-            x: sizes.width / 2,
-            y: sizes.height / 2,
-          })
-        } else if (autoPanAndZoom === "fit-content" || configs.view.fit) {
-          fitToContents()
-        } else if (autoPanAndZoom === "center-content") {
-          panToCenter()
-        }
-
-        // If the pan position does not change, the onPan event of svg-pan-zoom
-        // is not fired, but v-network-graph always fires the `view:pan` event
-        // when initialized.
-        nextTick(() => {
-          const pan2 = svg.getPan()
-          if (pan1.x === pan2.x && pan1.y === pan2.y) {
-            emitter.emit("view:pan", pan2)
-          }
-        })
+      const pan2 = svg.getPan()
+      if (pan1.x === pan2.x && pan1.y === pan2.y) {
+        emitter.emit("view:pan", pan2)
       }
-
-      emitter.emit("view:load")
-
-      // start displaying the svg
-      state.value = State.LOADED
     })
-  })
+  } else {
+    await updateBorderBox()
+  }
+
+  emitter.emit("view:load")
+
+  // start displaying the svg
+  state.value = State.LOADED
 })
 
 onSvgPanZoomUnmounted(() => {
@@ -824,6 +835,21 @@ function stopEventPropagation(event: Event) {
   cursor: crosshair !important;
   * {
     cursor: crosshair !important;
+  }
+}
+
+// Disable transitions before initialization is completed
+.v-ng-canvas:not(.show) {
+  .v-ng-node,
+  .v-ng-node-label,
+  .v-ng-node-focusring,
+  .v-ng-edge,
+  .v-ng-edge-label,
+  .v-ng-path {
+    transition: none;
+    > * {
+      transition: none;
+    }
   }
 }
 

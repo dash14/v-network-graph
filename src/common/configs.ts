@@ -67,6 +67,7 @@ export interface ViewConfig {
     detector: (event: KeyboardEvent) => boolean
   }
   builtInLayerOrder: Readonly<LayerName[]>
+  onBeforeInitialDisplay?: (() => Promise<any>) | (() => any)
 }
 
 /* Shape style */

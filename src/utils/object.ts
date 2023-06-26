@@ -18,3 +18,7 @@ export function updateObjectDiff<T extends Record<string, any>>(target: T, from:
   })
   keys.forEach(k => delete target[k])
 }
+
+export function isPromise(obj: any): boolean {
+  return obj instanceof Promise || (obj && typeof obj.then === 'function')
+}

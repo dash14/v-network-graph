@@ -51,6 +51,7 @@ export function getConfigDefaults(): Configs {
         },
       },
       builtInLayerOrder: [],
+      onBeforeInitialDisplay: undefined,
     },
     node: withSelf(self => ({
       normal: {
