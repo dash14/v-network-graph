@@ -1,5 +1,5 @@
 import { ComputedRef, Ref, UnwrapRef , WatchStopHandle } from "vue"
-import { MarkerStyle , StrokeStyle } from "@/common/configs"
+import { EdgeLabelStyle, MarkerStyle , StrokeStyle } from "@/common/configs"
 import { Edge, Edges , LinePosition, Position } from "@/common/types"
 import { Vector2D } from "@/modules/vector2d"
 
@@ -49,6 +49,7 @@ export interface Arc {
 export interface EdgeStateDatum {
   id: string
   line: Ref<Line>
+  label: ComputedRef<EdgeLabelStyle>
   selectable: ComputedRef<boolean | number>
   selected: boolean
   hovered: boolean

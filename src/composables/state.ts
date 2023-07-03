@@ -360,6 +360,11 @@ function createNewEdgeState(
     position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
   })
 
+  state.label = computed(() => {
+    if (!edges.value[id]) return unref(state.label) // Return the previous value
+    return Config.values(config.label, edges.value[id])
+  })
+
   const line = computed<EdgeModel.Line>(() => {
     const edge = edges.value[id]
     const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)

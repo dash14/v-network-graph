@@ -47,7 +47,6 @@ function getRepresentativeEdgeKey(group: EdgeGroup) {
           <v-edge-label-place
             :edge-id="edgeId"
             :edge="edge"
-            :config="edgeConfig.label"
             :state="edgeStates[edgeId]"
           >
             <template #default="slotProps">
@@ -61,7 +60,6 @@ function getRepresentativeEdgeKey(group: EdgeGroup) {
       <template v-for="(group, id) in edgeGroups.summarized" :key="id">
         <v-edge-labels-place
           :edges="group.edges"
-          :config="edgeConfig.label"
           :state="edgeStates[getRepresentativeEdgeKey(group)]"
           :summarize-state="summarizedEdgeStates[getRepresentativeEdgeKey(group)]"
         >

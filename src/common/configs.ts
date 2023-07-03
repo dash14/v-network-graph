@@ -274,7 +274,7 @@ export interface EdgeConfig<E extends Edge = Edge> {
   }
   selfLoop: CallableValues<SelfLoopEdgeStyle, E>
   keepOrder: EdgeKeepOrderType
-  label: EdgeLabelStyle
+  label: CallableValues<EdgeLabelStyle, E>
   zOrder: ZOrderConfig<E>
 }
 
