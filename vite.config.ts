@@ -50,7 +50,7 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      outputDir: resolvePath("lib"),
+      outDir: resolvePath("lib"),
       staticImport: true,
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile,
