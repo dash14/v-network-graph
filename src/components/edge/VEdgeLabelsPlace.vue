@@ -7,7 +7,6 @@
 -->
 <script setup lang="ts">
 import { computed } from "vue"
-import { EdgeLabelStyle } from "@/common/configs"
 import { Edges } from "@/common/types"
 import { EdgeState, SummarizedEdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
@@ -15,7 +14,6 @@ import * as v2d from "@/modules/calculation/2d"
 
 interface Props {
   edges: Edges
-  config: EdgeLabelStyle
   state: EdgeState
   summarizeState?: SummarizedEdgeState
 }
@@ -27,8 +25,8 @@ const area = computed(() => {
   return v2d.calculateEdgeLabelArea(
     props.state.labelPosition,
     props.summarizeState?.stroke ?? props.state.line.stroke,
-    props.config.margin,
-    props.config.padding,
+    props.state.label.margin,
+    props.state.label.padding,
     scale.value
   )
 })
@@ -37,7 +35,7 @@ const area = computed(() => {
   <slot
     v-if="!state.loop"
     :edges="edges"
-    :config="config"
+    :config="state.label"
     :area="area"
     :hovered="state.hovered"
     :selected="state.selected"
