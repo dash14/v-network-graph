@@ -492,7 +492,7 @@ function createNewEdgeState(
 
     // calculate the line segments to be displayed with margins applied
     const type = config.type
-    if (type === "straight") {
+    if (type === "straight" || isEdgeSummarized.value) {
       state.origin = shiftedPosition
       state.curve = undefined
       if (sourceMargin === 0 && targetMargin === 0) {
