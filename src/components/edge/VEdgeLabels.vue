@@ -2,7 +2,6 @@
 import { computed } from "vue"
 import { EdgeGroup } from "@/models/edge"
 import { useStates } from "@/composables/state"
-import { useEdgeConfig } from "@/composables/config"
 import VEdgeLabelPlace from "./VEdgeLabelPlace.vue"
 import VEdgeLabelsPlace from "./VEdgeLabelsPlace.vue"
 
@@ -16,7 +15,6 @@ withDefaults(defineProps<Props>(), {
   enableEdgesLabel: false,
 })
 
-const edgeConfig = useEdgeConfig()
 const { edgeStates, edgeGroupStates, summarizedEdgeStates } = useStates()
 
 const edgeGroups = computed(() => {

@@ -1,7 +1,7 @@
 <template>
   <defs>
     <component :is="'style'">
-      <slot></slot>
+      <slot />
     </component>
   </defs>
 </template>
