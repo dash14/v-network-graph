@@ -15,7 +15,6 @@ const {
   handlePathDoubleClickEvent,
   handlePathContextMenu,
 } = useMouseOperation()
-
 </script>
 
 <template>

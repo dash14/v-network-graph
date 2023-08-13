@@ -18,7 +18,10 @@ describe("pairwise", () => {
     pairwise(target, (p1, p2) => result.push([p1, p2]))
     it("should call twice", () => {
       expect(2).to.be.equal(result.length)
-      expect([["abc", "def"], ["def", "ghi"]]).to.be.eql(result)
+      expect([
+        ["abc", "def"],
+        ["def", "ghi"],
+      ]).to.be.eql(result)
     })
   })
 

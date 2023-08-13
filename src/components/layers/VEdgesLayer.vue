@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useSlots } from 'vue';
+import { computed, useSlots } from "vue"
 
 import VEdgeBackgrounds from "../edge/VEdgeBackgrounds.vue"
 import VEdgeGroups from "../edge/VEdgeGroups.vue"

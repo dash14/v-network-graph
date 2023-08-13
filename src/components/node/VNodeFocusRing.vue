@@ -83,7 +83,11 @@ $transition: 0.1s linear;
   transition: r $transition;
 }
 :where(.v-ng-shape-rect) {
-  transition: x $transition, y $transition, width $transition, height $transition;
+  transition:
+    x $transition,
+    y $transition,
+    width $transition,
+    height $transition;
 }
 :where(.dragging .v-ng-shape-circle),
 :where(.dragging .v-ng-shape-rect) {

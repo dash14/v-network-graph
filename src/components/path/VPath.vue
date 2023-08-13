@@ -108,7 +108,9 @@ $transition: 0.1s linear;
 
 .v-path {
   pointer-events: none;
-  transition: stroke $transition, stroke-width $transition;
+  transition:
+    stroke $transition,
+    stroke-width $transition;
 
   &.clickable {
     pointer-events: stroke;

@@ -11,7 +11,6 @@ const { nodeZOrderedList } = useStates()
 
 const configs = useNodeConfig()
 const layouts = useLayouts()
-
 </script>
 
 <template>

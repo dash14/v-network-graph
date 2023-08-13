@@ -66,11 +66,21 @@ $transition: 0.1s linear;
 
 .v-ng-node {
   :where(.v-ng-shape-circle) {
-    transition: fill $transition, stroke $transition, stroke-width $transition, r $transition;
+    transition:
+      fill $transition,
+      stroke $transition,
+      stroke-width $transition,
+      r $transition;
   }
   :where(.v-ng-shape-rect) {
-    transition: fill $transition, stroke $transition, stroke-width $transition, x $transition,
-      y $transition, width $transition, height $transition;
+    transition:
+      fill $transition,
+      stroke $transition,
+      stroke-width $transition,
+      x $transition,
+      y $transition,
+      width $transition,
+      height $transition;
   }
 
   :where(.v-ng-node-default.v-ng-shape-circle) {

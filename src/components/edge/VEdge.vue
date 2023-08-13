@@ -60,7 +60,9 @@ const config = useEdgeConfig()
 $transition: 0.1s linear;
 
 .v-ng-edge {
-  transition: stroke $transition, stroke-width $transition;
+  transition:
+    stroke $transition,
+    stroke-width $transition;
   pointer-events: none;
 }
 </style>

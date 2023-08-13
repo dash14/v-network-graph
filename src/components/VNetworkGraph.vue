@@ -109,15 +109,18 @@ const layerDefs = computed(() => {
   const layers = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
   Object.assign(
     layers,
-    Object.entries(props.layers).reduce((accum, [name, type]) => {
-      definedSlots.delete(name)
-      if (type in accum) {
-        accum[type].push(name)
-      } else {
-        accum[type] = [name]
-      }
-      return accum
-    }, {} as Record<LayerPosition, string[]>)
+    Object.entries(props.layers).reduce(
+      (accum, [name, type]) => {
+        definedSlots.delete(name)
+        if (type in accum) {
+          accum[type].push(name)
+        } else {
+          accum[type] = [name]
+        }
+        return accum
+      },
+      {} as Record<LayerPosition, string[]>
+    )
   )
   // The default slot and any slots not defined in the layers into root.
   layers["root"].push(...definedSlots)

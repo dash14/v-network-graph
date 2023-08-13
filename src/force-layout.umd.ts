@@ -7,5 +7,5 @@ if ((globalThis as any)["VNetworkGraph"]) {
 }
 
 export default {
-  ForceLayout
+  ForceLayout,
 }

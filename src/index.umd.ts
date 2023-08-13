@@ -1,2 +1,2 @@
-export { default as install } from './index';
-export * from './index'
+export { default as install } from "./index"
+export * from "./index"
