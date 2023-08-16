@@ -234,6 +234,7 @@ export interface MarkerStyle {
   width: number
   height: number
   margin: number
+  offset: number
   units: MarkerUnits
   color: string | null
   customId?: string

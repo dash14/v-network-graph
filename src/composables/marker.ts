@@ -97,5 +97,5 @@ function buildKey(m: HeadMarker, instanceId: number) {
   const c = convertToAscii(m.color)
   const d = m.isSource ? "L" : "R"
   const u = m.units === "strokeWidth" ? "rel" : "abs"
-  return `marker_${instanceId}_${m.type}_${m.width}_${m.height}_${m.margin}_${c}_${d}_${u}`
+  return `marker_${instanceId}_${m.type}_${m.width}_${m.height}_${m.margin}_${m.offset}_${c}_${d}_${u}`
 }

@@ -32,6 +32,11 @@ const refX = computed(() => {
   const margin = props.marker.margin * (props.marker.units === "strokeWidth" ? 1 : props.scale)
   return props.marker.isSource ? width.value + margin : -margin
 })
+
+const refYOffset = computed(() => {
+  const offset = props.marker.offset * (props.marker.units === "strokeWidth" ? 1 : props.scale)
+  return props.marker.isSource ? offset : -offset
+})
 </script>
 
 <template>
@@ -41,7 +46,7 @@ const refX = computed(() => {
     :markerWidth="width"
     :markerHeight="height"
     :refX="refX"
-    :refY="height / 2"
+    :refY="height / 2 + refYOffset"
     orient="auto"
     :markerUnits="marker.units"
     class="v-ng-marker"

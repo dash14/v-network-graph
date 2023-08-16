@@ -78,6 +78,7 @@ const NONE_MARKER: MarkerStyle = {
   width: 0,
   height: 0,
   margin: 0,
+  offset: 0,
   units: "strokeWidth",
   color: null,
 }
