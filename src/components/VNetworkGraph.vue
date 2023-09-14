@@ -728,7 +728,7 @@ function stopEventPropagation(event: Event) {
           <!-- Edges -->
           <template v-if="layerName === 'edges'">
             <v-edges-layer>
-              <template #edge-overlay="slotProps">
+              <template v-if="'edge-overlay' in slots" #edge-overlay="slotProps">
                 <slot name="edge-overlay" v-bind="slotProps" />
               </template>
             </v-edges-layer>
