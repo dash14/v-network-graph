@@ -1,4 +1,4 @@
-import { ComputedRef, UnwrapRef } from "vue"
+import { ComputedRef, UnwrapRef, WatchStopHandle } from "vue"
 import { Edge, Path } from "@/common/types"
 import { VectorLine } from "@/modules/calculation/line"
 import { Arc, Curve } from "@/models/edge"
@@ -18,7 +18,9 @@ export interface PathStateDatum {
   clickable: ComputedRef<boolean>
   hoverable: ComputedRef<boolean>
   path: Path
-  edges: ComputedRef<EdgeObject[]>
+  edges: EdgeObject[]
+  directions: boolean[]
+  stopWatchHandle: WatchStopHandle
 }
 
 export type PathState = UnwrapRef<PathStateDatum>

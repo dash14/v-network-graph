@@ -30,7 +30,7 @@ export function calculatePathPoints(
   const edges = path.edges
 
   // Edge ID list -> List of Edge locations
-  const directions = _detectDirectionsOfPathEdges(edges) // true: forward, false: reverse
+  const directions = path.directions // true: forward, false: reverse
   const edgePos = edges.map((edge, i) => _getEdgeLine(edge, directions[i], edgeStates[edge.edgeId]))
 
   // the results
@@ -279,12 +279,10 @@ export function calculatePathPoints(
   return points
 }
 
-function _detectDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
+export function calculateDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
   const length = edges.length
-
-  if (length <= 1) {
-    return [true]
-  }
+  if (length === 0) return []
+  if (length <= 1) return [true]
 
   const directions: boolean[] = [] // true: forward, false: reverse
   let lastNode: string | null = null
@@ -296,25 +294,17 @@ function _detectDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
       if (length > 2) {
         // If the next edge is an edge between the same nodes,
         // check for more next edges.
-        const edge0 = [source, target].sort()
-        const edge1 = [edges[1].edge.source, edges[1].edge.target].sort()
-        if (edge0[0] === edge1[0] && edge0[1] === edge1[1]) {
-          const next = [edges[2].edge.source, edges[2].edge.target]
-          if (next.includes(edges[1].edge.target)) {
-            // edge1 is forward
-            isForward = target === edges[1].edge.source
-          } else {
-            // edge1 is reverse
-            isForward = target === edges[1].edge.target
-          }
+        const joint = _getJointNode(edges, 0)
+        if (joint === null) {
+          isForward = true
         } else {
-          isForward = [edges[1].edge.source, edges[1].edge.target].includes(target)
+          isForward = joint === target
         }
       } else {
         isForward = [edges[1].edge.source, edges[1].edge.target].includes(target)
       }
     } else if (source === target) {
-      // do nothing: use same as previous value
+      isForward = true // loop edge direction is always true
     } else {
       isForward = lastNode === source
     }
@@ -323,6 +313,41 @@ function _detectDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
   }
 
   return directions
+}
+
+function _getJointNode(edges: EdgeObject[], index: number): string | null {
+  const edgeObject0 = edges[index]
+  const edgeObject1 = edges[index + 1]
+  const currentEdge = [edgeObject0.edge.source, edgeObject0.edge.target].sort()
+  const nextEdge = [edgeObject1.edge.source, edgeObject1.edge.target].sort()
+
+  if (currentEdge[0] === currentEdge[1]) {
+    // current edge is looped
+    return currentEdge[0]
+  }
+
+  if (nextEdge[0] === nextEdge[1]) {
+    // next edge is looped
+    return nextEdge[0]
+  }
+
+  if (edgeObject0.edgeId === edgeObject1.edgeId || (currentEdge[0] === nextEdge[0] && currentEdge[1] === nextEdge[1])) {
+    // both edges are between same nodes
+    if (index >= edges.length - 2) {
+      // cannot be determined.
+      return null;
+    } else {
+      // check with next edge
+      const joint = _getJointNode(edges, index + 1)
+      if (joint === null) {
+        return null;
+      } else {
+        return joint === currentEdge[1] ? currentEdge[0] : currentEdge[1];
+      }
+    }
+  } else {
+    return nextEdge.includes(currentEdge[1]) ? currentEdge[1] : currentEdge[0]
+  }
 }
 
 function _calculateEdgeOfNode(
@@ -504,7 +529,7 @@ function _makeArcString(
   let [end1, end2] = ends ? ends.reverse() : [edge.line.source, edge.line.target]
   const isClockwise = _isForward(edge)
   if (!isClockwise) {
-    ;[end1, end2] = [end2, end1]
+    [end1, end2] = [end2, end1]
   }
   const p1 = end1
   const p2 = end2

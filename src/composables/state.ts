@@ -4,7 +4,14 @@ import { computed, ComputedRef, reactive, ref, Ref, toRef, unref } from "vue"
 import { watch, watchEffect } from "vue"
 import { inject, InjectionKey, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
-import { Config, Configs, EdgeConfig, MarkerStyle, NodeConfig, OppositeNode } from "@/common/configs"
+import {
+  Config,
+  Configs,
+  EdgeConfig,
+  MarkerStyle,
+  NodeConfig,
+  OppositeNode,
+} from "@/common/configs"
 import { StrokeStyle, ShapeStyle, SelfLoopEdgeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { LinePosition, Position } from "@/common/types"
@@ -22,6 +29,7 @@ import { Vector2D } from "@/modules/vector2d"
 import * as V2D from "@/modules/vector2d"
 import { Point2D } from "@/modules/vector2d/core"
 import { updateObjectDiff } from "@/utils/object"
+import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
 import { useObjectState } from "./objectState"
 import { MarkerState, useMarker } from "./marker"
 
@@ -221,12 +229,19 @@ export function provideStates(
       })
 
       state.path = paths.value[id]
-      state.edges = computed(() => {
-        const path = paths.value[id]
-        return path.edges
-          .map(edgeId => ({ edgeId, edge: edges.objects.value[edgeId] }))
-          .filter(e => e.edge)
-      })
+      state.edges = toEdgeObjects(state.path, edges)
+      state.directions = calculateDirectionsOfPathEdges(state.edges)
+
+      state.stopWatchHandle = watch(
+        () => paths.value[id].edges,
+        () => {
+          state.edges = toEdgeObjects(state.path, edges)
+          state.directions = calculateDirectionsOfPathEdges(state.edges)
+        }
+      )
+    },
+    (_, state) => {
+      state.stopWatchHandle?.()
     }
   )
 
@@ -314,12 +329,15 @@ function createNewNodeState(
   state.oppositeNodeIds = toRef(oppositeNodeIds, id)
 
   state.oppositeNodes = computed<Record<string, OppositeNode>>(() => {
-    return Object.entries(state.oppositeNodeIds).reduce((nodes, entry) => {
-      const [edgeId, nodeId] = entry as [string, string]
-      const pos = layouts.nodes[nodeId]
-      if (pos) nodes[edgeId] = { nodeId, pos: { ...pos } }
-      return nodes
-    }, {} as Record<string, OppositeNode>)
+    return Object.entries(state.oppositeNodeIds).reduce(
+      (nodes, entry) => {
+        const [edgeId, nodeId] = entry as [string, string]
+        const pos = layouts.nodes[nodeId]
+        if (pos) nodes[edgeId] = { nodeId, pos: { ...pos } }
+        return nodes
+      },
+      {} as Record<string, OppositeNode>
+    )
   })
 }
 
@@ -771,4 +789,10 @@ function createSummarizedEdgeStates(
       delete summarizedEdgeStates[id]
     }
   })
+}
+
+function toEdgeObjects(path: Path, edges: InputObjects<Edges>) {
+  return path.edges
+    .map(edgeId => ({ edgeId, edge: edges.objects.value[edgeId] }))
+    .filter(e => e.edge)
 }
