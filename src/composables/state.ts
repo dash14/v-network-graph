@@ -621,7 +621,9 @@ function calculateCurvePositionAndState(
   let position: LinePosition
   let curve: EdgeModel.Curve | undefined = undefined
 
-  if (shift === 0) {
+  if (radius === 0) {
+    return [originPosition, curve]
+  } else if (shift === 0) {
     // The line connecting the centers of the nodes is regarded as a straight line.
     if (sourceMargin === 0 && targetMargin === 0) {
       position = originPosition

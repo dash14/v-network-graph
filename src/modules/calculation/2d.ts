@@ -298,6 +298,11 @@ export function calculateCircleCenterAndRadiusBy3Points(
   const x32 = x3 - x2
   const y32 = y3 - y2
 
+  if ((x12 === 0 && y12 === 0) || (x32 === 0 && y32 === 0)) {
+    // Cannot determine the curve if two or more of the three points are in the same position.
+    return [p1, 0];
+  }
+
   const x =
     (y32 * (x12 * (x1 + x2) + y12 * (y1 + y2)) - y12 * (x32 * (x3 + x2) + y32 * (y3 + y2))) /
     (2 * x12 * y32 - 2 * y12 * x32)
