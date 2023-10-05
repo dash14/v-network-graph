@@ -26,9 +26,7 @@
     "build:lib:main": "vite --config vite-umd-main.config.ts build",
     "build:lib:force": "vite --config vite-umd-force.config.ts build",
     "clean": "rimraf lib umd",
-    "test": "vitest",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "test": "vitest"
   },
   "dependencies": {
     "@dash14/svg-pan-zoom": "^3.6.9",
@@ -37,12 +35,6 @@
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
-    "@storybook/addon-essentials": "^7.1.1",
-    "@storybook/addon-interactions": "^7.1.1",
-    "@storybook/addon-links": "^7.1.1",
-    "@storybook/testing-library": "^0.2.0",
-    "@storybook/vue3": "^7.1.1",
-    "@storybook/vue3-vite": "^7.1.1",
     "@types/d3-force": "^3.0.6",
     "@types/lodash-es": "^4.17.9",
     "@types/node": "^20.8.0",
@@ -60,7 +52,6 @@
     "rimraf": "^5.0.5",
     "rollup-plugin-visualizer": "^5.9.2",
     "sass": "^1.68.0",
-    "storybook": "^7.1.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.9",
     "vite-plugin-dts": "^3.6.0",
