@@ -29,6 +29,13 @@ export interface IdentifiedObject {
   id: string
 }
 
+export interface Box {
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
 /* ------------------------------------------ *
  * Network graph elements
  * ------------------------------------------ */
@@ -207,13 +214,15 @@ export interface Point {
   y: number
 }
 
+export interface ViewBox {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface Sizes {
   width: number
   height: number
-  viewBox: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
+  viewBox: ViewBox
 }
