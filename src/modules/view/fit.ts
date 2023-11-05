@@ -1,10 +1,88 @@
 import { Point } from "@dash14/svg-pan-zoom"
 import { Box, NodePositions, Size, ViewBox } from "@/common/types"
 import { getNodesBox } from "@/modules/node/node"
+import { FitContentMargin, MarginValue } from "@/index.umd"
 
 interface ZoomAt {
   zoom: number
   pos: Point
+}
+
+const NUMERIC_PATTERN = new RegExp("^\\d+$")
+
+export function parseFitContentMargin(fitContentMargin: FitContentMargin, container: Size): Box {
+  let margins = { top: 0, left: 0, right: 0, bottom: 0 }
+  if (typeof fitContentMargin === "string") {
+    const x = parseFitContentMarginValue(fitContentMargin, container.width)
+    const y = parseFitContentMarginValue(fitContentMargin, container.height)
+    if (x === undefined || y === undefined) {
+      console.warn("Invalid `fitContentMargin` value.", fitContentMargin)
+    } else {
+      margins = { top: y, left: x, right: x, bottom: y }
+    }
+  } else if (typeof fitContentMargin === "number") {
+    const v = fitContentMargin
+    margins = { top: v, left: v, right: v, bottom: v }
+  } else {
+    if (fitContentMargin.top) {
+      const top = parseFitContentMarginValue(fitContentMargin.top, container.height)
+      if (top === undefined) {
+        console.warn("Invalid `fitContentMargin` value.", fitContentMargin.top)
+      } else {
+        margins.top = top
+      }
+    }
+
+    if (fitContentMargin.left) {
+      const left = parseFitContentMarginValue(fitContentMargin.left, container.width)
+      if (left === undefined) {
+        console.warn("Invalid `fitContentMargin` value.", fitContentMargin.left)
+      } else {
+        margins.left = left
+      }
+    }
+
+    if (fitContentMargin.right) {
+      const right = parseFitContentMarginValue(fitContentMargin.right, container.width)
+      if (right === undefined) {
+        console.warn("Invalid `fitContentMargin` value.", fitContentMargin.right)
+      } else {
+        margins.right = right
+      }
+    }
+
+    if (fitContentMargin.bottom) {
+      const bottom = parseFitContentMarginValue(fitContentMargin.bottom, container.height)
+      if (bottom === undefined) {
+        console.warn("Invalid `fitContentMargin` value.", fitContentMargin.bottom)
+      } else {
+        margins.bottom = bottom
+      }
+    }
+  }
+  return margins
+}
+
+function parseFitContentMarginValue(
+  marginValue: MarginValue,
+  baseSize: number
+): number | undefined {
+  if (typeof marginValue === "string") {
+    if (marginValue.endsWith("%")) {
+      const value = parseInt(marginValue.toString())
+      if (Number.isFinite(value)) {
+        return baseSize * (value / 100.0)
+      }
+    } else if (marginValue.endsWith("px") || NUMERIC_PATTERN.test(marginValue)) {
+      const value = parseInt(marginValue.toString())
+      if (Number.isFinite(value)) {
+        return value
+      }
+    }
+  } else if (typeof marginValue === "number") {
+    return marginValue
+  }
+  return undefined
 }
 
 export function calcFit(

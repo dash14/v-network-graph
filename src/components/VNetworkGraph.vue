@@ -3,7 +3,7 @@ import { readonly, ref, toRef, useSlots, computed, nextTick, watch, CSSPropertie
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
-import { UserConfigs, ViewConfig } from "@/common/configs"
+import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { provideContainers } from "@/composables/container"
 import { provideConfigs } from "@/composables/config"
 import { provideStates, makeStateInput } from "@/composables/state"
@@ -23,6 +23,7 @@ import { provideLayouts } from "@/composables/layout"
 import { useBuiltInLayerOrder } from "@/composables/layer"
 import { asyncNextTick } from "@/modules/vue/nextTick"
 import { isPromise } from "@/utils/object"
+import { calcFit, parseFitContentMargin } from "@/modules/view/fit"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
@@ -272,12 +273,32 @@ const updateBorderBox = async () => {
 }
 
 // Scales the content to fit in the SVG area.
-const fitToContents = async () => {
-  await updateBorderBox()
-  if (svgPanZoom.value) {
-    svgPanZoom.value.fitToContents()
-    emitter.emit("view:fit", undefined)
+const fitToContents = async (fitContentMargin?: FitContentMargin) => {
+  if (fitContentMargin === undefined) {
+    fitContentMargin = configs.view.fitContentMargin
   }
+  await updateBorderBox()
+
+  const rect = nonNull(svg.value).getBoundingClientRect()
+  const margins = parseFitContentMargin(fitContentMargin, rect)
+
+  const viewportBox = nonNull(viewport.value).getBBox()
+  const result = calcFit(
+    viewportBox,
+    rect,
+    currentLayouts.nodes,
+    zoomLevel.value,
+    margins,
+    configs.view.scalingObjects
+  )
+
+  if (result) {
+    applyAbsoluteZoomLevel(result.zoom)
+    svgPanZoom.value?.pan(result.pos)
+  } else {
+    svgPanZoom.value?.center()
+  }
+  emitter.emit("view:fit", undefined)
 }
 
 // Place content in the center of the SVG area.

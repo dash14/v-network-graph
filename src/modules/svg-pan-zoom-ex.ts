@@ -13,7 +13,6 @@ interface ViewArea {
 }
 
 export interface SvgPanZoomInstance extends SvgPanZoom.Instance {
-  fitToContents(): SvgPanZoomInstance
   getViewArea(): ViewArea
   getViewBox(): Box
   setViewBox(box: Box): void
@@ -50,13 +49,6 @@ export interface SvgPanZoomInternal extends SvgPanZoomInstance {
 }
 
 const methods: Partial<SvgPanZoomInternal> = {
-  fitToContents(this: SvgPanZoomInternal) {
-    this.fit()
-      .center()
-      .zoomOut() // Zoom out two steps.
-      .zoomOut()
-    return this
-  },
   getViewArea(this: SvgPanZoomInternal) {
     const sizes = this.getSizes()
     const pan = this.getPan()

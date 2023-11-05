@@ -20,6 +20,7 @@ export function getConfigDefaults(): Configs {
       mouseWheelZoomEnabled: true,
       boxSelectionEnabled: false,
       autoPanAndZoomOnLoad: "center-content",
+      fitContentMargin: "10%",
       autoPanOnResize: true,
       layoutHandler: new SimpleLayout(),
       onSvgPanZoomInitialized: undefined,
