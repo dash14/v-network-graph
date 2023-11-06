@@ -115,19 +115,18 @@ function calcFitWithScalingObjects(
   const marginY = margins.top + margins.bottom
   const targetW = container.width - marginX
   const targetH = container.height - marginY
-  const fixedX = viewport.width * zoomLevel
-  const fixedY = viewport.height * zoomLevel
 
-  const zooms = [targetW / fixedX, targetH / fixedY]
+  const zooms = [targetW / viewport.width, targetH / viewport.height]
   const availableZooms = zooms.filter(z => z > 0)
   if (availableZooms.length > 0) {
     const zoom = Math.min(...availableZooms)
-    const width = fixedX * zoom
-    const height = fixedY * zoom
+    const width = viewport.width * zoom
+    const height = viewport.height * zoom
     const offsetX = (targetW - width) / 2
     const offsetY = (targetH - height) / 2
-    const left = viewport.x * zoom + margins.left
-    const top = viewport.y * zoom + margins.top
+
+    const left = viewport.x * zoom - margins.left
+    const top = viewport.y * zoom - margins.top
     return {
       zoom,
       pos: {
