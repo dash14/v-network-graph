@@ -273,10 +273,10 @@ const updateBorderBox = async () => {
 }
 
 // Scales the content to fit in the SVG area.
-const fitToContents = async (fitContentMargin?: FitContentMargin) => {
-  if (fitContentMargin === undefined) {
-    fitContentMargin = configs.view.fitContentMargin
-  }
+const fitToContents = async (options?: { margin?: FitContentMargin }) => {
+  const fitContentMargin =
+    !options || options.margin === undefined ? configs.view.fitContentMargin : options.margin
+
   await updateBorderBox()
 
   const rect = nonNull(svg.value).getBoundingClientRect()
