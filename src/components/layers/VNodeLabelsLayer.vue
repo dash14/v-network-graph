@@ -28,7 +28,7 @@ function onlyHasDisplayLabel(nodeZOrderedList: NodeState[]): NodeState[] {
       :name="configs.transition"
       :css="!!configs.transition"
       tag="g"
-      class="v-ng-layer-node-labels"
+      class="v-ng-layer-node-labels v-ng-graph-objects"
     >
       <v-node-label
         v-for="nodeState in nodeStates"
@@ -49,7 +49,7 @@ function onlyHasDisplayLabel(nodeZOrderedList: NodeState[]): NodeState[] {
       :name="configs.transition"
       :css="!!configs.transition"
       tag="g"
-      class="v-ng-layer-node-labels"
+      class="v-ng-layer-node-labels v-ng-graph-objects"
     >
       <v-node-label
         v-for="nodeState in nodeStates"

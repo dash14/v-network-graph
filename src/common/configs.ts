@@ -47,6 +47,17 @@ export interface BasicShapeStyle {
   color: string
 }
 
+type Percent = `${number}%`;
+type Pixel = `${number}px`;
+type NumericString = `${number}`
+export type MarginValue = Percent | Pixel | NumericString | number
+export type FitContentMargin = MarginValue | {
+  top?: MarginValue
+  left?: MarginValue
+  right?: MarginValue
+  bottom?: MarginValue
+}
+
 export interface ViewConfig {
   scalingObjects: boolean
   panEnabled: boolean
@@ -58,6 +69,7 @@ export interface ViewConfig {
   boxSelectionEnabled: boolean
   fit?: boolean // Deprecated
   autoPanAndZoomOnLoad: false | "center-zero" | "center-content" | "fit-content"
+  fitContentMargin: FitContentMargin
   autoPanOnResize: boolean
   layoutHandler: LayoutHandler
   onSvgPanZoomInitialized?: (instance: SvgPanZoomInstance) => void

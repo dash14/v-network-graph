@@ -11,7 +11,7 @@ const hasEdgeOverlaySlot = computed(() => "edge-overlay" in slots)
 
 <template>
   <!-- edges -->
-  <g class="v-ng-layer-edges">
+  <g class="v-ng-layer-edges v-ng-graph-objects">
     <v-edge-backgrounds />
     <v-edge-groups :has-edge-overlay-slot="hasEdgeOverlaySlot">
       <template v-if="hasEdgeOverlaySlot" #default="slotProps">
