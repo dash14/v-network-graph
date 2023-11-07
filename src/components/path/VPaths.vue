@@ -22,7 +22,7 @@ const {
     :name="pathConfig.transition"
     :css="!!pathConfig.transition"
     tag="g"
-    class="v-ng-paths"
+    class="v-ng-paths v-ng-layer-paths v-ng-graph-objects"
   >
     <template v-for="path in pathZOrderedList" :key="path.id">
       <v-path

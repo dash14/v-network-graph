@@ -19,7 +19,7 @@ const layouts = useLayouts()
       :name="configs.transition"
       :css="!!configs.transition"
       tag="g"
-      class="v-ng-layer-nodes"
+      class="v-ng-layer-nodes v-ng-graph-objects"
     >
       <v-node
         v-for="nodeState in nodeZOrderedList"
@@ -45,7 +45,7 @@ const layouts = useLayouts()
       :name="configs.transition"
       :css="!!configs.transition"
       tag="g"
-      class="v-ng-layer-nodes"
+      class="v-ng-layer-nodes v-ng-graph-objects"
     >
       <v-node
         v-for="nodeState in nodeZOrderedList"

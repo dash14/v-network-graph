@@ -1,14 +1,33 @@
 import { Point } from "@dash14/svg-pan-zoom"
-import { Box, NodePositions, Size, ViewBox } from "@/common/types"
+import { Box, NodePositions, Position, Size, ViewBox } from "@/common/types"
 import { getNodesBox } from "@/modules/node/node"
 import { FitContentMargin, MarginValue } from "@/index.umd"
+
+// -----------------------------------------------------------------------
+// Type definitions
+// -----------------------------------------------------------------------
 
 interface ZoomAt {
   zoom: number
   pos: Point
 }
 
+interface Rect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+// -----------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------
+
 const NUMERIC_PATTERN = new RegExp("^\\d+$")
+
+// -----------------------------------------------------------------------
+// Exported functions
+// -----------------------------------------------------------------------
 
 export function parseFitContentMargin(fitContentMargin: FitContentMargin, container: Size): Box {
   let margins = { top: 0, left: 0, right: 0, bottom: 0 }
@@ -63,6 +82,35 @@ export function parseFitContentMargin(fitContentMargin: FitContentMargin, contai
   return margins
 }
 
+export function calculateFit(
+  viewport: SVGGElement,
+  container: Size,
+  nodesLayouts: NodePositions,
+  zoomLevel: number,
+  margins: Box,
+  scalingObjects: boolean
+): ZoomAt | undefined {
+  const viewportBox: ViewBox = viewport.getBBox()
+
+  if (scalingObjects) {
+    return calculateFitWithScalingObjects(viewportBox, container, nodesLayouts, margins)
+  } else {
+    const graphBox = getGraphBox(viewport)
+    return calculateFitWithoutScalingObjects(
+      viewportBox,
+      graphBox,
+      container,
+      nodesLayouts,
+      zoomLevel,
+      margins
+    )
+  }
+}
+
+// -----------------------------------------------------------------------
+// Local functions
+// -----------------------------------------------------------------------
+
 function parseFitContentMarginValue(
   marginValue: MarginValue,
   baseSize: number
@@ -85,62 +133,50 @@ function parseFitContentMarginValue(
   return undefined
 }
 
-export function calcFit(
-  viewport: ViewBox,
-  container: Size,
-  nodesLayouts: NodePositions,
-  zoomLevel: number,
-  margins: Box,
-  scalingObjects: boolean
-): ZoomAt | undefined {
-  if (scalingObjects) {
-    return calcFitWithScalingObjects(viewport, container, nodesLayouts, zoomLevel, margins)
-  } else {
-    return calcFitWithoutScalingObjects(viewport, container, nodesLayouts, zoomLevel, margins)
-  }
+function getGraphBox(viewport: SVGGElement): ViewBox {
+  const rects = Array.from(viewport.querySelectorAll<SVGGElement>(".v-ng-graph-objects")).map(g =>
+    g.getBBox()
+  )
+  return rects.reduce(
+    (accum, r, i) => {
+      if (i === 0) return r
+      const x = Math.min(accum.x, r.x)
+      const y = Math.min(accum.y, r.y)
+      return {
+        x,
+        y,
+        width: Math.max(accum.x + accum.width - x, r.x + r.width - x),
+        height: Math.max(accum.y + accum.height - y, r.y + r.height - y),
+      }
+    },
+    { x: 0, y: 0, width: 0, height: 0 }
+  )
 }
 
-function calcFitWithScalingObjects(
+function calculateFitWithScalingObjects(
   viewport: ViewBox,
   container: Size,
   nodesLayouts: NodePositions,
-  zoomLevel: number,
   margins: Box
 ): ZoomAt | undefined {
   if (Object.keys(nodesLayouts).length <= 1) {
     return undefined
   }
 
-  const marginX = margins.left + margins.right
-  const marginY = margins.top + margins.bottom
-  const targetW = container.width - marginX
-  const targetH = container.height - marginY
-
-  const zooms = [targetW / viewport.width, targetH / viewport.height]
-  const availableZooms = zooms.filter(z => z > 0)
-  if (availableZooms.length > 0) {
-    const zoom = Math.min(...availableZooms)
-    const width = viewport.width * zoom
-    const height = viewport.height * zoom
-    const offsetX = (targetW - width) / 2
-    const offsetY = (targetH - height) / 2
-
-    const left = viewport.x * zoom - margins.left
-    const top = viewport.y * zoom - margins.top
+  const zoom = calculateZoomLevelForFixedBox(viewport, container, margins)
+  if (zoom > 0) {
     return {
       zoom,
-      pos: {
-        x: -left + offsetX,
-        y: -top + offsetY,
-      },
+      pos: calculatePanForCentering(viewport, zoom, container, margins),
     }
   } else {
     return undefined
   }
 }
 
-function calcFitWithoutScalingObjects(
+function calculateFitWithoutScalingObjects(
   viewport: ViewBox,
+  graphBox: ViewBox,
   container: Size,
   nodesLayouts: NodePositions,
   zoomLevel: number,
@@ -150,50 +186,141 @@ function calcFitWithoutScalingObjects(
     return undefined
   }
 
-  // Assume that all elements outside the center of the node change
-  // size according to the zoom value.
+  // For regions of the graph objects (i.e., nodes, edges, paths, labels),
+  // assume that all outside of the center of a node will change size
+  // according to the zoom value.
   // 1. Calculate the pixels from the center of the nodes to the edges
-  //    of the viewport
+  //    of the graph area.
   const nodesBox = getNodesBox(nodesLayouts)
   const fixedSizes = {
-    top: (nodesBox.top - viewport.y) * zoomLevel,
-    left: (nodesBox.left - viewport.x) * zoomLevel,
-    right: (viewport.x + viewport.width - nodesBox.right) * zoomLevel,
-    bottom: (viewport.y + viewport.height - nodesBox.bottom) * zoomLevel,
+    top: (nodesBox.top - graphBox.y) * zoomLevel,
+    left: (nodesBox.left - graphBox.x) * zoomLevel,
+    right: (graphBox.x + graphBox.width - nodesBox.right) * zoomLevel,
+    bottom: (graphBox.y + graphBox.height - nodesBox.bottom) * zoomLevel,
   }
 
-  // 2. Calculate the display area excluding the fixed pixel size
-  const marginX = margins.left + margins.right
-  const marginY = margins.top + margins.bottom
-  const fixedX = fixedSizes.left + fixedSizes.right
-  const fixedY = fixedSizes.top + fixedSizes.bottom
-  const targetW = container.width - marginX - fixedX
-  const targetH = container.height - marginY - fixedY
+  // 2. Get the zoom value to be calculated from the viewport.
+  // The viewport is the entire area including the background layer.
+  // Since the background image may be further out than the graph elements,
+  // a fixed scale viewport is also used to calculate the zoom value.
+  let zoom = calculateZoomLevelForFixedBox(viewport, container, margins)
+  if (zoom === 0) {
+    return undefined
+  }
 
-  // 3. Calculate the zoom level using the area size within the center of the nodes
-  const nodesAreaW = nodesBox.right - nodesBox.left
-  const nodesAreaH = nodesBox.bottom - nodesBox.top
-  const zooms = [targetW / nodesAreaW, targetH / nodesAreaH]
+  // 3. Calculate the zoom value and the pixel size of the display area.
+  // Calculate several times until the zoom value stabilizes, since the
+  // size of the graph elements changes according to the zoom value and
+  // the calculation of the zoom value depends on the size of the entire
+  // area.
+  const viewportBox = viewBoxToBox(viewport)
+  const target = calculateSizeWithoutMargin(container, margins)
 
+  let i = 0
+  let lastZoom = 0
+  let box: Rect = { x: 0, y: 0, width: 0, height: 0 }
+  do {
+    lastZoom = zoom
+    const zoomed = boxDivide(fixedSizes, zoom)
+    const zoomedBox: Box = {
+      top: nodesBox.top - zoomed.top,
+      left: nodesBox.left - zoomed.left,
+      right: nodesBox.right + zoomed.right,
+      bottom: nodesBox.bottom + zoomed.bottom,
+    }
+    // The graph area to which the zoom is applied is not necessarily
+    // contained within the background layer, so merge size.
+    box = boxToRect(mergeBox(viewportBox, zoomedBox))
+    const zooms = [target.width / box.width, target.height / box.height]
+    const availableZooms = zooms.filter(z => z > 0)
+    if (availableZooms.length === 0) {
+      return undefined
+    }
+    zoom = Math.min(...availableZooms)
+    i++
+  } while (Math.abs(lastZoom - zoom) > 0.000001 && i < 10)
+
+  return {
+    zoom,
+    pos: calculatePanForCentering(box, zoom, container, margins),
+  }
+}
+
+function calculateZoomLevelForFixedBox(box: ViewBox, container: Size, margins: Box): number {
+  if (box.width === 0 || box.height === 0) return 0
+  const target = calculateSizeWithoutMargin(container, margins)
+  const zooms = [target.width / box.width, target.height / box.height]
   const availableZooms = zooms.filter(z => z > 0)
   if (availableZooms.length > 0) {
-    const zoom = Math.min(...availableZooms)
-
-    // 3. Calculate the pan amount from the center position
-    const width = nodesAreaW * zoom + fixedX
-    const height = nodesAreaH * zoom + fixedY
-    const offsetX = (container.width - marginX - width) / 2
-    const offsetY = (container.height - marginY - height) / 2
-    const left = nodesBox.left * zoom - (margins.left + fixedSizes.left)
-    const top = nodesBox.top * zoom - (margins.top + fixedSizes.top)
-    return {
-      zoom,
-      pos: {
-        x: -left + offsetX,
-        y: -top + offsetY,
-      },
-    }
+    return Math.min(...availableZooms)
   } else {
-    return undefined
+    return 0
+  }
+}
+
+function calculatePanForCentering(
+  box: ViewBox,
+  zoom: number,
+  container: Size,
+  margins: Box
+): Position {
+  const target = calculateSizeWithoutMargin(container, margins)
+
+  const width = box.width * zoom
+  const height = box.height * zoom
+  const offsetX = (target.width - width) / 2
+  const offsetY = (target.height - height) / 2
+
+  const left = box.x * zoom - margins.left
+  const top = box.y * zoom - margins.top
+
+  return {
+    x: -left + offsetX,
+    y: -top + offsetY,
+  }
+}
+
+function calculateSizeWithoutMargin(container: Size, margins: Box): Size {
+  const marginX = margins.left + margins.right
+  const marginY = margins.top + margins.bottom
+  return {
+    width: container.width - marginX,
+    height: container.height - marginY,
+  }
+}
+
+function boxDivide(box: Box, d: number): Box {
+  return {
+    top: box.top / d,
+    left: box.left / d,
+    right: box.right / d,
+    bottom: box.bottom / d,
+  }
+}
+
+function viewBoxToBox(viewBox: ViewBox): Box {
+  return {
+    top: viewBox.y,
+    left: viewBox.x,
+    right: viewBox.x + viewBox.width,
+    bottom: viewBox.y + viewBox.height,
+  }
+}
+
+function mergeBox(box1: Box, box2: Box): Box {
+  return {
+    top: Math.min(box1.top, box2.top),
+    left: Math.min(box1.left, box2.left),
+    right: Math.max(box1.right, box2.right),
+    bottom: Math.max(box1.bottom, box2.bottom),
+  }
+}
+
+function boxToRect(box: Box): Rect {
+  return {
+    x: box.left,
+    y: box.top,
+    width: box.right - box.left,
+    height: box.bottom - box.top,
   }
 }

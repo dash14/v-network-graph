@@ -17,7 +17,7 @@ withDefaults(defineProps<Props>(), {
   <v-edge-labels
     :enable-edge-label="enableEdgeLabel"
     :enable-edges-label="enableEdgesLabel"
-    class="v-ng-layer-edge-labels"
+    class="v-ng-layer-edge-labels v-ng-graph-objects"
   >
     <template v-if="enableEdgeLabel" #edge-label="slotProps">
       <slot name="edge-label" v-bind="slotProps" />

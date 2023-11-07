@@ -23,7 +23,7 @@ import { provideLayouts } from "@/composables/layout"
 import { useBuiltInLayerOrder } from "@/composables/layer"
 import { asyncNextTick } from "@/modules/vue/nextTick"
 import { isPromise } from "@/utils/object"
-import { calcFit, parseFitContentMargin } from "@/modules/view/fit"
+import { calculateFit, parseFitContentMargin } from "@/modules/view/fit"
 import VSelectionBox from "./base/VSelectionBox.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
@@ -282,9 +282,8 @@ const fitToContents = async (options?: { margin?: FitContentMargin }) => {
   const rect = nonNull(svg.value).getBoundingClientRect()
   const margins = parseFitContentMargin(fitContentMargin, rect)
 
-  const viewportBox = nonNull(viewport.value).getBBox()
-  const result = calcFit(
-    viewportBox,
+  const result = calculateFit(
+    nonNull(viewport.value),
     rect,
     currentLayouts.nodes,
     zoomLevel.value,
