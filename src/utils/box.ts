@@ -1,5 +1,14 @@
 import { Box, ViewBox } from "@/common/types"
 
+export function boxMultiply(box: Box, m: number): Box {
+  return {
+    top: box.top * m,
+    left: box.left * m,
+    right: box.right * m,
+    bottom: box.bottom * m,
+  }
+}
+
 export function boxDivide(box: Box, d: number): Box {
   return {
     top: box.top / d,

@@ -1,8 +1,8 @@
 import { Point } from "@dash14/svg-pan-zoom"
 import { Box, NodePositions, Position, Size, ViewBox } from "@/common/types"
 import { getNodesBox } from "@/modules/node/node"
-import { FitContentMargin, MarginValue } from "@/index.umd"
-import { boxDivide, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
+import { FitContentMargin, MarginValue } from "@/common/configs"
+import { boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -159,9 +159,10 @@ function calculateFitWithScalingObjects(
 
   const zoom = calculateZoomLevelForFixedBox(viewport, container, margins)
   if (zoom > 0) {
+    const box = viewBoxToBox(viewport)
     return {
       zoom,
-      pos: calculatePanForCentering(viewport, zoom, container, margins),
+      pos: calculatePanForCentering(box, zoom, container, margins),
     }
   } else {
     return undefined
@@ -212,7 +213,7 @@ function calculateFitWithoutScalingObjects(
 
   let i = 0
   let lastZoom = 0
-  let box: ViewBox = { x: 0, y: 0, width: 0, height: 0 }
+  let box: Box = { top: 0, left: 0, right: 0, bottom: 0 }
   do {
     lastZoom = zoom
     const zoomed = boxDivide(fixedSizes, zoom)
@@ -224,8 +225,9 @@ function calculateFitWithoutScalingObjects(
     }
     // The graph area to which the zoom is applied is not necessarily
     // contained within the background layer, so merge size.
-    box = boxToViewBox(mergeBox(viewportBox, zoomedBox))
-    const zooms = [target.width / box.width, target.height / box.height]
+    box = mergeBox(viewportBox, zoomedBox)
+    const viewBox = boxToViewBox(box)
+    const zooms = [target.width / viewBox.width, target.height / viewBox.height]
     const availableZooms = zooms.filter(z => z > 0)
     if (availableZooms.length === 0) {
       return undefined
@@ -252,21 +254,14 @@ function calculateZoomLevelForFixedBox(box: ViewBox, container: Size, margins: B
   }
 }
 
-function calculatePanForCentering(
-  box: ViewBox,
-  zoom: number,
-  container: Size,
-  margins: Box
-): Position {
+function calculatePanForCentering(box: Box, zoom: number, container: Size, margins: Box): Position {
   const target = calculateSizeWithoutMargin(container, margins)
+  const zoomed = boxToViewBox(boxMultiply(box, zoom))
+  const offsetX = (target.width - zoomed.width) / 2
+  const offsetY = (target.height - zoomed.height) / 2
 
-  const width = box.width * zoom
-  const height = box.height * zoom
-  const offsetX = (target.width - width) / 2
-  const offsetY = (target.height - height) / 2
-
-  const left = box.x * zoom - margins.left
-  const top = box.y * zoom - margins.top
+  const left = zoomed.x - margins.left
+  const top = zoomed.y - margins.top
 
   return {
     x: -left + offsetX,
@@ -280,5 +275,13 @@ function calculateSizeWithoutMargin(container: Size, margins: Box): Size {
   return {
     width: container.width - marginX,
     height: container.height - marginY,
+  }
+}
+
+if (import.meta.env.MODE == "test") {
+  module.exports.exportedForTesting = {
+    calculateSizeWithoutMargin,
+    calculatePanForCentering,
+    calculateZoomLevelForFixedBox,
   }
 }

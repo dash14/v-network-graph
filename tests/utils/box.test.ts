@@ -1,8 +1,26 @@
 import { describe, expect, it } from "vitest"
 import { Box, ViewBox } from "@/common/types"
-import { boxDivide, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
+import { boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
 
 describe("box", () => {
+  describe("boxMultiply", () => {
+    it("should be all fields multiplied", () => {
+      const box: Box = {
+        top: 1,
+        left: 2,
+        right: 3,
+        bottom: 4,
+      }
+      const actual = boxMultiply(box, 4)
+      expect(actual).toStrictEqual({
+        top: 4,
+        left: 8,
+        right: 12,
+        bottom: 16,
+      })
+    })
+  })
+
   describe("boxDivide", () => {
     it("should be all fields divided", () => {
       const box: Box = {
