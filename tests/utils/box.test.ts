@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest"
 import { Box, ViewBox } from "@/common/types"
-import { boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
+import { areBoxesSame, boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
 
 describe("box", () => {
+  describe("areBoxesSame", () => {
+    it("should return true for the same box", () => {
+      const box1: ViewBox = { x: 10, y: 20, width: 100, height: 200 }
+      const box2: ViewBox = { x: 10, y: 20, width: 100, height: 200 }
+      const actual = areBoxesSame(box1, box2)
+      expect(actual).toBeTruthy()
+    })
+
+    it("should return false in case of different box", () => {
+      const box1: ViewBox = { x: 10, y: 20, width: 100, height: 200 }
+      const box2: ViewBox = { x: 11, y: 20, width: 100, height: 200 }
+      const actual = areBoxesSame(box1, box2)
+      expect(actual).toBeFalsy()
+    })
+  })
+
   describe("boxMultiply", () => {
     it("should be all fields multiplied", () => {
       const box: Box = {

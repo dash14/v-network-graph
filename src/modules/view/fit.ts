@@ -2,7 +2,7 @@ import { Point } from "@dash14/svg-pan-zoom"
 import { Box, NodePositions, Position, Size, ViewBox } from "@/common/types"
 import { getNodesBox } from "@/modules/node/node"
 import { FitContentMargin, MarginValue } from "@/common/configs"
-import { boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
+import { areBoxesSame, boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -210,6 +210,7 @@ function calculateFitWithoutScalingObjects(
   // area.
   const viewportBox = viewBoxToBox(viewport)
   const target = calculateSizeWithoutMargin(container, margins)
+  const hasNonGraphLayer = areBoxesSame(viewport, graphBox)
 
   let i = 0
   let lastZoom = 0
@@ -225,7 +226,7 @@ function calculateFitWithoutScalingObjects(
     }
     // The graph area to which the zoom is applied is not necessarily
     // contained within the background layer, so merge size.
-    box = mergeBox(viewportBox, zoomedBox)
+    box = hasNonGraphLayer ? zoomedBox : mergeBox(viewportBox, zoomedBox)
     const viewBox = boxToViewBox(box)
     const zooms = [target.width / viewBox.width, target.height / viewBox.height]
     const availableZooms = zooms.filter(z => z > 0)

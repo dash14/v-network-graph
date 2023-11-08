@@ -1,5 +1,14 @@
 import { Box, ViewBox } from "@/common/types"
 
+export function areBoxesSame(box1: ViewBox, box2: ViewBox): boolean {
+  return (
+    box1.x === box2.x &&
+    box1.y === box2.y &&
+    box1.width === box2.width &&
+    box1.height === box2.height
+  )
+}
+
 export function boxMultiply(box: Box, m: number): Box {
   return {
     top: box.top * m,
