@@ -2,6 +2,7 @@ import { Point } from "@dash14/svg-pan-zoom"
 import { Box, NodePositions, Position, Size, ViewBox } from "@/common/types"
 import { getNodesBox } from "@/modules/node/node"
 import { FitContentMargin, MarginValue } from "@/index.umd"
+import { boxDivide, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -10,13 +11,6 @@ import { FitContentMargin, MarginValue } from "@/index.umd"
 interface ZoomAt {
   zoom: number
   pos: Point
-}
-
-interface Rect {
-  x: number
-  y: number
-  width: number
-  height: number
 }
 
 // -----------------------------------------------------------------------
@@ -218,7 +212,7 @@ function calculateFitWithoutScalingObjects(
 
   let i = 0
   let lastZoom = 0
-  let box: Rect = { x: 0, y: 0, width: 0, height: 0 }
+  let box: ViewBox = { x: 0, y: 0, width: 0, height: 0 }
   do {
     lastZoom = zoom
     const zoomed = boxDivide(fixedSizes, zoom)
@@ -230,7 +224,7 @@ function calculateFitWithoutScalingObjects(
     }
     // The graph area to which the zoom is applied is not necessarily
     // contained within the background layer, so merge size.
-    box = boxToRect(mergeBox(viewportBox, zoomedBox))
+    box = boxToViewBox(mergeBox(viewportBox, zoomedBox))
     const zooms = [target.width / box.width, target.height / box.height]
     const availableZooms = zooms.filter(z => z > 0)
     if (availableZooms.length === 0) {
@@ -286,41 +280,5 @@ function calculateSizeWithoutMargin(container: Size, margins: Box): Size {
   return {
     width: container.width - marginX,
     height: container.height - marginY,
-  }
-}
-
-function boxDivide(box: Box, d: number): Box {
-  return {
-    top: box.top / d,
-    left: box.left / d,
-    right: box.right / d,
-    bottom: box.bottom / d,
-  }
-}
-
-function viewBoxToBox(viewBox: ViewBox): Box {
-  return {
-    top: viewBox.y,
-    left: viewBox.x,
-    right: viewBox.x + viewBox.width,
-    bottom: viewBox.y + viewBox.height,
-  }
-}
-
-function mergeBox(box1: Box, box2: Box): Box {
-  return {
-    top: Math.min(box1.top, box2.top),
-    left: Math.min(box1.left, box2.left),
-    right: Math.max(box1.right, box2.right),
-    bottom: Math.max(box1.bottom, box2.bottom),
-  }
-}
-
-function boxToRect(box: Box): Rect {
-  return {
-    x: box.left,
-    y: box.top,
-    width: box.right - box.left,
-    height: box.bottom - box.top,
   }
 }
