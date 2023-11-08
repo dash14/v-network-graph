@@ -35,9 +35,9 @@
   },
   "devDependencies": {
     "@babel/types": "^7.23.0",
-    "@types/d3-force": "^3.0.8",
+    "@types/d3-force": "^3.0.9",
     "@types/lodash-es": "^4.17.11",
-    "@types/node": "^20.8.10",
+    "@types/node": "^20.9.0",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-vue": "^4.4.0",
