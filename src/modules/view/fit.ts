@@ -246,12 +246,10 @@ function calculateZoomLevelForFixedBox(box: ViewBox, container: Size, margins: B
   if (box.width === 0 || box.height === 0) return 0
   const target = calculateSizeWithoutMargin(container, margins)
   const zooms = [target.width / box.width, target.height / box.height]
-  const availableZooms = zooms.filter(z => z > 0)
-  if (availableZooms.length > 0) {
-    return Math.min(...availableZooms)
-  } else {
-    return 0
+  if (zooms.findIndex(z => z <= 0) >= 0) {
+    return 0;
   }
+  return Math.min(...zooms)
 }
 
 function calculatePanForCentering(box: Box, zoom: number, container: Size, margins: Box): Position {
