@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest"
-import { Box, Size, ViewBox } from "@/common/types"
+import { cloneDeep } from "lodash-es"
+import { Box, NodePositions, Size, ViewBox } from "@/common/types"
 
 // @ts-ignore
 import { exportedForTesting, parseFitContentMargin } from "@/modules/view/fit"
 
 const {
-  calculateSizeWithoutMargin,
-  calculatePanForCentering,
+  calculateFitWithScalingObjects,
+  calculateFitWithoutScalingObjects,
   calculateZoomLevelForFixedBox,
+  calculatePanForCentering,
+  calculateSizeWithoutMargin,
 } = exportedForTesting
 
 describe("fit", () => {
@@ -205,6 +208,209 @@ describe("fit", () => {
       const margins: Box = { top: 150, left: 0, right: 0, bottom: 150 }
       const zoom = calculateZoomLevelForFixedBox(viewBox, size, margins)
       expect(zoom).toBe(0)
+    })
+  })
+
+  interface CalculateFitWithoutScalingObjectsParams {
+    viewport: ViewBox
+    graphBox: ViewBox
+    container: Size
+    nodesLayouts: NodePositions
+    zoomLevel: number
+    margins: Box
+  }
+  const defaultParams1: CalculateFitWithoutScalingObjectsParams = {
+    viewport: { x: 100, y: 200, width: 600, height: 400 },
+    graphBox: { x: 150, y: 250, width: 500, height: 300 },
+    container: { width: 1200, height: 800 },
+    nodesLayouts: {
+      node1: { x: 200, y: 300 },
+      node2: { x: 600, y: 500 },
+    },
+    zoomLevel: 1,
+    margins: { top: 0, left: 0, right: 0, bottom: 0 },
+  }
+
+  describe("calculateFitWithoutScalingObjects", () => {
+    it("should be able to be calculated correctly with smaller graph, only graph", () => {
+      const params = cloneDeep(defaultParams1)
+      params.graphBox = params.viewport
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-400, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-600, 1)
+      expect(zoomAt.zoom).toBeCloseTo(2.5, 3)
+    })
+
+    it("should be able to be calculated correctly with smaller graph, background", () => {
+      const params = cloneDeep(defaultParams1)
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-200, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-400, 1)
+      expect(zoomAt.zoom).toBeCloseTo(2, 3)
+    })
+
+    it("should be able to be calculated correctly with larger graph, only graph", () => {
+      const params = cloneDeep(defaultParams1)
+      params.graphBox = params.viewport
+      params.container = { width: 600, height: 400 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-100, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-200, 1)
+      expect(zoomAt.zoom).toBeCloseTo(1, 3)
+    })
+
+    it("should be able to be calculated correctly with larger graph, background", () => {
+      const params = cloneDeep(defaultParams1)
+      params.container = { width: 600, height: 400 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-100, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-200, 1)
+      expect(zoomAt.zoom).toBeCloseTo(1, 3)
+    })
+
+    it("should be able to be calculated correctly with smaller graph, only graph, margin", () => {
+      const params = cloneDeep(defaultParams1)
+      params.graphBox = params.viewport
+      params.container = { width: 1300, height: 900 }
+      params.margins = { top: 50, left: 50, right: 50, bottom: 50 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-350, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-550, 1)
+      expect(zoomAt.zoom).toBeCloseTo(2.5, 3)
+    })
+
+    it("should return undefined if there is less than one node", () => {
+      const params = cloneDeep(defaultParams1)
+      params.nodesLayouts = { node1: { x: 200, y: 300 } }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt).toBeUndefined()
+    })
+
+    it("should return undefined if the canvas is smaller than the fixed size area", () => {
+      const params = cloneDeep(defaultParams1)
+      params.container = { width: 50, height: 50 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt).toBeUndefined()
+    })
+  })
+
+  interface CalculateFitWithScalingObjectsParams {
+    viewport: ViewBox
+    container: Size
+    nodesLayouts: NodePositions
+    margins: Box
+  }
+  const defaultParams2: CalculateFitWithScalingObjectsParams = {
+    viewport: { x: 100, y: 200, width: 600, height: 400 },
+    container: { width: 1200, height: 800 },
+    nodesLayouts: {
+      node1: { x: 200, y: 300 },
+      node2: { x: 600, y: 500 },
+    },
+    margins: { top: 0, left: 0, right: 0, bottom: 0 },
+  }
+
+  describe("calculateFitWithScalingObjects", () => {
+    it("should be able to be calculated correctly with smaller graph", () => {
+      const params = cloneDeep(defaultParams2)
+      const zoomAt = calculateFitWithScalingObjects(
+        params.viewport,
+        params.container,
+        params.nodesLayouts,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-200, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-400, 1)
+      expect(zoomAt.zoom).toBeCloseTo(2, 1)
+    })
+
+    it("should be able to be calculated correctly with larger graph", () => {
+      const params = cloneDeep(defaultParams2)
+      params.container = { width: 600, height: 400 }
+      const zoomAt = calculateFitWithScalingObjects(
+        params.viewport,
+        params.container,
+        params.nodesLayouts,
+        params.margins
+      )
+      expect(zoomAt.pos.x).toBeCloseTo(-100, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-200, 1)
+      expect(zoomAt.zoom).toBeCloseTo(1, 1)
+    })
+
+    it("should return undefined if there is less than one node", () => {
+      const params = cloneDeep(defaultParams2)
+      params.nodesLayouts = { node1: { x: 200, y: 300 } }
+      const zoomAt = calculateFitWithScalingObjects(
+        params.viewport,
+        params.container,
+        params.nodesLayouts,
+        params.margins
+      )
+      expect(zoomAt).toBeUndefined()
+    })
+
+    it("should return undefined if the canvas is smaller than the margins", () => {
+      const params = cloneDeep(defaultParams1)
+      params.margins = { top: 400, left: 600, right: 600, bottom: 400 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt).toBeUndefined()
     })
   })
 })

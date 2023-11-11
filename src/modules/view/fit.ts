@@ -4,6 +4,7 @@ import { getNodesBox } from "@/modules/node/node"
 import { FitContentMargin, MarginValue } from "@/common/configs"
 import {
   areBoxesSame,
+  boxAdd,
   boxDivide,
   boxMultiply,
   boxToViewBox,
@@ -210,6 +211,11 @@ function calculateFitWithoutScalingObjects(
     return undefined
   }
 
+  const tmpTarget = calculateSizeWithoutMargin(container, boxAdd(margins, fixedSizes))
+  if (tmpTarget.width <= 0 || tmpTarget.height <= 0) {
+    return undefined
+  }
+
   // 3. Calculate the zoom value and the pixel size of the display area.
   // Calculate several times until the zoom value stabilizes, since the
   // size of the graph elements changes according to the zoom value and
@@ -253,10 +259,10 @@ function calculateFitWithoutScalingObjects(
 function calculateZoomLevelForFixedBox(box: ViewBox, container: Size, margins: Box): number {
   if (box.width === 0 || box.height === 0) return 0
   const target = calculateSizeWithoutMargin(container, margins)
-  const zooms = [target.width / box.width, target.height / box.height]
-  if (zooms.findIndex(z => z <= 0) >= 0) {
+  if (target.width <= 0 || target.height <= 0) {
     return 0
   }
+  const zooms = [target.width / box.width, target.height / box.height]
   return Math.min(...zooms)
 }
 
@@ -286,8 +292,10 @@ function calculateSizeWithoutMargin(container: Size, margins: Box): Size {
 
 if (import.meta.env.MODE == "test") {
   module.exports.exportedForTesting = {
-    calculateSizeWithoutMargin,
-    calculatePanForCentering,
+    calculateFitWithScalingObjects,
+    calculateFitWithoutScalingObjects,
     calculateZoomLevelForFixedBox,
+    calculatePanForCentering,
+    calculateSizeWithoutMargin,
   }
 }

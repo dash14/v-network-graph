@@ -12,6 +12,15 @@ export function areBoxesSame(box1: ViewBox, box2: ViewBox): boolean {
   )
 }
 
+export function boxAdd(box1: Box, box2: Box): Box {
+  return {
+    top: box1.top + box2.top,
+    left: box1.left + box2.left,
+    right: box1.right + box2.right,
+    bottom: box1.bottom + box2.bottom,
+  }
+}
+
 export function boxMultiply(box: Box, m: number): Box {
   return {
     top: box.top * m,
