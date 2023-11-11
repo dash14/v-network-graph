@@ -1,11 +1,14 @@
 import { Box, ViewBox } from "@/common/types"
 
 export function areBoxesSame(box1: ViewBox, box2: ViewBox): boolean {
+  // Compare with sufficient precision to be considered identical,
+  // taking into account the resolution at which they are displayed.
+  const error = Math.max(box1.width, box1.height, box2.width, box2.height) / 10000
   return (
-    box1.x === box2.x &&
-    box1.y === box2.y &&
-    box1.width === box2.width &&
-    box1.height === box2.height
+    Math.abs(box1.x - box2.x) < error &&
+    Math.abs(box1.y - box2.y) < error &&
+    Math.abs(box1.width - box2.width) < error &&
+    Math.abs(box1.height - box2.height) < error
   )
 }
 
