@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest"
 import { Box, ViewBox } from "@/common/types"
-import { areBoxesSame, boxDivide, boxMultiply, boxToViewBox, mergeBox, viewBoxToBox } from "@/utils/box"
+import {
+  areBoxesSame,
+  boxAdd,
+  boxDivide,
+  boxMultiply,
+  boxToViewBox,
+  mergeBox,
+  viewBoxToBox,
+} from "@/utils/box"
 
 describe("box", () => {
   describe("areBoxesSame", () => {
@@ -16,6 +24,30 @@ describe("box", () => {
       const box2: ViewBox = { x: 11, y: 20, width: 100, height: 200 }
       const actual = areBoxesSame(box1, box2)
       expect(actual).toBeFalsy()
+    })
+  })
+
+  describe("boxAdd", () => {
+    it("should be all fields added", () => {
+      const box1: Box = {
+        top: 1,
+        left: 2,
+        right: 3,
+        bottom: 4,
+      }
+      const box2: Box = {
+        top: 5,
+        left: 6,
+        right: 7,
+        bottom: 8,
+      }
+      const actual = boxAdd(box1, box2)
+      expect(actual).toStrictEqual({
+        top: 6,
+        left: 8,
+        right: 10,
+        bottom: 12,
+      })
     })
   })
 
@@ -63,7 +95,7 @@ describe("box", () => {
         width: 100,
         height: 200,
       }
-      const actual = viewBoxToBox(viewBox);
+      const actual = viewBoxToBox(viewBox)
       expect(actual).toStrictEqual({
         top: 20,
         left: 10,
@@ -81,7 +113,7 @@ describe("box", () => {
         right: 110,
         bottom: 220,
       }
-      const actual = boxToViewBox(box);
+      const actual = boxToViewBox(box)
       expect(actual).toStrictEqual({
         x: 10,
         y: 20,
