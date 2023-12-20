@@ -342,7 +342,7 @@ provideLayouts(currentLayouts)
 // two-way binding
 watch(
   () => props.layouts,
-  () => Object.assign(currentLayouts, props.layouts),
+  () => Object.assign(currentLayouts.nodes, props.layouts.nodes ?? {}),
   { deep: true, immediate: true }
 )
 watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
@@ -388,6 +388,7 @@ const { nodeStates, edgeStates, pathStates } = provideStates(
   makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
   readonly(configs),
   currentLayouts,
+  props.layouts,
   markerState,
   scale
 )

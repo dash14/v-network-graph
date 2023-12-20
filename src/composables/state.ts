@@ -14,6 +14,7 @@ import {
 } from "@/common/configs"
 import { StrokeStyle, ShapeStyle, SelfLoopEdgeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
+import { FixablePosition, UserLayouts } from "@/common/types"
 import { LinePosition, Position } from "@/common/types"
 import { useId } from "@/composables/id"
 import * as NodeModel from "@/models/node"
@@ -101,6 +102,7 @@ export function provideStates(
   paths: InputObjects<Paths>,
   configs: Readonly<Configs>,
   layouts: Reactive<Layouts>,
+  readonlyLayouts: Readonly<UserLayouts>,
   makerState: MarkerState,
   scale: ComputedRef<number>
 ) {
@@ -140,7 +142,8 @@ export function provideStates(
         newState as NodeModel.NodeStateDatum,
         configs.node,
         opposingNodes,
-        layouts
+        layouts,
+        readonlyLayouts
       )
     },
     (nodeId, _state) => {
@@ -295,8 +298,15 @@ function createNewNodeState(
   state: NodeModel.NodeStateDatum,
   config: NodeConfig,
   oppositeNodeIds: Reactive<Record<string, Record<string, string>>>,
-  layouts: Reactive<Layouts>
+  layouts: Reactive<Layouts>,
+  readonlyLayouts: Readonly<UserLayouts>
 ) {
+  // Deleted nodes will lose their position. If it is not a two-way binding,
+  // the position remains in the layout specified by the user and is reacquired.
+  if (!layouts.nodes[id] && readonlyLayouts.nodes?.[id]) {
+    layouts.nodes[id] = <FixablePosition>{ ...readonlyLayouts.nodes?.[id] }
+  }
+
   state.shape = computed(() => {
     if (!nodes.value[id]) return unref(state.shape) // Return the previous value
     return getNodeShape(nodes.value[id], state.selected, state.hovered, config)
