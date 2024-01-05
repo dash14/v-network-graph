@@ -49,7 +49,7 @@ export class ForceLayout implements LayoutHandler {
         if (layout) {
           const x = node.x ?? 0
           const y = node.y ?? 0
-          if (layout.x !== x || layout.y !== x) {
+          if (layout.x !== x || layout.y !== y) {
             Object.assign(layout, { x, y })
           }
         } else {
@@ -140,7 +140,7 @@ export class ForceLayout implements LayoutHandler {
         Object.values(edges.value).map(e => `${e.source}=${e.target}`),
       ],
       () => {
-        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
+        ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {
