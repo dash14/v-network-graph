@@ -180,6 +180,7 @@ for handling network graphs.
 Currently, working on internal refactoring, and implementing the
 following features.
 
+* Performance improvement when using large network graphs
 * More flexible edge enhancement and customization
   * Enables flexible replacement of straight lines, bezier curves,
     whether animation specifications, etc.
