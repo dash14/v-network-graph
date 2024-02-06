@@ -238,6 +238,7 @@ export function provideStates(
       state.stopWatchHandle = watch(
         () => paths.value[id].edges,
         () => {
+          state.path = paths.value[id]
           state.edges = toEdgeObjects(state.path, edges)
           state.directions = calculateDirectionsOfPathEdges(state.edges)
         }
