@@ -29,7 +29,7 @@ export function Reactive<T extends object>(value: T): Reactive<T> {
   if (isReactive(value)) {
     return value as Reactive<T>
   } else {
-    return reactive(value) as Reactive<T>
+    return reactive(value) as unknown as Reactive<T>
   }
 }
 
