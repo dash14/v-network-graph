@@ -1,4 +1,5 @@
 import path from "path"
+import fs from "fs/promises"
 import { defineConfig } from "vite"
 import vue from "@vitejs/plugin-vue"
 import dts from "vite-plugin-dts"
@@ -54,6 +55,21 @@ export default defineConfig({
       staticImport: true,
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile,
+      afterBuild: async (emittedFiles) => {
+        // import * as XXX from "@/..." => relative path
+        const srcRoot = resolvePath("lib")
+        const pattern = /from ["']@\/(\w+)/
+        for (let [file, content] of emittedFiles.entries()) {
+          let matches = pattern.exec(content)
+          if (!matches) continue
+          do {
+            const topDir = matches[1]
+            const relativePath = path.relative(path.dirname(file), `${srcRoot}/${topDir}`)
+            content = content.replace(`@/${topDir}`, relativePath)
+          } while(matches = pattern.exec(content))
+          await fs.writeFile(file, content)
+        }
+      }
     }),
     visualizer({
       filename: "stats-es.html",
