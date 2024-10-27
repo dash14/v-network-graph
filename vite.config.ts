@@ -66,14 +66,16 @@ export default defineConfig({
         // import * as XXX from "@/..." => relative path
         const srcRoot = resolvePath("lib")
         const pattern = /from ["']@\/(\w+)/
-        for (let [file, content] of emittedFiles.entries()) {
-          let matches = pattern.exec(content)
+        for (const [file, sourceContent] of emittedFiles.entries()) {
+          let matches = pattern.exec(sourceContent)
           if (!matches) continue
+          let content = sourceContent
           do {
             const topDir = matches[1]
             const relativePath = path.relative(path.dirname(file), `${srcRoot}/${topDir}`)
             content = content.replace(`@/${topDir}`, relativePath)
-          } while(matches = pattern.exec(content))
+            matches = pattern.exec(content)
+          } while(matches)
           await fs.writeFile(file, content)
         }
       }
