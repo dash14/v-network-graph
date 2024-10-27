@@ -36,6 +36,13 @@ export default defineConfig({
     },
     sourcemap: true,
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler"
+      }
+    }
+  },
   publicDir: false,
   plugins: [
     vue(),
