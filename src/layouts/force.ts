@@ -138,6 +138,8 @@ export class ForceLayout implements LayoutHandler {
         Object.keys(nodePositions.value),
         // Watch only for changes in links, not all properties of the edge objects.
         Object.values(edges.value).map(e => `${e.source}=${e.target}`),
+        // Watch only for changes in `fixed`, not all properties of the node position object.
+        Object.values(nodePositions.value).map(p => p.fixed),
       ],
       () => {
         ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
