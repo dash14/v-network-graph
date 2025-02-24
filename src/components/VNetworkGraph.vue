@@ -20,7 +20,7 @@ import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/utils/svg"
 import { provideSelections } from "@/composables/selection"
 import { provideLayouts } from "@/composables/layout"
-import { useBuiltInLayerOrder } from "@/composables/layer"
+import { LayerSlots, useBuiltInLayerOrder } from "@/composables/layer"
 import { asyncNextTick } from "@/modules/vue/nextTick"
 import { isPromise } from "@/utils/object"
 import { calculateFit, parseFitContentMargin } from "@/modules/view/fit"
@@ -63,6 +63,10 @@ interface Props {
   eventHandlers?: EventHandlers
 }
 
+interface LayerSlot {
+  scale: number
+}
+
 const props = withDefaults(defineProps<Props>(), {
   nodes: () => ({}),
   edges: () => ({}),
@@ -85,7 +89,7 @@ const emit = defineEmits<{
   (e: "update:layouts", v: Layouts): void
 }>()
 
-const slots = useSlots()
+const slots = defineSlots<LayerSlots>()
 
 const nodesRef = toRef(props, "nodes")
 const edgesRef = toRef(props, "edges")
