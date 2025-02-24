@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { readonly, ref, toRef, useSlots, computed, nextTick, watch, CSSProperties } from "vue"
+import { readonly, ref, toRef, computed, nextTick, watch, CSSProperties } from "vue"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
 import { Layers, LayerPosition, LayerPositions, Point, Sizes } from "@/common/types"
 import { Reactive, nonNull } from "@/common/common"
@@ -20,7 +20,7 @@ import { SvgPanZoomInstance, Box } from "@/modules/svg-pan-zoom-ex"
 import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/utils/svg"
 import { provideSelections } from "@/composables/selection"
 import { provideLayouts } from "@/composables/layout"
-import { LayerSlots, useBuiltInLayerOrder } from "@/composables/layer"
+import { LayerSlotProps, useBuiltInLayerOrder } from "@/composables/layer"
 import { asyncNextTick } from "@/modules/vue/nextTick"
 import { isPromise } from "@/utils/object"
 import { calculateFit, parseFitContentMargin } from "@/modules/view/fit"
@@ -63,10 +63,6 @@ interface Props {
   eventHandlers?: EventHandlers
 }
 
-interface LayerSlot {
-  scale: number
-}
-
 const props = withDefaults(defineProps<Props>(), {
   nodes: () => ({}),
   edges: () => ({}),
@@ -89,7 +85,10 @@ const emit = defineEmits<{
   (e: "update:layouts", v: Layouts): void
 }>()
 
-const slots = defineSlots<LayerSlots>()
+const slots = defineSlots<{
+  default: (props: LayerSlotProps) => any
+  [key: string]: (props: LayerSlotProps) => any
+}>()
 
 const nodesRef = toRef(props, "nodes")
 const edgesRef = toRef(props, "edges")
@@ -705,12 +704,9 @@ function stopEventPropagation(event: Event) {
       height="100%"
     >
       <!-- outside of viewport -->
-      <slot
-        v-for="layerName in layerDefs['root']"
-        :key="layerName"
-        :name="layerName"
-        :scale="scale"
-      />
+      <template v-for="layerName in layerDefs['root']" :key="layerName">
+        <slot :name="layerName" :scale="scale" />
+      </template>
 
       <defs v-if="Object.keys(markerState.markers).length > 0">
         <v-marker-head

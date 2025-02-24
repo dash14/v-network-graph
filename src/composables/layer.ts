@@ -1,15 +1,14 @@
-import { computed, ComputedRef, Slot, Slots } from "vue"
+import { computed, ComputedRef, Slot } from "vue"
 import { uniq } from "lodash-es"
 import { Configs } from "@/common/configs"
 import { LayerName } from "@/common/types"
 import { pairwise } from "@/modules/collection/iterate"
 import { insertAfter, removeItem } from "@/modules/collection/array"
 
-export interface LayerSlotParameter {
-  key?: string
+export interface LayerSlotProps {
   scale: number
 }
-export type LayerSlots = Record<string, Slot<LayerSlotParameter>>
+export type LayerSlots = Record<string, Slot<LayerSlotProps>>
 
 export function useBuiltInLayerOrder<T extends Configs>(
   configs: T,
