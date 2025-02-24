@@ -29,6 +29,7 @@ export default defineConfig({
         resolvePath("src/force-layout.ts"),
       ],
       name: "v-network-graph",
+      cssFileName: "style",
     },
     emptyOutDir: false,
     rollupOptions: {

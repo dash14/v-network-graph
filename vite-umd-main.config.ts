@@ -17,6 +17,7 @@ export default defineConfig({
       entry: resolvePath("src/index.umd.ts"),
       name: "VNetworkGraph",
       fileName: () => "index.js",
+      cssFileName: "style",
     },
     emptyOutDir: false,
     rollupOptions: {
