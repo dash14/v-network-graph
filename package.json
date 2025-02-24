@@ -26,7 +26,7 @@
     "build:lib:main": "vite --config vite-umd-main.config.ts build",
     "build:lib:force": "vite --config vite-umd-force.config.ts build",
     "clean": "rimraf lib umd",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@dash14/svg-pan-zoom": "^3.6.9",
@@ -35,32 +35,31 @@
   },
   "devDependencies": {
     "@types/d3-force": "^3.0.10",
-    "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^20.16.6",
-    "@vitejs/plugin-vue": "^5.1.4",
-    "@vue/compiler-sfc": "^3.5.12",
-    "eslint": "^9.13.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.3",
+    "@types/node": "^20.17.19",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/compiler-sfc": "^3.5.13",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^3.8.3",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-vue": "^9.29.1",
-    "globals": "^15.11.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^16.0.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
-    "rollup-plugin-visualizer": "^5.12.0",
-    "sass": "^1.80.4",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.11.0",
-    "vite": "^5.4.10",
-    "vite-plugin-dts": "^4.3.0",
-    "vitest": "^2.1.3",
-    "vue-tsc": "^2.1.8"
+    "rollup-plugin-visualizer": "^5.14.0",
+    "sass": "^1.85.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.1",
+    "vite": "^6.1.1",
+    "vite-plugin-dts": "^4.5.0",
+    "vitest": "^3.0.6",
+    "vue-tsc": "^2.2.4"
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
-    "vue": "^3.5.8"
+    "vue": "^3.5.13"
   },
   "peerDependenciesMeta": {
     "d3-force": {
