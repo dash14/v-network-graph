@@ -34,6 +34,11 @@ import VFocusringLayer from "./layers/VFocusringLayer.vue"
 import VNodesLayer from "./layers/VNodesLayer.vue"
 import VNodeLabelsLayer from "./layers/VNodeLabelsLayer.vue"
 import VPathsLayer from "./layers/VPathsLayer.vue"
+import { NodeSlotProps } from "./node/VNode.vue"
+import { NodeLabelSlotProps } from "./node/VNodeLabel.vue"
+import { EdgeOverlaySlotProps } from "./edge/VEdgeOverlay.vue"
+import { EdgeLabelSlotProps } from "./edge/VEdgeLabelPlace.vue"
+import { EdgeLabelsSlotProps } from "./edge/VEdgeLabelsPlace.vue"
 
 const SYSTEM_SLOTS = [
   "override-node",
@@ -41,7 +46,7 @@ const SYSTEM_SLOTS = [
   "edge-overlay",
   "edge-label",
   "edges-label",
-]
+] as const
 
 enum State {
   INITIAL = 0,
@@ -85,10 +90,18 @@ const emit = defineEmits<{
   (e: "update:layouts", v: Layouts): void
 }>()
 
-const slots = defineSlots<{
-  default: (props: LayerSlotProps) => any
-  [key: string]: (props: LayerSlotProps) => any
-}>()
+const slots = defineSlots<
+  {
+    default: (props: LayerSlotProps) => any
+    "override-node": (props: NodeSlotProps) => any
+    "override-node-label": (props: NodeLabelSlotProps) => any
+    "edge-overlay": (props: EdgeOverlaySlotProps) => any
+    "edge-label": (props: EdgeLabelSlotProps) => any
+    "edges-label": (props: EdgeLabelsSlotProps) => any
+  } & {
+    [key: string]: (props: LayerSlotProps) => any
+  }
+>()
 
 const nodesRef = toRef(props, "nodes")
 const edgesRef = toRef(props, "edges")

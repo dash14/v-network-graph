@@ -3,7 +3,9 @@ import { computed, useSlots } from "vue"
 import { useNodeConfig } from "@/composables/config"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
-import VNode from "@/components/node/VNode.vue"
+import VNode, { NodeSlotProps } from "@/components/node/VNode.vue"
+
+defineSlots<{ "override-node": (props: NodeSlotProps) => any }>()
 
 const slots = useSlots()
 const hasOverrideNodeSlot = computed(() => "override-node" in slots)

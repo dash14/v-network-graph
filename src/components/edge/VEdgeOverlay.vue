@@ -3,7 +3,7 @@ import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
 import { useContainers } from "@/composables/container"
-import { Config } from "@/common/configs"
+import { Config, StrokeStyle } from "@/common/configs"
 import { useEdgeConfig } from "@/composables/config"
 
 interface Props {
@@ -13,6 +13,33 @@ interface Props {
   state: EdgeState
   isSummarized: boolean
 }
+
+interface BaseEdgeSlotProps {
+  edges: Edges
+  stroke: StrokeStyle
+  position: EdgePosition
+  center: Point
+  hovered: boolean
+  selected: boolean
+  scale: number
+  length: number
+  pointAtLength: (distance: number) => Point
+}
+
+interface SingleEdgeSlotProps {
+  isSummarized: false
+  edgeId: string
+  edge: Edge
+}
+
+interface SummarizedEdgeSlotProps {
+  isSummarized: true
+}
+
+export type EdgeOverlaySlotProps = BaseEdgeSlotProps &
+  (SingleEdgeSlotProps | SummarizedEdgeSlotProps)
+
+defineSlots<{ default: (props: EdgeOverlaySlotProps) => any }>()
 
 const props = withDefaults(defineProps<Props>(), {
   edgeId: undefined,

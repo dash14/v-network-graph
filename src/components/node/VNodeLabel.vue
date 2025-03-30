@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue"
 import { Position } from "@/common/types"
-import { NodeLabelDirection } from "@/common/configs"
+import { NodeLabelDirection, NodeLabelStyle, ShapeStyle } from "@/common/configs"
 import { NodeState } from "@/models/node"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
@@ -15,6 +15,20 @@ interface Props {
   state: NodeState
   pos?: Position
 }
+
+export interface NodeLabelSlotProps {
+  nodeId: string
+  scale: number
+  text: string
+  x: number
+  y: number
+  config: NodeLabelStyle
+  shape: ShapeStyle
+  textAnchor: string
+  dominantBaseline: string
+}
+
+defineSlots<{ "override-node-label": (props: NodeLabelSlotProps) => any }>()
 
 const props = withDefaults(defineProps<Props>(), {
   pos: undefined,
@@ -221,11 +235,7 @@ const labelClasses = computed(() => {
 </script>
 
 <template>
-  <g
-    :class="groupClasses"
-    :transform="`translate(${x} ${y})`"
-    v-on="eventHandlers(id)"
-  >
+  <g :class="groupClasses" :transform="`translate(${x} ${y})`" v-on="eventHandlers(id)">
     <slot
       name="override-node-label"
       :node-id="id"

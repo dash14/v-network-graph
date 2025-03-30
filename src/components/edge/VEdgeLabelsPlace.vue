@@ -7,7 +7,8 @@
 -->
 <script setup lang="ts">
 import { computed } from "vue"
-import { Edges } from "@/common/types"
+import { EdgeLabelArea, Edges } from "@/common/types"
+import { EdgeLabelStyle } from "@/common/configs"
 import { EdgeState, SummarizedEdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
 import * as v2d from "@/modules/calculation/2d"
@@ -17,6 +18,17 @@ interface Props {
   state: EdgeState
   summarizeState?: SummarizedEdgeState
 }
+
+export interface EdgeLabelsSlotProps {
+  edges: Edges
+  config: EdgeLabelStyle
+  area: EdgeLabelArea
+  hovered: boolean
+  selected: boolean
+  scale: number
+}
+
+defineSlots<{ default: (props: EdgeLabelsSlotProps) => any }>()
 
 const props = defineProps<Props>()
 const { scale } = useZoomLevel()

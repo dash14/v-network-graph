@@ -4,7 +4,9 @@ import { useNodeConfig } from "@/composables/config"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 import { NodeState } from "@/models/node"
-import VNodeLabel from "@/components/node/VNodeLabel.vue"
+import VNodeLabel, { NodeLabelSlotProps } from "@/components/node/VNodeLabel.vue"
+
+defineSlots<{ "override-node-label": (props: NodeLabelSlotProps) => any }>()
 
 const slots = useSlots()
 const hasOverrideNodeLabelSlot = computed(() => "override-node-label" in slots)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Position } from "@/common/types"
+import { ShapeStyle } from "@/common/configs"
 import { NodeState } from "@/models/node"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
@@ -11,6 +12,14 @@ interface Props {
   state: NodeState
   pos?: Position
 }
+
+export interface NodeSlotProps {
+  nodeId: string
+  scale: number
+  config: ShapeStyle
+}
+
+defineSlots<{ "override-node": (props: NodeSlotProps) => any }>()
 
 const props = withDefaults(defineProps<Props>(), {
   pos: undefined,

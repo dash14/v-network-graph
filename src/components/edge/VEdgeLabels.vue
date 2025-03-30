@@ -2,8 +2,8 @@
 import { computed } from "vue"
 import { EdgeGroup } from "@/models/edge"
 import { useStates } from "@/composables/state"
-import VEdgeLabelPlace from "./VEdgeLabelPlace.vue"
-import VEdgeLabelsPlace from "./VEdgeLabelsPlace.vue"
+import VEdgeLabelPlace, { EdgeLabelSlotProps } from "./VEdgeLabelPlace.vue"
+import VEdgeLabelsPlace, { EdgeLabelsSlotProps } from "./VEdgeLabelsPlace.vue"
 
 interface Props {
   enableEdgeLabel: boolean
@@ -14,6 +14,11 @@ withDefaults(defineProps<Props>(), {
   enableEdgeLabel: false,
   enableEdgesLabel: false,
 })
+
+defineSlots<{
+  "edge-label": (props: EdgeLabelSlotProps) => any
+  "edges-label": (props: EdgeLabelsSlotProps) => any
+}>()
 
 const { edgeStates, edgeGroupStates, summarizedEdgeStates } = useStates()
 

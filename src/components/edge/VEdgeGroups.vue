@@ -2,11 +2,11 @@
 import { useStates, isSummarizedEdges } from "@/composables/state"
 import VEdge from "./VEdge.vue"
 import VEdgeSummarized from "./VEdgeSummarized.vue"
-import VEdgeOverlay from "./VEdgeOverlay.vue"
+import VEdgeOverlay, { EdgeOverlaySlotProps } from "./VEdgeOverlay.vue"
 
-defineProps<{
-  hasEdgeOverlaySlot: boolean
-}>()
+defineProps<{ hasEdgeOverlaySlot: boolean }>()
+
+defineSlots<{ default: (props: EdgeOverlaySlotProps) => any }>()
 
 const { edgeStates, edgeZOrderedList, layouts } = useStates()
 
