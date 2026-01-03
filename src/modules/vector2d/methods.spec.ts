@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import * as Methods from "../../../src/modules/vector2d"
-import { Point2D } from "../../../src/modules/vector2d/core"
+import * as Methods from "./index"
+import { Point2D } from "./core"
 
 function testArgumentAndResult(v: Point2D, target: Point2D, result1: Point2D, result2: Point2D) {
   it("should not overwrite arguments", () => {

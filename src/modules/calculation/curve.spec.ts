@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { calculateSubpath, parsePathD } from "@/modules/calculation/curve"
+import { calculateSubpath, parsePathD } from "./curve"
 
 describe("calculateSubpath", () => {
   describe("subpath of bezier curve", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
+import { handleNodeLabelAutoAdjustment } from "./label"
 
 describe("handleNodeLabelAutoAdjustment", () => {
   describe("avoid north", () => {

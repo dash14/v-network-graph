@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { CircleShapeStyle, RectangleShapeStyle } from "@/common/configs"
-import * as v2d from "@/modules/calculation/2d"
+import { CircleShapeStyle, RectangleShapeStyle } from "../../common/configs"
+import * as v2d from "./2d"
 
 describe("calculateDistancesFromCenterOfNodeToEndOfNode", () => {
   describe("circle to circle", () => {

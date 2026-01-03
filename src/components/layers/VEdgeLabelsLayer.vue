@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import VEdgeLabels from "@/components/edge/VEdgeLabels.vue"
-import { EdgeLabelSlotProps } from "@/components/edge/VEdgeLabelPlace.vue";
-import { EdgeLabelsSlotProps } from "@/components/edge/VEdgeLabelsPlace.vue";
+import { EdgeLabelSlotProps } from "@/components/edge/VEdgeLabelPlace.vue"
+import { EdgeLabelsSlotProps } from "@/components/edge/VEdgeLabelsPlace.vue"
 
 interface Props {
   enableEdgeLabel: boolean
@@ -17,7 +17,6 @@ defineSlots<{
   "edge-label": (props: EdgeLabelSlotProps) => any
   "edges-label": (props: EdgeLabelsSlotProps) => any
 }>()
-
 </script>
 
 <template>

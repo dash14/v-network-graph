@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
-import { EdgeObject } from "@/models/path"
+import { calculateDirectionsOfPathEdges } from "./path"
+import { EdgeObject } from "../../models/path"
 
 describe("calculateDirectionsOfPathEdges", () => {
   it("should return an empty array if the edges are empty", () => {

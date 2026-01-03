@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { Box, ViewBox } from "@/common/types"
+import { Box, ViewBox } from "../common/types"
 import {
   areBoxesSame,
   boxAdd,
@@ -8,7 +8,7 @@ import {
   boxToViewBox,
   mergeBox,
   viewBoxToBox,
-} from "@/utils/box"
+} from "./box"
 
 describe("box", () => {
   describe("areBoxesSame", () => {

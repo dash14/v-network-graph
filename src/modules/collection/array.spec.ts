@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { insertAfter, removeItem } from "@/modules/collection/array"
+import { insertAfter, removeItem } from "./array"
 
 describe("removeItem", () => {
   describe("first element", () => {

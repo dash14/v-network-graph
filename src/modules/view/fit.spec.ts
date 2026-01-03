@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 import { cloneDeep } from "lodash-es"
-import { Box, NodePositions, Size, ViewBox } from "@/common/types"
+import { Box, NodePositions, Size, ViewBox } from "../../common/types"
 
 // @ts-ignore
-import { exportedForTesting, parseFitContentMargin } from "@/modules/view/fit"
+import { exportedForTesting, parseFitContentMargin } from "./fit"
 
 const {
   calculateFitWithScalingObjects,

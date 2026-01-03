@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { Vector2D } from "../../../src/modules/vector2d"
+import { Vector2D } from "./index"
 
 describe("instantiate", () => {
   describe("new Vector2D()", () => {

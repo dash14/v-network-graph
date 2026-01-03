@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { pairwise } from "@/modules/collection/iterate"
+import { pairwise } from "./iterate"
 
 describe("pairwise", () => {
   describe("two elements", () => {

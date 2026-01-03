@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { NodePositions } from "@/common/types"
-import { getNodesBox } from "@/modules/node/node"
+import { NodePositions } from "../../common/types"
+import { getNodesBox } from "./node"
 
 describe("node", () => {
   describe("getNodesBox", () => {
