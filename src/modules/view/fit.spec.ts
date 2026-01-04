@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { cloneDeep } from "lodash-es"
 import { Box, NodePositions, Size, ViewBox } from "../../common/types"
 
@@ -77,6 +77,47 @@ describe("fit", () => {
         bottom: 30,
       })
     })
+
+    it("should return default value and warn for invalid string", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin("invalid", size)
+      expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
+      expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", "invalid")
+      warnSpy.mockRestore()
+    })
+
+    it("should return default value and warn for empty string", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin("", size)
+      expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
+      expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", "")
+      warnSpy.mockRestore()
+    })
+
+    it.each([
+      ["number 0", 0, { top: 0, left: 0, right: 0, bottom: 0 }],
+      ["string '0px'", "0px", { top: 0, left: 0, right: 0, bottom: 0 }],
+      ["string '0%'", "0%", { top: 0, left: 0, right: 0, bottom: 0 }],
+      ["string '0'", "0", { top: 0, left: 0, right: 0, bottom: 0 }],
+    ])("should handle zero value: %s", (_, input, expected) => {
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin(input as number | string, size)
+      expect(actual).toStrictEqual(expected)
+    })
+
+    it("should handle partial object with only top", () => {
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin({ top: 10 }, size)
+      expect(actual).toStrictEqual({ top: 10, left: 0, right: 0, bottom: 0 })
+    })
+
+    it("should handle partial object with only left and right", () => {
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin({ left: 20, right: 30 }, size)
+      expect(actual).toStrictEqual({ top: 0, left: 20, right: 30, bottom: 0 })
+    })
   })
 
   describe("private: calculateSizeWithoutMargin", () => {
@@ -96,6 +137,27 @@ describe("fit", () => {
         width: 450,
         height: 340,
       })
+    })
+
+    it("should return negative values when margins exceed container", () => {
+      const size: Size = { width: 100, height: 100 }
+      const margins: Box = { top: 100, left: 100, right: 100, bottom: 100 }
+      const actual = calculateSizeWithoutMargin(size, margins)
+      expect(actual).toStrictEqual({ width: -100, height: -100 })
+    })
+
+    it("should return zero size when margins equal container", () => {
+      const size: Size = { width: 100, height: 100 }
+      const margins: Box = { top: 25, left: 50, right: 50, bottom: 75 }
+      const actual = calculateSizeWithoutMargin(size, margins)
+      expect(actual).toStrictEqual({ width: 0, height: 0 })
+    })
+
+    it("should handle zero size container", () => {
+      const size: Size = { width: 0, height: 0 }
+      const margins: Box = { top: 0, left: 0, right: 0, bottom: 0 }
+      const actual = calculateSizeWithoutMargin(size, margins)
+      expect(actual).toStrictEqual({ width: 0, height: 0 })
     })
   })
 
@@ -137,6 +199,33 @@ describe("fit", () => {
         x: (600 - 20 - 200 * 2) / 2 - 20 * 2 + 20, // 70
         y: (400 - 20 - 100 * 2) / 2 - 10 * 2 + 20, // 90
       })
+    })
+
+    it("should handle zero zoom", () => {
+      const box: Box = { top: 10, left: 20, right: 220, bottom: 110 }
+      const zoom = 0
+      const size: Size = { width: 600, height: 400 }
+      const margins: Box = { top: 0, left: 0, right: 0, bottom: 0 }
+      const pan = calculatePanForCentering(box, zoom, size, margins)
+      expect(pan).toStrictEqual({ x: 300, y: 200 })
+    })
+
+    it("should handle zero size box", () => {
+      const box: Box = { top: 0, left: 0, right: 0, bottom: 0 }
+      const zoom = 1
+      const size: Size = { width: 600, height: 400 }
+      const margins: Box = { top: 0, left: 0, right: 0, bottom: 0 }
+      const pan = calculatePanForCentering(box, zoom, size, margins)
+      expect(pan).toStrictEqual({ x: 300, y: 200 })
+    })
+
+    it("should handle zoom level 1", () => {
+      const box: Box = { top: 0, left: 0, right: 100, bottom: 100 }
+      const zoom = 1
+      const size: Size = { width: 200, height: 200 }
+      const margins: Box = { top: 0, left: 0, right: 0, bottom: 0 }
+      const pan = calculatePanForCentering(box, zoom, size, margins)
+      expect(pan).toStrictEqual({ x: 50, y: 50 })
     })
   })
 
@@ -206,6 +295,22 @@ describe("fit", () => {
       const viewBox: ViewBox = { x: 0, y: 0, width: 100, height: 100 }
       const size: Size = { width: 200, height: 200 }
       const margins: Box = { top: 150, left: 0, right: 0, bottom: 150 }
+      const zoom = calculateZoomLevelForFixedBox(viewBox, size, margins)
+      expect(zoom).toBe(0)
+    })
+
+    it("should return 0 if both width and height of the viewBox are 0", () => {
+      const viewBox: ViewBox = { x: 0, y: 0, width: 0, height: 0 }
+      const size: Size = { width: 100, height: 100 }
+      const margins: Box = { top: 0, left: 0, right: 0, bottom: 0 }
+      const zoom = calculateZoomLevelForFixedBox(viewBox, size, margins)
+      expect(zoom).toBe(0)
+    })
+
+    it("should return 0 if margins equal container size", () => {
+      const viewBox: ViewBox = { x: 0, y: 0, width: 100, height: 100 }
+      const size: Size = { width: 100, height: 100 }
+      const margins: Box = { top: 25, left: 50, right: 50, bottom: 75 }
       const zoom = calculateZoomLevelForFixedBox(viewBox, size, margins)
       expect(zoom).toBe(0)
     })

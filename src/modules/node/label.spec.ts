@@ -212,3 +212,95 @@ describe("handleNodeLabelAutoAdjustment with self-loop", () => {
     })
   })
 })
+
+describe("handleNodeLabelAutoAdjustment boundary cases", () => {
+  describe("when defaultDirection is center", () => {
+    it("should return center immediately regardless of edges", () => {
+      const direction = handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        {
+          edge1: { nodeId: "node2", pos: { x: 100, y: 50 } }, // north
+          edge2: { nodeId: "node3", pos: { x: 150, y: 100 } }, // east
+        },
+        () => undefined,
+        "center"
+      )
+      expect(direction).to.be.equal("center")
+    })
+
+    it("should return center even with no edges", () => {
+      const direction = handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        {},
+        () => undefined,
+        "center"
+      )
+      expect(direction).to.be.equal("center")
+    })
+  })
+
+  describe("when oppositeNodes is empty", () => {
+    it.each([
+      ["north", "north"],
+      ["south", "south"],
+      ["east", "east"],
+      ["west", "west"],
+      ["north-east", "north-east"],
+      ["north-west", "north-west"],
+      ["south-east", "south-east"],
+      ["south-west", "south-west"],
+    ] as const)("should return default direction %s", (defaultDir, expected) => {
+      const direction = handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        {},
+        () => undefined,
+        defaultDir
+      )
+      expect(direction).to.be.equal(expected)
+    })
+  })
+
+  describe("with different default directions", () => {
+    it("should avoid edge and return opposite when default is east", () => {
+      const direction = handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        {
+          edge1: { nodeId: "node2", pos: { x: 150, y: 100 } }, // east
+        },
+        () => undefined,
+        "east"
+      )
+      expect(direction).to.be.equal("west")
+    })
+
+    it("should avoid edge and return opposite when default is west", () => {
+      const direction = handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        {
+          edge1: { nodeId: "node2", pos: { x: 50, y: 100 } }, // west
+        },
+        () => undefined,
+        "west"
+      )
+      expect(direction).to.be.equal("east")
+    })
+
+    it("should avoid edge and return opposite when default is south", () => {
+      const direction = handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        {
+          edge1: { nodeId: "node2", pos: { x: 100, y: 150 } }, // south
+        },
+        () => undefined,
+        "south"
+      )
+      expect(direction).to.be.equal("north")
+    })
+  })
+})

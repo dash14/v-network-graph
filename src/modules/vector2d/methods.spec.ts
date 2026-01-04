@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import * as Methods from "./index"
 import { Point2D } from "./core"
+import * as Methods from "./index"
 
 function testArgumentAndResult(v: Point2D, target: Point2D, result1: Point2D, result2: Point2D) {
   it("should not overwrite arguments", () => {
@@ -110,6 +110,12 @@ describe("methods", () => {
     })
 
     testArgumentsAndResult(v1, v2, target, result1, result2)
+
+    it("should return Infinity when dividing by zero", () => {
+      const result = Methods.divide({ x: 10, y: 20 }, { x: 0, y: 0 })
+      expect(result.x).to.be.equal(Infinity)
+      expect(result.y).to.be.equal(Infinity)
+    })
   })
 
   describe("dot", () => {
@@ -119,6 +125,11 @@ describe("methods", () => {
 
     it("should calculate dot product", () => {
       expect(result).to.be.equal(40000)
+    })
+
+    it("should return 0 for perpendicular vectors", () => {
+      const perpResult = Methods.dot({ x: 100, y: 0 }, { x: 0, y: 100 })
+      expect(perpResult).to.be.equal(0)
     })
   })
 
@@ -130,6 +141,11 @@ describe("methods", () => {
     it("should calculate cross product", () => {
       expect(result).to.be.equal(-20000)
     })
+
+    it("should return 0 for parallel vectors", () => {
+      const parallelResult = Methods.cross({ x: 100, y: 100 }, { x: 200, y: 200 })
+      expect(parallelResult).to.be.equal(0)
+    })
   })
 
   describe("length", () => {
@@ -140,6 +156,11 @@ describe("methods", () => {
     it("should calculate length", () => {
       expect(result1).to.be.equal(5)
       expect(result2).to.be.equal(25)
+    })
+
+    it("should return 0 for zero vector", () => {
+      expect(Methods.length({ x: 0, y: 0 })).to.be.equal(0)
+      expect(Methods.lengthSquared({ x: 0, y: 0 })).to.be.equal(0)
     })
   })
 
@@ -181,6 +202,14 @@ describe("methods", () => {
     it("should x directed vector to 180 degree", () => {
       expect(anglePi).to.be.equal(Math.PI)
     })
+
+    it("should return negative angle for -y direction", () => {
+      expect(Methods.angle({ x: 0, y: -100 })).to.be.equal(-Math.PI / 2)
+    })
+
+    it("should return 0 for zero vector", () => {
+      expect(Methods.angle({ x: 0, y: 0 })).to.be.equal(0)
+    })
   })
 
   describe("angleDegree", () => {
@@ -197,6 +226,14 @@ describe("methods", () => {
     it("should x directed vector to 180 degree", () => {
       expect(anglePi).to.be.equal(180)
     })
+
+    it("should return -90 for -y direction", () => {
+      expect(Methods.angleDegree({ x: 0, y: -100 })).to.be.equal(-90)
+    })
+
+    it("should return -45 for diagonal in fourth quadrant", () => {
+      expect(Methods.angleDegree({ x: 100, y: -100 })).to.be.equal(-45)
+    })
   })
 
   describe("rotate", () => {
@@ -212,5 +249,16 @@ describe("methods", () => {
     })
 
     testArgumentAndResult(v, target, result1, result2)
+
+    it.each([
+      ["0°", 0, { x: 10, y: 0 }, { x: 10, y: 0 }],
+      ["180°", Math.PI, { x: 10, y: 0 }, { x: -10, y: 0 }],
+      ["270°", (3 * Math.PI) / 2, { x: 10, y: 0 }, { x: 0, y: -10 }],
+      ["360°", 2 * Math.PI, { x: 10, y: 0 }, { x: 10, y: 0 }],
+    ])("should rotate correctly at %s", (_, rotAngle, input, expected) => {
+      const result = Methods.rotate(input, rotAngle)
+      expect(result.x).to.be.closeTo(expected.x, 1e-10)
+      expect(result.y).to.be.closeTo(expected.y, 1e-10)
+    })
   })
 })

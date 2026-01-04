@@ -26,6 +26,18 @@ describe("instantiate", () => {
       expect(instance).to.have.property("x", 100)
       expect(instance).to.have.property("y", 200)
     })
+
+    it("should return (0, 0) for empty array", () => {
+      const empty = Vector2D.fromArray([])
+      expect(empty).to.have.property("x", 0)
+      expect(empty).to.have.property("y", 0)
+    })
+
+    it("should return (x, 0) for single element array", () => {
+      const single = Vector2D.fromArray([50])
+      expect(single).to.have.property("x", 50)
+      expect(single).to.have.property("y", 0)
+    })
   })
 
   describe("#fromObject()", () => {
@@ -231,6 +243,30 @@ describe("instance methods", () => {
     it("should clone, different instance", () => {
       expect(result.toObject()).to.be.eql({ x: 10, y: 10 })
       expect(result).not.to.be.equal(v)
+    })
+  })
+
+  describe("#toObject", () => {
+    it("should return a plain object with x and y", () => {
+      const v = new Vector2D(30, 40)
+      const obj = v.toObject()
+      expect(obj).to.eql({ x: 30, y: 40 })
+      expect(obj).not.to.be.an.instanceOf(Vector2D)
+    })
+  })
+
+  describe("#toArray", () => {
+    it("should return an array [x, y]", () => {
+      const v = new Vector2D(50, 60)
+      const arr = v.toArray()
+      expect(arr).to.eql([50, 60])
+      expect(arr).to.have.length(2)
+    })
+
+    it("should return correct values for negative coordinates", () => {
+      const v = new Vector2D(-10, -20)
+      const arr = v.toArray()
+      expect(arr).to.eql([-10, -20])
     })
   })
 })

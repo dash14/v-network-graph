@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { calculateDirectionsOfPathEdges } from "./path"
 import { EdgeObject } from "../../models/path"
+import { calculateDirectionsOfPathEdges } from "./path"
 
 describe("calculateDirectionsOfPathEdges", () => {
   it("should return an empty array if the edges are empty", () => {
@@ -196,6 +196,59 @@ describe("calculateDirectionsOfPathEdges", () => {
       const param: EdgeObject[] = [e1, e1, e1, e1]
       const result = calculateDirectionsOfPathEdges(param)
       expect(result).toStrictEqual([true, false, true, false])
+    })
+  })
+
+  describe("Loop edges (source === target)", () => {
+    it("should return true for single loop edge", () => {
+      const loop = { edgeId: "L1", edge: { source: "n1", target: "n1" } }
+      const result = calculateDirectionsOfPathEdges([loop])
+      expect(result).toStrictEqual([true])
+    })
+
+    it("should return all true for multiple loop edges", () => {
+      const loop1 = { edgeId: "L1", edge: { source: "n1", target: "n1" } }
+      const loop2 = { edgeId: "L2", edge: { source: "n2", target: "n2" } }
+      const loop3 = { edgeId: "L3", edge: { source: "n3", target: "n3" } }
+      const result = calculateDirectionsOfPathEdges([loop1, loop2, loop3])
+      // Loop edges are always true
+      expect(result).toStrictEqual([true, true, true])
+    })
+
+    it("should handle loop edge in the middle of path (forward -> loop -> forward)", () => {
+      // (n1) ---[E1]--> (n2) --[L1]--* (n2) ---[E2]--> (n3)
+      const e1 = { edgeId: "E1", edge: { source: "n1", target: "n2" } }
+      const loop = { edgeId: "L1", edge: { source: "n2", target: "n2" } }
+      const e2 = { edgeId: "E2", edge: { source: "n2", target: "n3" } }
+      const result = calculateDirectionsOfPathEdges([e1, loop, e2])
+      expect(result).toStrictEqual([true, true, true])
+    })
+
+    it("should handle loop edge in the middle of path (reverse -> loop -> reverse)", () => {
+      // (n1) <--[E1]--- (n2) --[L1]--* (n2) <--[E2]--- (n3)
+      const e1 = { edgeId: "E1", edge: { source: "n2", target: "n1" } }
+      const loop = { edgeId: "L1", edge: { source: "n2", target: "n2" } }
+      const e2 = { edgeId: "E2", edge: { source: "n3", target: "n2" } }
+      const result = calculateDirectionsOfPathEdges([e1, loop, e2])
+      expect(result).toStrictEqual([false, true, false])
+    })
+
+    it("should handle loop edge at the beginning of path", () => {
+      // (n1) --[L1]--* (n1) ---[E1]--> (n2)
+      const loop = { edgeId: "L1", edge: { source: "n1", target: "n1" } }
+      const e1 = { edgeId: "E1", edge: { source: "n1", target: "n2" } }
+      const result = calculateDirectionsOfPathEdges([loop, e1])
+      // First edge: loop (n1) joints with E1 at n1, so loop's direction is based on next edge
+      // Loop source/target are both n1, next edge starts at n1, so forward
+      expect(result).toStrictEqual([true, true])
+    })
+
+    it("should handle loop edge at the end of path", () => {
+      // (n1) ---[E1]--> (n2) --[L1]--* (n2)
+      const e1 = { edgeId: "E1", edge: { source: "n1", target: "n2" } }
+      const loop = { edgeId: "L1", edge: { source: "n2", target: "n2" } }
+      const result = calculateDirectionsOfPathEdges([e1, loop])
+      expect(result).toStrictEqual([true, true])
     })
   })
 })
