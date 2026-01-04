@@ -1,8 +1,7 @@
 // the states of nodes and edges
 
-import { computed, ComputedRef, reactive, ref, Ref, toRef, unref } from "vue"
-import { watch, watchEffect } from "vue"
-import { inject, InjectionKey, provide } from "vue"
+import type { ComputedRef, InjectionKey, Ref } from "vue"
+import { computed, reactive, ref, toRef, unref, watch, watchEffect, inject, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import {
   Config,

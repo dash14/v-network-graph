@@ -1,6 +1,7 @@
 // Management states of objects
 
-import { computed, ComputedRef, reactive, Ref, unref, UnwrapRef, watch } from "vue"
+import type { ComputedRef, Ref, UnwrapRef } from "vue"
+import { computed, reactive, unref, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, ObjectConfigs, ZOrderConfig } from "@/common/configs"
 

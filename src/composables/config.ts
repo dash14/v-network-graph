@@ -1,4 +1,5 @@
-import { inject, InjectionKey, provide, reactive, Ref, watch } from "vue"
+import type { InjectionKey, Ref } from "vue"
+import { inject, provide, reactive, watch } from "vue"
 import { isPlainObject, merge, mergeWith } from "lodash-es"
 import { nonNull } from "@/common/common"
 import { Configs, UserConfigs } from "@/common/configs"

@@ -1,4 +1,5 @@
-import { ref, Ref, onMounted, onUnmounted } from "vue"
+import type { Ref } from "vue"
+import { ref, onMounted, onUnmounted } from "vue"
 import { nonNull } from "@/common/common"
 import { createSvgPanZoomEx, SvgPanZoomInstance, SvgPanZoomOptions } from "@/modules/svg-pan-zoom-ex"
 

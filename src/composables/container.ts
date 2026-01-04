@@ -1,4 +1,5 @@
-import { provide, inject, InjectionKey, Ref } from "vue"
+import type { InjectionKey, Ref } from "vue"
+import { provide, inject } from "vue"
 import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { nonNull } from "@/common/common"
 

@@ -1,4 +1,5 @@
-import { provide, inject, InjectionKey, Ref, computed } from "vue"
+import type { InjectionKey, Ref } from "vue"
+import { provide, inject, computed } from "vue"
 import { nonNull } from "@/common/common"
 import { ViewConfig } from "@/common/configs"
 
