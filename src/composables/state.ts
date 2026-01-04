@@ -379,7 +379,7 @@ function createNewEdgeState(
   edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
   layouts: Layouts,
   scale: Ref<number>,
-  instanceId: number
+  instanceId: string
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
