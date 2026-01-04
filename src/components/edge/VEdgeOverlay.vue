@@ -118,9 +118,9 @@ function calculatePointAtLength(distance: number): Point {
     />
     <slot
       v-else
-      :edge-id="edgeId"
-      :edge="edge"
-      :edges="{ [edgeId!]: edge }"
+      :edge-id="edgeId!"
+      :edge="edge!"
+      :edges="{ [edgeId!]: edge! }"
       :is-summarized="isSummarized"
       :stroke="getStrokeConfig()"
       :position="toEdgePosition(state.origin)"
