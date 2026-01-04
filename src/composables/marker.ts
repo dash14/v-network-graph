@@ -15,7 +15,7 @@ export interface MarkerState {
 }
 
 export function makeMarkerState(): MarkerState {
-  const markers: Record<string, HeadMarker> = reactive({})
+  const markers = reactive<Record<string, HeadMarker>>({})
   const referenceCount: Record<string, number> = {}
   return { markers, referenceCount }
 }

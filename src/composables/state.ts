@@ -105,7 +105,7 @@ export function provideStates(
   makerState: MarkerState,
   scale: ComputedRef<number>
 ) {
-  const summarizedEdgeStates: EdgeModel.SummarizedEdgeStates = reactive({})
+  const summarizedEdgeStates = reactive<EdgeModel.SummarizedEdgeStates>({})
 
   // -----------------------------------------------------------------------
   // States for nodes
