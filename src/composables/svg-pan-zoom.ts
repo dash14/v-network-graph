@@ -1,9 +1,16 @@
 import type { Ref } from "vue"
 import { ref, onMounted, onUnmounted } from "vue"
 import { nonNull } from "@/common/common"
-import { createSvgPanZoomEx, SvgPanZoomInstance, SvgPanZoomOptions } from "@/modules/svg-pan-zoom-ex"
+import type { SvgPanZoomInstance, SvgPanZoomOptions } from "@/modules/svg-pan-zoom-ex"
+import { createSvgPanZoomEx } from "@/modules/svg-pan-zoom-ex"
 
 type Callback = () => void
+
+export interface UseSvgPanZoomReturn {
+  svgPanZoom: Ref<SvgPanZoomInstance | undefined>
+  onSvgPanZoomMounted: (callback: Callback) => void
+  onSvgPanZoomUnmounted: (callback: Callback) => void
+}
 
 enum State {
   INITIAL = 0,
@@ -11,7 +18,10 @@ enum State {
   UNMOUNTED = 2
 }
 
-export function useSvgPanZoom(svg: Ref<SVGSVGElement | undefined>, options: SvgPanZoomOptions) {
+export function useSvgPanZoom(
+  svg: Ref<SVGSVGElement | undefined>,
+  options: SvgPanZoomOptions
+): UseSvgPanZoomReturn {
   const instance = ref<SvgPanZoomInstance>()
   let state = State.INITIAL
   const mountedCallbacks: Callback[] = []

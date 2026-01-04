@@ -20,7 +20,18 @@ export function makeMarkerState(): MarkerState {
   return { markers, referenceCount }
 }
 
-export function useMarker(markerState: MarkerState) {
+export interface UseMarkerReturn {
+  makeMarker: (
+    marker: MarkerStyle,
+    isSource: boolean,
+    previousId: string | undefined,
+    strokeColor: string,
+    instanceId: number
+  ) => string | undefined
+  clearMarker: (id: string | undefined) => void
+}
+
+export function useMarker(markerState: MarkerState): UseMarkerReturn {
   const { markers, referenceCount } = markerState
 
   function addMarker(key: string, marker: HeadMarker) {
