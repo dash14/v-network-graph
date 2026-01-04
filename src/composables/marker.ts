@@ -15,12 +15,23 @@ export interface MarkerState {
 }
 
 export function makeMarkerState(): MarkerState {
-  const markers: Record<string, HeadMarker> = reactive({})
+  const markers = reactive<Record<string, HeadMarker>>({})
   const referenceCount: Record<string, number> = {}
   return { markers, referenceCount }
 }
 
-export function useMarker(markerState: MarkerState) {
+export interface UseMarkerReturn {
+  makeMarker: (
+    marker: MarkerStyle,
+    isSource: boolean,
+    previousId: string | undefined,
+    strokeColor: string,
+    instanceId: string
+  ) => string | undefined
+  clearMarker: (id: string | undefined) => void
+}
+
+export function useMarker(markerState: MarkerState): UseMarkerReturn {
   const { markers, referenceCount } = markerState
 
   function addMarker(key: string, marker: HeadMarker) {
@@ -54,7 +65,7 @@ export function useMarker(markerState: MarkerState) {
     isSource: boolean,
     previousId: string | undefined,
     strokeColor: string,
-    instanceId: number
+    instanceId: string
   ) {
     if (marker.type === "none") {
       clearMarker(previousId)
@@ -90,7 +101,7 @@ function toHeadMarker(marker: MarkerStyle, isSource: boolean, strokeColor: strin
   }
 }
 
-function buildKey(m: HeadMarker, instanceId: number) {
+function buildKey(m: HeadMarker, instanceId: string) {
   // If the same marker ID exists in the previous instance and is hidden by
   // `display: none`, the marker in the other instance will disappear.
   // For safety, marker IDs will be unique in the entire page.

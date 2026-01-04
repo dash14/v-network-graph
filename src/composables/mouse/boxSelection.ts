@@ -1,4 +1,5 @@
-import { computed, onMounted, onUnmounted, ref, Ref, watch } from "vue"
+import type { Ref } from "vue"
+import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import { debounce } from "lodash-es"
 import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"

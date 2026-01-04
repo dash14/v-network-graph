@@ -1,6 +1,7 @@
 // Module responsible for selection state and mouse/touch operations
 
-import { inject, InjectionKey, provide, ref, Ref, watch } from "vue"
+import type { InjectionKey, Ref } from "vue"
+import { inject, provide, ref, watch } from "vue"
 import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
 import { Events, Layouts, Rectangle } from "@/common/types"

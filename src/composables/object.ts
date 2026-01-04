@@ -1,7 +1,15 @@
-import { ref, Ref, watchEffect } from "vue"
-import { InputPaths, Path } from "@/common/types"
+import type { Ref } from "vue"
+import { ref, watchEffect } from "vue"
+import type { InputPaths, Path } from "@/common/types"
 
-export function useTranslatePathsToObject(input: Ref<InputPaths>) {
+export interface UseTranslatePathsToObjectReturn {
+  objects: Ref<Record<string, Path>>
+  isInCompatibilityModeForPath: Ref<boolean>
+}
+
+export function useTranslatePathsToObject(
+  input: Ref<InputPaths>
+): UseTranslatePathsToObjectReturn {
   const objects = ref<Record<string, Path>>({})
 
   const isInCompatibilityModeForPath = ref(false)

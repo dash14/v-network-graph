@@ -1,4 +1,5 @@
-import { computed, ComputedRef, Slot } from "vue"
+import type { ComputedRef, Slot } from "vue"
+import { computed } from "vue"
 import { uniq } from "lodash-es"
 import { Configs } from "@/common/configs"
 import { LayerName } from "@/common/types"
