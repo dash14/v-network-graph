@@ -2,7 +2,7 @@ import path from "path"
 import fs from "fs/promises"
 import { defineConfig } from "vite"
 import vue from "@vitejs/plugin-vue"
-import dts from "vite-plugin-dts"
+import dts from "unplugin-dts/vite"
 import { visualizer } from "rollup-plugin-visualizer";
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
@@ -59,7 +59,8 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      outDir: resolvePath("lib"),
+      outDirs: resolvePath("lib"),
+      processor: "vue",
       staticImport: true,
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile,
