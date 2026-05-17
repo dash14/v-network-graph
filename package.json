@@ -16,6 +16,19 @@
     "lib",
     "umd"
   ],
+  "packageManager": "pnpm@11.1.2",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "24.12.0",
+      "onFail": "download"
+    },
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.1.2",
+      "onFail": "download"
+    }
+  },
   "scripts": {
     "lint": "eslint -c eslint.config.js **/*.vue **/*.ts **/*.spec.ts --fix",
     "format": "prettier --write **/*.vue **/*.ts **/*.spec.ts",
