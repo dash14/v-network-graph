@@ -69,6 +69,7 @@
   },
   "exports": {
     ".": {
+      "style": "./lib/style.css",
       "import": "./lib/index.js",
       "require": "./umd/index.js"
     },
