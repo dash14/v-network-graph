@@ -16,7 +16,7 @@
     "lib",
     "umd"
   ],
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.5.2",
   "devEngines": {
     "runtime": {
       "name": "node",
@@ -25,7 +25,7 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": "11.1.2",
+      "version": "11.5.2",
       "onFail": "download"
     }
   },
@@ -49,28 +49,28 @@
   "devDependencies": {
     "@types/d3-force": "^3.0.10",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^24.12.3",
-    "@vitejs/plugin-vue": "^6.0.6",
-    "@vue/compiler-sfc": "^3.5.34",
-    "@vue/language-core": "^3.2.8",
+    "@types/node": "^24.13.1",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/compiler-sfc": "^3.5.35",
+    "@vue/language-core": "^3.3.3",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.5",
-    "eslint-plugin-vue": "^10.9.1",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-vue": "^10.9.2",
     "globals": "^16.5.0",
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.1.3",
     "rollup-plugin-visualizer": "^6.0.11",
-    "sass": "^1.99.0",
+    "sass": "^1.100.0",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.59.2",
-    "unplugin-dts": "^1.0.0",
-    "vite": "^7.3.3",
-    "vitest": "^4.1.5",
-    "vue-tsc": "^3.2.8"
+    "typescript-eslint": "^8.60.1",
+    "unplugin-dts": "^1.0.2",
+    "vite": "^7.3.5",
+    "vitest": "^4.1.8",
+    "vue-tsc": "^3.3.3"
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
