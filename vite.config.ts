@@ -18,7 +18,7 @@ function dtsBeforeWriteFile(filePath: string, _content: string) {
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: [{ find: "@/", replacement: path.join(__dirname, "./src/") }],
+    alias: [{ find: "@", replacement: resolvePath("src") }],
   },
   build: {
     target: "es2015",
