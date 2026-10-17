@@ -64,8 +64,7 @@ jobs:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ steps.pnpm-cache.outputs.cache-primary-key }}
 
-      # The checks run side by side, so a single run reports every failure.
-      # None of them writes anything the others read: the build output in lib/ is ignored by lint and format.
+      # Safe to share the checkout: everything the build writes is gitignored, so lint and format skip it.
       - parallel:
           - name: Lint
             run: pnpm run lint:check
