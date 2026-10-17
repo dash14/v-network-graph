@@ -54,7 +54,6 @@ jobs:
           restore-keys: ${{ github.ref != 'refs/heads/main' && format('pnpm-store-{0}-', runner.os) || '' }}
 
       - name: Install dependencies
-        id: install
         run: pnpm install --frozen-lockfile
 
       # Saving only from main keeps pull requests from planting a store that other runs restore.
@@ -65,22 +64,20 @@ jobs:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ steps.pnpm-cache.outputs.cache-primary-key }}
 
-      # The checks below run even after one of them fails, so a single run reports every failure.
-      - name: Lint
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: pnpm run lint:check
+      # The checks run side by side, so a single run reports every failure.
+      # None of them writes anything the others read: the build output in lib/ is ignored by lint and format.
+      - parallel:
+          - name: Lint
+            run: pnpm run lint:check
 
-      - name: Check formatting
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: pnpm run format:check
+          - name: Check formatting
+            run: pnpm run format:check
 
-      - name: Build
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: pnpm run build
+          - name: Build
+            run: pnpm run build
 
-      - name: Test
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: pnpm test
+          - name: Test
+            run: pnpm test
 
   # A single, stably named job for branch protection to require.
   tests-passed:
