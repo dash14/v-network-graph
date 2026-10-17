@@ -1,9 +1,13 @@
 name: Test
-run-name: Test (${{ github.ref_name }})
+run-name: Test (${{ github.head_ref || github.ref_name }})
 
 on:
   workflow_dispatch:
   pull_request:
+    branches:
+      - main
+  # Catches breakage from pull requests that pass on their own but not together.
+  push:
     branches:
       - main
 
@@ -38,18 +42,24 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
+        id: install
         run: pnpm install --frozen-lockfile
 
+      # The checks below run even after one of them fails, so a single run reports every failure.
       - name: Lint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm run lint:check
 
       - name: Check formatting
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm run format:check
 
       - name: Build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm run build
 
       - name: Test
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: pnpm test
 
   # A single, stably named job for branch protection to require.
