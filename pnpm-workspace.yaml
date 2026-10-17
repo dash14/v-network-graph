@@ -1,6 +1,6 @@
 engineStrict: true
 
-minimumReleaseAge: 10080 # 1 week
+minimumReleaseAge: 20160 # 2 weeks
 
 trustPolicy: no-downgrade
 trustPolicyExclude:
