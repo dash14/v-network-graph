@@ -9,7 +9,6 @@ trustPolicyExclude:
 allowBuilds:
   '@parcel/watcher': false
   esbuild: false
-  unrs-resolver: false
 
 overrides:
   '@isaacs/brace-expansion@<=5.0.0': ^5.0.1
