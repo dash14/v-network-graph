@@ -1,0 +1,163 @@
+name: Release
+run-name: Release ${{ inputs.tag }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Semver tag matching the version in package.json (e.g. v1.2.3, v1.2.3-beta.1)"
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  # Runs the dependencies' code, so it gets no token that can publish or push.
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          echo "::error::Release must be dispatched from main; github.ref is $REF"
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate tag format
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! echo "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$'; then
+            echo "::error::Invalid semver format: $TAG (expected vX.Y.Z or vX.Y.Z-prerelease)"
+            exit 1
+          fi
+
+      - name: Check tag matches package.json
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          if [ "v$VERSION" != "$TAG" ]; then
+            echo "::error::Tag $TAG does not match version $VERSION in package.json"
+            exit 1
+          fi
+
+      - name: Check tag does not exist
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "::error::Tag $TAG already exists"
+            exit 1
+          fi
+
+      # Takes the version from packageManager in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      # Takes the version from devEngines.runtime in package.json.
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+
+      # No cache, so what gets published never depends on a store another run saved.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Pack
+        run: pnpm pack --pack-destination "$RUNNER_TEMP/package"
+
+      - name: Upload package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: ${{ runner.temp }}/package/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: write
+      # For npm Trusted Publishing and provenance.
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Trusted Publishing needs npm 11.5.1 or later, which this Node bundles.
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+
+      - name: Download package
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: ${{ runner.temp }}/package
+
+      # A prerelease goes to the next dist-tag so that it never becomes latest. Runs outside the
+      # checkout because npm refuses a project whose devEngines names pnpm.
+      - name: Publish to npm
+        working-directory: ${{ runner.temp }}
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          case "$TAG" in
+            *-*) DIST_TAG=next ;;
+            *) DIST_TAG=latest ;;
+          esac
+          npm publish ./package/*.tgz --provenance --access public --tag "$DIST_TAG"
+
+      - name: Create release
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRERELEASE_FLAG=""
+          NOTES_ARGS=()
+          case "$TAG" in
+            *-*)
+              PRERELEASE_FLAG="--prerelease"
+              # --generate-notes would otherwise compare a prerelease against the wrong previous tag.
+              PREV_TAG=$(git tag --sort=-version:refname --list 'v*.*.*' | grep -vE '^v[0-9]+\.[0-9]+\.[0-9]+-' | head -1)
+              if [ -n "$PREV_TAG" ]; then
+                NOTES_ARGS=(--notes-start-tag "$PREV_TAG")
+              fi
+              ;;
+          esac
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes \
+            $PRERELEASE_FLAG \
+            "${NOTES_ARGS[@]}"
