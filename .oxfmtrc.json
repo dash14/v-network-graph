@@ -14,6 +14,7 @@
   "vueIndentScriptAndStyle": false,
   "sortPackageJson": false,
   "sortImports": {
-    "newlinesBetween": false
+    "newlinesBetween": false,
+    "partitionByComment": true
   }
 }
