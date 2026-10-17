@@ -7,7 +7,7 @@
   "types": "./lib/index.d.ts",
   "type": "module",
   "sideEffects": [
-    "*.css"
+    "**/*.css"
   ],
   "license": "MIT",
   "homepage": "https://dash14.github.io/v-network-graph/",
