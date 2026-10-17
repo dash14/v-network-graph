@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed } from "vue"
 import { chunk } from "lodash-es"
+import { computed } from "vue"
 import { Position } from "@/common/types"
-import { EdgeState } from "@/models/edge"
 import { useEdgeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
+import { EdgeState } from "@/models/edge"
 
 interface Props {
   id: string

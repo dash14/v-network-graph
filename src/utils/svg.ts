@@ -75,7 +75,7 @@ async function replaceImageSourceToDataUrl(image: SVGImageElement) {
   try {
     const dataUrl = await urlContentToDataUrl(href)
     image.setAttribute(useNS ? "xlink:href" : "href", dataUrl)
-  } catch (e) {
+  } catch {
     // output log and ignore
     console.warn("Image download failed.", href)
     return

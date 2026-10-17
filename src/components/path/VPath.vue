@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { chunk } from "lodash-es"
 import { CSSProperties, computed } from "vue"
-import { PositionOrCurve } from "@/common/types"
 import { Config } from "@/common/configs"
-import { PathState } from "@/models/path"
+import { PositionOrCurve } from "@/common/types"
 import { usePathConfig } from "@/composables/config"
-import { useZoomLevel } from "@/composables/zoom"
-import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 import { useStates } from "@/composables/state"
+import { useZoomLevel } from "@/composables/zoom"
+import { PathState } from "@/models/path"
 import { calculatePathPoints } from "@/modules/calculation/path"
+import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 
 const props = defineProps<{
   path: PathState

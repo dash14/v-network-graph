@@ -1,4 +1,3 @@
-
 # v-network-graph
 
 An interactive SVG based network-graph visualization component for Vue 3.
@@ -10,7 +9,6 @@ An interactive SVG based network-graph visualization component for Vue 3.
 
 [Live examples](https://dash14.github.io/v-network-graph/examples/)
 
-
 [![Version](https://img.shields.io/npm/v/v-network-graph.svg)](https://www.npmjs.com/package/v-network-graph)
 ![GitHub package.json dependency version](https://img.shields.io/github/package-json/dependency-version/dash14/v-network-graph/dev/@vue/compiler-sfc?label=Vue)
 [![License](https://img.shields.io/npm/l/v-network-graph.svg)](https://www.npmjs.com/package/v-network-graph)
@@ -19,23 +17,23 @@ An interactive SVG based network-graph visualization component for Vue 3.
 
 ## Features
 
-* Create a graph according your reactive data dynamically
-* Fully configurable appearance
-* SVG based
-* Pan and zoom viewport
-* Drag nodes
-* Multiple node selection
-* Multiple edge selection
-* Multi-touch support
-* Various events are provided
-* Export as SVG text
+- Create a graph according your reactive data dynamically
+- Fully configurable appearance
+- SVG based
+- Pan and zoom viewport
+- Drag nodes
+- Multiple node selection
+- Multiple edge selection
+- Multi-touch support
+- Various events are provided
+- Export as SVG text
 
 ## Documentation
 
-* [v-network-graph GitHub Pages](https://dash14.github.io/v-network-graph/)
-  * [Getting Started](https://dash14.github.io/v-network-graph/getting-started.html)
-  * [Examples](https://dash14.github.io/v-network-graph/examples/)
-  * [Reference](https://dash14.github.io/v-network-graph/reference/)
+- [v-network-graph GitHub Pages](https://dash14.github.io/v-network-graph/)
+  - [Getting Started](https://dash14.github.io/v-network-graph/getting-started.html)
+  - [Examples](https://dash14.github.io/v-network-graph/examples/)
+  - [Reference](https://dash14.github.io/v-network-graph/reference/)
 
 ## Installation
 
@@ -49,8 +47,8 @@ and setup in main.ts
 
 ```ts
 // main.ts
-import { createApp } from "vue"
 import VNetworkGraph from "v-network-graph"
+import { createApp } from "vue"
 import "v-network-graph/lib/style.css"
 import App from "./App.vue"
 
@@ -61,7 +59,6 @@ app.mount("#app")
 ```
 
 ## Installation on Nuxt 3 project
-
 
 Add css to `nuxt.config.ts`
 
@@ -79,8 +76,8 @@ Make the plugin to `plugins/v-network-graph.ts`
 
 ```ts
 // plugins/v-network-graph.ts
-import { defineNuxtPlugin } from "#app"
 import VNetworkGraph from "v-network-graph"
+import { defineNuxtPlugin } from "#app"
 
 export default defineNuxtPlugin(nuxtApp => {
   nuxtApp.vueApp.use(VNetworkGraph)
@@ -91,25 +88,21 @@ export default defineNuxtPlugin(nuxtApp => {
 
 ```vue
 <script setup lang="ts">
-  const nodes = {
-    node1: { name: "Node 1" },
-    node2: { name: "Node 2" },
-    node3: { name: "Node 3" },
-    node4: { name: "Node 4" },
-  }
-  const edges = {
-    edge1: { source: "node1", target: "node2" },
-    edge2: { source: "node2", target: "node3" },
-    edge3: { source: "node3", target: "node4" },
-  }
+const nodes = {
+  node1: { name: "Node 1" },
+  node2: { name: "Node 2" },
+  node3: { name: "Node 3" },
+  node4: { name: "Node 4" },
+}
+const edges = {
+  edge1: { source: "node1", target: "node2" },
+  edge2: { source: "node2", target: "node3" },
+  edge3: { source: "node3", target: "node4" },
+}
 </script>
 
 <template>
-  <v-network-graph
-    class="graph"
-    :nodes="nodes"
-    :edges="edges"
-  />
+  <v-network-graph class="graph" :nodes="nodes" :edges="edges" />
 </template>
 
 <style>
@@ -145,31 +138,31 @@ lower learning costs.
 
 v-network-graph was designed with the following policy:
 
-* Reactive
+- Reactive
 
-    All primitive data such as nodes, edges, node positions, and
-    their styles are provided from outside the component, and the
-    component can handle these data reactively with Vue. The
-    developer can modify the data at any time to reactively perform
-    manipulations such as adding/removing objects, moving node
-    positions, changing appearance, etc.
+  All primitive data such as nodes, edges, node positions, and
+  their styles are provided from outside the component, and the
+  component can handle these data reactively with Vue. The
+  developer can modify the data at any time to reactively perform
+  manipulations such as adding/removing objects, moving node
+  positions, changing appearance, etc.
 
-* Highly customizable
+- Highly customizable
 
-    For visualizations, where the requirements vary widely from each
-    application, it will be available a variety of customizations
-    for ease of use. In addition to static specifications, it also
-    supports dynamic changes due to the values ​​of fields contained
-    in node and edge data.
+  For visualizations, where the requirements vary widely from each
+  application, it will be available a variety of customizations
+  for ease of use. In addition to static specifications, it also
+  supports dynamic changes due to the values ​​of fields contained
+  in node and edge data.
 
-* Extendable
+- Extendable
 
-    Network graphs have many types of visualization objects, and in
-    many cases there are application-specific requirements. It is
-    difficult to cover all the requirements with pre-defined
-    functions. Therefore, we also implement a mechanism that allows
-    developers to flexibly add their own SVG elements and actions
-    as needed.
+  Network graphs have many types of visualization objects, and in
+  many cases there are application-specific requirements. It is
+  difficult to cover all the requirements with pre-defined
+  functions. Therefore, we also implement a mechanism that allows
+  developers to flexibly add their own SVG elements and actions
+  as needed.
 
 With the above, we would like to contribute to helping application
 developers to focus on developing application-specific requirements
@@ -180,21 +173,21 @@ for handling network graphs.
 Currently, working on internal refactoring, and implementing the
 following features.
 
-* Performance improvement when using large network graphs
-* More flexible edge enhancement and customization
-  * Enables flexible replacement of straight lines, bezier curves,
+- Performance improvement when using large network graphs
+- More flexible edge enhancement and customization
+  - Enables flexible replacement of straight lines, bezier curves,
     whether animation specifications, etc.
-  * Includes support for self-loop edge
+  - Includes support for self-loop edge
     (Some features are already available)
-* More flexible label display customization
-  * ✅ Adjustments node label position automatically
-  * As the edges extend, the label must also extend more flexibly
-  * Supports display of labels on self-loop edges
-  * ✅ Allows changing the z-order between labels and other objects
-* ✅ Simpler css class name specification overall
-  * To make it easier to override the design
-* Other minor improvements
-* Enrich related documentation
+- More flexible label display customization
+  - ✅ Adjustments node label position automatically
+  - As the edges extend, the label must also extend more flexibly
+  - Supports display of labels on self-loop edges
+  - ✅ Allows changing the z-order between labels and other objects
+- ✅ Simpler css class name specification overall
+  - To make it easier to override the design
+- Other minor improvements
+- Enrich related documentation
 
 These are planned to be released in phases, but since this is a
 personal project for dash14 and is ongoing on the side of other

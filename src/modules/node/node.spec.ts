@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { NodePositions } from "../../common/types"
 import { AnyShapeStyle } from "../../common/configs"
+import { NodePositions } from "../../common/types"
 import { getNodeRadius, getNodesBox } from "./node"
 
 describe("node", () => {
@@ -14,10 +14,13 @@ describe("node", () => {
       ["width < height", 30, 50, 15],
       ["width > height", 60, 40, 20],
       ["width === height (square)", 40, 40, 20],
-    ])("should return min(width, height) / 2 for rect shape when %s", (_, width, height, expected) => {
-      const shape = { type: "rect", width, height, borderRadius: 0 } as AnyShapeStyle
-      expect(getNodeRadius(shape)).toBe(expected)
-    })
+    ])(
+      "should return min(width, height) / 2 for rect shape when %s",
+      (_, width, height, expected) => {
+        const shape = { type: "rect", width, height, borderRadius: 0 } as AnyShapeStyle
+        expect(getNodeRadius(shape)).toBe(expected)
+      }
+    )
   })
 
   describe("getNodesBox", () => {

@@ -1,9 +1,9 @@
 import { AnyShapeStyle, RectangleShapeStyle, StrokeStyle } from "@/common/configs"
 import { EdgeLabelArea, LinePosition, Position } from "@/common/types"
 import V, { Vector2D } from "@/modules/vector2d"
-import * as PointUtils from "./point"
 import * as LineUtils from "./line"
 import { VectorLine } from "./line"
+import * as PointUtils from "./point"
 
 // /**
 //  * Calculate whether a point is contained in a circle.
@@ -163,7 +163,7 @@ export function calculateDistancesFromCenterOfNodeToEndOfNode(
   // source side
   let distance1: number
   if (sourceNodeShape.type === "circle") {
-    distance1 = sourceNodeShape.radius + (sourceNodeShape.strokeWidth / 2)
+    distance1 = sourceNodeShape.radius + sourceNodeShape.strokeWidth / 2
   } else {
     distance1 = calculateDistanceToAvoidOverlapsWithRect(
       targetNodePos,
@@ -176,7 +176,7 @@ export function calculateDistancesFromCenterOfNodeToEndOfNode(
   // target side
   let distance2: number
   if (targetNodeShape.type === "circle") {
-    distance2 = targetNodeShape.radius + (targetNodeShape.strokeWidth / 2)
+    distance2 = targetNodeShape.radius + targetNodeShape.strokeWidth / 2
   } else {
     distance2 = calculateDistanceToAvoidOverlapsWithRect(
       sourceNodePos,
@@ -300,7 +300,7 @@ export function calculateCircleCenterAndRadiusBy3Points(
 
   if ((x12 === 0 && y12 === 0) || (x32 === 0 && y32 === 0)) {
     // Cannot determine the curve if two or more of the three points are in the same position.
-    return [p1, 0];
+    return [p1, 0]
   }
 
   const x =

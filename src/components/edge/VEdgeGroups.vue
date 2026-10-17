@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useStates, isSummarizedEdges } from "@/composables/state"
 import VEdge from "./VEdge.vue"
-import VEdgeSummarized from "./VEdgeSummarized.vue"
 import VEdgeOverlay, { EdgeOverlaySlotProps } from "./VEdgeOverlay.vue"
+import VEdgeSummarized from "./VEdgeSummarized.vue"
 
 defineProps<{ hasEdgeOverlaySlot: boolean }>()
 
@@ -40,11 +40,7 @@ const { edgeStates, edgeZOrderedList, layouts } = useStates()
 <template>
   <template v-for="entry in edgeZOrderedList">
     <template v-if="isSummarizedEdges(entry)">
-      <v-edge-summarized
-        :key="entry.key"
-        :edges="entry.group.edges"
-        :layouts="layouts.nodes"
-      />
+      <v-edge-summarized :key="entry.key" :edges="entry.group.edges" :layouts="layouts.nodes" />
       <v-edge-overlay
         v-if="hasEdgeOverlaySlot"
         :key="entry.key"

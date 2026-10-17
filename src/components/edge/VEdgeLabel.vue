@@ -2,8 +2,8 @@
 import { computed, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "@/common/configs"
 import { Edge, EdgeLabelArea } from "@/common/types"
-import { VectorLine } from "@/modules/calculation/line"
 import VText from "@/components/base/VLabelText.vue"
+import { VectorLine } from "@/modules/calculation/line"
 
 interface Props {
   area: EdgeLabelArea

@@ -1,7 +1,7 @@
 import type { InjectionKey, Ref } from "vue"
 import { provide, inject } from "vue"
-import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { nonNull } from "@/common/common"
+import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 
 interface ProvideContainers {
   container: Ref<HTMLDivElement>
@@ -29,6 +29,6 @@ export function useContainers(): ProvideContainers {
     container: containers.container as Ref<HTMLDivElement>,
     svg: containers.svg as Ref<SVGElement>,
     viewport: containers.viewport as Ref<SVGGElement>,
-    svgPanZoom: containers.svgPanZoom
+    svgPanZoom: containers.svgPanZoom,
   }
 }

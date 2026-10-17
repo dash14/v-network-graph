@@ -2,8 +2,8 @@
 import { computed } from "vue"
 import { EdgeHeadType } from "@/common/configs"
 import { HeadMarker } from "@/composables/marker"
-import VMarkerHeadArrow from "./VMarkerHeadArrow.vue"
 import VMarkerHeadAngle from "./VMarkerHeadAngle.vue"
+import VMarkerHeadArrow from "./VMarkerHeadArrow.vue"
 import VMarkerHeadCircle from "./VMarkerHeadCircle.vue"
 
 type MarkerType = Exclude<EdgeHeadType, "none" | "custom">

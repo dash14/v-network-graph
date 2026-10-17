@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 import { CircleShapeStyle, RectangleShapeStyle } from "../../common/configs"
 import { Vector2D } from "../vector2d"
-import { VectorLine } from "./line"
 import * as v2d from "./2d"
+import { VectorLine } from "./line"
 
 describe("calculateDistancesFromCenterOfNodeToEndOfNode", () => {
   describe("circle to circle", () => {
@@ -375,7 +375,11 @@ describe("calculateBezierCurveControlPoint", () => {
     it.each([
       ["45°", new Vector2D(Math.cos(Math.PI / 4) * 10, Math.sin(Math.PI / 4) * 10), -Math.PI / 4],
       ["60°", new Vector2D(Math.cos(Math.PI / 3) * 10, Math.sin(Math.PI / 3) * 10), -Math.PI / 3],
-      ["89° (near boundary)", new Vector2D(Math.cos(Math.PI * 89 / 180) * 10, Math.sin(Math.PI * 89 / 180) * 10), -Math.PI * 89 / 180],
+      [
+        "89° (near boundary)",
+        new Vector2D(Math.cos((Math.PI * 89) / 180) * 10, Math.sin((Math.PI * 89) / 180) * 10),
+        (-Math.PI * 89) / 180,
+      ],
     ])("should return fewer control points for %s curve", (_, p2, theta0) => {
       const p1 = new Vector2D(10, 0)
       const center = new Vector2D(0, 0)
@@ -390,7 +394,7 @@ describe("calculateBezierCurveControlPoint", () => {
   describe("boundary: angle >= 90° (complex path with midpoints)", () => {
     it.each([
       ["90° (boundary)", new Vector2D(0, 10), -Math.PI / 2],
-      ["120°", new Vector2D(-5, Math.sin(Math.PI * 2 / 3) * 10), -Math.PI * 2 / 3],
+      ["120°", new Vector2D(-5, Math.sin((Math.PI * 2) / 3) * 10), (-Math.PI * 2) / 3],
       ["180°", new Vector2D(-10, 0), -Math.PI],
     ])("should return more control points for %s curve", (_, p2, theta0) => {
       const p1 = new Vector2D(10, 0)

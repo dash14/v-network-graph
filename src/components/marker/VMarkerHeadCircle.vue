@@ -12,11 +12,5 @@ defineProps<{
 </script>
 
 <template>
-  <ellipse
-    :fill="color"
-    :cx="width / 2"
-    :cy="height / 2"
-    :rx="width / 2"
-    :ry="height / 2"
-  />
+  <ellipse :fill="color" :cx="width / 2" :cy="height / 2" :rx="width / 2" :ry="height / 2" />
 </template>

@@ -203,7 +203,7 @@ export function getIntersectionOfCircles(
   if (a === sumR) {
     const n = vC1C2.clone().normalize()
     const p = center1.clone().add(n.multiplyScalar(radius1))
-    return near ? p : [p , p]
+    return near ? p : [p, p]
   }
 
   // When the circles are inscribed, [a] and the difference
@@ -216,7 +216,7 @@ export function getIntersectionOfCircles(
     // * C1 is larger : P = C1 + r1 * n
     // * C1 is smaller: P = C1 - r1 * n
     const p = center1.clone().add(n.multiplyScalar(isLarge ? radius1 : -radius1))
-    return near ? p : [p , p]
+    return near ? p : [p, p]
   }
 
   // All three sides of triangle C1C2P are known.

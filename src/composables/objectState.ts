@@ -22,7 +22,7 @@ type NewStateDatum<T extends ObjectStateDatumBase> = PartiallyPartial<T, keyof O
 export function useObjectState<
   T,
   S extends ObjectStateDatumBase,
-  E extends { id: string; zIndex: number } = ObjectState<S>
+  E extends { id: string; zIndex: number } = ObjectState<S>,
 >(
   objects: Ref<Record<string, T>>,
   config: ObjectConfigs<T>,

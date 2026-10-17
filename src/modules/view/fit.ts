@@ -1,7 +1,7 @@
 import { Point } from "@dash14/svg-pan-zoom"
+import { FitContentMargin, MarginValue } from "@/common/configs"
 import { Box, NodePositions, Position, Size, ViewBox } from "@/common/types"
 import { getNodesBox } from "@/modules/node/node"
-import { FitContentMargin, MarginValue } from "@/common/configs"
 import {
   areBoxesSame,
   boxAdd,

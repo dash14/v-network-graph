@@ -1,20 +1,20 @@
 // Module responsible for selection state and mouse/touch operations
 
+import { Emitter } from "mitt"
 import type { InjectionKey, Ref } from "vue"
 import { inject, provide, ref, watch } from "vue"
-import { Emitter } from "mitt"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
-import { Events, Layouts, Rectangle } from "@/common/types"
-import { NodeStates } from "@/models/node"
-import { EdgeStates } from "@/models/edge"
-import { PathStates } from "@/models/path"
 import { Configs } from "@/common/configs"
-import { InteractionModes } from "./core"
-import { makeNodeInteractionHandlers } from "./node"
-import { makeEdgeInteractionHandlers } from "./edge"
-import { setupContainerInteractionHandlers } from "./container"
-import { makePathInteractionHandlers } from "./path"
+import { Events, Layouts, Rectangle } from "@/common/types"
+import { EdgeStates } from "@/models/edge"
+import { NodeStates } from "@/models/node"
+import { PathStates } from "@/models/path"
 import { BoxSelectionOption, makeBoxSelectionMethods } from "./boxSelection"
+import { setupContainerInteractionHandlers } from "./container"
+import { InteractionModes } from "./core"
+import { makeEdgeInteractionHandlers } from "./edge"
+import { makeNodeInteractionHandlers } from "./node"
+import { makePathInteractionHandlers } from "./path"
 
 type NodeEventHandler<T extends Event = PointerEvent> = (node: string, event: T) => void
 type EdgeEventHandler<T extends Event = PointerEvent> = (edge: string, event: T) => void
@@ -129,14 +129,7 @@ export function provideMouseOperation(
       isInCompatibilityModeForPath,
       emitter
     ),
-    ...makeBoxSelectionMethods(
-      container,
-      modes,
-      layouts,
-      nodeStates,
-      selectedNodes,
-      configs
-    ),
+    ...makeBoxSelectionMethods(container, modes, layouts, nodeStates, selectedNodes, configs),
   }
   provide(mouseEventHandlersKey, provides)
   return provides

@@ -1,8 +1,8 @@
 {
   "recommendations": [
     "vue.volar",
+    "oxc.oxc-vscode",
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
     "streetsidesoftware.code-spell-checker"
   ]
 }

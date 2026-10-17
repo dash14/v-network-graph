@@ -1,0 +1,57 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "vue", "import"],
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "es2024": true,
+    "node": true
+  },
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-case-declarations": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-array-constructor": "error",
+    "no-empty": "error",
+    "no-regex-spaces": "error",
+    "no-unexpected-multiline": "error",
+    "no-unused-vars": [
+      "warn",
+      {
+        "args": "after-used",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-rest-params": "error",
+    "prefer-spread": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "import/no-named-as-default": "warn",
+    "import/no-named-as-default-member": "warn",
+    "vue/component-definition-name-casing": "warn",
+    "vue/no-multiple-slot-args": "warn",
+    "vue/no-required-prop-with-default": "warn",
+    "vue/prop-name-casing": "warn",
+    "vue/require-default-prop": "warn",
+    "vue/require-prop-types": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts"],
+      "rules": {
+        "no-redeclare": "off"
+      }
+    }
+  ]
+}

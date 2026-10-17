@@ -1,10 +1,10 @@
-import { watch } from "vue"
 import { Emitter } from "mitt"
+import { watch } from "vue"
 import { Reactive, ReadonlyRef } from "@/common/common"
 import { Events, Layouts, NodePositions, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
-import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
+import { entriesOf } from "@/utils/object"
 import {
   cleanClickState,
   ClickState,

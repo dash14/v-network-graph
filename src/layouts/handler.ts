@@ -1,8 +1,8 @@
-import { Ref } from "vue"
 import { Emitter } from "mitt"
+import { Ref } from "vue"
 import { Reactive } from "@/common/common"
-import { Events, Edges, NodePositions, Nodes } from "@/common/types"
 import { Configs } from "@/common/configs"
+import { Events, Edges, NodePositions, Nodes } from "@/common/types"
 import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 
 export interface LayoutActivateParameters {

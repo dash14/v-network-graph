@@ -1,7 +1,7 @@
 import { Ref, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
-import { Edge, Edges, LinePosition, Nodes, Position } from "@/common/types"
 import { Config, Configs, EdgeKeepOrderType } from "@/common/configs"
+import { Edge, Edges, LinePosition, Nodes, Position } from "@/common/types"
 import { EdgeGroup, EdgeGroupStates, EdgeLayoutPoint } from "@/models/edge"
 import { updateObjectDiff } from "@/utils/object"
 

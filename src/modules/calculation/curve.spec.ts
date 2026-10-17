@@ -124,8 +124,8 @@ describe("calculateSubpath", () => {
       const end = extractEndPoint(subpath)
 
       // Verify start moved inward (expected: 108.30, 70.10)
-      expect(start.x).toBeCloseTo(108.30, 1)
-      expect(start.y).toBeCloseTo(70.10, 1)
+      expect(start.x).toBeCloseTo(108.3, 1)
+      expect(start.y).toBeCloseTo(70.1, 1)
 
       // Verify end unchanged
       expect(end.x).toBeCloseTo(originalEnd.x, 1)
@@ -142,8 +142,8 @@ describe("calculateSubpath", () => {
       expect(start.y).toBeCloseTo(originalStart.y, 1)
 
       // Verify end moved inward (expected: 211.70, 70.10)
-      expect(end.x).toBeCloseTo(211.70, 1)
-      expect(end.y).toBeCloseTo(70.10, 1)
+      expect(end.x).toBeCloseTo(211.7, 1)
+      expect(end.y).toBeCloseTo(70.1, 1)
     })
 
     it("should calculate correct points with both margins (symmetry)", () => {
@@ -152,10 +152,10 @@ describe("calculateSubpath", () => {
       const end = extractEndPoint(subpath)
 
       // Verify both endpoints
-      expect(start.x).toBeCloseTo(108.30, 1)
-      expect(start.y).toBeCloseTo(70.10, 1)
-      expect(end.x).toBeCloseTo(211.70, 1)
-      expect(end.y).toBeCloseTo(70.10, 1)
+      expect(start.x).toBeCloseTo(108.3, 1)
+      expect(start.y).toBeCloseTo(70.1, 1)
+      expect(end.x).toBeCloseTo(211.7, 1)
+      expect(end.y).toBeCloseTo(70.1, 1)
 
       // Verify symmetry around x=160
       expect(start.x + end.x).toBeCloseTo(320, 0) // 160 * 2

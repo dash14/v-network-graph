@@ -1,10 +1,10 @@
-import { watch } from "vue"
 import { Emitter } from "mitt"
+import { watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, EdgeEvent } from "@/common/types"
 import { EdgeStates } from "@/models/edge"
-import { entriesOf } from "@/utils/object"
 import { MapUtil } from "@/utils/map"
+import { entriesOf } from "@/utils/object"
 import {
   cleanClickState,
   ClickState,
@@ -95,7 +95,7 @@ export function makeEdgeInteractionHandlers(
       state.clicks,
       pointerState.pointerId,
       edge instanceof Array ? edge.join(",") : edge,
-      event,
+      event
     )
     pointerState.eventTarget?.dispatchEvent(clickEvent)
     if (doubleClickEvent) {

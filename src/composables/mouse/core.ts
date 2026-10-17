@@ -49,7 +49,7 @@ export function detectClicks(
   clickStates: Map<number, ClickState>,
   pointerId: number,
   id: string,
-  event: MouseEvent,
+  event: MouseEvent
 ): [MouseEvent, MouseEvent | undefined] {
   // search click states
   let clickState = clickStates.get(pointerId)
@@ -68,12 +68,12 @@ export function detectClicks(
   }
 
   let clickEvent: MouseEvent, doubleClickEvent: MouseEvent | undefined
-  [clickState, clickEvent, doubleClickEvent] = createClickEvents(clickState, event, id)
+  ;[clickState, clickEvent, doubleClickEvent] = createClickEvents(clickState, event, id)
 
   // update
   clickStates.set(pointerId, clickState)
 
-  return [ clickEvent, doubleClickEvent ]
+  return [clickEvent, doubleClickEvent]
 }
 
 export function createClickEvents(

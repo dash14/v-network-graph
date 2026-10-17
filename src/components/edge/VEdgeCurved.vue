@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { CSSProperties, computed } from "vue"
 import { chunk } from "lodash-es"
+import { CSSProperties, computed } from "vue"
 import { StrokeStyle } from "@/common/configs"
-import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
+import { EdgeState } from "@/models/edge"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 
 interface Props {

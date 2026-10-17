@@ -1,9 +1,9 @@
-import path from "path"
 import fs from "fs/promises"
-import { defineConfig } from "vite"
+import path from "path"
 import vue from "@vitejs/plugin-vue"
+import { visualizer } from "rollup-plugin-visualizer"
 import dts from "unplugin-dts/vite"
-import { visualizer } from "rollup-plugin-visualizer";
+import { defineConfig } from "vite"
 
 const resolvePath = (str: string) => path.resolve(__dirname, str)
 
@@ -24,10 +24,7 @@ export default defineConfig({
     target: "es2015",
     lib: {
       formats: ["es"],
-      entry: [
-        resolvePath("src/index.ts"),
-        resolvePath("src/force-layout.ts"),
-      ],
+      entry: [resolvePath("src/index.ts"), resolvePath("src/force-layout.ts")],
       name: "v-network-graph",
       cssFileName: "style",
     },
@@ -50,9 +47,9 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        api: "modern-compiler"
-      }
-    }
+        api: "modern-compiler",
+      },
+    },
   },
   publicDir: false,
   plugins: [
@@ -63,7 +60,7 @@ export default defineConfig({
       staticImport: true,
       copyDtsFiles: false,
       beforeWriteFile: dtsBeforeWriteFile,
-      afterBuild: async (emittedFiles) => {
+      afterBuild: async emittedFiles => {
         // import * as XXX from "@/..." => relative path
         const srcRoot = resolvePath("lib")
         const pattern = /from ["']@\/(\w+)/
@@ -76,15 +73,15 @@ export default defineConfig({
             const relativePath = path.relative(path.dirname(file), `${srcRoot}/${topDir}`)
             content = content.replace(`@/${topDir}`, relativePath)
             matches = pattern.exec(content)
-          } while(matches)
+          } while (matches)
           await fs.writeFile(file, content)
         }
-      }
+      },
     }),
     visualizer({
       filename: "stats-es.html",
       gzipSize: true,
       brotliSize: true,
-    })
+    }),
   ],
 })

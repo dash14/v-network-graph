@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import VEdgeLabels from "@/components/edge/VEdgeLabels.vue"
 import { EdgeLabelSlotProps } from "@/components/edge/VEdgeLabelPlace.vue"
+import VEdgeLabels from "@/components/edge/VEdgeLabels.vue"
 import { EdgeLabelsSlotProps } from "@/components/edge/VEdgeLabelsPlace.vue"
 
 interface Props {
-  enableEdgeLabel: boolean
-  enableEdgesLabel: boolean
+  enableEdgeLabel?: boolean
+  enableEdgesLabel?: boolean
 }
 
 withDefaults(defineProps<Props>(), {

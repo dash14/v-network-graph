@@ -1,4 +1,3 @@
-
 export function removeItem<T extends number | string>(arr: T[], value: T): void {
   const i = arr.indexOf(value)
   if (i >= 0) arr.splice(i, 1)

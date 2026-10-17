@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "@/common/types"
 import { ShapeStyle } from "@/common/configs"
-import { NodeState } from "@/models/node"
+import { Position } from "@/common/types"
+import VShape from "@/components/base/VShape.vue"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
-import VShape from "@/components/base/VShape.vue"
+import { NodeState } from "@/models/node"
 
 interface Props {
   id: string

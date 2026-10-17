@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import VNodeFocusRing from "@/components/node/VNodeFocusRing.vue"
-import { useStates } from "@/composables/state"
-import { useSelections } from "@/composables/selection"
 import { useLayouts } from "@/composables/layout"
+import { useSelections } from "@/composables/selection"
+import { useStates } from "@/composables/state"
 
 const { nodeStates } = useStates()
 const { selectedNodes } = useSelections()

@@ -1,41 +1,34 @@
 {
   "eslint.run": "onType",
   "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit",
     "source.fixAll.eslint": "explicit"
   },
   "eslint.format.enable": true,
-  "cSpell.words": [
-    "composables",
-    "focusring",
-    "hoverable",
-    "nuxt",
-    "vite",
-    "vitejs",
-    "vitest"
-  ],
+  "cSpell.words": ["composables", "focusring", "hoverable", "nuxt", "vite", "vitejs", "vitest"],
   "cSpell.ignorePaths": [
     ".git",
     ".vscode",
     "node_modules",
     "package.json",
     "package-lock.json",
-    ".prettierrc",
-    ".eslintrc.cjs"
+    ".oxfmtrc.json",
+    ".oxlintrc.json"
   ],
   "[javascript]": {
     "editor.tabSize": 2,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescript]": {
     "editor.tabSize": 2,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[vue]": {
     "editor.tabSize": 2,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[json]": {
     "editor.tabSize": 2,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }

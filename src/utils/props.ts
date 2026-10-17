@@ -1,5 +1,5 @@
-import { watch, reactive, ref, Ref } from "vue"
 import { isEqual } from "lodash-es"
+import { watch, reactive, ref, Ref } from "vue"
 import { Reactive } from "../common/common"
 
 export function bindProp<T extends object, K extends keyof T>(
@@ -24,7 +24,10 @@ export function bindProp<T extends object, K extends keyof T>(
       }
     }
     watch(() => filter(prop.value), update)
-    watch(() => props[name],v => update(filter(v)))
+    watch(
+      () => props[name],
+      v => update(filter(v))
+    )
     if (prop.value !== props[name]) {
       emit(`update:${name as string & K}`, prop.value)
     }

@@ -5,6 +5,9 @@
 //   Copyright © 2008-2013 Sencha Labs (http://sencha.com)
 //   Licensed under the MIT (http://dmitrybaranovskiy.github.io/raphael/license.html) license.
 
+// Kept close to the original, so the rules it breaks stay off here.
+/* oxlint-disable no-case-declarations, no-control-regex, no-fallthrough, no-unused-expressions, no-unused-vars, no-useless-escape, prefer-const, typescript/ban-ts-comment */
+
 import { cloneDeep } from "lodash-es"
 
 interface SubPaths {
@@ -302,7 +305,7 @@ function pathToAbsolute(path: string): PathSegments {
     pathArray[1][0].toUpperCase() == "R" &&
     pathArray[2][0].toUpperCase() == "Z"
   for (let r: Segment, pa, i = start, ii = pathArray.length; i < ii; i++) {
-    res.push(r = [] as unknown as Segment)
+    res.push((r = [] as unknown as Segment))
     pa = pathArray[i]
     if (pa[0] != pa[0].toUpperCase()) {
       r[0] = pa[0].toUpperCase()

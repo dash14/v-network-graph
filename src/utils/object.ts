@@ -20,5 +20,5 @@ export function updateObjectDiff<T extends Record<string, any>>(target: T, from:
 }
 
 export function isPromise(obj: any): boolean {
-  return obj instanceof Promise || (obj && typeof obj.then === 'function')
+  return obj instanceof Promise || (obj && typeof obj.then === "function")
 }

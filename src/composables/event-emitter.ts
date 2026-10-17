@@ -1,5 +1,5 @@
-import { provide, inject, InjectionKey } from "vue"
 import mitt, { Emitter } from "mitt"
+import { provide, inject, InjectionKey } from "vue"
 import { nonNull } from "@/common/common"
 import { Events } from "@/common/types"
 

@@ -47,16 +47,18 @@ export interface BasicShapeStyle {
   color: string
 }
 
-type Percent = `${number}%`;
-type Pixel = `${number}px`;
+type Percent = `${number}%`
+type Pixel = `${number}px`
 type NumericString = `${number}`
 export type MarginValue = Percent | Pixel | NumericString | number
-export type FitContentMargin = MarginValue | {
-  top?: MarginValue
-  left?: MarginValue
-  right?: MarginValue
-  bottom?: MarginValue
-}
+export type FitContentMargin =
+  | MarginValue
+  | {
+      top?: MarginValue
+      left?: MarginValue
+      right?: MarginValue
+      bottom?: MarginValue
+    }
 
 export interface ViewConfig {
   scalingObjects: boolean
@@ -331,7 +333,7 @@ export interface Configs<N extends Node = Node, E extends Edge = Edge, P extends
 export type UserConfigs<
   N extends Node = Node,
   E extends Edge = Edge,
-  P extends Path = Path
+  P extends Path = Path,
 > = RecursivePartial<Configs<N, E, P>>
 
 /** Make a config with self object */
@@ -345,7 +347,7 @@ export function configsWithType<
   N extends Node = Node,
   E extends Edge = Edge,
   P extends Path = Path,
-  U extends UserConfigs<N, E, P> = UserConfigs<N, E, P>
+  U extends UserConfigs<N, E, P> = UserConfigs<N, E, P>,
 >(configs: U): U & UserConfigs<N, E, P> {
   return configs
 }
@@ -355,7 +357,7 @@ export function defineConfigs<
   N extends Node = Node,
   E extends Edge = Edge,
   P extends Path = Path,
-  U extends UserConfigs<N, E, P> = UserConfigs<N, E, P>
+  U extends UserConfigs<N, E, P> = UserConfigs<N, E, P>,
 >(configs: U): U & UserConfigs<N, E, P> {
   return configs
 }
