@@ -1,11 +1,11 @@
+import { debounce } from "lodash-es"
 import type { Ref } from "vue"
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
-import { debounce } from "lodash-es"
 import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"
 import { Layouts, NodePositions, Point, Rectangle } from "@/common/types"
-import { Vector2D } from "@/modules/vector2d"
 import { NodeStates } from "@/models/node"
+import { Vector2D } from "@/modules/vector2d"
 import { translateFromDomToSvgCoordinates } from "@/utils/svg"
 import { InteractionModes } from "./core"
 

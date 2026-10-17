@@ -305,7 +305,7 @@ function pathToAbsolute(path: string): PathSegments {
     pathArray[1][0].toUpperCase() == "R" &&
     pathArray[2][0].toUpperCase() == "Z"
   for (let r: Segment, pa, i = start, ii = pathArray.length; i < ii; i++) {
-    res.push(r = [] as unknown as Segment)
+    res.push((r = [] as unknown as Segment))
     pa = pathArray[i]
     if (pa[0] != pa[0].toUpperCase()) {
       r[0] = pa[0].toUpperCase()

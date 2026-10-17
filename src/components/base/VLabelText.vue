@@ -159,7 +159,8 @@ function enableMutationObserver(
         :x="x"
         :dy="i == 0 ? topDeltaY : lineHeight"
         :dominant-baseline="dominantBaseline"
-      >{{ t }}</tspan>
+        >{{ t }}</tspan
+      >
     </template>
   </text>
 </template>

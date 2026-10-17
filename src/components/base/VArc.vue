@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CSSProperties, computed } from "vue"
-import { Position } from "@/common/types"
 import { StrokeStyle } from "@/common/configs"
+import { Position } from "@/common/types"
 import { useZoomLevel } from "@/composables/zoom"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 

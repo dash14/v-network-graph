@@ -1,7 +1,7 @@
 import { ComputedRef, UnwrapRef, WatchStopHandle } from "vue"
 import { Edge, Path } from "@/common/types"
-import { VectorLine } from "@/modules/calculation/line"
 import { Arc, Curve } from "@/models/edge"
+import { VectorLine } from "@/modules/calculation/line"
 
 export interface EdgeObject {
   edgeId: string

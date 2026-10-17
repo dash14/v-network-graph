@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { EdgeGroup } from "@/models/edge"
 import { useStates } from "@/composables/state"
+import { EdgeGroup } from "@/models/edge"
 import VEdgeLabelPlace, { EdgeLabelSlotProps } from "./VEdgeLabelPlace.vue"
 import VEdgeLabelsPlace, { EdgeLabelsSlotProps } from "./VEdgeLabelsPlace.vue"
 
@@ -47,11 +47,7 @@ function getRepresentativeEdgeKey(group: EdgeGroup) {
     <template v-if="enableEdgeLabel">
       <template v-for="(group, id) in edgeGroups.individual" :key="id">
         <template v-for="(edge, edgeId) in group.edges" :key="edgeId">
-          <v-edge-label-place
-            :edge-id="edgeId"
-            :edge="edge"
-            :state="edgeStates[edgeId]"
-          >
+          <v-edge-label-place :edge-id="edgeId" :edge="edge" :state="edgeStates[edgeId]">
             <template #default="slotProps">
               <slot name="edge-label" v-bind="slotProps" />
             </template>

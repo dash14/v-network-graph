@@ -1,10 +1,10 @@
+import { uniq } from "lodash-es"
 import type { ComputedRef, Slot } from "vue"
 import { computed } from "vue"
-import { uniq } from "lodash-es"
 import { Configs } from "@/common/configs"
 import { LayerName } from "@/common/types"
-import { pairwise } from "@/modules/collection/iterate"
 import { insertAfter, removeItem } from "@/modules/collection/array"
+import { pairwise } from "@/modules/collection/iterate"
 
 export interface LayerSlotProps {
   scale: number

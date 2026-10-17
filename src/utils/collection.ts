@@ -1,4 +1,3 @@
-
 type Args<T> = [...(T | null)[], T]
 
 export function findFirstNonNull<T>(...values: Args<T>): T {

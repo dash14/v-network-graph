@@ -5,15 +5,7 @@
     "source.fixAll.eslint": "explicit"
   },
   "eslint.format.enable": true,
-  "cSpell.words": [
-    "composables",
-    "focusring",
-    "hoverable",
-    "nuxt",
-    "vite",
-    "vitejs",
-    "vitest"
-  ],
+  "cSpell.words": ["composables", "focusring", "hoverable", "nuxt", "vite", "vitejs", "vitest"],
   "cSpell.ignorePaths": [
     ".git",
     ".vscode",

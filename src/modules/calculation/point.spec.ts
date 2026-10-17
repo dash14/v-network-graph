@@ -25,12 +25,7 @@ function distance(p1: { x: number; y: number }, p2: { x: number; y: number }): n
 describe("point", () => {
   describe("getNearestPoint", () => {
     it.each([
-      [
-        "point on the line",
-        { px: 50, py: 0 },
-        { x1: 0, y1: 0, x2: 100, y2: 0 },
-        { x: 50, y: 0 },
-      ],
+      ["point on the line", { px: 50, py: 0 }, { x1: 0, y1: 0, x2: 100, y2: 0 }, { x: 50, y: 0 }],
       [
         "point perpendicular to horizontal line",
         { px: 50, py: 30 },
@@ -63,10 +58,7 @@ describe("point", () => {
       ],
     ])("should calculate nearest point for %s", (_, point, line, expected) => {
       const p = new Vector2D(point.px, point.py)
-      const vLine = VectorLine.fromPositions(
-        { x: line.x1, y: line.y1 },
-        { x: line.x2, y: line.y2 }
-      )
+      const vLine = VectorLine.fromPositions({ x: line.x1, y: line.y1 }, { x: line.x2, y: line.y2 })
       const result = getNearestPoint(p, vLine)
 
       expect(result.x).toBeCloseTo(expected.x, 5)

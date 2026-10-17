@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import VEdgeLabels from "@/components/edge/VEdgeLabels.vue"
 import { EdgeLabelSlotProps } from "@/components/edge/VEdgeLabelPlace.vue"
+import VEdgeLabels from "@/components/edge/VEdgeLabels.vue"
 import { EdgeLabelsSlotProps } from "@/components/edge/VEdgeLabelsPlace.vue"
 
 interface Props {

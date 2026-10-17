@@ -1,16 +1,16 @@
-import { NodePositions, PositionOrCurve } from "@/common/types"
 import { nonNull } from "@/common/common"
-import { NodeStates } from "@/models/node"
-import { EdgeStates, EdgeState } from "@/models/edge"
-import { EdgeLine, EdgeObject, PathState } from "@/models/path"
 import { PathEndType } from "@/common/configs"
-import { findFirstNonNull } from "@/utils/collection"
+import { NodePositions, PositionOrCurve } from "@/common/types"
+import { EdgeStates, EdgeState } from "@/models/edge"
+import { NodeStates } from "@/models/node"
+import { EdgeLine, EdgeObject, PathState } from "@/models/path"
 import * as v2d from "@/modules/calculation/2d"
-import * as PointUtils from "@/modules/calculation/point"
 import { VectorLine } from "@/modules/calculation/line"
 import * as LineUtils from "@/modules/calculation/line"
+import * as PointUtils from "@/modules/calculation/point"
 import * as NodeUtils from "@/modules/node/node"
 import V, { Vector2D } from "@/modules/vector2d"
+import { findFirstNonNull } from "@/utils/collection"
 
 const EPSILON = Number.EPSILON * 100 // 2.2204... x 10‍−‍14.
 
@@ -331,18 +331,21 @@ function _getJointNode(edges: EdgeObject[], index: number): string | null {
     return nextEdge[0]
   }
 
-  if (edgeObject0.edgeId === edgeObject1.edgeId || (currentEdge[0] === nextEdge[0] && currentEdge[1] === nextEdge[1])) {
+  if (
+    edgeObject0.edgeId === edgeObject1.edgeId ||
+    (currentEdge[0] === nextEdge[0] && currentEdge[1] === nextEdge[1])
+  ) {
     // both edges are between same nodes
     if (index >= edges.length - 2) {
       // cannot be determined.
-      return null;
+      return null
     } else {
       // check with next edge
       const joint = _getJointNode(edges, index + 1)
       if (joint === null) {
-        return null;
+        return null
       } else {
-        return joint === currentEdge[1] ? currentEdge[0] : currentEdge[1];
+        return joint === currentEdge[1] ? currentEdge[0] : currentEdge[1]
       }
     }
   } else {
@@ -529,7 +532,7 @@ function _makeArcString(
   let [end1, end2] = ends ? ends.reverse() : [edge.line.source, edge.line.target]
   const isClockwise = _isForward(edge)
   if (!isClockwise) {
-    [end1, end2] = [end2, end1]
+    ;[end1, end2] = [end2, end1]
   }
   const p1 = end1
   const p2 = end2

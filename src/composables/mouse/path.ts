@@ -1,7 +1,10 @@
+import { Emitter } from "mitt"
 import { Ref, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
+import { MapUtil } from "@/utils/map"
+import { entriesOf } from "@/utils/object"
 import {
   cleanClickState,
   ClickState,
@@ -9,9 +12,6 @@ import {
   InteractionModes,
   PathPointerState,
 } from "./core"
-import { entriesOf } from "@/utils/object"
-import { MapUtil } from "@/utils/map"
-import { Emitter } from "mitt"
 
 export function makePathInteractionHandlers(
   pathStates: PathStates,

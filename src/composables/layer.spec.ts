@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 import { Slots } from "vue"
-import { useBuiltInLayerOrder } from "./layer"
 import { getFullConfigs } from "../common/config-defaults"
 import { LayerName } from "../common/types"
+import { useBuiltInLayerOrder } from "./layer"
 
 function getConfigs() {
   const configs = getFullConfigs({

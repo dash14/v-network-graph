@@ -1,9 +1,9 @@
+import { isPlainObject, merge, mergeWith } from "lodash-es"
 import type { InjectionKey, Ref } from "vue"
 import { inject, provide, reactive, watch } from "vue"
-import { isPlainObject, merge, mergeWith } from "lodash-es"
 import { nonNull } from "@/common/common"
-import { Configs, UserConfigs } from "@/common/configs"
 import { getConfigDefaults } from "@/common/config-defaults"
+import { Configs, UserConfigs } from "@/common/configs"
 
 const injectionKey = Symbol("style") as InjectionKey<Configs>
 
@@ -19,9 +19,13 @@ export function provideConfigs(configs: Ref<UserConfigs>) {
   const results: Configs = reactive(getConfigDefaults())
   const styleKeys = Object.keys(results) as (keyof Configs)[]
   for (const key of styleKeys) {
-    watch(() => configs.value[key], () => {
-      mergeWith(results[key], configs.value[key] || {}, merger)
-    }, { immediate: true, deep: true })
+    watch(
+      () => configs.value[key],
+      () => {
+        mergeWith(results[key], configs.value[key] || {}, merger)
+      },
+      { immediate: true, deep: true }
+    )
   }
 
   provide(injectionKey, results)

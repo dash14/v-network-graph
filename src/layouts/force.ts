@@ -1,5 +1,5 @@
-import { Ref, toRef, watch } from "vue"
 import * as d3 from "d3-force"
+import { Ref, toRef, watch } from "vue"
 import { Edges, NodePositions, Nodes } from "@/common/types"
 import { OnClickHandler, OnDragHandler } from "@/common/types"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"
@@ -142,7 +142,7 @@ export class ForceLayout implements LayoutHandler {
         Object.values(nodePositions.value).map(p => p.fixed),
       ],
       () => {
-        ({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {

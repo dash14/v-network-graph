@@ -7,11 +7,11 @@
 -->
 <script setup lang="ts">
 import { computed } from "vue"
-import { Edge, EdgeLabelArea } from "@/common/types"
-import { EdgeState } from "@/models/edge"
-import { useZoomLevel } from "@/composables/zoom"
-import * as v2d from "@/modules/calculation/2d"
 import { EdgeLabelStyle } from "@/common/configs"
+import { Edge, EdgeLabelArea } from "@/common/types"
+import { useZoomLevel } from "@/composables/zoom"
+import { EdgeState } from "@/models/edge"
+import * as v2d from "@/modules/calculation/2d"
 
 interface Props {
   edgeId: string

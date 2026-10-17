@@ -1,5 +1,5 @@
-import { Ref, toRef, watch } from "vue"
 import { isEqual, round } from "lodash-es"
+import { Ref, toRef, watch } from "vue"
 import { NodePositions, OnDragHandler, Position } from "@/common/types"
 import { getNodeSize, areNodesCollision } from "@/utils/visual"
 import { LayoutActivateParameters, LayoutHandler } from "./handler"

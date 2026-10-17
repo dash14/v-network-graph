@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Position } from "@/common/types"
-import { EdgeState } from "@/models/edge"
-import { useEdgeConfig } from "@/composables/config"
-import VLine from "@/components/base/VLine.vue"
 import VArc from "@/components/base/VArc.vue"
+import VLine from "@/components/base/VLine.vue"
+import { useEdgeConfig } from "@/composables/config"
+import { EdgeState } from "@/models/edge"
 import VEdgeCurved from "./VEdgeCurved.vue"
 
 interface Props {

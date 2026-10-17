@@ -55,7 +55,7 @@ export function getCenterOfLinePosition(line: LinePosition): Vector2D {
  * @param p2 target position of the line
  * @returns `LinePosition` instance
  */
- export function toLinePosition(p1: Position, p2: Position): LinePosition {
+export function toLinePosition(p1: Position, p2: Position): LinePosition {
   return { p1, p2 }
 }
 
@@ -66,7 +66,7 @@ export function getCenterOfLinePosition(line: LinePosition): Vector2D {
  * @param targetMargin margin for target side
  * @returns the line position
  */
- export function applyMargin(
+export function applyMargin(
   linePos: LinePosition,
   sourceMargin: number,
   targetMargin: number

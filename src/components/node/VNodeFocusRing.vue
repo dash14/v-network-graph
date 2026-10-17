@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, watchEffect } from "vue"
-import { Position } from "@/common/types"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/configs"
-import { NodeState } from "@/models/node"
-import { useNodeConfig } from "@/composables/config"
+import { Position } from "@/common/types"
 import VShape from "@/components/base/VShape.vue"
+import { useNodeConfig } from "@/composables/config"
+import { NodeState } from "@/models/node"
 
 interface Props {
   id: string
@@ -64,12 +64,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <v-shape
-    class="v-ng-node-focusring"
-    :base-x="x"
-    :base-y="y"
-    :config="shapeConfig"
-  />
+  <v-shape class="v-ng-node-focusring" :base-x="x" :base-y="y" :config="shapeConfig" />
 </template>
 
 <style lang="scss">

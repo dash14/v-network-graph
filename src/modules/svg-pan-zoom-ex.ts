@@ -23,18 +23,18 @@ export interface SvgPanZoomInstance extends SvgPanZoom.Instance {
 }
 
 export interface CustomEventOptions {
-  svgElement: SVGSVGElement;
-  instance: SvgPanZoomInstance;
+  svgElement: SVGSVGElement
+  instance: SvgPanZoomInstance
 }
 
 export interface CustomEventHandler {
-  init: (options: CustomEventOptions) => void;
-  haltEventListeners: string[];
-  destroy: (options: CustomEventOptions) => void;
+  init: (options: CustomEventOptions) => void
+  haltEventListeners: string[]
+  destroy: (options: CustomEventOptions) => void
 }
 
 export interface SvgPanZoomOptions extends Omit<SvgPanZoom.Options, "customEventsHandler"> {
-  customEventsHandler?: CustomEventHandler; // (default null)
+  customEventsHandler?: CustomEventHandler // (default null)
 }
 
 export interface SvgPanZoomInternal extends SvgPanZoomInstance {
@@ -86,10 +86,7 @@ const methods: Partial<SvgPanZoomInternal> = {
     const currentRatio = sizeWidth / sizeHeight
     const newWidth = ratio < currentRatio ? height * currentRatio : width
     const newHeight = ratio > currentRatio ? width / currentRatio : height
-    const absoluteZoom = Math.min(
-      sizeWidth / newWidth,
-      sizeHeight / newHeight
-    )
+    const absoluteZoom = Math.min(sizeWidth / newWidth, sizeHeight / newHeight)
     const realZoom = this.getRealZoom()
     const relativeZoom = this.getZoom()
     const originalZoom = realZoom / relativeZoom
@@ -97,17 +94,22 @@ const methods: Partial<SvgPanZoomInternal> = {
 
     const center = {
       x: (box.left + width / 2) * absoluteZoom,
-      y: (box.top + height / 2) * absoluteZoom
+      y: (box.top + height / 2) * absoluteZoom,
     }
     this.pan({
-      x: -(center.x) + newWidth / 2 * absoluteZoom,
-      y: -(center.y) + newHeight / 2 * absoluteZoom
+      x: -center.x + (newWidth / 2) * absoluteZoom,
+      y: -center.y + (newHeight / 2) * absoluteZoom,
     })
   },
   getRealZoom(this: SvgPanZoomInternal) {
     return this.getSizes().realZoom
   },
-  applyAbsoluteZoomLevel(this: SvgPanZoomInternal, zoomLevel: number, minZoomLevel: number, maxZoomLevel: number) {
+  applyAbsoluteZoomLevel(
+    this: SvgPanZoomInternal,
+    zoomLevel: number,
+    minZoomLevel: number,
+    maxZoomLevel: number
+  ) {
     // normalize
     const min = Math.max(0.0001, minZoomLevel)
     const max = Math.max(min, maxZoomLevel)
@@ -169,7 +171,7 @@ const methods: Partial<SvgPanZoomInternal> = {
 
 function constructor(
   svgPanZoom: SvgPanZoom.Instance,
-  options: SvgPanZoomOptions,
+  options: SvgPanZoomOptions
 ): SvgPanZoomInternal {
   const instance = svgPanZoom as SvgPanZoomInternal
   instance._isPanEnabled = options.panEnabled ?? true
@@ -188,7 +190,6 @@ export function createSvgPanZoomEx(
   svg: SVGElement,
   options: SvgPanZoomOptions
 ): SvgPanZoomInstance {
-
   const userInit = options.customEventsHandler?.init ?? ((_: any) => {})
   const userDestroy = options.customEventsHandler?.destroy ?? ((_: any) => {})
   const haltEventListeners = options.customEventsHandler?.haltEventListeners ?? []
@@ -203,7 +204,7 @@ export function createSvgPanZoomEx(
       userInit(o)
     },
     destroy: o => userDestroy(o),
-    haltEventListeners
+    haltEventListeners,
   }
 
   return svgPanZoom(svg, options as SvgPanZoom.Options) as SvgPanZoomInternal

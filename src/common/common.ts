@@ -8,12 +8,12 @@ export type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? RecursivePartial<U>[]
     : T[P] extends (infer U)[] | undefined
-    ? RecursivePartial<U>[]
-    : T[P] extends object
-    ? RecursivePartial<T[P]>
-    : T[P] extends object | undefined
-    ? RecursivePartial<T[P]>
-    : T[P]
+      ? RecursivePartial<U>[]
+      : T[P] extends object
+        ? RecursivePartial<T[P]>
+        : T[P] extends object | undefined
+          ? RecursivePartial<T[P]>
+          : T[P]
 }
 
 declare class Id<T extends string> {

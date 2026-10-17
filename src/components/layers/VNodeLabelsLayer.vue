@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, useSlots } from "vue"
+import VNodeLabel, { NodeLabelSlotProps } from "@/components/node/VNodeLabel.vue"
 import { useNodeConfig } from "@/composables/config"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 import { NodeState } from "@/models/node"
-import VNodeLabel, { NodeLabelSlotProps } from "@/components/node/VNodeLabel.vue"
 
 defineSlots<{ "override-node-label": (props: NodeLabelSlotProps) => any }>()
 

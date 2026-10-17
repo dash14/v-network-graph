@@ -30,7 +30,7 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
   const transitionOption = ref<TransitionParameters>({
     enabled: false,
     duration: 300,
-    timingFunction: "linear"
+    timingFunction: "linear",
   })
 
   function transitionWhile(
@@ -45,7 +45,7 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
     transitionOption.value = {
       enabled: true,
       duration,
-      timingFunction
+      timingFunction,
     }
 
     nextTick(async () => {
@@ -66,4 +66,3 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
 
   return { transitionWhile, transitionOption }
 }
-

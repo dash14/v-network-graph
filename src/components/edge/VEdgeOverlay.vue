@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
-import { EdgeState } from "@/models/edge"
-import { useZoomLevel } from "@/composables/zoom"
-import { useContainers } from "@/composables/container"
 import { Config, StrokeStyle } from "@/common/configs"
+import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
+import { useContainers } from "@/composables/container"
+import { useZoomLevel } from "@/composables/zoom"
+import { EdgeState } from "@/models/edge"
 
 interface Props {
   edgeId?: string

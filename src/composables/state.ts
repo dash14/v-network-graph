@@ -16,22 +16,22 @@ import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { FixablePosition, UserLayouts } from "@/common/types"
 import { LinePosition, Position } from "@/common/types"
 import { useId } from "@/composables/id"
-import * as NodeModel from "@/models/node"
 import * as EdgeModel from "@/models/edge"
-import * as EdgeGroup from "@/modules/edge/group"
+import * as NodeModel from "@/models/node"
 import * as PathModel from "@/models/path"
 import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
-import * as PointUtils from "@/modules/calculation/point"
-import * as NodeUtils from "@/modules/node/node"
 import { VectorLine } from "@/modules/calculation/line"
+import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
+import * as PointUtils from "@/modules/calculation/point"
+import * as EdgeGroup from "@/modules/edge/group"
+import * as NodeUtils from "@/modules/node/node"
 import { Vector2D } from "@/modules/vector2d"
 import * as V2D from "@/modules/vector2d"
 import { Point2D } from "@/modules/vector2d/core"
 import { updateObjectDiff } from "@/utils/object"
-import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
-import { useObjectState } from "./objectState"
 import { MarkerState, useMarker } from "./marker"
+import { useObjectState } from "./objectState"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -741,10 +741,10 @@ function calculateArcPositionAndState(
       NodeUtils.getNodeRadius(nodeShape) * s
     )
     if (intersects) {
-      [p1, p2] = intersects
+      ;[p1, p2] = intersects
       let direction = 1
       if (!isClockwise) {
-        [p1, p2] = [p2, p1]
+        ;[p1, p2] = [p2, p1]
         direction = -1
       }
       if (sourceMargin !== 0 || targetMargin !== 0) {

@@ -7,9 +7,7 @@ export interface UseTranslatePathsToObjectReturn {
   isInCompatibilityModeForPath: Ref<boolean>
 }
 
-export function useTranslatePathsToObject(
-  input: Ref<InputPaths>
-): UseTranslatePathsToObjectReturn {
+export function useTranslatePathsToObject(input: Ref<InputPaths>): UseTranslatePathsToObjectReturn {
   const objects = ref<Record<string, Path>>({})
 
   const isInCompatibilityModeForPath = ref(false)

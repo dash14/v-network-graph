@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Rectangle } from "@/common/types"
 import { BasicShapeStyle } from "@/common/configs"
+import { Rectangle } from "@/common/types"
 
 defineProps<{
   box: Rectangle

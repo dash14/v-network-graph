@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue"
-import { Position } from "@/common/types"
 import { NodeLabelDirection, NodeLabelStyle, ShapeStyle } from "@/common/configs"
-import { NodeState } from "@/models/node"
-import { useMouseOperation } from "@/composables/mouse"
-import { useZoomLevel } from "@/composables/zoom"
-import { useNodeConfig } from "@/composables/config"
-import { useStates } from "@/composables/state"
-import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
+import { Position } from "@/common/types"
 import VLabelText from "@/components/base/VLabelText.vue"
+import { useNodeConfig } from "@/composables/config"
+import { useMouseOperation } from "@/composables/mouse"
+import { useStates } from "@/composables/state"
+import { useZoomLevel } from "@/composables/zoom"
+import { NodeState } from "@/models/node"
+import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
 
 interface Props {
   id: string

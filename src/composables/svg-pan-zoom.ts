@@ -15,7 +15,7 @@ export interface UseSvgPanZoomReturn {
 enum State {
   INITIAL = 0,
   MOUNTED = 1,
-  UNMOUNTED = 2
+  UNMOUNTED = 2,
 }
 
 export function useSvgPanZoom(
@@ -56,7 +56,7 @@ export function useSvgPanZoom(
         instanceUnmounted()
         userDestroy(o)
       },
-      haltEventListeners
+      haltEventListeners,
     }
 
     const initialize = () => {

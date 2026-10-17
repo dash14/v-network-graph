@@ -6,11 +6,22 @@ describe("pairwise", () => {
     ["empty array", [] as string[], []],
     ["one element", ["abc"], []],
     ["two elements", ["abc", "def"], [["abc", "def"]]],
-    ["three elements", ["abc", "def", "ghi"], [["abc", "def"], ["def", "ghi"]]],
+    [
+      "three elements",
+      ["abc", "def", "ghi"],
+      [
+        ["abc", "def"],
+        ["def", "ghi"],
+      ],
+    ],
     [
       "four elements",
       ["a", "b", "c", "d"],
-      [["a", "b"], ["b", "c"], ["c", "d"]],
+      [
+        ["a", "b"],
+        ["b", "c"],
+        ["c", "d"],
+      ],
     ],
   ])("should handle %s", (_, input, expected) => {
     const result: [string, string][] = []
@@ -23,8 +34,23 @@ describe("pairwise", () => {
       ["empty array", [] as number[], []],
       ["one element", [1], []],
       ["two elements", [1, 2], [[1, 2]]],
-      ["three elements", [1, 2, 3], [[1, 2], [2, 3]]],
-      ["four elements", [1, 2, 3, 4], [[1, 2], [2, 3], [3, 4]]],
+      [
+        "three elements",
+        [1, 2, 3],
+        [
+          [1, 2],
+          [2, 3],
+        ],
+      ],
+      [
+        "four elements",
+        [1, 2, 3, 4],
+        [
+          [1, 2],
+          [2, 3],
+          [3, 4],
+        ],
+      ],
     ])("should handle %s", (_, input, expected) => {
       const result: [number, number][] = []
       pairwise(input, (p1, p2) => result.push([p1, p2]))
