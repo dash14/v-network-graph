@@ -37,11 +37,10 @@ export default defineConfig({
       // into your library
       external: ["vue", "lodash-es", "d3-force"], // bundle mitt
       output: {
-        // preserveModules: true,
-        // preserveModulesRoot: "src",
-        // entryFileNames: ({ name: fileName }) => {
-        //   return `${fileName}.js`;
-        // },
+        preserveModules: true,
+        preserveModulesRoot: "src",
+        // npm never publishes node_modules directories, so move bundled deps out of them
+        entryFileNames: ({ name }) => `${name.replace(/^(.*\/)?node_modules\//, "vendor/")}.js`,
         dir: resolvePath("lib"),
       },
     },
