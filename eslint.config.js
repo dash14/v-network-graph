@@ -1,54 +1,26 @@
-import { Linter } from "eslint"
-import globals from "globals"
-import eslint from "@eslint/js";
-import vueParser from "vue-eslint-parser"
-import tsPlugin from "typescript-eslint";
-import vuePlugin from "eslint-plugin-vue"
-import importPlugin from "eslint-plugin-import"
+import tsParser from "@typescript-eslint/parser"
+import pluginOxlint from "eslint-plugin-oxlint"
+import pluginVue from "eslint-plugin-vue"
 
-/** @type {Linter.Config[]} */
+// Oxlint cannot parse Vue templates yet, so ESLint lints only .vue files and
+// leaves every rule Oxlint covers to Oxlint.
 export default [
-  eslint.configs.recommended,
-  importPlugin.flatConfigs.recommended,
-  ...vuePlugin.configs["flat/base"],
-  ...vuePlugin.configs["flat/recommended"],
-  ...tsPlugin.configs.recommended,
+  { ignores: ["lib/**"] },
+  ...pluginVue.configs["flat/recommended"].map(config => ({ ...config, files: ["**/*.vue"] })),
   {
+    files: ["**/*.vue"],
     languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.es2021,
-      },
-      parser: vueParser,
       parserOptions: {
-        extraFileExtensions: [".vue"],
-        ecmaVersion: 12,
-        parser: tsPlugin.parser,
+        parser: tsParser,
         sourceType: "module",
       },
     },
     rules: {
-      "import/order": [
-        "error",
-        { groups: ["builtin", "external", "internal", "parent", "sibling", "index", "object"] },
-      ],
-      "no-console": process.env.NODE_ENV === "production" ? 2 : 0,
-      "import/no-duplicates": 0,
-      "vue/singleline-html-element-content-newline": 0,
-      "vue/multiline-html-element-content-newline": 0,
+      "vue/singleline-html-element-content-newline": "off",
+      "vue/multiline-html-element-content-newline": "off",
       "vue/max-attributes-per-line": ["error", { singleline: 3, multiline: 1 }],
       "vue/attribute-hyphenation": ["warn", "always", { ignore: ["custom-prop"] }],
-      "@typescript-eslint/explicit-module-boundary-types": 0,
-      "@typescript-eslint/no-explicit-any": 0,
-      "@typescript-eslint/no-empty-function": 0,
-      "no-unused-vars": 0,
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { args: "after-used", argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
-    },
-    settings: {
-      "import/resolver": { typescript: [] },
     },
   },
+  ...pluginOxlint.buildFromOxlintConfigFile(".oxlintrc.json"),
 ]

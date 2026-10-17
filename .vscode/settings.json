@@ -1,6 +1,7 @@
 {
   "eslint.run": "onType",
   "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit",
     "source.fixAll.eslint": "explicit"
   },
   "eslint.format.enable": true,
