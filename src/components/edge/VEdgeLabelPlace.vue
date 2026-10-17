@@ -11,7 +11,7 @@ import { Edge, EdgeLabelArea } from "@/common/types"
 import { EdgeState } from "@/models/edge"
 import { useZoomLevel } from "@/composables/zoom"
 import * as v2d from "@/modules/calculation/2d"
-import { EdgeLabelStyle } from "@/index.umd"
+import { EdgeLabelStyle } from "@/common/configs"
 
 interface Props {
   edgeId: string

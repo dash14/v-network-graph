@@ -2,7 +2,7 @@
   "name": "v-network-graph",
   "description": "An interactive network graph visualization component for Vue 3",
   "version": "0.9.23",
-  "main": "./umd/index.js",
+  "main": "./lib/index.js",
   "module": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "type": "module",
@@ -13,8 +13,7 @@
     "url": "https://github.com/dash14/v-network-graph.git"
   },
   "files": [
-    "lib",
-    "umd"
+    "lib"
   ],
   "packageManager": "pnpm@11.5.2",
   "devEngines": {
@@ -34,11 +33,8 @@
     "format": "prettier --write **/*.vue **/*.ts **/*.spec.ts",
     "build": "run-s clean build:tc build:lib",
     "build:tc": "vue-tsc --noEmit",
-    "build:lib": "run-p build:lib:*",
-    "build:lib:es": "vite build",
-    "build:lib:main": "vite --config vite-umd-main.config.ts build",
-    "build:lib:force": "vite --config vite-umd-force.config.ts build",
-    "clean": "rimraf lib umd",
+    "build:lib": "vite build",
+    "clean": "rimraf lib",
     "test": "vitest run"
   },
   "dependencies": {
@@ -84,13 +80,9 @@
   "exports": {
     ".": {
       "style": "./lib/style.css",
-      "import": "./lib/index.js",
-      "require": "./umd/index.js"
+      "default": "./lib/index.js"
     },
-    "./lib/force-layout": {
-      "import": "./lib/force-layout.js",
-      "require": "./umd/force-layout.js"
-    },
+    "./lib/force-layout": "./lib/force-layout.js",
     "./lib/*": "./lib/*"
   }
 }
