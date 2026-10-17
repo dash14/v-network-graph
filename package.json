@@ -40,6 +40,7 @@
     "build:tc": "vue-tsc --noEmit",
     "build:lib": "vite build",
     "clean": "rimraf lib",
+    "prepare": "lefthook install",
     "test": "vitest run"
   },
   "dependencies": {
@@ -59,6 +60,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-oxlint": "~1.87.0",
     "eslint-plugin-vue": "^10.9.2",
+    "lefthook": "^2.2.1",
     "npm-run-all": "^4.1.5",
     "oxfmt": "^0.72.0",
     "oxlint": "~1.87.0",

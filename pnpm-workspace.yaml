@@ -9,3 +9,4 @@ trustPolicyExclude:
 allowBuilds:
   "@parcel/watcher": false
   esbuild: false
+  lefthook: false
