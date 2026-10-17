@@ -1,9 +1,10 @@
 import tsParser from "@typescript-eslint/parser"
+import skipFormatting from "eslint-config-prettier/flat"
 import pluginOxlint from "eslint-plugin-oxlint"
 import pluginVue from "eslint-plugin-vue"
 
 // Oxlint cannot parse Vue templates yet, so ESLint lints only .vue files and
-// leaves every rule Oxlint covers to Oxlint.
+// leaves every rule Oxlint covers to Oxlint, and formatting to Oxfmt.
 export default [
   { ignores: ["lib/**"] },
   ...pluginVue.configs["flat/recommended"].map(config => ({ ...config, files: ["**/*.vue"] })),
@@ -16,11 +17,9 @@ export default [
       },
     },
     rules: {
-      "vue/singleline-html-element-content-newline": "off",
-      "vue/multiline-html-element-content-newline": "off",
-      "vue/max-attributes-per-line": ["error", { singleline: 3, multiline: 1 }],
       "vue/attribute-hyphenation": ["warn", "always", { ignore: ["custom-prop"] }],
     },
   },
   ...pluginOxlint.buildFromOxlintConfigFile(".oxlintrc.json"),
+  skipFormatting,
 ]
