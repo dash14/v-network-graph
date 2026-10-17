@@ -50,7 +50,8 @@ jobs:
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: pnpm-store-${{ runner.os }}-
+          # On main a lockfile change starts from an empty store, so the saved store holds no stale packages.
+          restore-keys: ${{ github.ref != 'refs/heads/main' && format('pnpm-store-{0}-', runner.os) || '' }}
 
       - name: Install dependencies
         id: install
