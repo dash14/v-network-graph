@@ -5,8 +5,8 @@
 //   Copyright © 2008-2013 Sencha Labs (http://sencha.com)
 //   Licensed under the MIT (http://dmitrybaranovskiy.github.io/raphael/license.html) license.
 
-// Kept close to the original rather than linted.
-/* oxlint-disable */
+// Kept close to the original, so the rules it breaks stay off here.
+/* oxlint-disable no-case-declarations, no-control-regex, no-fallthrough, no-unused-expressions, no-unused-vars, no-useless-escape, prefer-const, typescript/ban-ts-comment */
 
 import { cloneDeep } from "lodash-es"
 
