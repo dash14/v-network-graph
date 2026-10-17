@@ -35,7 +35,7 @@ An interactive SVG based network-graph visualization component for Vue 3.
 * [v-network-graph GitHub Pages](https://dash14.github.io/v-network-graph/)
   * [Getting Started](https://dash14.github.io/v-network-graph/getting-started.html)
   * [Examples](https://dash14.github.io/v-network-graph/examples/)
-  * [Reference](https://dash14.github.io/v-network-graph/reference.html)
+  * [Reference](https://dash14.github.io/v-network-graph/reference/)
 
 ## Installation
 
