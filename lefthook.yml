@@ -1,0 +1,16 @@
+pre-commit:
+  jobs:
+    - name: lint
+      glob: "*.{js,mjs,cjs,ts,mts,cts,vue}"
+      run: pnpm exec oxlint --fix {staged_files}
+      stage_fixed: true
+
+    # Oxlint cannot lint Vue templates yet.
+    - name: lint vue templates
+      glob: "*.vue"
+      run: pnpm exec eslint --fix {staged_files}
+      stage_fixed: true
+
+    - name: format
+      run: pnpm exec oxfmt --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true

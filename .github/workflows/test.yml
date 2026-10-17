@@ -1,0 +1,99 @@
+name: Test
+run-name: Test (${{ github.head_ref || github.ref_name }})
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  # Catches breakage from pull requests that pass on their own but not together.
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  test:
+    name: Build, lint and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Takes the version from packageManager in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      # Takes the version from devEngines.runtime in package.json.
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+
+      - name: Locate the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the pnpm store
+        id: pnpm-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          # On main a lockfile change starts from an empty store, so the saved store holds no stale packages.
+          restore-keys: ${{ github.ref != 'refs/heads/main' && format('pnpm-store-{0}-', runner.os) || '' }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Saving only from main keeps pull requests from planting a store that other runs restore.
+      - name: Save the pnpm store
+        if: github.ref == 'refs/heads/main' && steps.pnpm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ steps.pnpm-cache.outputs.cache-primary-key }}
+
+      # Safe to share the checkout: none of the checks reads what the build writes. Oxlint and
+      # Oxfmt skip gitignored files, and ESLint lints only .vue files and ignores lib/.
+      - parallel:
+          - name: Lint
+            run: pnpm run lint:check
+
+          - name: Check formatting
+            run: pnpm run format:check
+
+          - name: Build
+            run: pnpm run build
+
+          - name: Test
+            run: pnpm test
+
+  # A single, stably named job for branch protection to require.
+  tests-passed:
+    name: Tests passed
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: always()
+    permissions: {}
+    steps:
+      - name: Check whether all required jobs succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [[ "$result" != "success" ]]; then
+              echo "A required job did not succeed: $RESULTS"
+              exit 1
+            fi
+          done
