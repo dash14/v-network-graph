@@ -9,7 +9,7 @@ import VShape from "@/components/base/VShape.vue"
 interface Props {
   id: string
   state: NodeState
-  pos: Position
+  pos?: Position
 }
 
 const props = withDefaults(defineProps<Props>(), {

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 import { cloneDeep } from "lodash-es"
 import { Box, NodePositions, Size, ViewBox } from "../../common/types"
 
-// @ts-ignore
+// @ts-expect-error: exportedForTesting is assigned to module.exports only under test
 import { exportedForTesting, parseFitContentMargin } from "./fit"
 
 const {

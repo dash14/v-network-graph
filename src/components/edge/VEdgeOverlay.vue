@@ -88,7 +88,7 @@ function calculatePointAtLength(distance: number): Point {
   if (!svg.value || !isFinite(distance)) return props.state.position.p1
 
   // for detecting changes and re-calculation
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  // oxlint-disable-next-line no-unused-expressions
   props.state
 
   const edgeId = props.edgeId ?? Object.keys(props.edges)[0]

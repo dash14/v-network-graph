@@ -5,6 +5,9 @@
 //   Copyright © 2008-2013 Sencha Labs (http://sencha.com)
 //   Licensed under the MIT (http://dmitrybaranovskiy.github.io/raphael/license.html) license.
 
+// Kept close to the original rather than linted.
+/* oxlint-disable */
+
 import { cloneDeep } from "lodash-es"
 
 interface SubPaths {

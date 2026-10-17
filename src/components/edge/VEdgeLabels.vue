@@ -6,8 +6,8 @@ import VEdgeLabelPlace, { EdgeLabelSlotProps } from "./VEdgeLabelPlace.vue"
 import VEdgeLabelsPlace, { EdgeLabelsSlotProps } from "./VEdgeLabelsPlace.vue"
 
 interface Props {
-  enableEdgeLabel: boolean
-  enableEdgesLabel: boolean
+  enableEdgeLabel?: boolean
+  enableEdgesLabel?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
