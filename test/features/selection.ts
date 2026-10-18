@@ -38,7 +38,6 @@ export default [
         ...selectable,
         node: {
           selectable: true,
-          // A full style, since the selected style is not merged with the normal one.
           selected: {
             type: "rect",
             width: 30,
@@ -48,6 +47,22 @@ export default [
             strokeWidth: 2,
             strokeColor: "#000000",
           },
+        },
+      },
+      selectedNodes: ["node2"],
+    },
+  },
+  {
+    // The unset values of the selected style are those of the normal style.
+    name: "partial-selected-node-style",
+    props: {
+      ...graph,
+      configs: {
+        ...selectable,
+        node: {
+          selectable: true,
+          normal: { type: "rect", borderRadius: 8, strokeWidth: 2, strokeColor: "#000000" },
+          selected: { color: "#ff8800" },
         },
       },
       selectedNodes: ["node2"],
