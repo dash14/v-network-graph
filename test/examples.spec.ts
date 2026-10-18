@@ -16,6 +16,11 @@ const cases = Object.entries(fixtures).map(([path, component]) => ({
   component,
 }))
 
+// Only the paths are used, to find snapshots left behind by removed or renamed fixtures.
+const snapshots = Object.keys(import.meta.glob("./__snapshots__/examples/**/*.svg")).map(path =>
+  path.replace(/^\.\/__snapshots__\/examples\/(.*)\.svg$/, "$1")
+)
+
 describe("examples", () => {
   test.each(cases)("$name", async ({ name, component }) => {
     const screen = await renderFixture(component)
@@ -24,5 +29,10 @@ describe("examples", () => {
     // File commands resolve paths from the project root, and file snapshots from the test file.
     const actual = await alignWithSnapshot(serializeGraph(screen.container), `test/${snapshot}`)
     await expect(actual).toMatchFileSnapshot(snapshot)
+  })
+
+  test("has a fixture for every snapshot", () => {
+    const names = cases.map(c => c.name)
+    expect(snapshots.filter(name => !names.includes(name))).toEqual([])
   })
 })
