@@ -99,11 +99,11 @@ describe("node events", () => {
 
     await userEvent.hover(canvas, { position: at(0, 0) })
     expect(payloadsOf(events, "node:pointerover")).toMatchObject([{ node: "node2" }])
-    expect(circle?.getAttribute("fill")).toBe("#ff0000")
+    await expect.poll(() => circle?.getAttribute("fill")).toBe("#ff0000")
 
     await userEvent.hover(canvas, { position: at(0, 100) })
     expect(payloadsOf(events, "node:pointerout")).toMatchObject([{ node: "node2" }])
-    expect(circle?.getAttribute("fill")).toBe("#0000ff")
+    await expect.poll(() => circle?.getAttribute("fill")).toBe("#0000ff")
   })
 
   test("a right click emits contextmenu", async () => {
