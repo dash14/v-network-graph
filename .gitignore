@@ -5,3 +5,4 @@ dist-ssr
 *.local
 /docs/.vitepress/dist
 /stats-*.html
+/.vitest

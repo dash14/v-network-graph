@@ -290,12 +290,10 @@ function calculateSizeWithoutMargin(container: Size, margins: Box): Size {
   }
 }
 
-if (import.meta.env.MODE == "test") {
-  module.exports.exportedForTesting = {
-    calculateFitWithScalingObjects,
-    calculateFitWithoutScalingObjects,
-    calculateZoomLevelForFixedBox,
-    calculatePanForCentering,
-    calculateSizeWithoutMargin,
-  }
+export const exportedForTesting = {
+  calculateFitWithScalingObjects,
+  calculateFitWithoutScalingObjects,
+  calculateZoomLevelForFixedBox,
+  calculatePanForCentering,
+  calculateSizeWithoutMargin,
 }

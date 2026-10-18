@@ -64,6 +64,9 @@ jobs:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ steps.pnpm-cache.outputs.cache-primary-key }}
 
+      - name: Install Chromium for browser tests
+        run: pnpm exec playwright install --with-deps chromium
+
       # Safe to share the checkout: none of the checks reads what the build writes. Oxlint and
       # Oxfmt skip gitignored files, and ESLint lints only .vue files and ignores lib/.
       - parallel:
