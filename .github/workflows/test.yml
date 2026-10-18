@@ -76,8 +76,11 @@ jobs:
           - name: Build
             run: pnpm run build
 
+          # Installs Chromium here so that the other checks do not wait for it.
           - name: Test
-            run: pnpm test
+            run: |
+              pnpm exec playwright install --with-deps chromium
+              pnpm test
 
   # A single, stably named job for branch protection to require.
   tests-passed:

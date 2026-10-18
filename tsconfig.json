@@ -13,6 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "skipLibCheck": true,
+    "stripInternal": true,
     "paths": {
       "@/*": ["./src/*"]
     }
