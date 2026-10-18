@@ -3,11 +3,7 @@ import { render } from "vitest-browser-vue"
 import { Component, defineComponent, h } from "vue"
 import VNetworkGraphPlugin from "@/index"
 
-/**
- * Render a component that contains a graph, in a container of a
- * fixed size, and wait until the graph has been displayed and has
- * stopped moving.
- */
+/** Renders in a fixed-size container and waits until the graph stops moving. */
 export async function renderFixture(component: Component) {
   const screen = await render(
     defineComponent(

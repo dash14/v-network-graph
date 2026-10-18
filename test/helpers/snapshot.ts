@@ -33,7 +33,7 @@ const ATTRIBUTE = /( ([\w:-]+)=")([^"]*)"/g
 const NUMBER = /-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi
 
 interface Line {
-  /** The line with the numbers of numeric attributes masked, to pair lines with. */
+  /** The line with the numbers of numeric attributes masked. */
   shape: string
   numbers: string[]
 }
@@ -47,7 +47,7 @@ function parseLine(line: string): Line {
   return { shape, numbers }
 }
 
-/** Pair lines with equal shapes, keeping their order. */
+/** Pairs lines by the longest common subsequence of their shapes. */
 function pairLines(actual: Line[], expected: Line[]): Map<number, number> {
   const rows = actual.length
   const cols = expected.length
@@ -74,11 +74,8 @@ function pairLines(actual: Line[], expected: Line[]): Map<number, number> {
 }
 
 /**
- * Replace the numbers of numeric attributes in `actual` with those in
- * the matching line of `expected` when the two are within `tolerance`,
- * so that comparing the result with `expected` ignores differences in
- * the last digits. Lines are matched by their content apart from those
- * numbers, so an added or removed line does not affect the others.
+ * Takes the numbers of numeric attributes from the paired line of
+ * `expected` wherever `actual` is within `tolerance` of them.
  */
 export function alignNumbers(actual: string, expected: string, tolerance = 1e-6): string {
   const actualLines = actual.split("\n")
@@ -103,10 +100,7 @@ export function alignNumbers(actual: string, expected: string, tolerance = 1e-6)
     .join("\n")
 }
 
-/**
- * Align the numbers of `actual` with the file snapshot at `path`,
- * relative to the project root, if the snapshot exists.
- */
+/** `path` is relative to the project root. */
 export async function alignWithSnapshot(actual: string, path: string): Promise<string> {
   let expected: string
   try {

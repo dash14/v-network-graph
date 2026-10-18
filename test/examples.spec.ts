@@ -16,7 +16,7 @@ const cases = Object.entries(fixtures).map(([path, component]) => ({
   component,
 }))
 
-// Only the paths are used, to find snapshots left behind by removed or renamed fixtures.
+// To find snapshots left behind by removed or renamed fixtures.
 const snapshots = Object.keys(import.meta.glob("./__snapshots__/examples/**/*.svg")).map(path =>
   path.replace(/^\.\/__snapshots__\/examples\/(.*)\.svg$/, "$1")
 )
