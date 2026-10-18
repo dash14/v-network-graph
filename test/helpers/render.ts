@@ -2,7 +2,7 @@ import { vi } from "vitest"
 import { render } from "vitest-browser-vue"
 import { Component, defineComponent, h } from "vue"
 import VNetworkGraphPlugin from "@/index"
-import { inContainer } from "./container"
+import { inContainer, movePointerAway } from "./container"
 
 /** Renders in a fixed-size container and waits until the graph stops moving. */
 export async function renderFixture(component: Component) {
@@ -11,6 +11,7 @@ export async function renderFixture(component: Component) {
     { global: { plugins: [VNetworkGraphPlugin] } }
   )
   await vi.waitUntil(() => screen.container.querySelector(".v-ng-canvas.show"), { timeout: 5000 })
+  await movePointerAway()
   await waitUntilStill(screen.container)
   return screen
 }

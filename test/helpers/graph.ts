@@ -2,16 +2,29 @@ import { vi } from "vitest"
 import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
-import { defineComponent, h, reactive } from "vue"
+import { defineComponent, h, reactive, ref } from "vue"
 import { VNetworkGraph } from "@/index"
-import type { Events, EventHandlers, Layouts, Nodes, UserConfigs } from "@/index"
-import { HEIGHT, WIDTH, inContainer } from "./container"
+import type {
+  Edges,
+  Events,
+  EventHandlers,
+  InputPaths,
+  Layouts,
+  Nodes,
+  UserConfigs,
+  VNetworkGraphInstance,
+} from "@/index"
+import { HEIGHT, WIDTH, inContainer, movePointerAway } from "./container"
 
 export interface GraphProps {
   nodes: Nodes
+  edges?: Edges
+  paths?: InputPaths
   layouts: Layouts
   configs?: UserConfigs
   selectedNodes?: string[]
+  selectedEdges?: string[]
+  selectedPaths?: string[]
 }
 
 export interface RecordedEvent {
@@ -28,7 +41,11 @@ type Position = { x: number; y: number }
 export async function mountGraph(props: GraphProps) {
   const { configs, ...data } = props
   const initial: Required<GraphProps> = {
+    edges: {},
+    paths: {},
     selectedNodes: [],
+    selectedEdges: [],
+    selectedPaths: [],
     // The graph updates the layouts in place, so each test gets its own copy.
     ...structuredClone(data),
     configs: {
@@ -42,18 +59,26 @@ export async function mountGraph(props: GraphProps) {
   const eventHandlers: EventHandlers = {
     "*": (type, payload) => events.push({ type, payload }),
   }
+  const graph = ref<VNetworkGraphInstance>()
   const screen = await render(
     defineComponent(
       () => () =>
         inContainer(
           h(VNetworkGraph, {
+            ref: graph,
             nodes: state.nodes,
+            edges: state.edges,
+            paths: state.paths,
             configs: state.configs,
             eventHandlers,
             layouts: state.layouts,
             "onUpdate:layouts": (v: Layouts) => (state.layouts = v),
             selectedNodes: state.selectedNodes,
             "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
+            selectedEdges: state.selectedEdges,
+            "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
+            selectedPaths: state.selectedPaths,
+            "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
           })
         )
     )
@@ -61,11 +86,10 @@ export async function mountGraph(props: GraphProps) {
   await vi.waitUntil(() => events.some(e => e.type === "view:load"), { timeout: 5000 })
   const canvas = page.elementLocator(screen.container.querySelector("svg.v-ng-canvas")!)
 
-  // The pointer stays where the previous test left it, possibly over a node.
-  await userEvent.hover(canvas, { position: { x: 1, y: 1 } })
+  await movePointerAway()
   events.splice(0)
 
-  return { screen, canvas, state, events }
+  return { screen, canvas, graph: graph.value!, state, events }
 }
 
 /** The position in the container of a point in the graph, at zoom level 1. */

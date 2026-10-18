@@ -129,10 +129,17 @@ export function makeBoxSelectionMethods(
   }
 
   function handlePointerUpEvent(event: PointerEvent) {
+    const rect = nonNull(container.value).getBoundingClientRect()
+    const point = { x: event.x - rect.x, y: event.y - rect.y }
+
+    // Apply the selection for the box at the release point before the box is cleared.
+    states.points.set(event.pointerId, point)
+    updateRectangle()
+    updateNodesSelection()
+    updateNodesSelection.flush()
+
     states.pointers.delete(event.pointerId)
     if (states.pointers.size === 1) {
-      const rect = nonNull(container.value).getBoundingClientRect()
-      const point = { x: event.x - rect.x, y: event.y - rect.y }
       states.startPoint = point
     } else if (states.pointers.size === 0) {
       pointerEventHandler.deactivate()
@@ -142,6 +149,9 @@ export function makeBoxSelectionMethods(
       states.selectedNodesAtSelectStarted.clear()
     }
     updateRectangle()
+    if (states.pointers.size > 0) {
+      updateNodesSelection()
+    }
   }
 
   function handlePointerMoveEvent(event: PointerEvent) {
@@ -276,6 +286,8 @@ export function makeBoxSelectionMethods(
   }
 
   function stopBoxSelection() {
+    // A pending update would select after the selection is cancelled or the graph is unmounted.
+    updateNodesSelection.cancel()
     if (modes.viewMode.value !== "box-selection") return
     modes.viewMode.value = "default"
     pointerEventHandler.unregister()
