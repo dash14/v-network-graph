@@ -1,0 +1,43 @@
+<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
+  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+    <g class="v-ng-layer-edges v-ng-graph-objects">
+      <path class="v-ng-line-background" d="M 0 80 L 200 80" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 200 80 L 360 160" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line v-ng-edge" d="M 0 80 L 200 80" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
+      <g class="v-ng-line-summarized">
+        <path class="v-ng-line" d="M 200 80 L 360 0" stroke="#4466cc" stroke-width="5" data-edge-id="edge2" />
+        <rect class="v-ng-shape-rect" x="274" y="34" width="12" height="12" rx="3" ry="3" fill="#ffffff" stroke="#4466cc" stroke-width="1" />
+        <text class="v-ng-text" text-anchor="middle" x="280" y="40" dominant-baseline="central" font-size="10" fill="#4466cc">
+          8
+        </text>
+      </g>
+      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 160" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge10" />
+    </g>
+    <g class="v-ng-edge-labels v-ng-layer-edge-labels v-ng-graph-objects">
+      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(0 100 75)" edgeId="edge1" x="100" y="75" dominant-baseline="text-top" font-size="11" fill="#000000">
+        edge 1
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(26.565051177078 282.2360679774998 115.52786404500041)" edgeId="edge10" x="282.2360679774998" y="115.52786404500041" dominant-baseline="text-top" font-size="11" fill="#000000">
+        edge 10
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(-26.56505117707799 277.76393202250017 35.52786404500041)" x="277.76393202250017" y="35.52786404500041" dominant-baseline="text-top" font-size="11" fill="#000000">
+        edge 2~edge 9
+      </text>
+    </g>
+    <g class="v-ng-layer-nodes-selections" />
+    <g class="v-ng-layer-nodes v-ng-graph-objects">
+      <g class="v-ng-node" transform="translate(0 80)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(200 80)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(360 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(360 160)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+    </g>
+  </g>
+</svg>
