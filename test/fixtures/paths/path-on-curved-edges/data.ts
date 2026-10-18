@@ -28,10 +28,6 @@ const layouts: Layouts = {
     node4: { x: 250, y: 60 },
     node5: { x: 350, y: 10 },
     node6: { x: 350, y: 110 },
-    node7: { x: 450, y: 10 },
-    node8: { x: 450, y: 60 },
-    node9: { x: 450, y: 110 },
-    node10: { x: 450, y: 160 },
   },
 }
 
