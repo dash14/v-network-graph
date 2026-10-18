@@ -20,6 +20,16 @@ export default [
       "vue/attribute-hyphenation": ["warn", "always", { ignore: ["custom-prop"] }],
     },
   },
+  {
+    // Copied from the documentation examples, which use <component is="style"> and v-html.
+    files: ["test/fixtures/**/*.vue"],
+    rules: {
+      "vue/multi-word-component-names": "off",
+      "vue/require-component-is": "off",
+      "vue/no-v-html": "off",
+      "vue/no-v-text-v-html-on-component": "off",
+    },
+  },
   ...pluginOxlint.buildFromOxlintConfigFile(".oxlintrc.json"),
   skipFormatting,
 ]

@@ -5,7 +5,11 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   resolve: {
-    alias: [{ find: "@", replacement: path.resolve(import.meta.dirname, "src") }],
+    alias: [
+      { find: "@", replacement: path.resolve(import.meta.dirname, "src") },
+      // Lets the fixtures import the library as the documentation examples do.
+      { find: /^v-network-graph$/, replacement: path.resolve(import.meta.dirname, "src/index.ts") },
+    ],
   },
   plugins: [vue()],
   test: {
