@@ -1,15 +1,22 @@
 /**
  * Serialize the rendered graph as indented SVG markup for snapshots.
- * The transform of the viewport is left out, since it follows the
- * bounding box of the text and so depends on the fonts installed.
+ * The pan is left out of the transform of the viewport, since it
+ * follows the bounding box of the text and so depends on the fonts
+ * installed. The zoom is kept.
  */
 export function serializeGraph(container: Element): string {
   const svg = container.querySelector<SVGSVGElement>("svg.v-ng-canvas")
   if (!svg) throw new Error("The graph is not rendered")
+  const zoom = svg.querySelector<SVGGElement>(".v-ng-viewport")?.transform.baseVal.consolidate()
   const target = svg.cloneNode(true) as SVGSVGElement
   const viewport = target.querySelector(".v-ng-viewport")
-  viewport?.removeAttribute("transform")
   viewport?.removeAttribute("style")
+  if (zoom) {
+    const { a, b, c, d } = zoom.matrix
+    viewport?.setAttribute("transform", `matrix(${a} ${b} ${c} ${d} 0 0)`)
+  } else {
+    viewport?.removeAttribute("transform")
+  }
   return serializeElement(target, 0).join("\n")
 }
 
