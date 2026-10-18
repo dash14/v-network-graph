@@ -25,6 +25,7 @@ export interface GraphProps {
   selectedNodes?: string[]
   selectedEdges?: string[]
   selectedPaths?: string[]
+  zoomLevel?: number
 }
 
 export interface RecordedEvent {
@@ -46,6 +47,7 @@ export async function mountGraph(props: GraphProps) {
     selectedNodes: [],
     selectedEdges: [],
     selectedPaths: [],
+    zoomLevel: 1,
     // The graph updates the layouts in place, so each test gets its own copy.
     ...structuredClone(data),
     configs: {
@@ -79,6 +81,11 @@ export async function mountGraph(props: GraphProps) {
             "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
             selectedPaths: state.selectedPaths,
             "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
+            // Only when given, so that the other tests zoom as they would without a v-model.
+            ...("zoomLevel" in props && {
+              zoomLevel: state.zoomLevel,
+              "onUpdate:zoomLevel": (v: number) => (state.zoomLevel = v),
+            }),
           })
         )
     )
