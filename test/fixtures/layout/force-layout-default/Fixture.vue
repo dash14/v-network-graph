@@ -6,7 +6,6 @@ import { reactive } from "vue"
 const nodes = reactive({})
 const edges = reactive({})
 
-// initialize network
 buildNetwork(15, nodes, edges)
 
 const layoutHandler: vNG.LayoutHandler = new ForceLayout()
@@ -27,11 +26,9 @@ const configs = reactive(
 function buildNetwork(count: number, nodes: vNG.Nodes, edges: vNG.Edges) {
   const idNums = [...Array(count)].map((_, i) => i)
 
-  // nodes
   const newNodes = Object.fromEntries(idNums.map(id => [`node${id}`, {}]))
   Object.assign(nodes, newNodes)
 
-  // edges
   const makeEdgeEntry = (id1: number, id2: number) => {
     return [`edge${id1}-${id2}`, { source: `node${id1}`, target: `node${id2}` }]
   }

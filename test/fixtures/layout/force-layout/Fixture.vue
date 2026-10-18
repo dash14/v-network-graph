@@ -6,7 +6,6 @@ import { reactive } from "vue"
 const nodes = reactive({})
 const edges = reactive({})
 
-// initialize network
 buildNetwork(20, nodes, edges)
 
 const configs = reactive(
@@ -14,7 +13,6 @@ const configs = reactive(
     view: {
       layoutHandler: new ForceLayout({
         createSimulation: (d3, nodes, edges) => {
-          // d3-force parameters
           const forceLink = d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
           return d3
             .forceSimulation(nodes)
@@ -36,11 +34,9 @@ const configs = reactive(
 function buildNetwork(count: number, nodes: vNG.Nodes, edges: vNG.Edges) {
   const idNums = [...Array(count)].map((_, i) => i)
 
-  // nodes
   const newNodes = Object.fromEntries(idNums.map(id => [`node${id}`, {}]))
   Object.assign(nodes, newNodes)
 
-  // edges
   const makeEdgeEntry = (id1: number, id2: number) => {
     return [`edge${id1}-${id2}`, { source: `node${id1}`, target: `node${id2}` }]
   }

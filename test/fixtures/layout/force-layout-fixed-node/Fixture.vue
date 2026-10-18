@@ -8,7 +8,6 @@ const NODE_COUNT = 20
 const nodes = reactive({})
 const edges = reactive({})
 
-// The fixed position of the node can be specified.
 const layouts = ref({
   nodes: {
     node0: {
@@ -24,7 +23,6 @@ const configs = reactive(
     view: {
       layoutHandler: new ForceLayout({
         createSimulation: (d3, nodes, edges) => {
-          // d3-force parameters
           const forceLink = d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
           return d3
             .forceSimulation(nodes)
@@ -50,11 +48,9 @@ buildNetwork(NODE_COUNT, nodes, edges)
 function buildNetwork(count: number, nodes: vNG.Nodes, edges: vNG.Edges) {
   const idNums = [...Array(count)].map((_, i) => i)
 
-  // nodes
   const newNodes = idNums.map(id => [`node${id}`, { id: `node${id}` }])
   Object.assign(nodes, Object.fromEntries(newNodes))
 
-  // edges
   const makeEdgeEntry = (id1: number, id2: number) => {
     return [`edge${id1}-${id2}`, { source: `node${id1}`, target: `node${id2}` }]
   }
