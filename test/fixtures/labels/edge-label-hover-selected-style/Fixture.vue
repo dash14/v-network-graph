@@ -24,6 +24,7 @@ const configs = vNG.defineConfigs({
     :nodes="data.nodes"
     :edges="data.edges"
     :layouts="data.layouts"
+    :selected-edges="['edge1']"
     :configs="configs"
   >
     <template #edge-label="{ edge, hovered, selected, ...slotProps }">
@@ -38,8 +39,7 @@ const configs = vNG.defineConfigs({
   </v-network-graph>
 </template>
 
-<style lang="css">
-/* In some cases, :deep() selector may be necessary. */
+<style scoped>
 .v-ng-edge-label {
   transition: fill 0.1s;
 }

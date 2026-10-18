@@ -1413,19 +1413,19 @@ exports[`examples > labels/custom-node-label-slot 1`] = `
 </svg>"
 `;
 
-exports[`examples > labels/edge-label-slot 1`] = `
+exports[`examples > labels/edge-label-hover-selected-style 1`] = `
 "<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
   <g class="v-ng-viewport svg-pan-zoom_viewport">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" d="M 0 80 L 200 80" stroke="transparent" stroke-width="12" fill="none" />
-      <path class="v-ng-line-background" d="M 200 80 L 360 0" stroke="transparent" stroke-width="12" fill="none" />
-      <path class="v-ng-line-background" d="M 200 80 L 360 160" stroke="transparent" stroke-width="12" fill="none" />
-      <path class="v-ng-line v-ng-edge" d="M 0 80 L 200 80" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
-      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
-      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 160" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
+      <path class="v-ng-line-background selectable" d="M 0 80 L 200 80" stroke="transparent" stroke-width="13" fill="none" />
+      <path class="v-ng-line-background selectable" d="M 200 80 L 360 0" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background selectable" d="M 200 80 L 360 160" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line selectable selected v-ng-edge" d="M 0 80 L 200 80" stroke="#dd8800" stroke-width="3" stroke-dasharray="3 4" stroke-linecap="butt" data-edge-id="edge1" />
+      <path class="v-ng-line selectable v-ng-edge" d="M 200 80 L 360 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
+      <path class="v-ng-line selectable v-ng-edge" d="M 200 80 L 360 160" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
     </g>
     <g class="v-ng-edge-labels v-ng-layer-edge-labels v-ng-graph-objects">
-      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(0 100 75)" edgeId="edge1" x="100" y="75" dominant-baseline="text-top" font-size="11" fill="#000000">
+      <text class="v-ng-text v-ng-edge-label selected" text-anchor="middle" transform="rotate(0 100 74.5)" edgeId="edge1" x="100" y="74.5" dominant-baseline="text-top" font-size="11" fill="#000000">
         1 Gbps
       </text>
       <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(-26.56505117707799 277.76393202250017 35.52786404500041)" edgeId="edge2" x="277.76393202250017" y="35.52786404500041" dominant-baseline="text-top" font-size="11" fill="#000000">
@@ -1454,16 +1454,16 @@ exports[`examples > labels/edge-label-slot 1`] = `
 </svg>"
 `;
 
-exports[`examples > labels/edge-label-style-per-edge 1`] = `
+exports[`examples > labels/edge-label-slot 1`] = `
 "<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
   <g class="v-ng-viewport svg-pan-zoom_viewport">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background selectable" d="M 0 80 L 200 80" stroke="transparent" stroke-width="12" fill="none" />
-      <path class="v-ng-line-background selectable" d="M 200 80 L 360 0" stroke="transparent" stroke-width="12" fill="none" />
-      <path class="v-ng-line-background selectable" d="M 200 80 L 360 160" stroke="transparent" stroke-width="12" fill="none" />
-      <path class="v-ng-line selectable v-ng-edge" d="M 0 80 L 200 80" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
-      <path class="v-ng-line selectable v-ng-edge" d="M 200 80 L 360 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
-      <path class="v-ng-line selectable v-ng-edge" d="M 200 80 L 360 160" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
+      <path class="v-ng-line-background" d="M 0 80 L 200 80" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 200 80 L 360 0" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 200 80 L 360 160" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line v-ng-edge" d="M 0 80 L 200 80" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
+      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
+      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 160" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
     </g>
     <g class="v-ng-edge-labels v-ng-layer-edge-labels v-ng-graph-objects">
       <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(0 100 75)" edgeId="edge1" x="100" y="75" dominant-baseline="text-top" font-size="11" fill="#000000">
@@ -1883,7 +1883,7 @@ exports[`examples > paths/path-appearance 1`] = `
       </g>
     </g>
     <g class="v-ng-paths v-ng-layer-paths v-ng-graph-objects">
-      <path class="v-ng-path clickable hoverable" d="M 0 0 L 86.28011318859929 51.768067913159584 L 114.38749456993816 53 L 235.61250543006184 53 L 264.31083505599867 52.844582472000674 L 335.68916494400133 17.155417527999326 L 366 10 L 450 10" fill="none" stroke="#ff800088" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+      <path class="v-ng-path animate clickable hoverable" d="M 0 0 L 86.28011318859929 51.768067913159584 L 114.38749456993816 53 L 235.61250543006184 53 L 264.31083505599867 52.844582472000674 L 335.68916494400133 17.155417527999326 L 366 10 L 450 10" fill="none" stroke="#ff000088" stroke-width="12" stroke-dasharray="6 16" stroke-linecap="round" stroke-linejoin="round" style="--animation-speed: 660;" />
       <path class="v-ng-path clickable hoverable" d="M 0 110 L 85.68916494400135 67.15541752799933 L 114.38749456993816 67 L 235.61250543006184 67 L 264.31083505599867 67.15541752799933 L 335.68916494400133 102.84458247200067 L 364.31083505599867 117.15541752799933 L 450 160" fill="none" stroke="#ff800088" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
     </g>
   </g>
@@ -2131,8 +2131,8 @@ exports[`examples > paths/path-z-order 1`] = `
       </g>
     </g>
     <g class="v-ng-paths v-ng-layer-paths v-ng-graph-objects">
-      <path class="v-ng-path clickable hoverable" d="M 0 110 L 85.68916494400135 67.15541752799933 L 114.38749456993816 67 L 235.61250543006184 67 L 264.31083505599867 52.844582472000674 L 335.68916494400133 17.155417527999326 L 366 10 L 450 10" fill="none" stroke="#44cc44dd" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
       <path class="v-ng-path clickable hoverable" d="M 0 0 L 86.28011318859929 51.768067913159584 L 114.38749456993816 53 L 235.61250543006184 53 L 264.31083505599867 67.15541752799933 L 335.68916494400133 102.84458247200067 L 364.31083505599867 117.15541752799933 L 450 160" fill="none" stroke="#ff66ffdd" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+      <path class="v-ng-path clickable hoverable" d="M 0 110 L 85.68916494400135 67.15541752799933 L 114.38749456993816 67 L 235.61250543006184 67 L 264.31083505599867 52.844582472000674 L 335.68916494400133 17.155417527999326 L 366 10 L 450 10" fill="none" stroke="#44cc44dd" stroke-width="10" stroke-dasharray="6 12" stroke-linecap="round" stroke-linejoin="round" />
     </g>
   </g>
 </svg>"
@@ -2197,7 +2197,7 @@ exports[`examples > paths/selectable-paths 1`] = `
       </g>
     </g>
     <g class="v-ng-paths v-ng-layer-paths v-ng-graph-objects">
-      <path class="v-ng-path clickable hoverable" d="M 0 0 L 86.28011318859929 51.768067913159584 L 114.38749456993816 53 L 235.61250543006184 53 L 264.31083505599867 52.844582472000674 L 335.68916494400133 17.155417527999326 L 366 10 L 450 10" fill="none" stroke="#ffd60088" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+      <path class="v-ng-path clickable hoverable" d="M 0 0 L 86.28011318859929 51.768067913159584 L 114.38749456993816 53 L 235.61250543006184 53 L 264.31083505599867 52.844582472000674 L 335.68916494400133 17.155417527999326 L 366 10 L 450 10" fill="none" stroke="#ffd60088" stroke-width="12" stroke-dasharray="6 12" stroke-linecap="round" stroke-linejoin="round" />
       <path class="v-ng-path clickable hoverable" d="M 0 110 L 85.68916494400135 67.15541752799933 L 114.38749456993816 67 L 235.61250543006184 67 L 264.31083505599867 67.15541752799933 L 335.68916494400133 102.84458247200067 L 364.31083505599867 117.15541752799933 L 450 160" fill="none" stroke="#dd2c0088" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
     </g>
   </g>

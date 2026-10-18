@@ -20,7 +20,7 @@ const initialConfigs = vNG.defineConfigs({
   },
   path: {
     visible: true,
-    selectable: true as boolean | number,
+    selectable: true,
     clickable: true,
     hoverable: true,
     normal: {
@@ -30,7 +30,7 @@ const initialConfigs = vNG.defineConfigs({
 })
 const configs = reactive(initialConfigs)
 
-const selectedPaths = ref<string[]>([])
+const selectedPaths = ref<string[]>(["path1"])
 </script>
 
 <template>

@@ -71,6 +71,7 @@ const configs = reactive(initialConfigs)
     :edges="data.edges"
     :layouts="data.layouts"
     :paths="paths"
+    :selected-paths="['path2']"
     :configs="configs"
   />
 </template>
