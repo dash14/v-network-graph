@@ -1,0 +1,47 @@
+<script setup lang="ts">
+import * as vNG from "v-network-graph"
+import { ForceLayout } from "v-network-graph/lib/force-layout"
+import { reactive } from "vue"
+
+const nodes = reactive({})
+const edges = reactive({})
+
+buildNetwork(15, nodes, edges)
+
+const layoutHandler: vNG.LayoutHandler = new ForceLayout()
+
+const configs = reactive(
+  vNG.defineConfigs({
+    view: {
+      layoutHandler,
+    },
+    node: {
+      label: {
+        visible: false,
+      },
+    },
+  })
+)
+
+function buildNetwork(count: number, nodes: vNG.Nodes, edges: vNG.Edges) {
+  const idNums = [...Array(count)].map((_, i) => i)
+
+  const newNodes = Object.fromEntries(idNums.map(id => [`node${id}`, {}]))
+  Object.assign(nodes, newNodes)
+
+  const makeEdgeEntry = (id1: number, id2: number) => {
+    return [`edge${id1}-${id2}`, { source: `node${id1}`, target: `node${id2}` }]
+  }
+  const newEdges = Object.fromEntries([
+    ...idNums
+      .map(n => [n, (Math.floor(n / 5) * 5) % count])
+      .map(([n, m]) => (n === m ? [n, (n + 5) % count] : [n, m]))
+      .map(([n, m]) => makeEdgeEntry(n, m)),
+  ])
+  Object.assign(edges, newEdges)
+}
+</script>
+
+<template>
+  <v-network-graph :zoom-level="0.5" :nodes="nodes" :edges="edges" :configs="configs" />
+</template>

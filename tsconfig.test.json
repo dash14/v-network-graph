@@ -3,7 +3,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "v-network-graph": ["./src/index.ts"]
+      "v-network-graph": ["./src/index.ts"],
+      "v-network-graph/lib/force-layout": ["./src/force-layout.ts"]
     }
   },
   "include": ["src/**/*.spec.ts", "test/**/*.ts", "test/**/*.vue"],
