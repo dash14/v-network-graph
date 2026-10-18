@@ -2,10 +2,7 @@
 import * as vNG from "v-network-graph"
 import data from "./data"
 
-// -------------------------------------------------------------
-// Dijkstra route finder
-// ref. https://github.com/andrewhayward/dijkstra
-// -------------------------------------------------------------
+// Based on https://github.com/andrewhayward/dijkstra
 
 type GraphMap = { [key: string]: { [key: string]: number } }
 type EdgeMap = { [key: string]: { [key: string]: string } }
@@ -19,7 +16,6 @@ class Graph {
   }
 
   constructor(edges: vNG.Edges) {
-    // var map = {a:{b:3,c:1},b:{a:2,c:1},c:{a:4,b:1}},
     const map: GraphMap = {}
     const edgeMap: EdgeMap = {}
     Object.entries(edges).forEach(([edgeId, edge]) => {

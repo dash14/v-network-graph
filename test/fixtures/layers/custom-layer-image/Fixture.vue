@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import data from "./data"
 
-// additional layers definition
 const layers = {
-  // {layername}: {position}
   worldmap: "base",
 }
 
@@ -19,7 +17,6 @@ const mapUrl = "/worldmap.svg"
     :configs="data.configs"
     :layers="layers"
   >
-    <!-- Additional layer -->
     <template #worldmap>
       <image :href="mapUrl" x="0" y="0" width="1000px" />
     </template>

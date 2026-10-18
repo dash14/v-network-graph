@@ -1,34 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue"
 import data from "./data"
 
-// additional layers definition
 const layers = {
-  // {layername}: {position}
   badge: "nodes",
 }
-
-// wrap with ref() for immediate response to value changes
-const layouts = ref(data.layouts)
 </script>
 
 <template>
   <v-network-graph
     :nodes="data.nodes"
     :edges="data.edges"
-    :layouts="layouts"
+    :layouts="data.layouts"
     :configs="data.configs"
     :layers="layers"
   >
-    <!-- Additional layer -->
     <template #badge="{ scale }">
-      <!--
-        If the `view.scalingObjects` config is `false`(default),
-        scaling does not change the display size of the nodes/edges.
-        The `scale` is passed as a scaling factor to implement
-        this behavior. -->
+      <!-- `scale` keeps the badge size constant while zooming, as with the nodes. -->
       <circle
-        v-for="(pos, node) in layouts.nodes"
+        v-for="(pos, node) in data.layouts.nodes"
         :key="node"
         :cx="pos.x + 9 * scale"
         :cy="pos.y - 9 * scale"
