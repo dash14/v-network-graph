@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import * as vNG from "v-network-graph"
-import { ref, watchEffect } from "vue"
 import data from "./data"
 
 // -------------------------------------------------------------
@@ -173,23 +172,10 @@ class Graph {
   }
 }
 
-const paths = ref<vNG.Paths>({})
-
-const targetNode = ref("node12")
-watchEffect(() => {
-  const graph = new Graph(data.edges)
-  const routeOfNodes = graph.findShortestPath(["node1", targetNode.value])
-  if (routeOfNodes) {
-    const routeOfEdges = graph.convertNodesToEdges(routeOfNodes)
-    paths.value = { shortestPath: { edges: routeOfEdges } }
-  }
-})
-
-const eventHandlers: vNG.EventHandlers = {
-  "node:pointerover": ({ node }) => {
-    if (node === "node1") return
-    targetNode.value = node
-  },
+const graph = new Graph(data.edges)
+const routeOfNodes = graph.findShortestPath(["node1", "node12"]) ?? []
+const paths: vNG.Paths = {
+  shortestPath: { edges: graph.convertNodesToEdges(routeOfNodes) },
 }
 </script>
 
@@ -200,7 +186,6 @@ const eventHandlers: vNG.EventHandlers = {
     :paths="paths"
     :layouts="data.layouts"
     :configs="data.configs"
-    :event-handlers="eventHandlers"
   >
     <template #edge-label="{ edge, ...slotProps }">
       <v-edge-label

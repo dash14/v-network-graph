@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { defineConfigs } from "v-network-graph"
-import { reactive } from "vue"
 import data from "./data"
 
-const initialConfig = defineConfigs({
+const configs = defineConfigs({
   view: {
     builtInLayerOrder: ["node-labels", "paths"],
   },
@@ -23,7 +22,6 @@ const initialConfig = defineConfigs({
     curveInNode: true,
   },
 })
-const configs = reactive(initialConfig)
 </script>
 
 <template>
