@@ -2,9 +2,18 @@ import { vi } from "vitest"
 import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
-import { defineComponent, h, reactive } from "vue"
+import { defineComponent, h, reactive, ref } from "vue"
 import { VNetworkGraph } from "@/index"
-import type { Edges, Events, EventHandlers, InputPaths, Layouts, Nodes, UserConfigs } from "@/index"
+import type {
+  Edges,
+  Events,
+  EventHandlers,
+  InputPaths,
+  Layouts,
+  Nodes,
+  UserConfigs,
+  VNetworkGraphInstance,
+} from "@/index"
 import { HEIGHT, WIDTH, inContainer, movePointerAway } from "./container"
 
 export interface GraphProps {
@@ -50,11 +59,13 @@ export async function mountGraph(props: GraphProps) {
   const eventHandlers: EventHandlers = {
     "*": (type, payload) => events.push({ type, payload }),
   }
+  const graph = ref<VNetworkGraphInstance>()
   const screen = await render(
     defineComponent(
       () => () =>
         inContainer(
           h(VNetworkGraph, {
+            ref: graph,
             nodes: state.nodes,
             edges: state.edges,
             paths: state.paths,
@@ -78,7 +89,7 @@ export async function mountGraph(props: GraphProps) {
   await movePointerAway()
   events.splice(0)
 
-  return { screen, canvas, state, events }
+  return { screen, canvas, graph: graph.value!, state, events }
 }
 
 /** The position in the container of a point in the graph, at zoom level 1. */
