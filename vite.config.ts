@@ -5,12 +5,12 @@ import { visualizer } from "rollup-plugin-visualizer"
 import dts from "unplugin-dts/vite"
 import { defineConfig } from "vite"
 
-const resolvePath = (str: string) => path.resolve(__dirname, str)
+const resolvePath = (str: string) => path.resolve(import.meta.dirname, str)
 
 const TYPES_SRC_DIR = resolvePath("lib/src")
 function dtsBeforeWriteFile(filePath: string, _content: string) {
   if (filePath.startsWith(TYPES_SRC_DIR)) {
-    filePath = __dirname + "/lib" + filePath.substring(TYPES_SRC_DIR.length)
+    filePath = import.meta.dirname + "/lib" + filePath.substring(TYPES_SRC_DIR.length)
   }
   return { filePath }
 }
@@ -29,7 +29,7 @@ export default defineConfig({
       cssFileName: "style",
     },
     emptyOutDir: false,
-    rollupOptions: {
+    rolldownOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
       external: ["vue", "lodash-es", "d3-force"], // bundle mitt

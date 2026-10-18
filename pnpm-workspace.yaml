@@ -1,6 +1,11 @@
 engineStrict: true
 
 minimumReleaseAge: 20160 # 2 weeks
+minimumReleaseAgeExclude:
+  # Fixes query strings leaking into preserveModules file names
+  - rolldown@1.2.13
+  - "@rolldown/binding-*" # rolldown pins these to its own version
+  - "@oxc-project/types@0.153.0"
 
 trustPolicy: no-downgrade
 
