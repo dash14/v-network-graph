@@ -97,7 +97,7 @@ export function calculateFit(
   if (scalingObjects) {
     return calculateFitWithScalingObjects(viewportBox, container, nodesLayouts, margins)
   } else {
-    const graphBox = getGraphBox(viewport)
+    const graphBox = getGraphBox(viewport, viewportBox)
     return calculateFitWithoutScalingObjects(
       viewportBox,
       graphBox,
@@ -135,24 +135,12 @@ function parseFitContentMarginValue(
   return undefined
 }
 
-function getGraphBox(viewport: SVGGElement): ViewBox {
-  const rects = Array.from(viewport.querySelectorAll<SVGGElement>(".v-ng-graph-objects")).map(g =>
-    g.getBBox()
-  )
-  return rects.reduce(
-    (accum, r, i) => {
-      if (i === 0) return r
-      const x = Math.min(accum.x, r.x)
-      const y = Math.min(accum.y, r.y)
-      return {
-        x,
-        y,
-        width: Math.max(accum.x + accum.width - x, r.x + r.width - x),
-        height: Math.max(accum.y + accum.height - y, r.y + r.height - y),
-      }
-    },
-    { x: 0, y: 0, width: 0, height: 0 }
-  )
+function getGraphBox(viewport: SVGGElement, viewportBox: ViewBox): ViewBox {
+  const boxes = Array.from(viewport.querySelectorAll<SVGGElement>(".v-ng-graph-objects"))
+    // An empty layer has a zero box at the origin, which is not part of the graph.
+    .filter(g => g.firstElementChild)
+    .map(g => viewBoxToBox(g.getBBox()))
+  return boxes.length > 0 ? boxToViewBox(boxes.reduce(mergeBox)) : viewportBox
 }
 
 function calculateFitWithScalingObjects(

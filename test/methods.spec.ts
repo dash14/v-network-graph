@@ -96,23 +96,30 @@ describe("zoom", () => {
 })
 
 describe("view box", () => {
-  test("fitToContents zooms and pans so that the contents fill the container", async () => {
-    const { graph, state, events } = await mountGraph({
-      nodes,
-      edges,
-      layouts: offsetLayouts,
-      configs,
-      zoomLevel: 1,
-    })
+  // Without edges, the edges layer is empty.
+  test.each([
+    { name: "with edges", edges },
+    { name: "without edges", edges: {} },
+  ])(
+    "fitToContents zooms and pans so that the contents fill the container, $name",
+    async ({ edges }) => {
+      const { graph, state, events } = await mountGraph({
+        nodes,
+        edges,
+        layouts: offsetLayouts,
+        configs,
+        zoomLevel: 1,
+      })
 
-    await graph.fitToContents({ margin: 0 })
-    // The node radius does not scale with the zoom, so it adds 16px on each side.
-    expect(Math.abs(state.zoomLevel * 200 + 32 - WIDTH)).toBeLessThan(1)
-    const box = graph.getViewBox()
-    expect((box.left + box.right) / 2).toBeCloseTo(100)
-    expect((box.top + box.bottom) / 2).toBeCloseTo(50)
-    expect(payloadsOf(events, "view:fit")).toHaveLength(1)
-  })
+      await graph.fitToContents({ margin: 0 })
+      // The node radius does not scale with the zoom, so it adds 16px on each side.
+      expect(Math.abs(state.zoomLevel * 200 + 32 - WIDTH)).toBeLessThan(1)
+      const box = graph.getViewBox()
+      expect((box.left + box.right) / 2).toBeCloseTo(100)
+      expect((box.top + box.bottom) / 2).toBeCloseTo(50)
+      expect(payloadsOf(events, "view:fit")).toHaveLength(1)
+    }
+  )
 
   test("setViewBox shows the box, widened to the aspect ratio of the container", async () => {
     const { graph } = await mountGraph({ nodes, edges, layouts, configs })
