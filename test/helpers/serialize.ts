@@ -18,6 +18,8 @@ function serializeElement(element: Element, depth: number): string[] {
   const indent = "  ".repeat(depth)
   const tag = element.tagName
   const attrs = Array.from(element.attributes)
+    // Scoped style ids of the fixtures follow their file paths.
+    .filter(a => !a.name.startsWith("data-v-"))
     .map(a => ` ${a.name}="${a.value}"`)
     .join("")
   const children = Array.from(element.childNodes).flatMap(node => {
