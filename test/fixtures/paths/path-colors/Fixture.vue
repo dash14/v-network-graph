@@ -5,11 +5,11 @@ import data from "./data"
 const paths: vNG.Paths = {
   path1: {
     edges: ["edge1", "edge3", "edge5", "edge7"],
-    color: "#ff00ff66", // #rrggbbaa <- with alpha
+    color: "#ff00ff66",
   },
   path2: {
     edges: ["edge2", "edge4", "edge6", "edge10"],
-    color: "#00aa0066", // #rrggbbaa <- with alpha
+    color: "#00aa0066",
   },
 }
 

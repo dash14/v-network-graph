@@ -15,12 +15,6 @@ const configs = vNG.defineConfigs({
   },
 })
 
-/**
- * Make `transform` value of the object placing on the edge.
- * @param center - center position
- * @param edgePos - edge source and target positions
- * @param scale - zooming scale
- */
 function makeTransform(center: vNG.Point, edgePos: vNG.EdgePosition, scale: number) {
   const radian = Math.atan2(
     edgePos.target.y - edgePos.source.y,
@@ -43,19 +37,15 @@ function makeTransform(center: vNG.Point, edgePos: vNG.EdgePosition, scale: numb
     :layouts="data.layouts"
     :configs="configs"
   >
-    <!-- To use CSS within SVG, use <defs>. -->
+    <!-- Vue templates cannot contain <style>, so it is rendered as a component. -->
     <defs>
-      <!-- Cannot use <style> directly due to restrictions of Vue. -->
       <component is="style">
-        <!-- prettier-ignore -->
-        .marker {
-        fill: {{ configs.edge.normal.color }}; transition: fill 0.1s linear; pointer-events: none; }
-        .marker.hovered { fill: {{ configs.edge.hover.color }}; } .marker.selected { fill:
-        {{ configs.edge.selected.color }}; }
+        .marker { fill: {{ configs.edge.normal.color }}; transition: fill 0.1s linear;
+        pointer-events: none; } .marker.hovered { fill: {{ configs.edge.hover.color }}; }
+        .marker.selected { fill: {{ configs.edge.selected.color }}; }
       </component>
     </defs>
     <template #edge-overlay="{ scale, center, position, hovered, selected }">
-      <!-- Place the triangle at the center of the edge -->
       <path
         class="marker"
         :class="{ hovered, selected }"

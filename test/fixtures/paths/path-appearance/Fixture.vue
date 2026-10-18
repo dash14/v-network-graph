@@ -35,7 +35,7 @@ const initialConfigs = vNG.defineConfigs({
     hoverable: true,
     selectable: true,
     curveInNode: false,
-    end: "centerOfNode", // "centerOfNode" or "edgeOfNode"
+    end: "centerOfNode",
     margin: 0,
     normal: {
       width: 10,

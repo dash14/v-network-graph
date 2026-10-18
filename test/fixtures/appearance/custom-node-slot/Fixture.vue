@@ -2,7 +2,7 @@
 import { Nodes } from "v-network-graph"
 import data from "./data"
 
-// icon code point searched from: https://fonts.google.com/icons
+// Code points of Material Icons
 const nodes: Nodes = {
   node1: { name: "N1", icon: "&#xe320" /* Laptop Mac */ },
   node2: { name: "N2", icon: "&#xe328" /* Router */ },
@@ -20,7 +20,6 @@ const nodes: Nodes = {
     :layouts="data.layouts"
     :configs="data.configs"
   >
-    <!-- Replace the node component -->
     <template #override-node="{ nodeId, scale, config, ...slotProps }">
       <circle :r="config.radius * scale" :fill="config.color" v-bind="slotProps" />
       <!-- Use v-html to interpret escape sequences for icon characters. -->

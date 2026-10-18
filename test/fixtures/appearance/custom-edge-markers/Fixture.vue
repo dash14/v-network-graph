@@ -40,8 +40,7 @@ const configs = reactive(
     :layouts="data.layouts"
     :configs="configs"
   >
-    <!-- The elements specified in the default slot
-         will be placed in the root of <svg>. -->
+    <!-- The default slot is placed directly under the root <svg>. -->
     <defs>
       <marker
         id="marker-custom-diamond"

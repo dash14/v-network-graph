@@ -40,7 +40,7 @@ const initialConfigs = vNG.defineConfigs({
   path: {
     visible: true,
     curveInNode: false,
-    end: "centerOfNode", // "centerOfNode" or "edgeOfNode"
+    end: "centerOfNode",
     margin: 0,
     normal: {
       width: 8,

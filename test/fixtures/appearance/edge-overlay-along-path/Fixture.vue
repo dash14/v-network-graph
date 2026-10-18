@@ -24,16 +24,12 @@ const icons = {
 
 <template>
   <v-network-graph :nodes="data.nodes" :edges="edges" :layouts="data.layouts" :configs="configs">
-    <!-- To use CSS within SVG, use <defs>. -->
+    <!-- Vue templates cannot contain <style>, so it is rendered as a component. -->
     <defs>
-      <!-- Cannot use <style> directly due to restrictions of Vue. -->
       <component is="style"> .edge-icon { pointer-events: none; } </component>
     </defs>
     <template #edge-overlay="{ edge, scale, length, pointAtLength }">
-      <!-- source side -->
       <g class="edge-icon">
-        <!-- pointAtLength():Calculate the coordinates advanced
-             the specified length from the source side. -->
         <circle
           :cx="pointAtLength(40 * scale).x"
           :cy="pointAtLength(40 * scale).y"
@@ -51,9 +47,7 @@ const icons = {
           v-html="icons[edge.sourceState]"
         />
       </g>
-      <!-- target side -->
       <g class="edge-icon">
-        <!-- length: The total length of the edge. -->
         <circle
           :cx="pointAtLength(length - 40 * scale).x"
           :cy="pointAtLength(length - 40 * scale).y"

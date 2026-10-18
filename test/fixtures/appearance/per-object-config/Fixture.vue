@@ -42,18 +42,12 @@ const layouts = {
   },
 }
 
-// In Node and Edge configuration, instead of concrete values,
-// you can specify functions that return a configuration value
-// with each node or edge as an argument.
-// In addition, custom types for Node and Edge can be explicitly
-// specified in `defineConfigs` to specify the argument types
-// for callback functions.
 const configs = reactive(
   vNG.defineConfigs<Node, Edge>({
     node: {
       normal: {
         type: "circle",
-        radius: node => node.size, // Use the value of each node object
+        radius: node => node.size,
         color: node => node.color,
       },
       hover: {
@@ -70,7 +64,7 @@ const configs = reactive(
     },
     edge: {
       normal: {
-        width: edge => edge.width, // Use the value of each edge object
+        width: edge => edge.width,
         color: edge => edge.color,
         dasharray: edge => (edge.dashed ? "4" : "0"),
       },
