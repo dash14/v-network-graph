@@ -40,6 +40,23 @@ describe("path", () => {
     expect(payloadsOf(events, "edge:click")).toEqual([])
   })
 
+  test("a path that is neither clickable nor hoverable lets the pointer through to the edge", async () => {
+    const { canvas, state, events } = await mountGraph({
+      nodes,
+      edges,
+      paths,
+      layouts,
+      configs: { edge: { selectable: true }, path: { visible: true } },
+    })
+
+    await userEvent.hover(canvas, { position: onPath })
+    expect(payloadsOf(events, "edge:pointerover")).toMatchObject([{ edge: "edge1" }])
+
+    await userEvent.click(canvas, { position: onPath })
+    expect(state.selectedEdges).toEqual(["edge1"])
+    expect(payloadsOf(events, "path:click")).toEqual([])
+  })
+
   test("hovering a hoverable path emits pointerover and pointerout", async () => {
     const { canvas, events } = await mountGraph({
       nodes,

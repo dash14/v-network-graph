@@ -106,7 +106,7 @@ const animationSpeed = computed(() => {
 <style lang="scss">
 $transition: 0.1s linear;
 
-.v-path {
+.v-ng-path {
   pointer-events: none;
   transition:
     stroke $transition,
