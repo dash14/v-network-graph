@@ -9,11 +9,10 @@ const initialConfigs = vNG.defineConfigs({
     normal: {
       type: "circle",
       radius: 16,
-      // for type is "rect" -->
+      // Used when the type is "rect".
       width: 32,
       height: 32,
       borderRadius: 4,
-      // <-- for type is "rect"
       strokeWidth: 0,
       strokeColor: "#000000",
       strokeDasharray: "0",
@@ -22,11 +21,10 @@ const initialConfigs = vNG.defineConfigs({
     hover: {
       type: "circle",
       radius: 16,
-      // for type is "rect" -->
+      // Used when the type is "rect".
       width: 32,
       height: 32,
       borderRadius: 4,
-      // <-- for type is "rect"
       strokeWidth: 0,
       strokeColor: "#000000",
       strokeDasharray: "0",
@@ -35,11 +33,10 @@ const initialConfigs = vNG.defineConfigs({
     selected: {
       type: "circle",
       radius: 16,
-      // for type is "rect" -->
+      // Used when the type is "rect".
       width: 32,
       height: 32,
       borderRadius: 4,
-      // <-- for type is "rect"
       strokeWidth: 0,
       strokeColor: "#000000",
       strokeDasharray: "0",
@@ -107,7 +104,7 @@ const initialConfigs = vNG.defineConfigs({
       },
       shape: {
         type: "rect",
-        radius: 6, // for type is "circle"
+        radius: 6,
         width: 12,
         height: 12,
         borderRadius: 3,

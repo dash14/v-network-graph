@@ -21,7 +21,7 @@ const configs = vNG.defineConfigs({
       visible: false,
     },
     focusring: {
-      color: "#ff00dd30", // alpha
+      color: "#ff00dd30",
     },
   },
   edge: {

@@ -9,7 +9,7 @@ const nodes: Nodes = {
 const edges: Edges = {
   edge1: { id: "edge1", source: "node1", target: "node2" },
   edge2: { id: "edge2", source: "node2", target: "node3" },
-  edge3: { id: "edge3", source: "node1", target: "node1" }, // self-loop
+  edge3: { id: "edge3", source: "node1", target: "node1" },
   edge4: { id: "edge4", source: "node3", target: "node3" },
 }
 

@@ -50,21 +50,8 @@ const configs = vNG.defineConfigs({
     },
   },
 })
-
-const eventHandlers: vNG.EventHandlers = {
-  "node:click": ({ node }) => {
-    // toggle
-    nodes[node].active = !nodes[node].active
-  },
-}
 </script>
 
 <template>
-  <v-network-graph
-    :nodes="nodes"
-    :edges="data.edges"
-    :layouts="data.layouts"
-    :configs="configs"
-    :event-handlers="eventHandlers"
-  />
+  <v-network-graph :nodes="nodes" :edges="data.edges" :layouts="data.layouts" :configs="configs" />
 </template>

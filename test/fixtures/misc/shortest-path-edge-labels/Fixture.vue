@@ -141,7 +141,7 @@ class Graph {
   }
 
   _findShortestPath(map: GraphMap, nodes: string[]) {
-    nodes = [...nodes] // copy
+    nodes = [...nodes]
     let start = nodes.shift() || ""
     let end: string
     let predecessors
