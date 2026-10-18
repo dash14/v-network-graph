@@ -21,7 +21,7 @@ export async function renderFixture(component: Component) {
 }
 
 // The force layout moves the nodes on animation frames until its simulation ends.
-async function waitUntilStill(container: Element, stillFrames = 5, timeout = 30000) {
+async function waitUntilStill(container: Element, stillFrames = 5, timeout = 20000) {
   const deadline = performance.now() + timeout
   let previous = container.innerHTML
   let count = 0

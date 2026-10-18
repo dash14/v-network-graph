@@ -32,6 +32,8 @@ export default defineConfig({
         extends: true,
         test: {
           name: "browser",
+          // The force layout fixtures animate for a few seconds before they settle.
+          testTimeout: 30000,
           include: ["test/**/*.spec.ts"],
           setupFiles: ["test/setup.ts"],
           browser: {
