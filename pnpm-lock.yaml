@@ -233,7 +233,7 @@ importers:
         specifier: ^24.13.1
         version: 24.13.2
       '@typescript-eslint/parser':
-        specifier: ~8.71.0
+        specifier: ^8.71.0
         version: 8.71.0(eslint@10.12.0)(typescript@5.9.3)
       '@vitejs/plugin-vue':
         specifier: ^6.0.7
@@ -257,7 +257,7 @@ importers:
         specifier: ^10.9.2
         version: 10.9.2(@typescript-eslint/parser@8.71.0(eslint@10.12.0)(typescript@5.9.3))(eslint@10.12.0)(vue-eslint-parser@10.4.1(eslint@10.12.0))
       lefthook:
-        specifier: ~2.1.16
+        specifier: ^2.1.16
         version: 2.1.16
       node:
         specifier: runtime:24.12.0
@@ -266,7 +266,7 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5
       oxfmt:
-        specifier: ~0.71.0
+        specifier: ^0.71.0
         version: 0.71.0
       oxlint:
         specifier: ~1.86.0
