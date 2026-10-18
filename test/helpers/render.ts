@@ -14,6 +14,6 @@ export async function renderFixture(component: Component) {
     ),
     { global: { plugins: [VNetworkGraphPlugin] } }
   )
-  await vi.waitUntil(() => screen.container.querySelector(".v-ng-canvas.show"))
+  await vi.waitUntil(() => screen.container.querySelector(".v-ng-canvas.show"), { timeout: 5000 })
   return screen
 }

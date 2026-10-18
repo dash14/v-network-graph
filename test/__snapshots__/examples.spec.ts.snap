@@ -368,11 +368,6 @@ exports[`examples > appearance/custom-node-image 1`] = `
 
 exports[`examples > appearance/custom-node-slot 1`] = `
 "<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
-  <defs>
-    <style>
-      @font-face { font-family: 'Material Icons'; font-style: normal; font-weight: 400; src: url(https://fonts.gstatic.com/s/materialicons/v97/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2) format('woff2'); }
-    </style>
-  </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" d="M 0 0 L 80 80" stroke="transparent" stroke-width="12" fill="none" />
@@ -719,7 +714,7 @@ exports[`examples > appearance/edge-overlay-along-path 1`] = `
 "<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
   <defs>
     <style>
-      @font-face { font-family: 'Material Icons'; font-style: normal; font-weight: 400; src: url(https://fonts.gstatic.com/s/materialicons/v97/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2) format('woff2'); } .edge-icon { pointer-events: none; }
+      .edge-icon { pointer-events: none; }
     </style>
   </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport">

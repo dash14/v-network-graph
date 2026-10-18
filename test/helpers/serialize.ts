@@ -1,8 +1,7 @@
 /**
  * Serialize the rendered graph as indented SVG markup for snapshots.
- * The size of the root element and the transform of the viewport are
- * left out, since they follow the bounding box of the text and so
- * depend on the fonts installed.
+ * The transform of the viewport is left out, since it follows the
+ * bounding box of the text and so depends on the fonts installed.
  */
 export function serializeGraph(container: Element): string {
   const svg = container.querySelector<SVGSVGElement>("svg.v-ng-canvas")
@@ -20,7 +19,7 @@ function serializeElement(element: Element, depth: number): string[] {
   const attrs = Array.from(element.attributes)
     // Scoped style ids of the fixtures follow their file paths.
     .filter(a => !a.name.startsWith("data-v-"))
-    .map(a => ` ${a.name}="${a.value}"`)
+    .map(a => ` ${a.name}="${escapeXml(a.value)}"`)
     .join("")
   const children = Array.from(element.childNodes).flatMap(node => {
     if (node.nodeType === Node.ELEMENT_NODE) {
@@ -28,7 +27,7 @@ function serializeElement(element: Element, depth: number): string[] {
     }
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent?.trim()
-      return text ? [`${indent}  ${text}`] : []
+      return text ? [`${indent}  ${escapeXml(text)}`] : []
     }
     return []
   })
@@ -36,4 +35,8 @@ function serializeElement(element: Element, depth: number): string[] {
     return [`${indent}<${tag}${attrs} />`]
   }
   return [`${indent}<${tag}${attrs}>`, ...children, `${indent}</${tag}>`]
+}
+
+function escapeXml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;")
 }

@@ -24,15 +24,10 @@ const icons = {
 
 <template>
   <v-network-graph :nodes="data.nodes" :edges="edges" :layouts="data.layouts" :configs="configs">
-    <!-- Use CSS to define references to external fonts.
-         To use CSS within SVG, use <defs>. -->
+    <!-- To use CSS within SVG, use <defs>. -->
     <defs>
       <!-- Cannot use <style> directly due to restrictions of Vue. -->
-      <component is="style">
-        @font-face { font-family: 'Material Icons'; font-style: normal; font-weight: 400; src:
-        url(https://fonts.gstatic.com/s/materialicons/v97/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2)
-        format('woff2'); } .edge-icon { pointer-events: none; }
-      </component>
+      <component is="style"> .edge-icon { pointer-events: none; } </component>
     </defs>
     <template #edge-overlay="{ edge, scale, length, pointAtLength }">
       <!-- source side -->
