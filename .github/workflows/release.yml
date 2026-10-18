@@ -100,7 +100,8 @@ jobs:
     name: Publish
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Leaves room for the maintainer to approve the staged version on npm.
+    timeout-minutes: 45
     environment: release
     permissions:
       contents: write
@@ -112,11 +113,15 @@ jobs:
         with:
           persist-credentials: false
 
-      # Trusted Publishing needs npm 11.5.1 or later, which this Node bundles.
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: package.json
+
+      # Staged publishing needs npm 11.15.0 or later, newer than the one this Node bundles.
+      - name: Set up npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global --ignore-scripts npm@11.19.1
 
       - name: Download package
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -138,7 +143,7 @@ jobs:
           fi
 
       # Draft first: until it is published, the release creates no tag and can still be deleted,
-      # so a failed npm publish leaves nothing behind on GitHub.
+      # so a version that never reaches npm leaves nothing behind on GitHub.
       - name: Create draft release
         id: draft
         env:
@@ -168,9 +173,10 @@ jobs:
             $PRERELEASE_FLAG \
             "${NOTES_ARGS[@]}"
 
-      # A prerelease goes to the next dist-tag so that it never becomes latest. Runs outside the
-      # checkout because npm refuses a project whose devEngines names pnpm.
-      - name: Publish to npm
+      # The version goes live only once a maintainer approves it on npm with 2FA. A prerelease goes
+      # to the next dist-tag so that it never becomes latest. Runs outside the checkout because npm
+      # refuses a project whose devEngines names pnpm.
+      - name: Stage on npm
         id: npm
         working-directory: ${{ runner.temp }}
         env:
@@ -180,7 +186,22 @@ jobs:
             *-*) DIST_TAG=next ;;
             *) DIST_TAG=latest ;;
           esac
-          npm publish ./package/*.tgz --provenance --access public --tag "$DIST_TAG"
+          npm stage publish ./package/*.tgz --provenance --access public --tag "$DIST_TAG"
+
+      # This job's token cannot read the stage, so wait for the version to show up in the registry.
+      - name: Wait for approval on npm
+        working-directory: ${{ runner.temp }}
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          for _ in $(seq 1 60); do
+            if [ -n "$(npm view "v-network-graph@${TAG#v}" version --prefer-online 2>/dev/null)" ]; then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::${TAG#v} was not approved on npm within 30 minutes; see RELEASING.md for the draft release"
+          exit 1
 
       # Creates the tag. With immutable releases, the tag and the attached package are locked from
       # here on.
@@ -190,20 +211,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release edit "$TAG" --draft=false
 
-      # Once npm has the version, even from a publish that reported failure, the draft is kept so
-      # that it can still be published by hand.
+      # Once the version is staged, it can still be approved later, so the draft is kept.
       - name: Delete draft release
         if: >-
           (failure() || cancelled())
           && steps.draft.outputs.started == 'true'
           && steps.npm.outcome != 'success'
-        working-directory: ${{ runner.temp }}
         env:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ -n "$(npm view "v-network-graph@${TAG#v}" version 2>/dev/null)" ]; then
-            echo "::error::npm already has ${TAG#v}; publish the draft release by hand"
-            exit 1
-          fi
-          gh release delete "$TAG" --yes
+        run: gh release delete "$TAG" --yes

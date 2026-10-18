@@ -1,8 +1,10 @@
 # Releasing
 
 Releases are published to npm by the `Release` workflow in GitHub Actions, never from a local
-machine. It publishes with npm Trusted Publishing, so no npm token is stored anywhere, and npm
-attaches a provenance attestation that links the package to the workflow run that built it.
+machine. It stages the package with npm Trusted Publishing, so no npm token is stored anywhere,
+and npm attaches a provenance attestation that links the package to the workflow run that built
+it. The trusted publisher is allowed to stage only, so nothing goes live until a maintainer
+approves it on npm with 2FA.
 
 ## Steps
 
@@ -10,11 +12,16 @@ attaches a provenance attestation that links the package to the workflow run tha
 2. Run the `Release` workflow from `main` (Actions > Release > Run workflow), giving the version
    as a tag, for example `v1.2.3` or `v1.2.3-beta.1`.
 3. The workflow checks the tag, then builds and tests the package. Approve the deployment to the
-   `release` environment when it asks.
+   `release` environment if it asks.
 4. The workflow creates a draft GitHub Release with generated notes and the package tarball
-   attached, publishes the same tarball to npm, then publishes the release, which creates the tag.
-   If the run fails or is cancelled before npm has the version, the draft is deleted. Otherwise
-   the draft is kept and can be published by hand.
+   attached, then stages the same tarball on npm.
+5. Approve the staged version within 30 minutes, either on npmjs.com or with
+   `npm stage list v-network-graph` and `npm stage approve <stage-id>`.
+6. Once the version is on npm, the workflow publishes the release, which creates the tag.
+
+If the run fails or is cancelled before the version is staged, the draft is deleted. After that,
+the draft is kept: publish it by hand once the version is approved, or delete it if the version
+is rejected with `npm stage reject <stage-id>`.
 
 A version with a prerelease part (`v1.2.3-beta.1`) is published under the `next` dist-tag instead
 of `latest`, and its GitHub Release is marked as a prerelease.
