@@ -9,6 +9,10 @@ export default defineConfig({
       { find: "@", replacement: path.resolve(import.meta.dirname, "src") },
       // Lets the fixtures import the library as the documentation examples do.
       { find: /^v-network-graph$/, replacement: path.resolve(import.meta.dirname, "src/index.ts") },
+      {
+        find: /^v-network-graph\/lib\/force-layout$/,
+        replacement: path.resolve(import.meta.dirname, "src/force-layout.ts"),
+      },
     ],
   },
   plugins: [vue()],
