@@ -1,4 +1,4 @@
-import { describe, expect, onTestFinished, test } from "vitest"
+import { describe, expect, test } from "vitest"
 import { render } from "vitest-browser-vue"
 import { defineComponent, h, ref } from "vue"
 import { VNetworkGraph, VNetworkGraphInstance } from "@/index"
@@ -18,27 +18,22 @@ const layouts = {
 }
 
 async function renderGraph() {
-  const container = document.createElement("div")
-  container.style.width = "400px"
-  container.style.height = "300px"
-  document.body.appendChild(container)
-  onTestFinished(() => container.remove())
-
   let resolveLoaded: () => void
   const loaded = new Promise<void>(resolve => (resolveLoaded = resolve))
   const graph = ref<VNetworkGraphInstance>()
   const screen = await render(
     defineComponent(
       () => () =>
-        h(VNetworkGraph, {
-          ref: graph,
-          nodes,
-          edges,
-          layouts,
-          eventHandlers: { "view:load": () => resolveLoaded() },
-        })
-    ),
-    { container }
+        h("div", { style: { width: "400px", height: "300px" } }, [
+          h(VNetworkGraph, {
+            ref: graph,
+            nodes,
+            edges,
+            layouts,
+            eventHandlers: { "view:load": () => resolveLoaded() },
+          }),
+        ])
+    )
   )
   await loaded
   return { screen, graph: graph.value! }

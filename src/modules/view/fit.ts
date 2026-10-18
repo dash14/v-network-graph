@@ -290,6 +290,7 @@ function calculateSizeWithoutMargin(container: Size, margins: Box): Size {
   }
 }
 
+/** @internal */
 export const exportedForTesting = {
   calculateFitWithScalingObjects,
   calculateFitWithoutScalingObjects,
