@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
@@ -10,7 +10,6 @@
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
     "types": ["vue", "node"],
-    "baseUrl": "./",
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "skipLibCheck": true,

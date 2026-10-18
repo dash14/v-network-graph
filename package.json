@@ -18,7 +18,7 @@
   "files": [
     "lib"
   ],
-  "packageManager": "pnpm@11.5.2",
+  "packageManager": "pnpm@12.9.1",
   "devEngines": {
     "runtime": {
       "name": "node",
@@ -27,7 +27,7 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": "11.5.2",
+      "version": "12.9.1",
       "onFail": "download"
     }
   },
@@ -36,7 +36,7 @@
     "lint:check": "oxlint && eslint \"**/*.vue\"",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "build": "run-s clean build:tc build:lib",
+    "build": "pnpm run clean && pnpm run build:tc && pnpm run build:lib",
     "build:tc": "vue-tsc --noEmit",
     "build:lib": "vite build",
     "clean": "rimraf lib",
@@ -51,29 +51,28 @@
   "devDependencies": {
     "@types/d3-force": "^3.0.10",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^24.13.1",
-    "@typescript-eslint/parser": "^8.71.1",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@vue/compiler-sfc": "^3.5.35",
-    "@vue/language-core": "^3.3.3",
+    "@types/node": "^24.19.1",
+    "@typescript-eslint/parser": "^8.71.0",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/compiler-sfc": "^3.5.43",
+    "@vue/language-core": "^3.3.12",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-oxlint": "~1.87.0",
-    "eslint-plugin-vue": "^10.9.2",
-    "lefthook": "^2.2.1",
-    "npm-run-all": "^4.1.5",
-    "oxfmt": "^0.72.0",
-    "oxlint": "~1.87.0",
+    "eslint-plugin-oxlint": "~1.86.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "lefthook": "^2.1.16",
+    "oxfmt": "^0.71.0",
+    "oxlint": "~1.86.0",
     "rimraf": "^6.1.3",
-    "rollup-plugin-visualizer": "^6.0.11",
-    "sass": "^1.100.0",
+    "rollup-plugin-visualizer": "^7.1.1",
+    "sass": "^1.105.1",
     "tslib": "^2.8.1",
-    "typescript": "^5.9.3",
-    "unplugin-dts": "^1.0.2",
-    "vite": "^7.3.5",
-    "vitest": "^4.1.8",
+    "typescript": "^6.0.3",
+    "unplugin-dts": "^1.1.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3",
     "vue-eslint-parser": "^10.4.1",
-    "vue-tsc": "^3.3.3"
+    "vue-tsc": "^3.3.12"
   },
   "peerDependencies": {
     "d3-force": "^3.0.0",
