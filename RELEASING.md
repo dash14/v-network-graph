@@ -13,8 +13,8 @@ attaches a provenance attestation that links the package to the workflow run tha
    `release` environment when it asks.
 4. The workflow creates a draft GitHub Release with generated notes and the package tarball
    attached, publishes the same tarball to npm, then publishes the release, which creates the tag.
-   If the npm publish fails, the draft is deleted. If only publishing the release fails, the draft
-   is kept and can be published by hand.
+   If the run fails or is cancelled before npm has the version, the draft is deleted. Otherwise
+   the draft is kept and can be published by hand.
 
 A version with a prerelease part (`v1.2.3-beta.1`) is published under the `next` dist-tag instead
 of `latest`, and its GitHub Release is marked as a prerelease.

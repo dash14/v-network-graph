@@ -110,7 +110,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
       # Trusted Publishing needs npm 11.5.1 or later, which this Node bundles.
@@ -125,6 +124,19 @@ jobs:
           name: package
           path: ${{ runner.temp }}/package
 
+      # A draft has no tag, so the tag check in the build job misses one left by an earlier run,
+      # and a second draft with the same tag would make the steps below act on either of them.
+      - name: Check release does not exist
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASES=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq ".[] | select(.tag_name == \"$TAG\") | .id")
+          if [ -n "$RELEASES" ]; then
+            echo "::error::A release for $TAG already exists, possibly as a draft"
+            exit 1
+          fi
+
       # Draft first: until it is published, the release creates no tag and can still be deleted,
       # so a failed npm publish leaves nothing behind on GitHub.
       - name: Create draft release
@@ -133,18 +145,21 @@ jobs:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Set first so that a draft created before a failed upload still gets deleted.
+          echo "started=true" >> "$GITHUB_OUTPUT"
           PRERELEASE_FLAG=""
-          NOTES_ARGS=()
           case "$TAG" in
-            *-*)
-              PRERELEASE_FLAG="--prerelease"
-              # --generate-notes would otherwise compare a prerelease against the wrong previous tag.
-              PREV_TAG=$(git tag --sort=-version:refname --list 'v*.*.*' | grep -vE '^v[0-9]+\.[0-9]+\.[0-9]+-' | head -1)
-              if [ -n "$PREV_TAG" ]; then
-                NOTES_ARGS=(--notes-start-tag "$PREV_TAG")
-              fi
-              ;;
+            *-*) PRERELEASE_FLAG="--prerelease" ;;
           esac
+          # --generate-notes may compare against a prerelease, so pin the last stable release.
+          NOTES_ARGS=()
+          PREV_TAG=$(git ls-remote --tags --refs --sort=-version:refname origin 'v*.*.*' \
+            | sed 's|.*refs/tags/||' \
+            | { grep -vE '^v[0-9]+\.[0-9]+\.[0-9]+-' || true; } \
+            | head -1)
+          if [ -n "$PREV_TAG" ]; then
+            NOTES_ARGS=(--notes-start-tag "$PREV_TAG")
+          fi
           gh release create "$TAG" "$RUNNER_TEMP"/package/*.tgz \
             --draft \
             --target "$GITHUB_SHA" \
@@ -175,10 +190,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release edit "$TAG" --draft=false
 
-      # Once npm has the version, the draft is kept so that it can still be published by hand.
+      # Once npm has the version, even from a publish that reported failure, the draft is kept so
+      # that it can still be published by hand.
       - name: Delete draft release
-        if: failure() && steps.draft.outcome == 'success' && steps.npm.outcome != 'success'
+        if: >-
+          (failure() || cancelled())
+          && steps.draft.outputs.started == 'true'
+          && steps.npm.outcome != 'success'
+        working-directory: ${{ runner.temp }}
         env:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release delete "$TAG" --yes
+        run: |
+          if [ -n "$(npm view "v-network-graph@${TAG#v}" version 2>/dev/null)" ]; then
+            echo "::error::npm already has ${TAG#v}; publish the draft release by hand"
+            exit 1
+          fi
+          gh release delete "$TAG" --yes
