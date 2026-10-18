@@ -1,5 +1,4 @@
 import { merge } from "lodash-es"
-import { reactive } from "vue"
 import { SimpleLayout } from "../layouts/simple"
 import { Config, Configs, NodeLabelDirection, UserConfigs, withSelf } from "./configs"
 import { Edge, Edges, Node, Path } from "./types"
@@ -79,7 +78,18 @@ export function getConfigDefaults(): Configs {
         strokeDasharray: node => Config.value(self.normal.strokeDasharray, node),
         color: "#3355bb",
       },
-      selected: undefined,
+      // The values the user leaves unset are the normal ones.
+      selected: {
+        type: node => Config.value(self.normal.type, node) as any,
+        radius: node => Config.value(self.normal.radius, node),
+        width: node => Config.value(self.normal.width, node),
+        height: node => Config.value(self.normal.height, node),
+        borderRadius: node => Config.value(self.normal.borderRadius, node),
+        color: node => Config.value(self.normal.color, node),
+        strokeWidth: node => Config.value(self.normal.strokeWidth, node),
+        strokeColor: node => Config.value(self.normal.strokeColor, node),
+        strokeDasharray: node => Config.value(self.normal.strokeDasharray, node),
+      },
       draggable: true,
       selectable: false,
       label: {
@@ -241,7 +251,7 @@ export function getConfigDefaults(): Configs {
       end: "centerOfNode",
       margin: 0,
       // @Deprecated
-      path: reactive({
+      path: {
         width: 6,
         color: p => {
           const list = [
@@ -277,7 +287,7 @@ export function getConfigDefaults(): Configs {
         linejoin: "round",
         animate: false,
         animationSpeed: 50,
-      }),
+      },
       normal: {
         width: path => Config.value(self.path.width, path),
         color: path => Config.value(self.path.color, path),
