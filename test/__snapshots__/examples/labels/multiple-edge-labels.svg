@@ -1,0 +1,78 @@
+<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
+  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+    <g class="v-ng-layer-edges v-ng-graph-objects">
+      <path class="v-ng-line-background" d="M 0 80 L 200 80" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 200 80 L 360 0" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 200 80 L 360 160" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line v-ng-edge" d="M 0 80 L 200 80" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
+      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
+      <path class="v-ng-line v-ng-edge" d="M 200 80 L 360 160" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
+    </g>
+    <g class="v-ng-edge-labels v-ng-layer-edge-labels v-ng-graph-objects">
+      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(0 100 85)" x="100" y="85" dominant-baseline="hanging" font-size="11" fill="#000000">
+        edge1
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="start" transform="rotate(0 20 75)" fill="#ff5500" font-size="12" x="20" y="75" dominant-baseline="text-top">
+        120 k
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="end" transform="rotate(0 180 75)" fill="#ff5500" font-size="12" x="180" y="75" dominant-baseline="text-top">
+        340 k
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(-26.56505117707799 282.2360679774998 44.47213595499959)" x="282.2360679774998" y="44.47213595499959" dominant-baseline="hanging" font-size="11" fill="#000000">
+        edge2
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="start" transform="rotate(-26.56505117707799 215.65247584249852 66.58359213500125)" fill="#ff5500" font-size="12" x="215.65247584249852" y="66.58359213500125" dominant-baseline="text-top">
+        560 k
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="end" transform="rotate(-26.56505117707799 339.8753882025019 4.47213595499958)" fill="#ff5500" font-size="12" x="339.8753882025019" y="4.47213595499958" dominant-baseline="text-top">
+        910 k
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="middle" transform="rotate(26.565051177078 277.76393202250017 124.47213595499957)" x="277.76393202250017" y="124.47213595499957" dominant-baseline="hanging" font-size="11" fill="#000000">
+        edge3
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="start" transform="rotate(26.565051177078 220.12461179749812 84.47213595499957)" fill="#ff5500" font-size="12" x="220.12461179749812" y="84.47213595499957" dominant-baseline="text-top">
+        780 k
+      </text>
+      <text class="v-ng-text v-ng-edge-label" text-anchor="end" transform="rotate(26.565051177078 344.3475241575014 146.58359213500125)" fill="#ff5500" font-size="12" x="344.3475241575014" y="146.58359213500125" dominant-baseline="text-top">
+        470 k
+      </text>
+    </g>
+    <g class="v-ng-layer-nodes-selections" />
+    <g class="v-ng-layer-nodes v-ng-graph-objects">
+      <g class="v-ng-node" transform="translate(0 80)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(200 80)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(360 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(360 160)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+    </g>
+    <g class="v-ng-layer-node-labels v-ng-graph-objects">
+      <g class="v-ng-node-label" transform="translate(0 80)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 1
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(200 80)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 2
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(360 0)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 3
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(360 160)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 4
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

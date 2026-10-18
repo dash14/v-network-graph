@@ -1,0 +1,74 @@
+<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
+  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+    <g class="v-ng-layer">
+      <image href="/worldmap.svg" x="0" y="0" width="1000px" />
+    </g>
+    <g class="v-ng-layer-edges v-ng-graph-objects">
+      <path class="v-ng-line-background" d="M 365 39 L 642 161" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 642 161 L 802 243" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 854 428 L 642 161" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 809 85 L 642 161" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 642 161 L 513 307" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 328 385 L 513 307" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 82 110 L 226 193" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 226 193 L 365 39" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 486 191 L 328 385" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 226 193 L 486 191" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 226 193 L 328 385" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 486 191 L 642 161" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 365 39 L 486 191" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 802 243 L 809 85" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 854 428 L 513 307" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 365 39 L 82 110" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line v-ng-edge" d="M 365 39 L 642 161" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
+      <path class="v-ng-line v-ng-edge" d="M 642 161 L 802 243" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
+      <path class="v-ng-line v-ng-edge" d="M 854 428 L 642 161" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
+      <path class="v-ng-line v-ng-edge" d="M 809 85 L 642 161" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" />
+      <path class="v-ng-line v-ng-edge" d="M 642 161 L 513 307" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" />
+      <path class="v-ng-line v-ng-edge" d="M 328 385 L 513 307" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge6" />
+      <path class="v-ng-line v-ng-edge" d="M 82 110 L 226 193" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge7" />
+      <path class="v-ng-line v-ng-edge" d="M 226 193 L 365 39" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge8" />
+      <path class="v-ng-line v-ng-edge" d="M 486 191 L 328 385" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge9" />
+      <path class="v-ng-line v-ng-edge" d="M 226 193 L 486 191" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge10" />
+      <path class="v-ng-line v-ng-edge" d="M 226 193 L 328 385" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge11" />
+      <path class="v-ng-line v-ng-edge" d="M 486 191 L 642 161" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge12" />
+      <path class="v-ng-line v-ng-edge" d="M 365 39 L 486 191" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge13" />
+      <path class="v-ng-line v-ng-edge" d="M 802 243 L 809 85" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge14" />
+      <path class="v-ng-line v-ng-edge" d="M 854 428 L 513 307" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge15" />
+      <path class="v-ng-line v-ng-edge" d="M 365 39 L 82 110" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge16" />
+    </g>
+    <g class="v-ng-layer-nodes-selections" />
+    <g class="v-ng-layer-nodes v-ng-graph-objects">
+      <g class="v-ng-node" transform="translate(365 39)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(642 161)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(802 243)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(513 307)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(809 85)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(328 385)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(226 193)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(82 110)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(486 191)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(854 428)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="8" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+    </g>
+  </g>
+</svg>
