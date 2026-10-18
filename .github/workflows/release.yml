@@ -125,20 +125,10 @@ jobs:
           name: package
           path: ${{ runner.temp }}/package
 
-      # A prerelease goes to the next dist-tag so that it never becomes latest. Runs outside the
-      # checkout because npm refuses a project whose devEngines names pnpm.
-      - name: Publish to npm
-        working-directory: ${{ runner.temp }}
-        env:
-          TAG: ${{ inputs.tag }}
-        run: |
-          case "$TAG" in
-            *-*) DIST_TAG=next ;;
-            *) DIST_TAG=latest ;;
-          esac
-          npm publish ./package/*.tgz --provenance --access public --tag "$DIST_TAG"
-
-      - name: Create release
+      # Draft first: until it is published, the release creates no tag and can still be deleted,
+      # so a failed npm publish leaves nothing behind on GitHub.
+      - name: Create draft release
+        id: draft
         env:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -155,9 +145,40 @@ jobs:
               fi
               ;;
           esac
-          gh release create "$TAG" \
+          gh release create "$TAG" "$RUNNER_TEMP"/package/*.tgz \
+            --draft \
             --target "$GITHUB_SHA" \
             --title "$TAG" \
             --generate-notes \
             $PRERELEASE_FLAG \
             "${NOTES_ARGS[@]}"
+
+      # A prerelease goes to the next dist-tag so that it never becomes latest. Runs outside the
+      # checkout because npm refuses a project whose devEngines names pnpm.
+      - name: Publish to npm
+        id: npm
+        working-directory: ${{ runner.temp }}
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          case "$TAG" in
+            *-*) DIST_TAG=next ;;
+            *) DIST_TAG=latest ;;
+          esac
+          npm publish ./package/*.tgz --provenance --access public --tag "$DIST_TAG"
+
+      # Creates the tag. With immutable releases, the tag and the attached package are locked from
+      # here on.
+      - name: Publish release
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "$TAG" --draft=false
+
+      # Once npm has the version, the draft is kept so that it can still be published by hand.
+      - name: Delete draft release
+        if: failure() && steps.draft.outcome == 'success' && steps.npm.outcome != 'success'
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release delete "$TAG" --yes
