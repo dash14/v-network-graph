@@ -7,9 +7,6 @@ const configs = vNG.defineConfigs({
   view: {
     autoPanAndZoomOnLoad: "fit-content",
     layoutHandler: new ForceLayout({
-      positionFixedByDrag: false,
-      positionFixedByClickWithAltKey: false,
-
       noAutoRestartSimulation: true, // If the line is deleted or set to false,
       // d3-force recalculation will be performed when nodes are dragged or
       // the network changes.

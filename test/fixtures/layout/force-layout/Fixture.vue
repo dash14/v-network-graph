@@ -13,8 +13,6 @@ const configs = reactive(
   vNG.defineConfigs({
     view: {
       layoutHandler: new ForceLayout({
-        positionFixedByDrag: false,
-        positionFixedByClickWithAltKey: true,
         createSimulation: (d3, nodes, edges) => {
           // d3-force parameters
           const forceLink = d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
@@ -40,7 +38,6 @@ function buildNetwork(count: number, nodes: vNG.Nodes, edges: vNG.Edges) {
 
   // nodes
   const newNodes = Object.fromEntries(idNums.map(id => [`node${id}`, {}]))
-  Object.keys(nodes).forEach(id => delete nodes[id])
   Object.assign(nodes, newNodes)
 
   // edges
@@ -53,7 +50,6 @@ function buildNetwork(count: number, nodes: vNG.Nodes, edges: vNG.Edges) {
       .map(([n, m]) => (n === m ? [n, (n + 4) % count] : [n, m]))
       .map(([n, m]) => makeEdgeEntry(n, m)),
   ])
-  Object.keys(edges).forEach(id => delete edges[id])
   Object.assign(edges, newEdges)
 }
 </script>

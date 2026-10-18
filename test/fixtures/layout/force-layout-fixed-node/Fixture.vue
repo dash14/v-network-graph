@@ -23,8 +23,6 @@ const configs = reactive(
   vNG.defineConfigs({
     view: {
       layoutHandler: new ForceLayout({
-        positionFixedByDrag: false,
-        positionFixedByClickWithAltKey: true,
         createSimulation: (d3, nodes, edges) => {
           // d3-force parameters
           const forceLink = d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
