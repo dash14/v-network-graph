@@ -181,12 +181,20 @@ jobs:
         working-directory: ${{ runner.temp }}
         env:
           TAG: ${{ inputs.tag }}
+          RELEASES_URL: ${{ github.server_url }}/${{ github.repository }}/releases
         run: |
           case "$TAG" in
             *-*) DIST_TAG=next ;;
             *) DIST_TAG=latest ;;
           esac
           npm stage publish ./package/*.tgz --provenance --access public --tag "$DIST_TAG"
+          {
+            echo "### ${TAG#v} is staged on npm"
+            echo ""
+            echo "Approve it with 2FA within 30 minutes, on https://www.npmjs.com/package/v-network-graph or with \`npm stage approve <stage-id>\`."
+            echo ""
+            echo "The draft release is on the releases page: $RELEASES_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # This job's token cannot read the stage, so wait for the version to show up in the registry.
       - name: Wait for approval on npm
@@ -209,7 +217,15 @@ jobs:
         env:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit "$TAG" --draft=false
+          RELEASES_URL: ${{ github.server_url }}/${{ github.repository }}/releases
+        run: |
+          gh release edit "$TAG" --draft=false
+          {
+            echo "### $TAG is released"
+            echo ""
+            echo "- GitHub: $RELEASES_URL/tag/$TAG"
+            echo "- npm: https://www.npmjs.com/package/v-network-graph/v/${TAG#v}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Once the version is staged, it can still be approved later, so the draft is kept.
       - name: Delete draft release
