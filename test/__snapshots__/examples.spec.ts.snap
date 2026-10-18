@@ -2072,6 +2072,183 @@ exports[`examples > layout/snap-to-grid 1`] = `
 </svg>"
 `;
 
+exports[`examples > misc/grid 1`] = `
+"<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
+  <g class="v-ng-background-viewport" transform="matrix(1,0,0,1,300,200)" style="transform: matrix(1, 0, 0, 1, 300, 200);">
+    <g class="v-ng-background-grid" shape-rendering="crispEdges">
+      <path d="M -300 -190 L 310 -190" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -180 L 310 -180" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -170 L 310 -170" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -160 L 310 -160" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -140 L 310 -140" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -130 L 310 -130" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -120 L 310 -120" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -110 L 310 -110" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -90 L 310 -90" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -80 L 310 -80" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -70 L 310 -70" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -60 L 310 -60" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -40 L 310 -40" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -30 L 310 -30" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -20 L 310 -20" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -10 L 310 -10" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 10 L 310 10" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 20 L 310 20" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 30 L 310 30" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 40 L 310 40" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 60 L 310 60" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 70 L 310 70" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 80 L 310 80" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 90 L 310 90" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 110 L 310 110" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 120 L 310 120" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 130 L 310 130" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 140 L 310 140" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 160 L 310 160" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 170 L 310 170" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 180 L 310 180" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 190 L 310 190" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 210 L 310 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-300" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -290 -200 L -290 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -280 -200 L -280 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -270 -200 L -270 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -260 -200 L -260 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -240 -200 L -240 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -230 -200 L -230 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -220 -200 L -220 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -210 -200 L -210 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -190 -200 L -190 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -180 -200 L -180 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -170 -200 L -170 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -160 -200 L -160 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -140 -200 L -140 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -130 -200 L -130 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -120 -200 L -120 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -110 -200 L -110 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -90 -200 L -90 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -80 -200 L -80 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -70 -200 L -70 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -60 -200 L -60 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -40 -200 L -40 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -30 -200 L -30 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -20 -200 L -20 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -10 -200 L -10 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 10 -200 L 10 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 20 -200 L 20 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 30 -200 L 30 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 40 -200 L 40 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 60 -200 L 60 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 70 -200 L 70 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 80 -200 L 80 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 90 -200 L 90 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 110 -200 L 110 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 120 -200 L 120 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 130 -200 L 130 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 140 -200 L 140 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 160 -200 L 160 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 170 -200 L 170 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 180 -200 L 180 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 190 -200 L 190 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 210 -200 L 210 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 220 -200 L 220 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 230 -200 L 230 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 240 -200 L 240 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 260 -200 L 260 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 270 -200 L 270 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 280 -200 L 280 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 290 -200 L 290 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 310 -200 L 310 210" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="1" stroke-dashoffset="-200" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -200 L 310 -200" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -150 L 310 -150" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -100 L 310 -100" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -50 L 310 -50" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 0 L 310 0" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 50 L 310 50" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 100 L 310 100" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 150 L 310 150" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 200 L 310 200" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -300 -200 L -300 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -250 -200 L -250 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -200 -200 L -200 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -150 -200 L -150 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -100 -200 L -100 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M -50 -200 L -50 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 0 -200 L 0 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 50 -200 L 50 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 100 -200 L 100 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 150 -200 L 150 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 200 -200 L 200 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 250 -200 L 250 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+      <path d="M 300 -200 L 300 210" stroke="#cccccc" stroke-width="1" stroke-dasharray="0" style="vector-effect: non-scaling-stroke;" />
+    </g>
+  </g>
+  <g class="v-ng-viewport svg-pan-zoom_viewport">
+    <g class="v-ng-layer-edges v-ng-graph-objects">
+      <path class="v-ng-line-background" d="M 0 0 L 80 80" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 80 80 L 160 0" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 161.76776695296635 -1.7677669529663687 L 241.76776695296635 78.23223304703363" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background" d="M 158.23223304703365 1.7677669529663687 L 238.23223304703365 81.76776695296637" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line v-ng-edge" d="M 0 0 L 80 80" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
+      <path class="v-ng-line v-ng-edge" d="M 80 80 L 160 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
+      <path class="v-ng-line v-ng-edge" d="M 161.76776695296635 -1.7677669529663687 L 241.76776695296635 78.23223304703363" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" />
+      <path class="v-ng-line v-ng-edge" d="M 158.23223304703365 1.7677669529663687 L 238.23223304703365 81.76776695296637" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" />
+      <g class="v-ng-line-summarized">
+        <path class="v-ng-line" d="M 240 80 L 320 0" stroke="#4466cc" stroke-width="5" data-edge-id="edge5" />
+        <rect class="v-ng-shape-rect" x="274" y="34" width="12" height="12" rx="3" ry="3" fill="#ffffff" stroke="#4466cc" stroke-width="1" />
+        <text class="v-ng-text" text-anchor="middle" x="280" y="40" dominant-baseline="central" font-size="10" fill="#4466cc">
+          8
+        </text>
+      </g>
+    </g>
+    <g class="v-ng-layer-nodes-selections" />
+    <g class="v-ng-layer-nodes v-ng-graph-objects">
+      <g class="v-ng-node" transform="translate(0 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(80 80)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(160 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(240 80)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(320 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+    </g>
+    <g class="v-ng-layer-node-labels v-ng-graph-objects">
+      <g class="v-ng-node-label" transform="translate(0 0)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 1
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(80 80)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 2
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(160 0)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 3
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(240 80)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 4
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(320 0)">
+        <text class="v-ng-text draggable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 5
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>"
+`;
+
 exports[`examples > misc/shortest-path-edge-labels 1`] = `
 "<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
   <g class="v-ng-viewport svg-pan-zoom_viewport">
