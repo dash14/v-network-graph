@@ -28,6 +28,12 @@ export interface GraphProps {
   zoomLevel?: number
 }
 
+/** A named set of props to render a graph with. */
+export interface GraphCase {
+  name: string
+  props: GraphProps
+}
+
 export interface RecordedEvent {
   type: keyof Events
   payload: unknown
