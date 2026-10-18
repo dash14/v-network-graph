@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/**/*.spec.ts", "test/**/*.ts"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "v-network-graph": ["./src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.spec.ts", "test/**/*.ts", "test/**/*.vue"],
   "exclude": []
 }
