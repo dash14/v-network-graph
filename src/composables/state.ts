@@ -1,5 +1,6 @@
 // the states of nodes and edges
 
+import { isEqual } from "lodash-es"
 import type { ComputedRef, InjectionKey, Ref } from "vue"
 import { computed, reactive, ref, toRef, unref, watch, watchEffect, inject, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
@@ -230,18 +231,16 @@ export function provideStates(
         return Config.value(configs.path.hoverable, paths.value[id])
       })
 
-      state.path = paths.value[id]
-      state.edges = toEdgeObjects(state.path, edges)
-      state.directions = calculateDirectionsOfPathEdges(state.edges)
-
-      state.stopWatchHandle = watch(
-        () => paths.value[id].edges,
-        () => {
-          state.path = paths.value[id]
-          state.edges = toEdgeObjects(state.path, edges)
-          state.directions = calculateDirectionsOfPathEdges(state.edges)
-        }
-      )
+      // Follows the edges of the path and their source and target.
+      state.stopWatchHandle = watchEffect(() => {
+        if (!paths.value[id]) return
+        state.path = paths.value[id]
+        const pathEdges = toEdgeObjects(state.path, edges, edgeGroupStates)
+        // Keep the arrays when unchanged, so that the path is not redrawn.
+        if (!isEqual(pathEdges, state.edges)) state.edges = pathEdges
+        const directions = calculateDirectionsOfPathEdges(pathEdges)
+        if (!isEqual(directions, state.directions)) state.directions = directions
+      })
     },
     (_, state) => {
       state.stopWatchHandle?.()
@@ -803,8 +802,13 @@ function createSummarizedEdgeStates(
   })
 }
 
-function toEdgeObjects(path: Path, edges: InputObjects<Edges>) {
+function toEdgeObjects(
+  path: Path,
+  edges: InputObjects<Edges>,
+  edgeGroupStates: EdgeModel.EdgeGroupStates
+) {
+  // The path skips the edges that are not drawn, such as those to missing nodes.
   return path.edges
     .map(edgeId => ({ edgeId, edge: edges.objects.value[edgeId] }))
-    .filter(e => e.edge)
+    .filter(e => e.edge && e.edgeId in edgeGroupStates.edgeLayoutPoints)
 }
