@@ -371,7 +371,8 @@ watch(
   { deep: true, immediate: true }
 )
 // The deep watch walks every node position on each move, so skip it when nobody listens.
-if (getCurrentInstance()?.vnode.props?.["onUpdate:layouts"]) {
+const listeners = getCurrentInstance()?.vnode.props
+if (listeners?.["onUpdate:layouts"] || listeners?.["onUpdate:layoutsOnce"]) {
   watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
 }
 

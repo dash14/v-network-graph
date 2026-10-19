@@ -45,7 +45,12 @@ type Position = { x: number; y: number }
  * Mounts a graph whose origin is at the center of a fixed-size
  * container, with the v-model props and the emitted events recorded.
  */
-export async function mountGraph(props: GraphProps, { bindLayouts = true } = {}) {
+export async function mountGraph(
+  props: GraphProps,
+  {
+    layoutsListener = "onUpdate:layouts" as "onUpdate:layouts" | "onUpdate:layoutsOnce" | null,
+  } = {}
+) {
   const { configs, ...data } = props
   const initial: Required<GraphProps> = {
     edges: {},
@@ -64,6 +69,7 @@ export async function mountGraph(props: GraphProps, { bindLayouts = true } = {})
   }
   const state = reactive(initial)
   const events: RecordedEvent[] = []
+  let layoutsUpdates = 0
   const eventHandlers: EventHandlers = {
     "*": (type, payload) => events.push({ type, payload }),
   }
@@ -80,7 +86,12 @@ export async function mountGraph(props: GraphProps, { bindLayouts = true } = {})
             configs: state.configs,
             eventHandlers,
             layouts: state.layouts,
-            ...(bindLayouts && { "onUpdate:layouts": (v: Layouts) => (state.layouts = v) }),
+            ...(layoutsListener && {
+              [layoutsListener]: (v: Layouts) => {
+                layoutsUpdates++
+                state.layouts = v
+              },
+            }),
             selectedNodes: state.selectedNodes,
             "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
             selectedEdges: state.selectedEdges,
@@ -101,8 +112,16 @@ export async function mountGraph(props: GraphProps, { bindLayouts = true } = {})
 
   await movePointerAway()
   events.splice(0)
+  layoutsUpdates = 0
 
-  return { screen, canvas, graph: graph.value!, state, events }
+  return {
+    screen,
+    canvas,
+    graph: graph.value!,
+    state,
+    events,
+    layoutsUpdates: () => layoutsUpdates,
+  }
 }
 
 /** The position in the container of a point in the graph, at zoom level 1. */

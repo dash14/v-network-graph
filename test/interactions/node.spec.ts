@@ -126,11 +126,21 @@ describe("node drag", () => {
   })
 
   test("dragging a node moves it without a v-model on the layouts", async () => {
-    const { screen, canvas } = await mountGraph({ nodes, layouts }, { bindLayouts: false })
+    const { screen, canvas } = await mountGraph({ nodes, layouts }, { layoutsListener: null })
 
     await drag(canvas, at(-100, 0), at(-50, 30))
     expect(elementAt(screen.container, at(-50, 30))?.closest(".v-ng-node")).not.toBeNull()
     expect(elementAt(screen.container, at(-100, 0))?.closest(".v-ng-node")).toBeNull()
+  })
+
+  test("dragging a node emits the layouts once to a listener with the once modifier", async () => {
+    const { canvas, layoutsUpdates } = await mountGraph(
+      { nodes, layouts },
+      { layoutsListener: "onUpdate:layoutsOnce" }
+    )
+
+    await drag(canvas, at(-100, 0), at(-50, 30))
+    expect(layoutsUpdates()).toBe(1)
   })
 
   test("dragging a selected node moves the other selected nodes with it", async () => {
