@@ -1,0 +1,44 @@
+<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
+  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+    <g class="v-ng-layer-edges v-ng-graph-objects">
+      <path class="v-ng-line-background selectable" d="M -100 0 L 0 0" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line-background selectable" d="M 0 0 L 100 0" stroke="transparent" stroke-width="12" fill="none" />
+      <path class="v-ng-line selectable v-ng-edge" d="M -100 0 L 0 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" />
+      <path class="v-ng-line selectable v-ng-edge" d="M 0 0 L 100 0" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" />
+    </g>
+    <g class="v-ng-layer-nodes-selections">
+      <rect class="v-ng-shape-rect v-ng-node-focusring" x="-21" y="-21" width="42" height="42" rx="7" ry="7" fill="none" stroke="#eebb00" stroke-width="4" />
+    </g>
+    <g class="v-ng-layer-nodes v-ng-graph-objects">
+      <g class="v-ng-node" transform="translate(-100 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable selectable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node selected" transform="translate(0 0)">
+        <rect class="v-ng-shape-rect v-ng-node-default draggable selectable" x="-15" y="-15" width="30" height="30" rx="4" ry="4" fill="#ff8800" stroke="#000000" stroke-width="2" />
+      </g>
+      <g class="v-ng-node" transform="translate(100 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable selectable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+    </g>
+    <g class="v-ng-layer-node-labels v-ng-graph-objects">
+      <g class="v-ng-node-label" transform="translate(-100 0)">
+        <text class="v-ng-text draggable selectable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 1
+        </text>
+      </g>
+      <g class="v-ng-node-label selected" transform="translate(0 0)">
+        <text class="v-ng-text draggable selectable" text-anchor="middle" transform="translate(0 19)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 2
+        </text>
+      </g>
+      <g class="v-ng-node-label" transform="translate(100 0)">
+        <text class="v-ng-text draggable selectable" text-anchor="middle" transform="translate(0 20)" x="0" y="0" dominant-baseline="hanging" font-size="11" fill="#000000">
+          Node 3
+        </text>
+      </g>
+    </g>
+    <g class="v-ng-paths v-ng-layer-paths v-ng-graph-objects">
+      <path class="v-ng-path" d="M -100 0 L -11 0 L 11 0 L 100 0" fill="none" stroke="#00c85388" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

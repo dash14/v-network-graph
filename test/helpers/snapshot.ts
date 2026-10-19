@@ -1,4 +1,6 @@
-import { commands } from "vitest/browser"
+import { expect } from "vitest"
+import { commands, server } from "vitest/browser"
+import { serializeGraph } from "./serialize"
 
 const NUMERIC_ATTRIBUTES = new Set([
   "cx",
@@ -100,7 +102,7 @@ export function alignNumbers(actual: string, expected: string, tolerance = 1e-6)
     .join("\n")
 }
 
-/** `path` is relative to the project root. */
+/** `path` is absolute or relative to the project root. */
 export async function alignWithSnapshot(actual: string, path: string): Promise<string> {
   let expected: string
   try {
@@ -110,4 +112,20 @@ export async function alignWithSnapshot(actual: string, path: string): Promise<s
     throw error
   }
   return alignNumbers(actual, expected)
+}
+
+/** Compares the graph in the container with the file snapshot `test/__snapshots__/<name>.svg`. */
+export async function expectGraphToMatchSnapshot(container: Element, name: string) {
+  const snapshot = `${server.config.root}/test/__snapshots__/${name}.svg`
+  const actual = await alignWithSnapshot(serializeGraph(container), snapshot)
+  await expect(actual).toMatchFileSnapshot(snapshot)
+}
+
+/** Names of the snapshots in `test/__snapshots__/<dir>/`, to find those left behind. */
+export function snapshotNames(paths: string[], dir: string) {
+  const prefix = `./__snapshots__/${dir}/`
+  return paths.map(path => {
+    if (!path.startsWith(prefix)) throw new Error(`${path} is not in ${prefix}`)
+    return path.slice(prefix.length, -".svg".length)
+  })
 }

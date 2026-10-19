@@ -1,3 +1,4 @@
+import { reactive } from "vue"
 import { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { LayoutHandler } from "../layouts/handler"
 import { RecursivePartial } from "./common"
@@ -215,7 +216,7 @@ export interface NodeFocusRingStyle {
 export interface NodeConfig<N extends Node = Node> {
   normal: CallableValues<ShapeStyle, N>
   hover?: CallableValues<ShapeStyle, N>
-  selected?: CallableValues<ShapeStyle, N>
+  selected: CallableValues<ShapeStyle, N>
   draggable: CallableValue<boolean, N>
   selectable: CallableValue<boolean, N> | number
   label: CallableValues<NodeLabelStyle, N>
@@ -339,7 +340,8 @@ export type UserConfigs<
 /** Make a config with self object */
 export function withSelf<T extends { [name: string]: any }>(callback: (self: T) => T): T {
   const self = {} as T
-  return Object.assign(self, callback(self))
+  // Through the reactive proxy, the values the functions read from self are tracked.
+  return Object.assign(self, callback(reactive(self) as T))
 }
 
 /** @deprecated */

@@ -285,7 +285,7 @@ function getNodeShape(node: Node, selected: boolean, hovered: boolean, config: N
 
 function getNodeStaticShape(node: Node, selected: boolean, config: NodeConfig) {
   // get shape without hovered state
-  if (selected && config.selected) {
+  if (selected) {
     return Config.values(config.selected, node)
   } else {
     return Config.values(config.normal, node)

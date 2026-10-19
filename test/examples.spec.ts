@@ -2,8 +2,7 @@
 import { describe, expect, test } from "vitest"
 import { Component } from "vue"
 import { renderFixture } from "./helpers/render"
-import { serializeGraph } from "./helpers/serialize"
-import { alignWithSnapshot } from "./helpers/snapshot"
+import { expectGraphToMatchSnapshot, snapshotNames } from "./helpers/snapshot"
 
 // Adapted from the examples in the documentation, without their control panels.
 const fixtures = import.meta.glob<Component>("./fixtures/**/Fixture.vue", {
@@ -16,19 +15,16 @@ const cases = Object.entries(fixtures).map(([path, component]) => ({
   component,
 }))
 
-// To find snapshots left behind by removed or renamed fixtures.
-const snapshots = Object.keys(import.meta.glob("./__snapshots__/examples/**/*.svg")).map(path =>
-  path.replace(/^\.\/__snapshots__\/examples\/(.*)\.svg$/, "$1")
+const snapshots = snapshotNames(
+  Object.keys(import.meta.glob("./__snapshots__/examples/**/*.svg")),
+  "examples"
 )
 
 describe("examples", () => {
   test.each(cases)("$name", async ({ name, component }) => {
     const screen = await renderFixture(component)
 
-    const snapshot = `__snapshots__/examples/${name}.svg`
-    // File commands resolve paths from the project root, and file snapshots from the test file.
-    const actual = await alignWithSnapshot(serializeGraph(screen.container), `test/${snapshot}`)
-    await expect(actual).toMatchFileSnapshot(snapshot)
+    await expectGraphToMatchSnapshot(screen.container, `examples/${name}`)
   })
 
   test("has a fixture for every snapshot", () => {
