@@ -12,8 +12,8 @@ export function useStrokeAttributes(config: () => StrokeStyle) {
   const strokeDasharray = computed(() => applyScaleToDasharray(config().dasharray, scale.value))
 
   const animationSpeed = computed(() => {
-    const { animate, dasharray, animationSpeed } = config()
-    const speed = animate ? getDasharrayUnit(dasharray) * animationSpeed * scale.value : false
+    const c = config()
+    const speed = c.animate ? getDasharrayUnit(c.dasharray) * c.animationSpeed * scale.value : false
     return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
   })
 
