@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { HEIGHT, WIDTH } from "./helpers/container"
 import { mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -154,5 +154,86 @@ describe("box selection mode", () => {
     await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection"])
     graph.stopBoxSelection()
     await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection", "default"])
+  })
+})
+
+describe("export", () => {
+  test("exportAsSvgText fits the contents with a margin and leaves out the view's state", async () => {
+    const { screen, graph } = await mountGraph({ nodes, edges, layouts, configs })
+    expect(screen.container.querySelector("svg")!.innerHTML).toContain("<!--")
+
+    const text = await graph.exportAsSvgText()
+    const svg = new DOMParser().parseFromString(text, "image/svg+xml").documentElement
+
+    expect(svg.getAttribute("width")).toBe("252")
+    expect(svg.getAttribute("height")).toBe("52")
+    expect(svg.getAttribute("viewBox")).toBe("0 0 252 52")
+    expect(svg.hasAttribute("style")).toBe(false)
+    const viewport = svg.querySelector(".v-ng-viewport")!
+    expect(viewport.getAttribute("transform")).toBe("translate(126 26), scale(1)")
+    expect(viewport.hasAttribute("style")).toBe(false)
+    expect(text).not.toContain("<!--")
+  })
+
+  test.each([
+    {
+      scalingObjects: false,
+      width: "472",
+      height: "72",
+      transform: "translate(236 36), scale(2)",
+    },
+    {
+      scalingObjects: true,
+      width: "252",
+      height: "52",
+      transform: "translate(126 26), scale(1)",
+    },
+  ])(
+    "a zoomed graph keeps its proportions as shown, scalingObjects: $scalingObjects",
+    async ({ scalingObjects, width, height, transform }) => {
+      const { graph } = await mountGraph({
+        nodes,
+        edges,
+        layouts,
+        zoomLevel: 2,
+        configs: { ...configs, view: { scalingObjects } },
+      })
+
+      const svg = await graph.exportAsSvgElement()
+
+      expect(svg.getAttribute("width")).toBe(width)
+      expect(svg.getAttribute("height")).toBe(height)
+      expect(svg.getAttribute("viewBox")).toBe(`0 0 ${width} ${height}`)
+      expect(svg.querySelector(".v-ng-viewport")!.getAttribute("transform")).toBe(transform)
+    }
+  )
+
+  test("embedImages replaces the image URLs with data URLs, keeping those that fail", async () => {
+    const { screen, graph } = await mountGraph({ nodes, edges, layouts, configs })
+    const blob = new Blob(['<svg xmlns="http://www.w3.org/2000/svg" />'], { type: "image/svg+xml" })
+    const url = URL.createObjectURL(blob)
+    onTestFinished(() => URL.revokeObjectURL(url))
+    const unreachable = URL.createObjectURL(blob)
+    URL.revokeObjectURL(unreachable)
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    for (const href of [url, unreachable]) {
+      const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
+      image.setAttribute("href", href)
+      viewport.appendChild(image)
+    }
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+
+    const hrefs = async (embedImages: boolean) => {
+      const svg = await graph.exportAsSvgElement({ embedImages })
+      return Array.from(svg.querySelectorAll("image"), image => image.getAttribute("href"))
+    }
+
+    expect(await hrefs(false)).toEqual([url, unreachable])
+    expect(await hrefs(true)).toEqual([
+      expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      unreachable,
+    ])
+    expect(warn).toHaveBeenCalledWith("Image download failed.", unreachable)
   })
 })
