@@ -1,5 +1,6 @@
 // the states of nodes and edges
 
+import { isEqual } from "lodash-es"
 import type { ComputedRef, InjectionKey, Ref } from "vue"
 import { computed, reactive, ref, toRef, unref, watch, watchEffect, inject, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
@@ -230,18 +231,16 @@ export function provideStates(
         return Config.value(configs.path.hoverable, paths.value[id])
       })
 
-      state.path = paths.value[id]
-      state.edges = toEdgeObjects(state.path, edges)
-      state.directions = calculateDirectionsOfPathEdges(state.edges)
-
-      state.stopWatchHandle = watch(
-        () => paths.value[id].edges,
-        () => {
-          state.path = paths.value[id]
-          state.edges = toEdgeObjects(state.path, edges)
-          state.directions = calculateDirectionsOfPathEdges(state.edges)
-        }
-      )
+      // Follows the edges of the path and their source and target.
+      state.stopWatchHandle = watchEffect(() => {
+        if (!paths.value[id]) return
+        state.path = paths.value[id]
+        const pathEdges = toEdgeObjects(state.path, edges)
+        // Keep the arrays when unchanged, so that the path is not redrawn.
+        if (!isEqual(pathEdges, state.edges)) state.edges = pathEdges
+        const directions = calculateDirectionsOfPathEdges(pathEdges)
+        if (!isEqual(directions, state.directions)) state.directions = directions
+      })
     },
     (_, state) => {
       state.stopWatchHandle?.()

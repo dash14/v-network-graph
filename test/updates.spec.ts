@@ -99,6 +99,25 @@ const cases: Record<string, UpdateCase[]> = {
       props: graphWithPath,
       update: props => ((props.paths as Paths).path1.edges = ["edge1"]),
     },
+    {
+      name: "remove an edge of a path",
+      props: graphWithPath,
+      update: props => delete props.edges!.edge2,
+    },
+    {
+      name: "reconnect an edge of a path",
+      props: graphWithPath,
+      update: props => (props.edges!.edge2.source = "node1"),
+    },
+    {
+      name: "replace the edges of a path",
+      props: graphWithPath,
+      update: props =>
+        (props.edges = {
+          edge1: { source: "node1", target: "node2" },
+          edge2: { source: "node1", target: "node3" },
+        }),
+    },
   ],
   layouts: [
     {
