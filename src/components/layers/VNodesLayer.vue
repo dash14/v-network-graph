@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, useSlots } from "vue"
+import { computed } from "vue"
+import VRenderSlot from "@/components/base/VRenderSlot"
 import VNode, { NodeSlotProps } from "@/components/node/VNode.vue"
 import { useNodeConfig } from "@/composables/config"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 
-defineSlots<{ "override-node": (props: NodeSlotProps) => any }>()
+// The root's slots come as props: forwarded as slots, they would re-render every node with the root.
+const props = defineProps<{ overrideNode?: (props: NodeSlotProps) => any }>()
 
-const slots = useSlots()
-const hasOverrideNodeSlot = computed(() => "override-node" in slots)
+const hasOverrideNodeSlot = computed(() => !!props.overrideNode)
 const { nodeZOrderedList } = useStates()
 
 const configs = useNodeConfig()
@@ -32,7 +33,7 @@ const layouts = useLayouts()
       >
         <!-- override the node -->
         <template #override-node="slotProps">
-          <slot name="override-node" v-bind="slotProps" />
+          <v-render-slot :render="overrideNode" :slot-props="slotProps" />
         </template>
       </v-node>
     </transition-group>

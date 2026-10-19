@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, useSlots } from "vue"
+import { computed } from "vue"
+import VRenderSlot from "@/components/base/VRenderSlot"
 import VEdgeBackgrounds from "../edge/VEdgeBackgrounds.vue"
 import VEdgeGroups from "../edge/VEdgeGroups.vue"
 import { EdgeOverlaySlotProps } from "../edge/VEdgeOverlay.vue"
 
-defineSlots<{ "edge-overlay": (props: EdgeOverlaySlotProps) => any }>()
+// The root's slots come as props: forwarded as slots, they would re-render the edges with the root.
+const props = defineProps<{ edgeOverlay?: (props: EdgeOverlaySlotProps) => any }>()
 
-const slots = useSlots()
-
-const hasEdgeOverlaySlot = computed(() => "edge-overlay" in slots)
+const hasEdgeOverlaySlot = computed(() => !!props.edgeOverlay)
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const hasEdgeOverlaySlot = computed(() => "edge-overlay" in slots)
     <v-edge-backgrounds />
     <v-edge-groups :has-edge-overlay-slot="hasEdgeOverlaySlot">
       <template v-if="hasEdgeOverlaySlot" #default="slotProps">
-        <slot name="edge-overlay" v-bind="slotProps" />
+        <v-render-slot :render="edgeOverlay" :slot-props="slotProps" />
       </template>
     </v-edge-groups>
   </g>

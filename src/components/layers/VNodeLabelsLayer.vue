@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, useSlots } from "vue"
+import { computed } from "vue"
+import VRenderSlot from "@/components/base/VRenderSlot"
 import VNodeLabel, { NodeLabelSlotProps } from "@/components/node/VNodeLabel.vue"
 import { useNodeConfig } from "@/composables/config"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 import { NodeState } from "@/models/node"
 
-defineSlots<{ "override-node-label": (props: NodeLabelSlotProps) => any }>()
+// The root's slots come as props: forwarded as slots, they would re-render every label with the root.
+const props = defineProps<{ overrideNodeLabel?: (props: NodeLabelSlotProps) => any }>()
 
-const slots = useSlots()
-const hasOverrideNodeLabelSlot = computed(() => "override-node-label" in slots)
+const hasOverrideNodeLabelSlot = computed(() => !!props.overrideNodeLabel)
 const { nodeZOrderedList } = useStates()
 
 const configs = useNodeConfig()
@@ -41,7 +42,7 @@ function onlyHasDisplayLabel(nodeZOrderedList: NodeState[]): NodeState[] {
       >
         <!-- override the node label -->
         <template #override-node-label="slotProps">
-          <slot name="override-node-label" v-bind="slotProps" />
+          <v-render-slot :render="overrideNodeLabel" :slot-props="slotProps" />
         </template>
       </v-node-label>
     </transition-group>

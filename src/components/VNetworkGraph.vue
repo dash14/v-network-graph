@@ -795,26 +795,15 @@ function stopEventPropagation(event: Event) {
         <template v-for="layerName in builtInLayerOrder" :key="layerName">
           <!-- Edges -->
           <template v-if="layerName === 'edges'">
-            <v-edges-layer>
-              <template v-if="'edge-overlay' in slots" #edge-overlay="slotProps">
-                <slot name="edge-overlay" v-bind="slotProps" />
-              </template>
-            </v-edges-layer>
+            <v-edges-layer :edge-overlay="slots['edge-overlay']" />
           </template>
 
           <!-- Edge labels -->
           <template v-else-if="layerName === 'edge-labels'">
             <v-edge-labels-layer
-              :enable-edge-label="'edge-label' in slots"
-              :enable-edges-label="'edges-label' in slots"
-            >
-              <template #edge-label="slotProps">
-                <slot name="edge-label" v-bind="slotProps" />
-              </template>
-              <template #edges-label="slotProps">
-                <slot name="edges-label" v-bind="slotProps" />
-              </template>
-            </v-edge-labels-layer>
+              :edge-label="slots['edge-label']"
+              :edges-label="slots['edges-label']"
+            />
           </template>
 
           <!-- Node focusring -->
@@ -824,20 +813,12 @@ function stopEventPropagation(event: Event) {
 
           <!-- Nodes -->
           <template v-else-if="layerName === 'nodes'">
-            <v-nodes-layer>
-              <template #override-node="slotProps">
-                <slot name="override-node" v-bind="slotProps" />
-              </template>
-            </v-nodes-layer>
+            <v-nodes-layer :override-node="slots['override-node']" />
           </template>
 
           <!-- Node labels -->
           <template v-else-if="layerName === 'node-labels'">
-            <v-node-labels-layer>
-              <template #override-node-label="slotProps">
-                <slot name="override-node-label" v-bind="slotProps" />
-              </template>
-            </v-node-labels-layer>
+            <v-node-labels-layer :override-node-label="slots['override-node-label']" />
           </template>
 
           <!-- Paths -->
