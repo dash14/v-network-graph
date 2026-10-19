@@ -13,11 +13,11 @@ export interface SerializeOptions {
 export function serializeGraph(container: Element, options: SerializeOptions = {}): string {
   const svg = container.querySelector<SVGSVGElement>("svg.v-ng-canvas")
   if (!svg) throw new Error("The graph is not rendered")
-  const zoom = svg.querySelector<SVGGElement>(".v-ng-viewport")?.transform.baseVal.consolidate()
   const target = svg.cloneNode(true) as SVGSVGElement
   const viewport = target.querySelector(".v-ng-viewport")
   viewport?.removeAttribute("style")
   if (!options.pan) {
+    const zoom = svg.querySelector<SVGGElement>(".v-ng-viewport")?.transform.baseVal.consolidate()
     if (zoom) {
       const { a, b, c, d } = zoom.matrix
       viewport?.setAttribute("transform", `matrix(${a} ${b} ${c} ${d} 0 0)`)

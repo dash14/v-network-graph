@@ -19,8 +19,9 @@ tty=""
 if [ -t 1 ]; then tty="-t"; fi
 
 # The tests run on a copy of the checkout: served from a bind mount, test
-# files intermittently fail to load when several run in parallel. Only the
-# snapshots the run writes are copied back.
+# files intermittently fail to load when several run in parallel. The
+# snapshots the run writes, and the images of failed screenshot comparisons
+# in .vitest/, are copied back, owned by the owner of the checkout.
 exec docker run --rm -i $tty \
   --ipc=host \
   -e CI \
@@ -32,12 +33,15 @@ exec docker run --rm -i $tty \
   -v v-network-graph-pnpm-store:/pnpm-store \
   "mcr.microsoft.com/playwright:v$version-noble" \
   sh -c 'set -e
-    cd /src && tar cf - --exclude=./node_modules --exclude=./.git . | tar xf - -C /work
+    cd /src && tar cf - --exclude=./node_modules --exclude=./.git --exclude=./.vitest . | tar xf - -C /work
     cd /work
     corepack enable
     pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm-store \
       --config.confirmModulesPurge=false >/dev/null
     status=0
     pnpm exec vitest run "$@" || status=$?
-    cp -a -u test/. /src/test/
+    owner=$(stat -c %u:%g /src)
+    cp -R -u --preserve=timestamps test/. /src/test/
+    if [ -d .vitest ]; then cp -R --preserve=timestamps .vitest /src/; fi
+    chown -R "$owner" /src/test /src/.vitest 2>/dev/null || true
     exit $status' vitest "$@"
