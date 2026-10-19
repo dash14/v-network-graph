@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import VTransitionGroup from "@/components/base/VTransitionGroup.vue"
 import { usePathConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useStates } from "@/composables/state"
@@ -18,10 +19,8 @@ const {
 </script>
 
 <template>
-  <transition-group
+  <v-transition-group
     :name="pathConfig.transition"
-    :css="!!pathConfig.transition"
-    tag="g"
     class="v-ng-paths v-ng-layer-paths v-ng-graph-objects"
   >
     <template v-for="path in pathZOrderedList" :key="path.id">
@@ -35,5 +34,5 @@ const {
         @contextmenu="handlePathContextMenu(path.id, $event)"
       />
     </template>
-  </transition-group>
+  </v-transition-group>
 </template>

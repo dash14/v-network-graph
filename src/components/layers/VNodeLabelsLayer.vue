@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
+import VTransitionGroup from "@/components/base/VTransitionGroup.vue"
 import VNodeLabel, { NodeLabelSlotProps } from "@/components/node/VNodeLabel.vue"
 import { useNodeConfig } from "@/composables/config"
 import { useLayouts } from "@/composables/layout"
@@ -23,12 +24,7 @@ function onlyHasDisplayLabel(nodeZOrderedList: NodeState[]): NodeState[] {
 </script>
 
 <template>
-  <transition-group
-    :name="configs.transition"
-    :css="!!configs.transition"
-    tag="g"
-    class="v-ng-layer-node-labels v-ng-graph-objects"
-  >
+  <v-transition-group :name="configs.transition" class="v-ng-layer-node-labels v-ng-graph-objects">
     <v-node-label
       v-for="nodeState in nodeStates"
       :id="nodeState.id"
@@ -37,5 +33,5 @@ function onlyHasDisplayLabel(nodeZOrderedList: NodeState[]): NodeState[] {
       :pos="layouts.nodes[nodeState.id]"
       :override-node-label="overrideNodeLabel"
     />
-  </transition-group>
+  </v-transition-group>
 </template>
