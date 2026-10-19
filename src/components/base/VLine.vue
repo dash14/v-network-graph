@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { CSSProperties, computed } from "vue"
 import { StrokeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
-import { useZoomLevel } from "@/composables/zoom"
-import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
+import { useStrokeAttributes } from "@/composables/stroke"
 
 const props = defineProps<{
   p1: Position
@@ -11,22 +9,7 @@ const props = defineProps<{
   config: StrokeStyle
 }>()
 
-const { scale } = useZoomLevel()
-
-const strokeWidth = computed(() => {
-  return props.config.width * scale.value
-})
-
-const strokeDasharray = computed(() => {
-  return applyScaleToDasharray(props.config.dasharray, scale.value)
-})
-
-const animationSpeed = computed(() => {
-  const speed = props.config.animate
-    ? getDasharrayUnit(props.config.dasharray) * props.config.animationSpeed * scale.value
-    : false
-  return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
-})
+const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(() => props.config)
 </script>
 
 <template>

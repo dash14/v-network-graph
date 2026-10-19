@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { chunk } from "lodash-es"
-import { CSSProperties, computed } from "vue"
+import { computed } from "vue"
 import { StrokeStyle } from "@/common/configs"
-import { useZoomLevel } from "@/composables/zoom"
+import { useStrokeAttributes } from "@/composables/stroke"
 import { EdgeState } from "@/models/edge"
-import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 
 interface Props {
   state: EdgeState
@@ -18,8 +17,6 @@ const props = withDefaults(defineProps<Props>(), {
   markerEnd: undefined,
 })
 
-const { scale } = useZoomLevel()
-
 const pathD = computed(() => {
   const p = props.state.position
   const points = [...(props.state.curve?.control ?? []), { x: p.p2.x, y: p.p2.y }]
@@ -29,20 +26,7 @@ const pathD = computed(() => {
   return d.join(" ")
 })
 
-const strokeWidth = computed(() => {
-  return props.config.width * scale.value
-})
-
-const strokeDasharray = computed(() => {
-  return applyScaleToDasharray(props.config.dasharray, scale.value)
-})
-
-const animationSpeed = computed(() => {
-  const speed = props.config.animate
-    ? getDasharrayUnit(props.config.dasharray) * props.config.animationSpeed * scale.value
-    : false
-  return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
-})
+const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(() => props.config)
 </script>
 
 <template>

@@ -118,3 +118,18 @@ describe("edge events", () => {
     expect(payloadsOf(events, "edge:contextmenu")).toMatchObject([{ edge: "edge2" }])
   })
 })
+
+describe("edge stroke", () => {
+  test("zooming keeps the stroke of a straight edge the same on screen", async () => {
+    const configs = { edge: { normal: { width: 2, dasharray: "4 2" } } }
+    const { screen, state } = await mountGraph({ nodes, edges, layouts, configs, zoomLevel: 1 })
+    const line = () => screen.container.querySelector("[data-edge-id='edge1']")!
+
+    expect(line().getAttribute("stroke-width")).toBe("2")
+    expect(line().getAttribute("stroke-dasharray")).toBe("4 2")
+
+    state.zoomLevel = 2
+    await expect.poll(() => line().getAttribute("stroke-width")).toBe("1")
+    expect(line().getAttribute("stroke-dasharray")).toBe("2 1")
+  })
+})

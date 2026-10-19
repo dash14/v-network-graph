@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Position } from "@/common/types"
 import VArc from "@/components/base/VArc.vue"
-import VLine from "@/components/base/VLine.vue"
 import { useEdgeConfig } from "@/composables/config"
+import { useStrokeAttributes } from "@/composables/stroke"
 import { EdgeState } from "@/models/edge"
 import VEdgeCurved from "./VEdgeCurved.vue"
 
@@ -13,12 +13,17 @@ interface Props {
   targetPos?: Position
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   sourcePos: undefined,
   targetPos: undefined,
 })
 
 const config = useEdgeConfig()
+
+// Drawn here rather than with VLine: a child per edge costs more to update than the path itself.
+const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(
+  () => props.state.line.stroke
+)
 </script>
 
 <template>
@@ -34,12 +39,22 @@ const config = useEdgeConfig()
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
     class="v-ng-edge"
   />
-  <v-line
+  <path
     v-else-if="config.type == 'straight' || !state.curve"
+    :class="{
+      'v-ng-line': true,
+      animate: state.line.stroke.animate,
+      selectable: state.selectable,
+      hover: state.hovered,
+      selected: state.selected,
+    }"
+    :d="`M ${state.position.p1.x} ${state.position.p1.y} L ${state.position.p2.x} ${state.position.p2.y}`"
+    :stroke="state.line.stroke.color"
+    :stroke-width="strokeWidth"
+    :stroke-dasharray="strokeDasharray"
+    :stroke-linecap="state.line.stroke.linecap"
+    :style="animationSpeed"
     :data-edge-id="id"
-    v-bind="state.position"
-    :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
-    :config="state.line.stroke"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
     class="v-ng-edge"
