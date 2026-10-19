@@ -3,9 +3,13 @@ import { render } from "vitest-browser-vue"
 import { nextTick } from "vue"
 import SlotGraph from "./slots/SlotGraph.vue"
 
+function renderSlotGraph() {
+  return render(SlotGraph, { props: { color: "#ff0000", withSlots: false } })
+}
+
 describe("slots", () => {
   test("slot contents follow the state they read", async () => {
-    const screen = await render(SlotGraph, { props: { color: "#ff0000", withNodeSlot: false } })
+    const screen = await renderSlotGraph()
     const label = () => screen.container.querySelector(".stable text[data-node='node1']")
     expect(label()?.getAttribute("fill")).toBe("#ff0000")
 
@@ -14,20 +18,36 @@ describe("slots", () => {
     expect(label()?.getAttribute("fill")).toBe("#0000ff")
   })
 
-  test("a slot given or taken away later replaces the default rendering", async () => {
-    const screen = await render(SlotGraph, { props: { color: "#ff0000", withNodeSlot: false } })
-    const nodes = () => screen.container.querySelector(".dynamic .v-ng-layer-nodes")!
-    expect(nodes().querySelector("rect[data-node='node1']")).toBeNull()
-    expect(nodes().querySelector("circle")).not.toBeNull()
+  test("slots given or taken away later replace the default rendering", async () => {
+    const screen = await renderSlotGraph()
+    const graph = () => screen.container.querySelector(".dynamic")!
+    const custom = () => ({
+      node: graph().querySelectorAll(".v-ng-layer-nodes rect[data-node='node1']").length,
+      label: graph().querySelectorAll(".v-ng-layer-node-labels text[data-node='node1']").length,
+      edgeOverlay: graph().querySelectorAll(".custom-edge-overlay").length,
+    })
+    const none = { node: 0, label: 0, edgeOverlay: 0 }
+    expect(custom()).toEqual(none)
+    expect(graph().querySelectorAll(".v-ng-layer-nodes circle")).toHaveLength(2)
 
-    await screen.rerender({ withNodeSlot: true })
+    await screen.rerender({ withSlots: true })
     await nextTick()
-    expect(nodes().querySelector("rect[data-node='node1']")).not.toBeNull()
-    expect(nodes().querySelector("circle")).toBeNull()
+    expect(custom()).toEqual({ node: 1, label: 1, edgeOverlay: 1 })
 
-    await screen.rerender({ withNodeSlot: false })
+    await screen.rerender({ withSlots: false })
     await nextTick()
-    expect(nodes().querySelector("rect[data-node='node1']")).toBeNull()
-    expect(nodes().querySelector("circle")).not.toBeNull()
+    expect(custom()).toEqual(none)
+    expect(graph().querySelectorAll(".v-ng-layer-nodes circle")).toHaveLength(2)
+  })
+
+  test("a node whose slot renders nothing gets the default shape and label", async () => {
+    const screen = await render(SlotGraph, { props: { color: "#ff0000", withSlots: true } })
+    const graph = screen.container.querySelector(".dynamic")!
+
+    expect(graph.querySelectorAll(".v-ng-layer-nodes circle")).toHaveLength(1)
+    const labels = [...graph.querySelectorAll(".v-ng-layer-node-labels text")].map(
+      e => e.textContent
+    )
+    expect(labels).toEqual(["custom", "Node 2"])
   })
 })

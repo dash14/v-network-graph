@@ -3,6 +3,7 @@ import { computed, ref, watchEffect } from "vue"
 import { NodeLabelDirection, NodeLabelStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
 import VLabelText from "@/components/base/VLabelText.vue"
+import VRenderSlot from "@/components/base/VRenderSlot"
 import { useNodeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
 import { useStates } from "@/composables/state"
@@ -14,6 +15,7 @@ interface Props {
   id: string
   state: NodeState
   pos?: Position
+  overrideNodeLabel?: (props: NodeLabelSlotProps) => any
 }
 
 export interface NodeLabelSlotProps {
@@ -28,10 +30,9 @@ export interface NodeLabelSlotProps {
   dominantBaseline: string
 }
 
-defineSlots<{ "override-node-label": (props: NodeLabelSlotProps) => any }>()
-
 const props = withDefaults(defineProps<Props>(), {
   pos: undefined,
+  overrideNodeLabel: undefined,
 })
 
 const configs = useNodeConfig()
@@ -232,34 +233,39 @@ const labelClasses = computed(() => {
     selectable: handleEvents && props.state.selectable,
   }
 })
+
+const slotProps = computed<NodeLabelSlotProps & { class: object }>(() => ({
+  nodeId: props.id,
+  scale: scale.value,
+  text: props.state.labelText,
+  x: labelX.value,
+  y: labelY.value,
+  config: props.state.label,
+  shape: props.state.shape,
+  textAnchor: textAnchor.value,
+  dominantBaseline: dominantBaseline.value,
+  class: labelClasses.value,
+}))
+
+const labelTextProps = computed(() => ({
+  text: props.state.labelText,
+  x: 0,
+  y: 0,
+  config: props.state.label,
+  "text-anchor": textAnchor.value,
+  dominantBaseline: dominantBaseline.value,
+  class: labelClasses.value,
+  transform: `translate(${labelX.value} ${labelY.value})`,
+}))
 </script>
 
 <template>
   <g :class="groupClasses" :transform="`translate(${x} ${y})`" v-on="eventHandlers(id)">
-    <slot
-      name="override-node-label"
-      :node-id="id"
-      :scale="scale"
-      :text="state.labelText"
-      :x="labelX"
-      :y="labelY"
-      :config="state.label"
-      :shape="state.shape"
-      :text-anchor="textAnchor"
-      :dominant-baseline="dominantBaseline"
-      :class="labelClasses"
-    >
-      <v-label-text
-        :text="state.labelText"
-        :x="0"
-        :y="0"
-        :config="state.label"
-        :text-anchor="textAnchor"
-        :dominant-baseline="dominantBaseline"
-        :class="labelClasses"
-        :transform="`translate(${labelX} ${labelY})`"
-      />
-    </slot>
+    <!-- Without the user's slot, no component is put in between. -->
+    <v-render-slot v-if="overrideNodeLabel" :render="overrideNodeLabel" :slot-props="slotProps">
+      <v-label-text v-bind="labelTextProps" />
+    </v-render-slot>
+    <v-label-text v-else v-bind="labelTextProps" />
   </g>
 </template>
 

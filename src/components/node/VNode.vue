@@ -2,6 +2,7 @@
 import { computed } from "vue"
 import { ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
+import VRenderSlot from "@/components/base/VRenderSlot"
 import VShape from "@/components/base/VShape.vue"
 import { useMouseOperation } from "@/composables/mouse"
 import { useZoomLevel } from "@/composables/zoom"
@@ -11,6 +12,7 @@ interface Props {
   id: string
   state: NodeState
   pos?: Position
+  overrideNode?: (props: NodeSlotProps) => any
 }
 
 export interface NodeSlotProps {
@@ -19,16 +21,20 @@ export interface NodeSlotProps {
   config: ShapeStyle
 }
 
-defineSlots<{ "override-node": (props: NodeSlotProps) => any }>()
-
 const props = withDefaults(defineProps<Props>(), {
   pos: undefined,
+  overrideNode: undefined,
 })
 
 const x = computed(() => props.pos?.x || 0)
 const y = computed(() => props.pos?.y || 0)
 
 const { scale } = useZoomLevel()
+
+const classes = computed(() => ({
+  draggable: props.state.draggable,
+  selectable: props.state.selectable,
+}))
 
 const {
   handleNodePointerDownEvent,
@@ -51,22 +57,15 @@ const {
     @dblclick.stop="handleNodeDoubleClickEvent(id, $event)"
     @contextmenu="handleNodeContextMenu(id, $event)"
   >
-    <slot
-      name="override-node"
-      :node-id="id"
-      :scale="scale"
-      :config="state.shape"
-      :class="{ draggable: state.draggable, selectable: state.selectable }"
+    <!-- Without the user's slot, no component is put in between. -->
+    <v-render-slot
+      v-if="overrideNode"
+      :render="overrideNode"
+      :slot-props="{ nodeId: id, scale, config: state.shape, class: classes }"
     >
-      <v-shape
-        :config="state.shape"
-        :class="{
-          'v-ng-node-default': true,
-          draggable: state.draggable,
-          selectable: state.selectable,
-        }"
-      />
-    </slot>
+      <v-shape :config="state.shape" :class="['v-ng-node-default', classes]" />
+    </v-render-slot>
+    <v-shape v-else :config="state.shape" :class="['v-ng-node-default', classes]" />
   </g>
 </template>
 
