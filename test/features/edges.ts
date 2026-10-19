@@ -67,4 +67,18 @@ export default [
       configs: { edge: { margin: 10 } },
     },
   },
+  ...([true, false] as const).map(isClockwise => ({
+    name: `multiple-self-loops-${isClockwise ? "clockwise" : "counterclockwise"}`,
+    props: {
+      nodes,
+      edges: {
+        edge1: { source: "node1", target: "node1", color: "#ff0000" },
+        edge2: { source: "node1", target: "node1", color: "#00aa00" },
+        edge3: { source: "node1", target: "node1", color: "#0000ff" },
+        edge4: { source: "node1", target: "node2", color: "#888888" },
+      },
+      layouts,
+      configs: { edge: { ...coloredEdge, selfLoop: { isClockwise } } },
+    },
+  })),
 ] satisfies GraphCase[]
