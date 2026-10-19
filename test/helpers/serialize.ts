@@ -1,9 +1,14 @@
+export interface SerializeOptions {
+  /** Sort the attributes by name, since their order follows when they were set. */
+  sortAttributes?: boolean
+}
+
 /**
  * Serialize the rendered graph as indented SVG markup for snapshots.
  * The pan of the viewport is left out, since it follows the bounding
  * box of the text and so depends on the installed fonts.
  */
-export function serializeGraph(container: Element): string {
+export function serializeGraph(container: Element, options: SerializeOptions = {}): string {
   const svg = container.querySelector<SVGSVGElement>("svg.v-ng-canvas")
   if (!svg) throw new Error("The graph is not rendered")
   const zoom = svg.querySelector<SVGGElement>(".v-ng-viewport")?.transform.baseVal.consolidate()
@@ -16,20 +21,22 @@ export function serializeGraph(container: Element): string {
   } else {
     viewport?.removeAttribute("transform")
   }
-  return serializeElement(target, 0).join("\n")
+  return serializeElement(target, 0, options).join("\n")
 }
 
-function serializeElement(element: Element, depth: number): string[] {
+function serializeElement(element: Element, depth: number, options: SerializeOptions): string[] {
   const indent = "  ".repeat(depth)
   const tag = element.tagName
-  const attrs = Array.from(element.attributes)
+  const attributes = Array.from(element.attributes)
+  if (options.sortAttributes) attributes.sort((a, b) => a.name.localeCompare(b.name))
+  const attrs = attributes
     // Scoped style ids of the fixtures follow their file paths.
     .filter(a => !a.name.startsWith("data-v-"))
     .map(a => ` ${a.name}="${escapeXml(a.value)}"`)
     .join("")
   const children = Array.from(element.childNodes).flatMap(node => {
     if (node.nodeType === Node.ELEMENT_NODE) {
-      return serializeElement(node as Element, depth + 1)
+      return serializeElement(node as Element, depth + 1, options)
     }
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent?.trim()
