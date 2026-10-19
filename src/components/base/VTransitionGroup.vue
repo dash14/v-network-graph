@@ -1,9 +1,9 @@
 <script setup lang="ts">
+// TransitionGroup updates and measures every child whenever it renders, so use it only when animating.
 defineProps<{ name?: string }>()
 </script>
 
 <template>
-  <!-- TransitionGroup updates and measures every child whenever it renders, so use it only when animating. -->
   <transition-group v-if="name" :name="name" tag="g">
     <slot />
   </transition-group>

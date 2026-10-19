@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { afterEach, describe, expect, test, vi } from "vitest"
 import { nextTick } from "vue"
 import { mountGraph } from "./helpers/graph"
 
@@ -11,23 +11,38 @@ async function addNode(state: Awaited<ReturnType<typeof mountGraph>>["state"]) {
   await nextTick()
 }
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 describe("object transitions", () => {
   test("added nodes and labels enter with the configured transition", async () => {
     const configs = { node: { transition: "fade" } }
     const { screen, state } = await mountGraph({ nodes, layouts, configs })
 
     await addNode(state)
-    const added = screen.container.querySelectorAll(".fade-enter-active")
-    expect(added).toHaveLength(2)
-    expect(added[0].closest(".v-ng-layer-nodes")).not.toBeNull()
-    expect(added[1].closest(".v-ng-layer-node-labels")).not.toBeNull()
+    const entering = (layer: string) =>
+      screen.container.querySelectorAll(`.${layer} .fade-enter-active`).length
+    expect(entering("v-ng-layer-nodes")).toBe(1)
+    expect(entering("v-ng-layer-node-labels")).toBe(1)
   })
 
-  test("added nodes appear without transition classes when none is configured", async () => {
+  test("adding a node without a transition does not measure the other nodes", async () => {
     const { screen, state } = await mountGraph({ nodes, layouts })
+    const measured: Element[] = []
+    const measure = Element.prototype.getBoundingClientRect
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (
+      this: Element
+    ) {
+      measured.push(this)
+      return measure.call(this)
+    })
 
     await addNode(state)
     expect(screen.container.querySelectorAll(".v-ng-node")).toHaveLength(2)
     expect(screen.container.querySelector("[class*='-enter-']")).toBeNull()
+    expect(measured.filter(e => e.closest(".v-ng-layer-nodes, .v-ng-layer-node-labels"))).toEqual(
+      []
+    )
   })
 })
