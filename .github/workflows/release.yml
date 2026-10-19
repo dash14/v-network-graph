@@ -113,8 +113,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # Staged publishing needs npm 11.15.0 or later. The npm bundled with this Node is new enough,
-      # so this job installs nothing from the registry while it holds the publishing tokens.
+      # The npm bundled with the Node in devEngines.runtime is new enough for staged publishing (11.15.0+).
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
