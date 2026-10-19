@@ -41,7 +41,8 @@
     "build:lib": "vite build",
     "clean": "rimraf lib",
     "prepare": "lefthook install",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:docker": "scripts/test-docker.sh"
   },
   "dependencies": {
     "@dash14/svg-pan-zoom": "^3.6.9",

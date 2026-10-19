@@ -22,7 +22,7 @@ export default [
   },
   {
     // Copied from the documentation examples, which use <component is="style"> and v-html.
-    files: ["test/fixtures/**/*.vue"],
+    files: ["test/fixtures/**/*.vue", "test/docker/fixtures/**/*.vue"],
     rules: {
       "vue/multi-word-component-names": "off",
       "vue/require-component-is": "off",

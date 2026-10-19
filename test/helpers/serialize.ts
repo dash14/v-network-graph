@@ -1,12 +1,14 @@
 export interface SerializeOptions {
   /** Sort the attributes by name, since their order follows when they were set. */
   sortAttributes?: boolean
+  /** Keep the pan of the viewport, which depends on the installed fonts. */
+  pan?: boolean
 }
 
 /**
  * Serialize the rendered graph as indented SVG markup for snapshots.
- * The pan of the viewport is left out, since it follows the bounding
- * box of the text and so depends on the installed fonts.
+ * The pan of the viewport is left out unless `pan` is set, since it
+ * follows the bounding box of the text and so depends on the installed fonts.
  */
 export function serializeGraph(container: Element, options: SerializeOptions = {}): string {
   const svg = container.querySelector<SVGSVGElement>("svg.v-ng-canvas")
@@ -15,11 +17,13 @@ export function serializeGraph(container: Element, options: SerializeOptions = {
   const target = svg.cloneNode(true) as SVGSVGElement
   const viewport = target.querySelector(".v-ng-viewport")
   viewport?.removeAttribute("style")
-  if (zoom) {
-    const { a, b, c, d } = zoom.matrix
-    viewport?.setAttribute("transform", `matrix(${a} ${b} ${c} ${d} 0 0)`)
-  } else {
-    viewport?.removeAttribute("transform")
+  if (!options.pan) {
+    if (zoom) {
+      const { a, b, c, d } = zoom.matrix
+      viewport?.setAttribute("transform", `matrix(${a} ${b} ${c} ${d} 0 0)`)
+    } else {
+      viewport?.removeAttribute("transform")
+    }
   }
   return serializeElement(target, 0, options).join("\n")
 }
