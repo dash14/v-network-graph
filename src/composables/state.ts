@@ -235,7 +235,7 @@ export function provideStates(
       state.stopWatchHandle = watchEffect(() => {
         if (!paths.value[id]) return
         state.path = paths.value[id]
-        const pathEdges = toEdgeObjects(state.path, edges)
+        const pathEdges = toEdgeObjects(state.path, edges, edgeGroupStates)
         // Keep the arrays when unchanged, so that the path is not redrawn.
         if (!isEqual(pathEdges, state.edges)) state.edges = pathEdges
         const directions = calculateDirectionsOfPathEdges(pathEdges)
@@ -802,8 +802,13 @@ function createSummarizedEdgeStates(
   })
 }
 
-function toEdgeObjects(path: Path, edges: InputObjects<Edges>) {
+function toEdgeObjects(
+  path: Path,
+  edges: InputObjects<Edges>,
+  edgeGroupStates: EdgeModel.EdgeGroupStates
+) {
+  // The path skips the edges that are not drawn, such as those to missing nodes.
   return path.edges
     .map(edgeId => ({ edgeId, edge: edges.objects.value[edgeId] }))
-    .filter(e => e.edge)
+    .filter(e => e.edge && e.edgeId in edgeGroupStates.edgeLayoutPoints)
 }

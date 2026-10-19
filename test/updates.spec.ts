@@ -51,6 +51,21 @@ const cases: Record<string, UpdateCase[]> = {
       },
     },
     {
+      name: "remove the last node of a path, leaving its edges",
+      props: graphWithPath,
+      update: props => delete props.nodes.node3,
+    },
+    {
+      name: "remove the first node of a path, leaving its edges",
+      props: graphWithPath,
+      update: props => delete props.nodes.node1,
+    },
+    {
+      name: "remove the middle node of a path, leaving its edges",
+      props: graphWithPath,
+      update: props => delete props.nodes.node2,
+    },
+    {
       name: "change a node",
       props: graph,
       update: props => (props.nodes.node1.name = "Renamed"),
