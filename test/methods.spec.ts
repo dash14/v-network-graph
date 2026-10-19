@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest"
+import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { HEIGHT, WIDTH } from "./helpers/container"
 import { mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -176,11 +176,21 @@ describe("export", () => {
   })
 
   test.each([
-    { scalingObjects: false, width: "472", transform: "translate(236 36), scale(2)" },
-    { scalingObjects: true, width: "252", transform: "translate(126 26), scale(1)" },
+    {
+      scalingObjects: false,
+      width: "472",
+      height: "72",
+      transform: "translate(236 36), scale(2)",
+    },
+    {
+      scalingObjects: true,
+      width: "252",
+      height: "52",
+      transform: "translate(126 26), scale(1)",
+    },
   ])(
     "a zoomed graph keeps its proportions as shown, scalingObjects: $scalingObjects",
-    async ({ scalingObjects, width, transform }) => {
+    async ({ scalingObjects, width, height, transform }) => {
       const { graph } = await mountGraph({
         nodes,
         edges,
@@ -192,6 +202,8 @@ describe("export", () => {
       const svg = await graph.exportAsSvgElement()
 
       expect(svg.getAttribute("width")).toBe(width)
+      expect(svg.getAttribute("height")).toBe(height)
+      expect(svg.getAttribute("viewBox")).toBe(`0 0 ${width} ${height}`)
       expect(svg.querySelector(".v-ng-viewport")!.getAttribute("transform")).toBe(transform)
     }
   )
@@ -200,7 +212,9 @@ describe("export", () => {
     const { screen, graph } = await mountGraph({ nodes, edges, layouts, configs })
     const blob = new Blob(['<svg xmlns="http://www.w3.org/2000/svg" />'], { type: "image/svg+xml" })
     const url = URL.createObjectURL(blob)
-    const unreachable = "http://127.0.0.1:1/image.svg"
+    onTestFinished(() => URL.revokeObjectURL(url))
+    const unreachable = URL.createObjectURL(blob)
+    URL.revokeObjectURL(unreachable)
     const viewport = screen.container.querySelector(".v-ng-viewport")!
     for (const href of [url, unreachable]) {
       const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
@@ -208,6 +222,7 @@ describe("export", () => {
       viewport.appendChild(image)
     }
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
 
     const hrefs = async (embedImages: boolean) => {
       const svg = await graph.exportAsSvgElement({ embedImages })
@@ -220,7 +235,5 @@ describe("export", () => {
       unreachable,
     ])
     expect(warn).toHaveBeenCalledWith("Image download failed.", unreachable)
-    warn.mockRestore()
-    URL.revokeObjectURL(url)
   })
 })
