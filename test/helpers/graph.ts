@@ -45,7 +45,7 @@ type Position = { x: number; y: number }
  * Mounts a graph whose origin is at the center of a fixed-size
  * container, with the v-model props and the emitted events recorded.
  */
-export async function mountGraph(props: GraphProps) {
+export async function mountGraph(props: GraphProps, { bindLayouts = true } = {}) {
   const { configs, ...data } = props
   const initial: Required<GraphProps> = {
     edges: {},
@@ -80,7 +80,7 @@ export async function mountGraph(props: GraphProps) {
             configs: state.configs,
             eventHandlers,
             layouts: state.layouts,
-            "onUpdate:layouts": (v: Layouts) => (state.layouts = v),
+            ...(bindLayouts && { "onUpdate:layouts": (v: Layouts) => (state.layouts = v) }),
             selectedNodes: state.selectedNodes,
             "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
             selectedEdges: state.selectedEdges,

@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { readonly, ref, toRef, computed, nextTick, watch, CSSProperties } from "vue"
+import {
+  readonly,
+  ref,
+  toRef,
+  computed,
+  nextTick,
+  watch,
+  CSSProperties,
+  getCurrentInstance,
+} from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
@@ -361,7 +370,10 @@ watch(
   () => Object.assign(currentLayouts.nodes, props.layouts.nodes ?? {}),
   { deep: true, immediate: true }
 )
-watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
+// The deep watch walks every node position on each move, so skip it when nobody listens.
+if (getCurrentInstance()?.vnode.props?.["onUpdate:layouts"]) {
+  watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
+}
 
 // -----------------------------------------------------------------------
 // SVG Markers
