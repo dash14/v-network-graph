@@ -1,6 +1,6 @@
 import { expect } from "vitest"
 import { commands, server } from "vitest/browser"
-import { serializeGraph } from "./serialize"
+import { serializeGraph, SerializeOptions } from "./serialize"
 
 const NUMERIC_ATTRIBUTES = new Set([
   "cx",
@@ -115,17 +115,28 @@ export async function alignWithSnapshot(actual: string, path: string): Promise<s
 }
 
 /** Compares the graph in the container with the file snapshot `test/__snapshots__/<name>.svg`. */
-export async function expectGraphToMatchSnapshot(container: Element, name: string) {
+export async function expectGraphToMatchSnapshot(
+  container: Element,
+  name: string,
+  options: SerializeOptions = {}
+) {
   const snapshot = `${server.config.root}/test/__snapshots__/${name}.svg`
-  const actual = await alignWithSnapshot(serializeGraph(container), snapshot)
+  const actual = await alignWithSnapshot(serializeGraph(container, options), snapshot)
   await expect(actual).toMatchFileSnapshot(snapshot)
+}
+
+/**
+ * Names of the files in `<prefix>`, without their extension, to find those left behind.
+ * The paths are relative to the spec, as `import.meta.glob` gives them.
+ */
+export function fileNames(paths: string[], prefix: string) {
+  return paths.map(path => {
+    if (!path.startsWith(prefix)) throw new Error(`${path} is not in ${prefix}`)
+    return path.slice(prefix.length).replace(/\.[^./]+$/, "")
+  })
 }
 
 /** Names of the snapshots in `test/__snapshots__/<dir>/`, to find those left behind. */
 export function snapshotNames(paths: string[], dir: string) {
-  const prefix = `./__snapshots__/${dir}/`
-  return paths.map(path => {
-    if (!path.startsWith(prefix)) throw new Error(`${path} is not in ${prefix}`)
-    return path.slice(prefix.length, -".svg".length)
-  })
+  return fileNames(paths, `./__snapshots__/${dir}/`)
 }
