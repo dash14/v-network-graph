@@ -36,7 +36,7 @@ export function providePositionWriter(
   // Before the renders, since the edge overlays read the paths from the DOM while they render.
   watchEffect(
     () => {
-      void changes.added.value
+      void changes.changed.value
       changes.nodes.forEach(id => nodeElements.get(id)?.forEach(el => writeNode(el, id)))
       changes.edges.forEach(id => edgeElements.get(id)?.forEach(el => writeEdge(el, id)))
       changes.nodes.clear()

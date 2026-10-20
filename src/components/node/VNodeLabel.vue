@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue"
 import { NodeLabelDirection, NodeLabelStyle, ShapeStyle } from "@/common/configs"
-import { Position } from "@/common/types"
 import VLabelText from "@/components/base/VLabelText.vue"
 import VRenderSlot from "@/components/base/VRenderSlot"
 import { useNodeConfig } from "@/composables/config"
+import { useLayouts } from "@/composables/layout"
 import { useMouseOperation } from "@/composables/mouse"
 import { usePositionWriter } from "@/composables/positionWriter"
 import { useStates } from "@/composables/state"
@@ -15,7 +15,6 @@ import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
 interface Props {
   id: string
   state: NodeState
-  pos?: Position
   overrideNodeLabel?: (props: NodeLabelSlotProps) => any
 }
 
@@ -32,13 +31,13 @@ export interface NodeLabelSlotProps {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pos: undefined,
   overrideNodeLabel: undefined,
 })
 
 const configs = useNodeConfig()
 const { edgeStates } = useStates()
 const { scale } = useZoomLevel()
+const layouts = useLayouts()
 
 const {
   handleNodePointerDownEvent,
@@ -52,8 +51,8 @@ const {
 const setElement = usePositionWriter().nodeRef(props.id)
 
 // The DOM gets the position from the position writer; it is read here only to adjust the direction.
-const x = computed(() => props.pos?.x || 0)
-const y = computed(() => props.pos?.y || 0)
+const x = computed(() => layouts.nodes[props.id]?.x || 0)
+const y = computed(() => layouts.nodes[props.id]?.y || 0)
 
 const labelMargin = computed(() => {
   if (props.state.label.direction === NodeLabelDirection.CENTER) {

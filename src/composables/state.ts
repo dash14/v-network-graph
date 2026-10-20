@@ -76,7 +76,7 @@ export interface PositionChanges {
   nodes: Set<string>
   edges: Set<string>
   /** Triggered when ids are added. */
-  added: Ref<number>
+  changed: Ref<void>
 }
 
 export type ReadonlyStates = Readonly<States>
@@ -194,7 +194,7 @@ export function provideStates(
   const positionChanges: PositionChanges = {
     nodes: new Set(),
     edges: new Set(),
-    added: shallowRef(0),
+    changed: shallowRef(),
   }
   const edgePlacers = new Map<string, ReactiveEffectRunner>()
   const dirtyEdges = new Set<string>()
@@ -207,13 +207,15 @@ export function provideStates(
     },
   }
   const placeEdges = (ids: Set<string>, onlyIfDirty = false) => {
+    let placed = false
     ids.forEach(id => {
       const place = edgePlacers.get(id)
       if (!place || (onlyIfDirty && !place.effect.dirty)) return
       place()
       positionChanges.edges.add(id)
+      placed = true
     })
-    triggerRef(positionChanges.added)
+    if (placed) triggerRef(positionChanges.changed)
   }
 
   const {
@@ -278,6 +280,7 @@ export function provideStates(
       })
     }
     placeEdges(moved)
+    if (positionChanges.nodes.size > 0) triggerRef(positionChanges.changed)
   })
 
   // Edge item for display (an edge or summarized edges)
