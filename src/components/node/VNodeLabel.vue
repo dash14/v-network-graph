@@ -249,8 +249,6 @@ const slotProps = computed<NodeLabelSlotProps & { class: object }>(() => ({
 
 const labelTextProps = computed(() => ({
   text: props.state.labelText,
-  x: 0,
-  y: 0,
   config: props.state.label,
   "text-anchor": textAnchor.value,
   dominantBaseline: dominantBaseline.value,
