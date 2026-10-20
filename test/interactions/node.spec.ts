@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { userEvent } from "vitest/browser"
+import { nextTick } from "vue"
 import { GridLayout } from "@/index"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "../helpers/graph"
 
@@ -141,6 +142,18 @@ describe("node drag", () => {
 
     await drag(canvas, at(-100, 0), at(-50, 30))
     expect(layoutsUpdates()).toBe(1)
+  })
+
+  test("dragging a node emits the layouts to a listener added after mounting", async () => {
+    const { canvas, layoutsUpdates, setLayoutsListener } = await mountGraph(
+      { nodes, layouts },
+      { layoutsListener: null }
+    )
+
+    setLayoutsListener("onUpdate:layouts")
+    await nextTick()
+    await drag(canvas, at(-100, 0), at(-50, 30))
+    expect(layoutsUpdates()).toBeGreaterThan(0)
   })
 
   test("dragging a selected node moves the other selected nodes with it", async () => {

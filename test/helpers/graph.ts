@@ -41,15 +41,15 @@ export interface RecordedEvent {
 
 type Position = { x: number; y: number }
 
+type LayoutsListener = "onUpdate:layouts" | "onUpdate:layoutsOnce" | null
+
 /**
  * Mounts a graph whose origin is at the center of a fixed-size
  * container, with the v-model props and the emitted events recorded.
  */
 export async function mountGraph(
   props: GraphProps,
-  {
-    layoutsListener = "onUpdate:layouts" as "onUpdate:layouts" | "onUpdate:layoutsOnce" | null,
-  } = {}
+  { layoutsListener = "onUpdate:layouts" as LayoutsListener } = {}
 ) {
   const { configs, ...data } = props
   const initial: Required<GraphProps> = {
@@ -68,6 +68,7 @@ export async function mountGraph(
     },
   }
   const state = reactive(initial)
+  const listener = ref(layoutsListener)
   const events: RecordedEvent[] = []
   let layoutsUpdates = 0
   const eventHandlers: EventHandlers = {
@@ -86,8 +87,8 @@ export async function mountGraph(
             configs: state.configs,
             eventHandlers,
             layouts: state.layouts,
-            ...(layoutsListener && {
-              [layoutsListener]: (v: Layouts) => {
+            ...(listener.value && {
+              [listener.value]: (v: Layouts) => {
                 layoutsUpdates++
                 state.layouts = v
               },
@@ -121,6 +122,7 @@ export async function mountGraph(
     state,
     events,
     layoutsUpdates: () => layoutsUpdates,
+    setLayoutsListener: (v: LayoutsListener) => (listener.value = v),
   }
 }
 

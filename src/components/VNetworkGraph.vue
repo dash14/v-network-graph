@@ -7,7 +7,7 @@ import {
   nextTick,
   watch,
   CSSProperties,
-  getCurrentInstance,
+  WatchStopHandle,
 } from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
@@ -75,6 +75,11 @@ interface Props {
   configs?: UserConfigs
   layers?: Layers
   eventHandlers?: EventHandlers
+  // Declared so that adding or removing a listener after mounting is seen.
+  /* oxlint-disable vue/prop-name-casing */
+  "onUpdate:layouts"?: (v: Layouts) => void
+  "onUpdate:layoutsOnce"?: (v: Layouts) => void
+  /* oxlint-enable vue/prop-name-casing */
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -89,6 +94,8 @@ const props = withDefaults(defineProps<Props>(), {
   configs: () => ({}),
   layers: () => ({}),
   eventHandlers: () => ({}),
+  "onUpdate:layouts": undefined,
+  "onUpdate:layoutsOnce": undefined,
 })
 
 const emit = defineEmits<{
@@ -371,10 +378,17 @@ watch(
   { deep: true, immediate: true }
 )
 // The deep watch walks every node position on each move, so skip it when nobody listens.
-const listeners = getCurrentInstance()?.vnode.props
-if (listeners?.["onUpdate:layouts"] || listeners?.["onUpdate:layoutsOnce"]) {
-  watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
-}
+let stopEmittingLayouts: WatchStopHandle | undefined
+watch(
+  () => !!(props["onUpdate:layouts"] || props["onUpdate:layoutsOnce"]),
+  listened => {
+    stopEmittingLayouts?.()
+    stopEmittingLayouts = listened
+      ? watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
+      : undefined
+  },
+  { immediate: true }
+)
 
 // -----------------------------------------------------------------------
 // SVG Markers
