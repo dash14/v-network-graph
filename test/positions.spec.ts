@@ -131,4 +131,24 @@ describe("positions", () => {
       expect(markupOf(moved.screen.container)).toBe(markupOf(fresh.screen.container))
     }
   )
+
+  test("a node whose position is removed is drawn at the origin with its edges", async () => {
+    const { screen, state } = await mountGraph({
+      nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
+      edges: { edge1: { source: "node1", target: "node2" } },
+      layouts: { nodes: { node1: { x: 50, y: 50 }, node2: { x: 100, y: 0 } } },
+      // A handler that does not give the node a new position.
+      configs: { view: { layoutHandler: { activate() {}, deactivate() {} } } },
+    })
+    // Once emitted, the layouts are the graph's own, so a removal reaches it.
+    state.layouts.nodes.node2.x = 120
+    await nextTick()
+    delete state.layouts.nodes.node1
+    await nextTick()
+
+    const node = screen.container.querySelector(".v-ng-node")
+    const edge = screen.container.querySelector(".v-ng-edge")
+    expect(node?.getAttribute("transform")).toBe("translate(0 0)")
+    expect(edge?.getAttribute("d")).toBe("M 0 0 L 120 0")
+  })
 })

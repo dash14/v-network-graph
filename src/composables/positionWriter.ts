@@ -25,7 +25,7 @@ export function providePositionWriter(
 
   // Read untracked: the changes say what to write.
   const writeNode = (el: Element, id: string) => {
-    const p = toRaw(layouts).nodes[id]
+    const p = toRaw(toRaw(layouts).nodes[id])
     el.setAttribute("transform", `translate(${p?.x || 0} ${p?.y || 0})`)
   }
   const writeEdge = (el: Element, id: string) => {

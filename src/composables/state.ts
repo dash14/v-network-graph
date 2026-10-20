@@ -251,9 +251,11 @@ export function provideStates(
   watchEffect(() => {
     void edgesDirty.value
     if (dirtyEdges.size === 0) return
-    // A computed dependency notifies without knowing whether its value changed.
-    placeEdges(dirtyEdges, true)
+    // Taken out first, so that an edge scheduled again while placing stays for the next pass.
+    const ids = new Set(dirtyEdges)
     dirtyEdges.clear()
+    // A computed dependency notifies without knowing whether its value changed.
+    placeEdges(ids, true)
   })
 
   // Positions change on every layout tick, so one effect follows them all and re-places only the
@@ -262,6 +264,10 @@ export function provideStates(
   watchEffect(() => {
     const positions = layouts.nodes
     const moved = new Set<string>()
+    const markMoved = (id: string) => {
+      positionChanges.nodes.add(id)
+      Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => moved.add(edgeId))
+    }
     let count = 0
     for (const id in positions) {
       count++
@@ -269,14 +275,17 @@ export function provideStates(
       const placed = placedPositions.get(id)
       if (placed?.x === x && placed?.y === y) continue
       placedPositions.set(id, { x, y })
-      positionChanges.nodes.add(id)
-      Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => moved.add(edgeId))
+      markMoved(id)
     }
     // Every id seen is in the map, so a larger map holds removed nodes.
     if (placedPositions.size > count) {
       const rawPositions = toRaw(positions)
       placedPositions.forEach((_, id) => {
-        if (!(id in rawPositions)) placedPositions.delete(id)
+        if (id in rawPositions) return
+        placedPositions.delete(id)
+        // A node can stay without a position, and is then drawn at the origin. A removed one is
+        // left as it is, since it may still be leaving with a transition.
+        if (id in toRaw(nodes.objects.value)) markMoved(id)
       })
     }
     placeEdges(moved)
@@ -533,8 +542,9 @@ function createNewEdgeState(
     }
 
     const positions = toRaw(layouts).nodes
-    const source = positions[edge.source] ?? { x: 0, y: 0 }
-    const target = positions[edge.target] ?? { x: 0, y: 0 }
+    // The positions themselves can be readonly proxies, which a reactive object keeps as they are.
+    const source = toRaw(positions[edge.source]) ?? { x: 0, y: 0 }
+    const target = toRaw(positions[edge.target]) ?? { x: 0, y: 0 }
 
     // calculate the line segment between center of nodes
     const shiftedPosition = EdgeGroup.calculateEdgeShiftedPosition(
