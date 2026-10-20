@@ -1,9 +1,9 @@
-import { chunk } from "lodash-es"
 import { inject, InjectionKey, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
 import { PositionChanges } from "@/composables/state"
 import { EdgeState, EdgeStates } from "@/models/edge"
+import { quadraticCurveCommands } from "@/modules/calculation/path"
 
 type ElementRef = (el: unknown) => void
 
@@ -86,9 +86,7 @@ function edgePath(state: EdgeState) {
     return `M ${p.p1.x} ${p.p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p.p2.x} ${p.p2.y}`
   } else if (state.curve) {
     const points = [...state.curve.control, { x: p.p2.x, y: p.p2.y }]
-    const d = [`M ${p.p1.x} ${p.p1.y}`]
-    chunk(points, 2).forEach(([p1, p2]) => d.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
-    return d.join(" ")
+    return [`M ${p.p1.x} ${p.p1.y}`, ...quadraticCurveCommands(points)].join(" ")
   } else {
     return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`
   }

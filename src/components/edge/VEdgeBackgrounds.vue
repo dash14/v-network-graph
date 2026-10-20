@@ -8,7 +8,7 @@ const { edgeStates, edgeGroupStates } = useStates()
 <template>
   <template v-for="{ summarize, edges } in edgeGroupStates.edgeGroups">
     <template v-if="!summarize">
-      <template v-for="(edge, id) in edges" :key="id">
+      <template v-for="(_, id) in edges" :key="id">
         <v-edge-background :id="id" :state="edgeStates[id]" />
       </template>
     </template>

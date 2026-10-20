@@ -1,6 +1,7 @@
+import { chunk } from "lodash-es"
 import { nonNull } from "@/common/common"
 import { PathEndType } from "@/common/configs"
-import { NodePositions, PositionOrCurve } from "@/common/types"
+import { NodePositions, Position, PositionOrCurve } from "@/common/types"
 import { EdgeStates, EdgeState } from "@/models/edge"
 import { NodeStates } from "@/models/node"
 import { EdgeLine, EdgeObject, PathState } from "@/models/path"
@@ -277,6 +278,11 @@ export function calculatePathPoints(
   }
 
   return points
+}
+
+/** The `Q` commands of quadratic curves, from pairs of a control point and an end point. */
+export function quadraticCurveCommands(points: Position[]): string[] {
+  return chunk(points, 2).map(([c, p]) => `Q ${c.x} ${c.y} ${p.x} ${p.y}`)
 }
 
 export function calculateDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
