@@ -1,7 +1,7 @@
 import { CSSProperties, computed } from "vue"
 import { StrokeStyle } from "@/common/configs"
 import { useZoomLevel } from "@/composables/zoom"
-import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
+import { applyScaleToDasharray, getAnimationSpeed } from "@/utils/visual"
 
 /** The attributes of a line's stroke, scaled to the zoom level. */
 export function useStrokeAttributes(config: () => StrokeStyle) {
@@ -12,9 +12,8 @@ export function useStrokeAttributes(config: () => StrokeStyle) {
   const strokeDasharray = computed(() => applyScaleToDasharray(config().dasharray, scale.value))
 
   const animationSpeed = computed(() => {
-    const c = config()
-    const speed = c.animate ? getDasharrayUnit(c.dasharray) * c.animationSpeed * scale.value : false
-    return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
+    const style = getAnimationSpeed("--animation-speed", config(), scale.value)
+    return style["--animation-speed"] ? (style as CSSProperties) : undefined
   })
 
   return { strokeWidth, strokeDasharray, animationSpeed }
