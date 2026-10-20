@@ -1,14 +1,5 @@
 <script setup lang="ts">
-import {
-  readonly,
-  ref,
-  toRef,
-  computed,
-  nextTick,
-  watch,
-  CSSProperties,
-  WatchStopHandle,
-} from "vue"
+import { readonly, ref, toRef, computed, nextTick, watch, CSSProperties } from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
@@ -63,6 +54,8 @@ enum State {
   UNLOADED = 2,
 }
 
+type LayoutsListener = (v: Layouts) => void
+
 interface Props {
   nodes?: Nodes
   edges?: Edges
@@ -77,8 +70,8 @@ interface Props {
   eventHandlers?: EventHandlers
   // Declared so that adding or removing a listener after mounting is seen.
   /* oxlint-disable vue/prop-name-casing */
-  "onUpdate:layouts"?: (v: Layouts) => void
-  "onUpdate:layoutsOnce"?: (v: Layouts) => void
+  "onUpdate:layouts"?: LayoutsListener | LayoutsListener[]
+  "onUpdate:layoutsOnce"?: LayoutsListener | LayoutsListener[]
   /* oxlint-enable vue/prop-name-casing */
 }
 
@@ -378,16 +371,18 @@ watch(
   { deep: true, immediate: true }
 )
 // The deep watch walks every node position on each move, so skip it when nobody listens.
-let stopEmittingLayouts: WatchStopHandle | undefined
+const emittedLayoutsOnce = ref(false)
 watch(
-  () => !!(props["onUpdate:layouts"] || props["onUpdate:layoutsOnce"]),
-  listened => {
-    stopEmittingLayouts?.()
-    stopEmittingLayouts = listened
-      ? watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
-      : undefined
+  () => {
+    const once = props["onUpdate:layoutsOnce"] && !emittedLayoutsOnce.value
+    return props["onUpdate:layouts"] || once ? currentLayouts : undefined
   },
-  { immediate: true }
+  (layouts, prev) => {
+    if (!layouts || !prev) return // Nothing changed when the listener was added or removed.
+    emittedLayoutsOnce.value ||= !!props["onUpdate:layoutsOnce"]
+    emit("update:layouts", layouts)
+  },
+  { deep: true }
 )
 
 // -----------------------------------------------------------------------
