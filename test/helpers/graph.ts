@@ -3,6 +3,7 @@ import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
 import { defineComponent, h, reactive, ref } from "vue"
+import type { Slots } from "vue"
 import { VNetworkGraph } from "@/index"
 import type {
   Edges,
@@ -49,7 +50,7 @@ type LayoutsListener = "onUpdate:layouts" | "onUpdate:layoutsOnce" | null
  */
 export async function mountGraph(
   props: GraphProps,
-  { layoutsListener = "onUpdate:layouts" as LayoutsListener } = {}
+  { layoutsListener = "onUpdate:layouts" as LayoutsListener, slots = {} as Slots } = {}
 ) {
   const { configs, ...data } = props
   const initial: Required<GraphProps> = {
@@ -84,27 +85,31 @@ export async function mountGraph(
     defineComponent(
       () => () =>
         inContainer(
-          h(VNetworkGraph, {
-            ref: graph,
-            nodes: state.nodes,
-            edges: state.edges,
-            paths: state.paths,
-            configs: state.configs,
-            eventHandlers,
-            layouts: state.layouts,
-            ...(listener.value && { [listener.value]: updateLayouts }),
-            selectedNodes: state.selectedNodes,
-            "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
-            selectedEdges: state.selectedEdges,
-            "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
-            selectedPaths: state.selectedPaths,
-            "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
-            // Only when given, so that the other tests zoom as they would without a v-model.
-            ...("zoomLevel" in props && {
-              zoomLevel: state.zoomLevel,
-              "onUpdate:zoomLevel": (v: number) => (state.zoomLevel = v),
-            }),
-          })
+          h(
+            VNetworkGraph,
+            {
+              ref: graph,
+              nodes: state.nodes,
+              edges: state.edges,
+              paths: state.paths,
+              configs: state.configs,
+              eventHandlers,
+              layouts: state.layouts,
+              ...(listener.value && { [listener.value]: updateLayouts }),
+              selectedNodes: state.selectedNodes,
+              "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
+              selectedEdges: state.selectedEdges,
+              "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
+              selectedPaths: state.selectedPaths,
+              "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
+              // Only when given, so that the other tests zoom as they would without a v-model.
+              ...("zoomLevel" in props && {
+                zoomLevel: state.zoomLevel,
+                "onUpdate:zoomLevel": (v: number) => (state.zoomLevel = v),
+              }),
+            },
+            slots
+          )
         )
     )
   )

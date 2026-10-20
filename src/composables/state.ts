@@ -206,9 +206,11 @@ export function provideStates(
       triggerRef(edgesDirty)
     },
   }
-  const placeEdges = (ids: Set<string>) => {
+  const placeEdges = (ids: Set<string>, onlyIfDirty = false) => {
     ids.forEach(id => {
-      edgePlacers.get(id)?.()
+      const place = edgePlacers.get(id)
+      if (!place || (onlyIfDirty && !place.effect.dirty)) return
+      place()
       positionChanges.edges.add(id)
     })
     triggerRef(positionChanges.added)
@@ -247,7 +249,8 @@ export function provideStates(
   watchEffect(() => {
     void edgesDirty.value
     if (dirtyEdges.size === 0) return
-    placeEdges(dirtyEdges)
+    // A computed dependency notifies without knowing whether its value changed.
+    placeEdges(dirtyEdges, true)
     dirtyEdges.clear()
   })
 
@@ -257,18 +260,23 @@ export function provideStates(
   watchEffect(() => {
     const positions = layouts.nodes
     const moved = new Set<string>()
+    let count = 0
     for (const id in positions) {
-      const { x, y } = positions[id]
+      count++
+      const { x, y } = positions[id] ?? { x: 0, y: 0 }
       const placed = placedPositions.get(id)
       if (placed?.x === x && placed?.y === y) continue
       placedPositions.set(id, { x, y })
       positionChanges.nodes.add(id)
       Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => moved.add(edgeId))
     }
-    const rawPositions = toRaw(positions)
-    placedPositions.forEach((_, id) => {
-      if (!(id in rawPositions)) placedPositions.delete(id)
-    })
+    // Every id seen is in the map, so a larger map holds removed nodes.
+    if (placedPositions.size > count) {
+      const rawPositions = toRaw(positions)
+      placedPositions.forEach((_, id) => {
+        if (!(id in rawPositions)) placedPositions.delete(id)
+      })
+    }
     placeEdges(moved)
   })
 

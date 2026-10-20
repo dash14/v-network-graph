@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { nextTick } from "vue"
+import { h, nextTick } from "vue"
 import type { Layouts, UserConfigs } from "@/index"
 import { mountGraph } from "./helpers/graph"
 import { serializeGraph } from "./helpers/serialize"
@@ -100,6 +100,35 @@ describe("positions", () => {
       })
 
       expect(markupOf(changed.screen.container)).toBe(markupOf(fresh.screen.container))
+    }
+  )
+
+  test.each(["straight", "curve"] as const)(
+    "overlays along moved %s edges render as they do when mounted at the new positions",
+    async type => {
+      // Points along the path, which the overlay reads from the edge's path element.
+      const slots = {
+        "edge-overlay": ({
+          length,
+          pointAtLength,
+        }: {
+          length: number
+          pointAtLength: (d: number) => { x: number; y: number }
+        }) => {
+          const p = pointAtLength(length / 2)
+          return h("circle", { r: 2, cx: Math.round(p.x), cy: Math.round(p.y) })
+        },
+      }
+      const graph = { nodes, edges, configs: configsWith(type) }
+      const moved = await mountGraph({ ...graph, layouts: before }, { slots })
+      for (const [id, pos] of Object.entries(after.nodes)) {
+        Object.assign(moved.state.layouts.nodes[id], pos)
+      }
+      await nextTick()
+
+      const fresh = await mountGraph({ ...graph, layouts: after }, { slots })
+
+      expect(markupOf(moved.screen.container)).toBe(markupOf(fresh.screen.container))
     }
   )
 })

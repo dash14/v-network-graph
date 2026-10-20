@@ -33,6 +33,7 @@ export function providePositionWriter(
     if (state) el.setAttribute("d", edgePath(state))
   }
 
+  // Before the renders, since the edge overlays read the paths from the DOM while they render.
   watchEffect(
     () => {
       void changes.added.value
@@ -41,7 +42,7 @@ export function providePositionWriter(
       changes.nodes.clear()
       changes.edges.clear()
     },
-    { flush: "post" }
+    { flush: "pre" }
   )
 
   // Ref callbacks can run inside a render, so they must not read or write anything reactive.
@@ -52,8 +53,15 @@ export function providePositionWriter(
   ): ElementRef => {
     let current: Element | undefined
     return el => {
-      if (current) elements.get(id)?.delete(current)
-      current = el instanceof Element ? el : undefined
+      const next = el instanceof Element ? el : undefined
+      // Called on every render of the object, not only when its element changes.
+      if (next === current) return
+      if (current) {
+        const set = elements.get(id)
+        set?.delete(current)
+        if (set?.size === 0) elements.delete(id)
+      }
+      current = next
       if (!current) return
       let set = elements.get(id)
       if (!set) elements.set(id, (set = new Set()))

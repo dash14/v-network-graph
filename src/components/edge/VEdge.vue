@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "@/common/types"
 import { usePositionWriter } from "@/composables/positionWriter"
 import { useStrokeAttributes } from "@/composables/stroke"
 import { EdgeState } from "@/models/edge"
@@ -8,14 +7,9 @@ import { EdgeState } from "@/models/edge"
 interface Props {
   id: string
   state: EdgeState
-  sourcePos?: Position
-  targetPos?: Position
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  sourcePos: undefined,
-  targetPos: undefined,
-})
+const props = defineProps<Props>()
 
 // Drawn here rather than with a child per edge: a child costs more to update than the path itself.
 const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(

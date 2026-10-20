@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { Position } from "@/common/types"
 import { useMouseOperation } from "@/composables/mouse"
 import { usePositionWriter } from "@/composables/positionWriter"
 import { useZoomLevel } from "@/composables/zoom"
@@ -9,14 +8,9 @@ import { EdgeState } from "@/models/edge"
 interface Props {
   id: string
   state: EdgeState
-  sourcePos?: Position
-  targetPos?: Position
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  sourcePos: undefined,
-  targetPos: undefined,
-})
+const props = defineProps<Props>()
 
 const { scale } = useZoomLevel()
 
