@@ -21,6 +21,7 @@ import { provideLayouts } from "@/composables/layout"
 import { makeMarkerState } from "@/composables/marker"
 import { provideMouseOperation } from "@/composables/mouse"
 import { useTranslatePathsToObject } from "@/composables/object"
+import { providePositionWriter } from "@/composables/positionWriter"
 import { provideSelections } from "@/composables/selection"
 import { provideStates, makeStateInput } from "@/composables/state"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
@@ -432,7 +433,7 @@ const touches = computed(() => {
   return configs.view.panEnabled || configs.view.zoomEnabled || configs.node.draggable
 })
 
-const { nodeStates, edgeStates, pathStates } = provideStates(
+const { nodeStates, edgeStates, pathStates, positionChanges } = provideStates(
   makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
   makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
   makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
@@ -442,6 +443,7 @@ const { nodeStates, edgeStates, pathStates } = provideStates(
   markerState,
   scale
 )
+providePositionWriter(currentLayouts, edgeStates, positionChanges)
 
 const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 

@@ -6,6 +6,7 @@ import VLabelText from "@/components/base/VLabelText.vue"
 import VRenderSlot from "@/components/base/VRenderSlot"
 import { useNodeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
+import { usePositionWriter } from "@/composables/positionWriter"
 import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { NodeState } from "@/models/node"
@@ -48,6 +49,9 @@ const {
   handleNodeContextMenu,
 } = useMouseOperation()
 
+const setElement = usePositionWriter().nodeRef(props.id)
+
+// The DOM gets the position from the position writer; it is read here only to adjust the direction.
 const x = computed(() => props.pos?.x || 0)
 const y = computed(() => props.pos?.y || 0)
 
@@ -258,7 +262,7 @@ const labelTextProps = computed(() => ({
 </script>
 
 <template>
-  <g :class="groupClasses" :transform="`translate(${x} ${y})`" v-on="eventHandlers(id)">
+  <g :ref="setElement" :class="groupClasses" v-on="eventHandlers(id)">
     <!-- Without the user's slot, no component is put in between. -->
     <v-render-slot v-if="overrideNodeLabel" :render="overrideNodeLabel" :slot-props="slotProps">
       <v-label-text v-bind="labelTextProps" />

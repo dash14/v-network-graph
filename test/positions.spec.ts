@@ -1,0 +1,105 @@
+import { describe, expect, test } from "vitest"
+import { nextTick } from "vue"
+import type { Layouts, UserConfigs } from "@/index"
+import { mountGraph } from "./helpers/graph"
+import { serializeGraph } from "./helpers/serialize"
+
+const nodes = {
+  node1: { name: "Node 1", size: 16 },
+  node2: { name: "Node 2", size: 16 },
+  node3: { name: "Node 3", size: 16 },
+}
+
+const edges = {
+  edge1: { source: "node1", target: "node2" },
+  edge2: { source: "node1", target: "node2" },
+  edge3: { source: "node2", target: "node3" },
+  edge4: { source: "node3", target: "node3" },
+}
+
+const before: Layouts = {
+  nodes: {
+    node1: { x: -100, y: 0 },
+    node2: { x: 0, y: -50 },
+    node3: { x: 100, y: 0 },
+  },
+}
+
+const after: Layouts = {
+  nodes: {
+    node1: { x: -80, y: 60 },
+    node2: { x: 20, y: 0 },
+    node3: { x: 120, y: -40 },
+  },
+}
+
+function configsWith(type: "straight" | "curve"): UserConfigs {
+  return {
+    node: {
+      normal: { radius: node => node.size },
+      label: { visible: true, directionAutoAdjustment: true },
+    },
+    edge: {
+      type,
+      selectable: true,
+      selected: { width: 6 },
+      marker: { target: { type: "arrow", units: "strokeWidth" } },
+      gap: 20,
+    },
+  }
+}
+
+/**
+ * The graph's markup, without the instance number in the marker ids and with the
+ * attributes sorted, since an attribute added on an update goes after the others.
+ */
+function markupOf(container: Element) {
+  return serializeGraph(container)
+    .replace(/marker_v-\d+_/g, "marker_")
+    .replace(/<([\w-]+)((?: [\w:-]+="[^"]*")*)/g, (_, tag: string, attrs: string) => {
+      const sorted = attrs.match(/ [\w:-]+="[^"]*"/g)?.sort() ?? []
+      return `<${tag}${sorted.join("")}`
+    })
+}
+
+describe("positions", () => {
+  test.each(["straight", "curve"] as const)(
+    "moved %s edges, nodes and labels render as they do when mounted at the new positions",
+    async type => {
+      const moved = await mountGraph({ nodes, edges, layouts: before, configs: configsWith(type) })
+      for (const [id, pos] of Object.entries(after.nodes)) {
+        Object.assign(moved.state.layouts.nodes[id], pos)
+      }
+      await nextTick()
+
+      const fresh = await mountGraph({ nodes, edges, layouts: after, configs: configsWith(type) })
+
+      expect(markupOf(moved.screen.container)).toBe(markupOf(fresh.screen.container))
+    }
+  )
+
+  test.each(["straight", "curve"] as const)(
+    "%s edges follow the size of their nodes and their own stroke as a fresh mount does",
+    async type => {
+      const changed = await mountGraph({
+        nodes,
+        edges,
+        layouts: before,
+        configs: configsWith(type),
+      })
+      changed.state.nodes.node2.size = 30
+      changed.state.selectedEdges = ["edge1", "edge4"]
+      await nextTick()
+
+      const fresh = await mountGraph({
+        nodes: { ...nodes, node2: { ...nodes.node2, size: 30 } },
+        edges,
+        layouts: before,
+        configs: configsWith(type),
+        selectedEdges: ["edge1", "edge4"],
+      })
+
+      expect(markupOf(changed.screen.container)).toBe(markupOf(fresh.screen.container))
+    }
+  )
+})

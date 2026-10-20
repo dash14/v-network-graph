@@ -1,10 +1,9 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import { Position } from "@/common/types"
-import VArc from "@/components/base/VArc.vue"
-import { useEdgeConfig } from "@/composables/config"
+import { usePositionWriter } from "@/composables/positionWriter"
 import { useStrokeAttributes } from "@/composables/stroke"
 import { EdgeState } from "@/models/edge"
-import VEdgeCurved from "./VEdgeCurved.vue"
 
 interface Props {
   id: string
@@ -18,29 +17,19 @@ const props = withDefaults(defineProps<Props>(), {
   targetPos: undefined,
 })
 
-const config = useEdgeConfig()
-
-// Drawn here rather than with VLine: a child per edge costs more to update than the path itself.
+// Drawn here rather than with a child per edge: a child costs more to update than the path itself.
 const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(
   () => props.state.line.stroke
 )
+// Computed, so that the edge re-renders only when its kind changes, not when its curve moves.
+const isLoop = computed(() => !!props.state.loop)
+const isStraight = computed(() => !isLoop.value && !props.state.curve)
+const setPathElement = usePositionWriter().edgeRef(props.id)
 </script>
 
 <template>
-  <v-arc
-    v-if="state.loop"
-    v-bind="state.position"
-    :radius="state.loop.radius"
-    :is-large-arc="state.loop.isLargeArc"
-    :is-clockwise="state.loop.isClockwise"
-    :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
-    :config="state.line.stroke"
-    :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
-    :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
-    class="v-ng-edge"
-  />
   <path
-    v-else-if="config.type == 'straight' || !state.curve"
+    :ref="setPathElement"
     :class="{
       'v-ng-line': true,
       animate: state.line.stroke.animate,
@@ -48,23 +37,13 @@ const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(
       hover: state.hovered,
       selected: state.selected,
     }"
-    :d="`M ${state.position.p1.x} ${state.position.p1.y} L ${state.position.p2.x} ${state.position.p2.y}`"
+    :fill="isStraight ? undefined : 'none'"
     :stroke="state.line.stroke.color"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
     :stroke-linecap="state.line.stroke.linecap"
     :style="animationSpeed"
-    :data-edge-id="id"
-    :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
-    :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
-    class="v-ng-edge"
-  />
-  <v-edge-curved
-    v-else
-    :data-edge-id="id"
-    :class="{ selectable: state.selectable, hover: state.hovered, selected: state.selected }"
-    :state="state"
-    :config="state.line.stroke"
+    :data-edge-id="isLoop ? undefined : id"
     :marker-start="state.sourceMarkerId ? `url('#${state.sourceMarkerId}')` : undefined"
     :marker-end="state.targetMarkerId ? `url('#${state.targetMarkerId}')` : undefined"
     class="v-ng-edge"

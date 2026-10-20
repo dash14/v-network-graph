@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { ShapeStyle } from "@/common/configs"
-import { Position } from "@/common/types"
 import VRenderSlot from "@/components/base/VRenderSlot"
 import VShape from "@/components/base/VShape.vue"
 import { useMouseOperation } from "@/composables/mouse"
+import { usePositionWriter } from "@/composables/positionWriter"
 import { useZoomLevel } from "@/composables/zoom"
 import { NodeState } from "@/models/node"
 
 interface Props {
   id: string
   state: NodeState
-  pos?: Position
   overrideNode?: (props: NodeSlotProps) => any
 }
 
@@ -22,12 +21,10 @@ export interface NodeSlotProps {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  pos: undefined,
   overrideNode: undefined,
 })
 
-const x = computed(() => props.pos?.x || 0)
-const y = computed(() => props.pos?.y || 0)
+const setElement = usePositionWriter().nodeRef(props.id)
 
 const { scale } = useZoomLevel()
 
@@ -48,8 +45,8 @@ const {
 
 <template>
   <g
+    :ref="setElement"
     :class="{ 'v-ng-node': true, hover: state.hovered, selected: state.selected }"
-    :transform="`translate(${x} ${y})`"
     @pointerdown.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
     @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
