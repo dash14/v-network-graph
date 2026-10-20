@@ -82,11 +82,37 @@ jobs:
               pnpm exec playwright install --with-deps chromium
               pnpm test
 
+  # The snapshots and screenshots that depend on the fonts, in the image they were written in.
+  # On arm64, like the Apple Silicon Macs that write them.
+  test-docker:
+    name: Font-dependent tests
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The other tests already run in the test job.
+      - name: Test
+        run: scripts/test-docker.sh --project docker
+
+      - name: Upload the images of failed screenshot comparisons
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: screenshot-diffs
+          path: .vitest/attachments/
+          if-no-files-found: ignore
+
   # A single, stably named job for branch protection to require.
   tests-passed:
     name: Tests passed
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, test-docker]
     if: always()
     permissions: {}
     steps:
