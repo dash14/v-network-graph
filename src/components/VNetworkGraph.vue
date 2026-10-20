@@ -372,11 +372,13 @@ watch(
 )
 // The deep watch walks every node position on each move, so skip it when nobody listens.
 const emittedLayoutsOnce = ref(false)
+// A boolean, so that only a change in whether anyone listens re-runs the watch.
+const listensLayouts = computed(
+  () =>
+    !!props["onUpdate:layouts"] || (!!props["onUpdate:layoutsOnce"] && !emittedLayoutsOnce.value)
+)
 watch(
-  () => {
-    const once = props["onUpdate:layoutsOnce"] && !emittedLayoutsOnce.value
-    return props["onUpdate:layouts"] || once ? currentLayouts : undefined
-  },
+  () => (listensLayouts.value ? currentLayouts : undefined),
   (layouts, prev) => {
     if (!layouts || !prev) return // Nothing changed when the listener was added or removed.
     emittedLayoutsOnce.value ||= !!props["onUpdate:layoutsOnce"]

@@ -74,6 +74,11 @@ export async function mountGraph(
   const eventHandlers: EventHandlers = {
     "*": (type, payload) => events.push({ type, payload }),
   }
+  // The same function on every render, so that the graph sees no listener change.
+  const updateLayouts = (v: Layouts) => {
+    layoutsUpdates++
+    state.layouts = v
+  }
   const graph = ref<VNetworkGraphInstance>()
   const screen = await render(
     defineComponent(
@@ -87,12 +92,7 @@ export async function mountGraph(
             configs: state.configs,
             eventHandlers,
             layouts: state.layouts,
-            ...(listener.value && {
-              [listener.value]: (v: Layouts) => {
-                layoutsUpdates++
-                state.layouts = v
-              },
-            }),
+            ...(listener.value && { [listener.value]: updateLayouts }),
             selectedNodes: state.selectedNodes,
             "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
             selectedEdges: state.selectedEdges,
