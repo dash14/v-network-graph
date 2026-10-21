@@ -28,6 +28,8 @@ async function mountCounting(initial: Listeners) {
   const listeners = ref(initial)
   let resolveLoaded: () => void
   const loaded = new Promise<void>(resolve => (resolveLoaded = resolve))
+  // The same object on every render, so that only the listeners change between renders.
+  const eventHandlers = { "view:load": () => resolveLoaded() }
   const screen = await render(
     defineComponent(
       () => () =>
@@ -35,7 +37,7 @@ async function mountCounting(initial: Listeners) {
           h(VNetworkGraph, {
             nodes,
             layouts,
-            eventHandlers: { "view:load": () => resolveLoaded() },
+            eventHandlers,
             ...listeners.value,
           }),
         ])
@@ -95,6 +97,15 @@ describe("update:layouts", () => {
     expect(once).toHaveBeenCalledTimes(1)
   })
 
+  test("is emitted to a listener given as a new value of a key already passed", async () => {
+    const listener = vi.fn()
+    const { moveNode2, setListeners } = await mountCounting({ "onUpdate:layouts": undefined! })
+
+    await setListeners({ "onUpdate:layouts": listener })
+    await moveNode2()
+    expect(listener).toHaveBeenCalled()
+  })
+
   test("walks the layouts only while a listener is given", async () => {
     const { moveNode2, setListeners } = await mountCounting({})
     const unwatched = await moveNode2()
@@ -107,8 +118,9 @@ describe("update:layouts", () => {
   })
 
   test("stops walking the layouts once a listener with the once modifier received them", async () => {
-    const { moveNode2: moveUnwatched } = await mountCounting({})
-    const unwatched = await moveUnwatched()
+    const unwatchedGraph = await mountCounting({})
+    const unwatched = await unwatchedGraph.moveNode2()
+    unwatchedGraph.screen.unmount()
 
     const listener = vi.fn()
     const { moveNode2 } = await mountCounting({ "onUpdate:layoutsOnce": listener })

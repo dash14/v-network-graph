@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { readonly, ref, toRef, computed, nextTick, watch, CSSProperties } from "vue"
+import {
+  readonly,
+  ref,
+  toRef,
+  computed,
+  nextTick,
+  watch,
+  CSSProperties,
+  getCurrentInstance,
+} from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
@@ -68,7 +77,7 @@ interface Props {
   configs?: UserConfigs
   layers?: Layers
   eventHandlers?: EventHandlers
-  // Declared so that adding or removing a listener after mounting is seen.
+  // Props rather than emits, since Vue does not update the component when only an emits listener changes.
   /* oxlint-disable vue/prop-name-casing */
   "onUpdate:layouts"?: LayoutsListener | LayoutsListener[]
   "onUpdate:layoutsOnce"?: LayoutsListener | LayoutsListener[]
@@ -96,7 +105,6 @@ const emit = defineEmits<{
   (e: "update:selectedNodes", v: string[]): void
   (e: "update:selectedEdges", v: string[]): void
   (e: "update:selectedPaths", v: string[]): void
-  (e: "update:layouts", v: Layouts): void
 }>()
 
 const slots = defineSlots<
@@ -371,6 +379,7 @@ watch(
   { deep: true, immediate: true }
 )
 // The deep watch walks every node position on each move, so skip it when nobody listens.
+const instance = getCurrentInstance()
 const emittedLayoutsOnce = ref(false)
 // A boolean, so that only a change in whether anyone listens re-runs the watch.
 const listensLayouts = computed(
@@ -382,7 +391,7 @@ watch(
   (layouts, prev) => {
     if (!layouts || !prev) return // Nothing changed when the listener was added or removed.
     emittedLayoutsOnce.value ||= !!props["onUpdate:layoutsOnce"]
-    emit("update:layouts", layouts)
+    instance?.emit("update:layouts", layouts)
   },
   { deep: true }
 )
