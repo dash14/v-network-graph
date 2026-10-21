@@ -129,6 +129,23 @@ describe("update:layouts", () => {
     expect(await moveNode2()).toBe(unwatched)
   })
 
+  test("stays done, as Vue does, when a once listener is removed and another one is added", async () => {
+    const unwatchedGraph = await mountCounting({})
+    const unwatched = await unwatchedGraph.moveNode2()
+    unwatchedGraph.screen.unmount()
+
+    const first = vi.fn()
+    const second = vi.fn()
+    const { moveNode2, setListeners } = await mountCounting({ "onUpdate:layoutsOnce": first })
+    await moveNode2()
+    await setListeners({})
+    await setListeners({ "onUpdate:layoutsOnce": second })
+
+    expect(await moveNode2()).toBe(unwatched)
+    expect(first).toHaveBeenCalledTimes(1)
+    expect(second).not.toHaveBeenCalled()
+  })
+
   test("stops walking the layouts on unmount after a listener was added", async () => {
     const { screen, moveNode2, setListeners } = await mountCounting({})
     await setListeners({ "onUpdate:layouts": () => {} })
