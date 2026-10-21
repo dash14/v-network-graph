@@ -78,10 +78,10 @@ interface Props {
   layers?: Layers
   eventHandlers?: EventHandlers
   // Props rather than emits, since Vue does not update the component when only an emits listener changes.
-  /* oxlint-disable vue/prop-name-casing */
+  /* oxlint-disable vue/prop-name-casing, vue/require-default-prop */
   "onUpdate:layouts"?: LayoutsListener | LayoutsListener[]
   "onUpdate:layoutsOnce"?: LayoutsListener | LayoutsListener[]
-  /* oxlint-enable vue/prop-name-casing */
+  /* oxlint-enable vue/prop-name-casing, vue/require-default-prop */
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -96,8 +96,6 @@ const props = withDefaults(defineProps<Props>(), {
   configs: () => ({}),
   layers: () => ({}),
   eventHandlers: () => ({}),
-  "onUpdate:layouts": undefined,
-  "onUpdate:layoutsOnce": undefined,
 })
 
 const emit = defineEmits<{
@@ -379,19 +377,22 @@ watch(
   { deep: true, immediate: true }
 )
 // The deep watch walks every node position on each move, so skip it when nobody listens.
-const instance = getCurrentInstance()
+const instance = getCurrentInstance()!
+const hasListener = (v?: LayoutsListener | LayoutsListener[]) =>
+  Array.isArray(v) ? v.length > 0 : !!v
 const emittedLayoutsOnce = ref(false)
 // A boolean, so that only a change in whether anyone listens re-runs the watch.
 const listensLayouts = computed(
   () =>
-    !!props["onUpdate:layouts"] || (!!props["onUpdate:layoutsOnce"] && !emittedLayoutsOnce.value)
+    hasListener(props["onUpdate:layouts"]) ||
+    (hasListener(props["onUpdate:layoutsOnce"]) && !emittedLayoutsOnce.value)
 )
 watch(
   () => (listensLayouts.value ? currentLayouts : undefined),
   (layouts, prev) => {
     if (!layouts || !prev) return // Nothing changed when the listener was added or removed.
-    emittedLayoutsOnce.value ||= !!props["onUpdate:layoutsOnce"]
-    instance?.emit("update:layouts", layouts)
+    emittedLayoutsOnce.value ||= hasListener(props["onUpdate:layoutsOnce"])
+    instance.emit("update:layouts", layouts)
   },
   { deep: true }
 )

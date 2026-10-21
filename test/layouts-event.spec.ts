@@ -74,14 +74,17 @@ describe("update:layouts", () => {
     warn.mockRestore()
   })
 
-  test("is not emitted when only the listener function is replaced", async () => {
+  test("is emitted only for position changes when the listener function is replaced", async () => {
     const listener = vi.fn()
-    const { setListeners } = await mountCounting({})
+    const { moveNode2, setListeners } = await mountCounting({})
 
     await setListeners({ "onUpdate:layouts": v => listener(v) })
     await setListeners({ "onUpdate:layouts": v => listener(v) })
     await nextTick()
     expect(listener).not.toHaveBeenCalled()
+
+    await moveNode2()
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 
   test("is emitted once per change to both a listener and a once listener", async () => {
@@ -126,6 +129,15 @@ describe("update:layouts", () => {
     const { moveNode2 } = await mountCounting({ "onUpdate:layoutsOnce": listener })
     await moveNode2()
     expect(listener).toHaveBeenCalledTimes(1)
+    expect(await moveNode2()).toBe(unwatched)
+  })
+
+  test("does not walk the layouts for an empty array of handlers", async () => {
+    const unwatchedGraph = await mountCounting({})
+    const unwatched = await unwatchedGraph.moveNode2()
+    unwatchedGraph.screen.unmount()
+
+    const { moveNode2 } = await mountCounting({ "onUpdate:layouts": [] })
     expect(await moveNode2()).toBe(unwatched)
   })
 
