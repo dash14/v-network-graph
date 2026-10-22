@@ -5,7 +5,7 @@ import { Reactive } from "../common/common"
 export function bindProp<T extends object, K extends keyof T>(
   props: T,
   name: K,
-  emit: (event: `update:${K & string}`, ...args: any[]) => void,
+  emit: (event: `update:${NoInfer<K & string>}`, ...args: any[]) => void,
   filter?: (arg: T[K]) => T[K]
 ): Ref<T[K]> {
   // Build two-way binding ties.
@@ -59,7 +59,7 @@ export function bindPropKeySet<T extends object, K extends string & KeysOfType<T
   props: T,
   name: K,
   sourceObject: Ref<{ [name: string]: any }>,
-  emit: (event: `update:${K & string}`, ...args: any[]) => void
+  emit: (event: `update:${NoInfer<K & string>}`, ...args: any[]) => void
 ): Reactive<Set<string>> {
   // Generate two-way bindings for a given prop.
   // Assumes that the specified prop indicates the key of the object.

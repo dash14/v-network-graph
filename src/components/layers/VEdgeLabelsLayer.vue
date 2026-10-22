@@ -1,36 +1,28 @@
 <script setup lang="ts">
+import VRenderSlot from "@/components/base/VRenderSlot"
 import { EdgeLabelSlotProps } from "@/components/edge/VEdgeLabelPlace.vue"
 import VEdgeLabels from "@/components/edge/VEdgeLabels.vue"
 import { EdgeLabelsSlotProps } from "@/components/edge/VEdgeLabelsPlace.vue"
 
-interface Props {
-  enableEdgeLabel?: boolean
-  enableEdgesLabel?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  enableEdgeLabel: false,
-  enableEdgesLabel: false,
-})
-
-defineSlots<{
-  "edge-label": (props: EdgeLabelSlotProps) => any
-  "edges-label": (props: EdgeLabelsSlotProps) => any
+// The root's slots come as props: forwarded as slots, they would re-render the labels with the root.
+defineProps<{
+  edgeLabel?: (props: EdgeLabelSlotProps) => any
+  edgesLabel?: (props: EdgeLabelsSlotProps) => any
 }>()
 </script>
 
 <template>
   <!-- edge labels -->
   <v-edge-labels
-    :enable-edge-label="enableEdgeLabel"
-    :enable-edges-label="enableEdgesLabel"
+    :enable-edge-label="!!edgeLabel"
+    :enable-edges-label="!!edgesLabel"
     class="v-ng-layer-edge-labels v-ng-graph-objects"
   >
-    <template v-if="enableEdgeLabel" #edge-label="slotProps">
-      <slot name="edge-label" v-bind="slotProps" />
+    <template v-if="edgeLabel" #edge-label="slotProps">
+      <v-render-slot :render="edgeLabel" :slot-props="slotProps" />
     </template>
-    <template v-if="enableEdgesLabel" #edges-label="slotProps">
-      <slot name="edges-label" v-bind="slotProps" />
+    <template v-if="edgesLabel" #edges-label="slotProps">
+      <v-render-slot :render="edgesLabel" :slot-props="slotProps" />
     </template>
   </v-edge-labels>
 </template>

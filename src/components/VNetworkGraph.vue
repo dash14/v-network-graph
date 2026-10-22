@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { readonly, ref, toRef, computed, nextTick, watch, CSSProperties } from "vue"
+import {
+  readonly,
+  ref,
+  toRef,
+  computed,
+  nextTick,
+  watch,
+  CSSProperties,
+  getCurrentInstance,
+} from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
@@ -12,6 +21,7 @@ import { provideLayouts } from "@/composables/layout"
 import { makeMarkerState } from "@/composables/marker"
 import { provideMouseOperation } from "@/composables/mouse"
 import { useTranslatePathsToObject } from "@/composables/object"
+import { providePositionWriter } from "@/composables/positionWriter"
 import { provideSelections } from "@/composables/selection"
 import { provideStates, makeStateInput } from "@/composables/state"
 import { useSvgPanZoom } from "@/composables/svg-pan-zoom"
@@ -54,6 +64,8 @@ enum State {
   UNLOADED = 2,
 }
 
+type LayoutsListener = (v: Layouts) => void
+
 interface Props {
   nodes?: Nodes
   edges?: Edges
@@ -66,6 +78,11 @@ interface Props {
   configs?: UserConfigs
   layers?: Layers
   eventHandlers?: EventHandlers
+  // Props rather than emits, since Vue does not update the component when only an emits listener changes.
+  /* oxlint-disable vue/prop-name-casing, vue/require-default-prop */
+  "onUpdate:layouts"?: LayoutsListener | LayoutsListener[]
+  "onUpdate:layoutsOnce"?: LayoutsListener | LayoutsListener[]
+  /* oxlint-enable vue/prop-name-casing, vue/require-default-prop */
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -87,7 +104,6 @@ const emit = defineEmits<{
   (e: "update:selectedNodes", v: string[]): void
   (e: "update:selectedEdges", v: string[]): void
   (e: "update:selectedPaths", v: string[]): void
-  (e: "update:layouts", v: Layouts): void
 }>()
 
 const slots = defineSlots<
@@ -361,7 +377,26 @@ watch(
   () => Object.assign(currentLayouts.nodes, props.layouts.nodes ?? {}),
   { deep: true, immediate: true }
 )
-watch(currentLayouts, () => emit("update:layouts", currentLayouts), { deep: true })
+// The deep watch walks every node position on each move, so skip it when nobody listens.
+const instance = getCurrentInstance()!
+const hasListener = (v?: LayoutsListener | LayoutsListener[]) =>
+  Array.isArray(v) ? v.length > 0 : !!v
+const emittedLayoutsOnce = ref(false)
+// A boolean, so that only a change in whether anyone listens re-runs the watch.
+const listensLayouts = computed(
+  () =>
+    hasListener(props["onUpdate:layouts"]) ||
+    (hasListener(props["onUpdate:layoutsOnce"]) && !emittedLayoutsOnce.value)
+)
+watch(
+  () => (listensLayouts.value ? currentLayouts : undefined),
+  (layouts, prev) => {
+    if (!layouts || !prev) return // Nothing changed when the listener was added or removed.
+    emittedLayoutsOnce.value ||= hasListener(props["onUpdate:layoutsOnce"])
+    instance.emit("update:layouts", layouts)
+  },
+  { deep: true }
+)
 
 // -----------------------------------------------------------------------
 // SVG Markers
@@ -398,7 +433,7 @@ const touches = computed(() => {
   return configs.view.panEnabled || configs.view.zoomEnabled || configs.node.draggable
 })
 
-const { nodeStates, edgeStates, pathStates } = provideStates(
+const { nodeStates, edgeStates, pathStates, positionChanges } = provideStates(
   makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
   makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
   makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
@@ -408,6 +443,7 @@ const { nodeStates, edgeStates, pathStates } = provideStates(
   markerState,
   scale
 )
+providePositionWriter(currentLayouts, edgeStates, positionChanges)
 
 const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 
@@ -761,26 +797,15 @@ function stopEventPropagation(event: Event) {
         <template v-for="layerName in builtInLayerOrder" :key="layerName">
           <!-- Edges -->
           <template v-if="layerName === 'edges'">
-            <v-edges-layer>
-              <template v-if="'edge-overlay' in slots" #edge-overlay="slotProps">
-                <slot name="edge-overlay" v-bind="slotProps" />
-              </template>
-            </v-edges-layer>
+            <v-edges-layer :edge-overlay="slots['edge-overlay']" />
           </template>
 
           <!-- Edge labels -->
           <template v-else-if="layerName === 'edge-labels'">
             <v-edge-labels-layer
-              :enable-edge-label="'edge-label' in slots"
-              :enable-edges-label="'edges-label' in slots"
-            >
-              <template #edge-label="slotProps">
-                <slot name="edge-label" v-bind="slotProps" />
-              </template>
-              <template #edges-label="slotProps">
-                <slot name="edges-label" v-bind="slotProps" />
-              </template>
-            </v-edge-labels-layer>
+              :edge-label="slots['edge-label']"
+              :edges-label="slots['edges-label']"
+            />
           </template>
 
           <!-- Node focusring -->
@@ -790,20 +815,12 @@ function stopEventPropagation(event: Event) {
 
           <!-- Nodes -->
           <template v-else-if="layerName === 'nodes'">
-            <v-nodes-layer>
-              <template #override-node="slotProps">
-                <slot name="override-node" v-bind="slotProps" />
-              </template>
-            </v-nodes-layer>
+            <v-nodes-layer :override-node="slots['override-node']" />
           </template>
 
           <!-- Node labels -->
           <template v-else-if="layerName === 'node-labels'">
-            <v-node-labels-layer>
-              <template #override-node-label="slotProps">
-                <slot name="override-node-label" v-bind="slotProps" />
-              </template>
-            </v-node-labels-layer>
+            <v-node-labels-layer :override-node-label="slots['override-node-label']" />
           </template>
 
           <!-- Paths -->

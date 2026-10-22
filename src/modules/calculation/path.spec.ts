@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest"
 import { EdgeObject } from "../../models/path"
-import { calculateDirectionsOfPathEdges } from "./path"
+import { calculateDirectionsOfPathEdges, quadraticCurveCommands } from "./path"
+
+describe("quadraticCurveCommands", () => {
+  it("should make one command for each pair of a control point and an end point", () => {
+    const points = [
+      { x: 1, y: 2 },
+      { x: 3, y: 4 },
+      { x: 5, y: 6 },
+      { x: 7, y: 8 },
+    ]
+    expect(quadraticCurveCommands(points)).toStrictEqual(["Q 1 2 3 4", "Q 5 6 7 8"])
+  })
+})
 
 describe("calculateDirectionsOfPathEdges", () => {
   it("should return an empty array if the edges are empty", () => {

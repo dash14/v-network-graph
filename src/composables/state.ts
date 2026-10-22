@@ -1,8 +1,23 @@
 // the states of nodes and edges
 
 import { isEqual } from "lodash-es"
-import type { ComputedRef, InjectionKey, Ref } from "vue"
-import { computed, reactive, ref, toRef, unref, watch, watchEffect, inject, provide } from "vue"
+import type { ComputedRef, InjectionKey, ReactiveEffectRunner, Ref } from "vue"
+import {
+  computed,
+  effect,
+  reactive,
+  ref,
+  shallowRef,
+  toRaw,
+  toRef,
+  triggerRef,
+  unref,
+  watch,
+  watchEffect,
+  inject,
+  provide,
+  stop,
+} from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import {
   Config,
@@ -54,6 +69,14 @@ interface States {
   edgeZOrderedList: ComputedRef<EdgeModel.EdgeEntry[]>
   pathZOrderedList: ComputedRef<PathModel.PathState[]>
   layouts: Layouts
+}
+
+/** The nodes and edges whose positions changed since the last time they were taken. */
+export interface PositionChanges {
+  nodes: Set<string>
+  edges: Set<string>
+  /** Triggered when ids are added. */
+  changed: Ref<void>
 }
 
 export type ReadonlyStates = Readonly<States>
@@ -168,6 +191,33 @@ export function provideStates(
   // edge entries for applying z-order
   const edgeEntries = ref<EdgeModel.EdgeEntry[]>([])
 
+  const positionChanges: PositionChanges = {
+    nodes: new Set(),
+    edges: new Set(),
+    changed: shallowRef(),
+  }
+  const edgePlacers = new Map<string, ReactiveEffectRunner>()
+  const dirtyEdges = new Set<string>()
+  const edgesDirty = shallowRef(0)
+  const edgePlacement: EdgePlacement = {
+    placers: edgePlacers,
+    schedule: id => {
+      dirtyEdges.add(id)
+      triggerRef(edgesDirty)
+    },
+  }
+  const placeEdges = (ids: Set<string>, onlyIfDirty = false) => {
+    let placed = false
+    ids.forEach(id => {
+      const place = edgePlacers.get(id)
+      if (!place || (onlyIfDirty && !place.effect.dirty)) return
+      place()
+      positionChanges.edges.add(id)
+      placed = true
+    })
+    if (placed) triggerRef(positionChanges.changed)
+  }
+
   const {
     states: edgeStates,
     zOrderedList: edgeZOrderedList, //
@@ -187,7 +237,8 @@ export function provideStates(
         edgeGroupStates,
         layouts,
         scale,
-        instanceId
+        instanceId,
+        edgePlacement
       )
     },
     (_edgeId, state) => {
@@ -195,6 +246,51 @@ export function provideStates(
     },
     () => edgeEntries.value
   )
+
+  // Re-place the edges whose own dependencies changed, together in one pass.
+  watchEffect(() => {
+    void edgesDirty.value
+    if (dirtyEdges.size === 0) return
+    // Taken out first, so that an edge scheduled again while placing stays for the next pass.
+    const ids = new Set(dirtyEdges)
+    dirtyEdges.clear()
+    // A computed dependency notifies without knowing whether its value changed.
+    placeEdges(ids, true)
+  })
+
+  // Positions change on every layout tick, so one effect follows them all and re-places only the
+  // edges of the moved nodes, rather than every edge following the positions of its own nodes.
+  const placedPositions = new Map<string, Position>()
+  watchEffect(() => {
+    const positions = layouts.nodes
+    const moved = new Set<string>()
+    const markMoved = (id: string) => {
+      positionChanges.nodes.add(id)
+      Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => moved.add(edgeId))
+    }
+    let count = 0
+    for (const id in positions) {
+      count++
+      const { x, y } = positions[id] ?? { x: 0, y: 0 }
+      const placed = placedPositions.get(id)
+      if (placed?.x === x && placed?.y === y) continue
+      placedPositions.set(id, { x, y })
+      markMoved(id)
+    }
+    // Every id seen is in the map, so a larger map holds removed nodes.
+    if (placedPositions.size > count) {
+      const rawPositions = toRaw(positions)
+      placedPositions.forEach((_, id) => {
+        if (id in rawPositions) return
+        placedPositions.delete(id)
+        // A node can stay without a position, and is then drawn at the origin. A removed one is
+        // left as it is, since it may still be leaving with a transition.
+        if (id in toRaw(nodes.objects.value)) markMoved(id)
+      })
+    }
+    placeEdges(moved)
+    if (positionChanges.nodes.size > 0) triggerRef(positionChanges.changed)
+  })
 
   // Edge item for display (an edge or summarized edges)
   watchEffect(() => {
@@ -259,7 +355,7 @@ export function provideStates(
     pathZOrderedList,
   }
   provide(statesKey, states)
-  return states
+  return { ...states, positionChanges }
 }
 
 export function isSummarizedEdges(item: EdgeModel.EdgeItem): item is EdgeModel.SummarizedEdgeItem {
@@ -368,6 +464,11 @@ function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
   }
 }
 
+interface EdgePlacement {
+  placers: Map<string, ReactiveEffectRunner>
+  schedule: (id: string) => void
+}
+
 function createNewEdgeState(
   edges: Ref<Edges>,
   id: string,
@@ -378,7 +479,8 @@ function createNewEdgeState(
   edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
   layouts: Layouts,
   scale: Ref<number>,
-  instanceId: string
+  instanceId: string,
+  edgePlacement: EdgePlacement
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
@@ -428,7 +530,8 @@ function createNewEdgeState(
   )
   const isEdgeSummarized: Ref<true | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
 
-  const stopCalcHandle = watchEffect(() => {
+  // The positions are read untracked: the effect in provideStates re-places the edges of moved nodes.
+  const placeEdge = () => {
     const edge = edges.value[id]
     if (!edge) return
 
@@ -438,8 +541,10 @@ function createNewEdgeState(
       return
     }
 
-    const source = layouts.nodes[edge?.source] ?? { x: 0, y: 0 }
-    const target = layouts.nodes[edge?.target] ?? { x: 0, y: 0 }
+    const positions = toRaw(layouts).nodes
+    // The positions themselves can be readonly proxies, which a reactive object keeps as they are.
+    const source = toRaw(positions[edge.source]) ?? { x: 0, y: 0 }
+    const target = toRaw(positions[edge.target]) ?? { x: 0, y: 0 }
 
     // calculate the line segment between center of nodes
     const shiftedPosition = EdgeGroup.calculateEdgeShiftedPosition(
@@ -546,7 +651,9 @@ function createNewEdgeState(
       state.position = position
       state.curve = curve
     }
-  })
+  }
+  const place = effect(placeEdge, { scheduler: () => edgePlacement.schedule(id) })
+  edgePlacement.placers.set(id, place)
 
   const stopUpdateMarkerHandle = watchEffect(() => {
     if (!edges.value[id]) return
@@ -567,7 +674,8 @@ function createNewEdgeState(
   })
 
   state.stopWatchHandle = () => {
-    stopCalcHandle()
+    edgePlacement.placers.delete(id)
+    stop(place)
     stopUpdateMarkerHandle()
     clearMarker(state.sourceMarkerId)
     clearMarker(state.targetMarkerId)

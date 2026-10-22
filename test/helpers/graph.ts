@@ -3,6 +3,7 @@ import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
 import { defineComponent, h, reactive, ref } from "vue"
+import type { Slots } from "vue"
 import { VNetworkGraph } from "@/index"
 import type {
   Edges,
@@ -41,11 +42,16 @@ export interface RecordedEvent {
 
 type Position = { x: number; y: number }
 
+type LayoutsListener = "onUpdate:layouts" | "onUpdate:layoutsOnce" | null
+
 /**
  * Mounts a graph whose origin is at the center of a fixed-size
  * container, with the v-model props and the emitted events recorded.
  */
-export async function mountGraph(props: GraphProps) {
+export async function mountGraph(
+  props: GraphProps,
+  { layoutsListener = "onUpdate:layouts" as LayoutsListener, slots = {} as Slots } = {}
+) {
   const { configs, ...data } = props
   const initial: Required<GraphProps> = {
     edges: {},
@@ -63,36 +69,47 @@ export async function mountGraph(props: GraphProps) {
     },
   }
   const state = reactive(initial)
+  const listener = ref(layoutsListener)
   const events: RecordedEvent[] = []
+  let layoutsUpdates = 0
   const eventHandlers: EventHandlers = {
     "*": (type, payload) => events.push({ type, payload }),
+  }
+  // The same function on every render, so that the graph sees no listener change.
+  const updateLayouts = (v: Layouts) => {
+    layoutsUpdates++
+    state.layouts = v
   }
   const graph = ref<VNetworkGraphInstance>()
   const screen = await render(
     defineComponent(
       () => () =>
         inContainer(
-          h(VNetworkGraph, {
-            ref: graph,
-            nodes: state.nodes,
-            edges: state.edges,
-            paths: state.paths,
-            configs: state.configs,
-            eventHandlers,
-            layouts: state.layouts,
-            "onUpdate:layouts": (v: Layouts) => (state.layouts = v),
-            selectedNodes: state.selectedNodes,
-            "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
-            selectedEdges: state.selectedEdges,
-            "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
-            selectedPaths: state.selectedPaths,
-            "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
-            // Only when given, so that the other tests zoom as they would without a v-model.
-            ...("zoomLevel" in props && {
-              zoomLevel: state.zoomLevel,
-              "onUpdate:zoomLevel": (v: number) => (state.zoomLevel = v),
-            }),
-          })
+          h(
+            VNetworkGraph,
+            {
+              ref: graph,
+              nodes: state.nodes,
+              edges: state.edges,
+              paths: state.paths,
+              configs: state.configs,
+              eventHandlers,
+              layouts: state.layouts,
+              ...(listener.value && { [listener.value]: updateLayouts }),
+              selectedNodes: state.selectedNodes,
+              "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
+              selectedEdges: state.selectedEdges,
+              "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
+              selectedPaths: state.selectedPaths,
+              "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
+              // Only when given, so that the other tests zoom as they would without a v-model.
+              ...("zoomLevel" in props && {
+                zoomLevel: state.zoomLevel,
+                "onUpdate:zoomLevel": (v: number) => (state.zoomLevel = v),
+              }),
+            },
+            slots
+          )
         )
     )
   )
@@ -101,8 +118,17 @@ export async function mountGraph(props: GraphProps) {
 
   await movePointerAway()
   events.splice(0)
+  layoutsUpdates = 0
 
-  return { screen, canvas, graph: graph.value!, state, events }
+  return {
+    screen,
+    canvas,
+    graph: graph.value!,
+    state,
+    events,
+    layoutsUpdates: () => layoutsUpdates,
+    setLayoutsListener: (v: LayoutsListener) => (listener.value = v),
+  }
 }
 
 /** The position in the container of a point in the graph, at zoom level 1. */

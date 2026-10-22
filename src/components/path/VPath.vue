@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { chunk } from "lodash-es"
 import { CSSProperties, computed } from "vue"
 import { Config } from "@/common/configs"
 import { PositionOrCurve } from "@/common/types"
@@ -7,7 +6,7 @@ import { usePathConfig } from "@/composables/config"
 import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { PathState } from "@/models/path"
-import { calculatePathPoints } from "@/modules/calculation/path"
+import { calculatePathPoints, quadraticCurveCommands } from "@/modules/calculation/path"
 import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 
 const props = defineProps<{
@@ -50,7 +49,7 @@ function calcPathD(path: PathState) {
           p = p.slice(1)
           list.push(`L ${x.x} ${x.y}`)
         }
-        chunk(p, 2).map(([p1, p2]) => list.push(`Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`))
+        list.push(...quadraticCurveCommands(p))
         return list.join(" ")
       } else {
         const m = move

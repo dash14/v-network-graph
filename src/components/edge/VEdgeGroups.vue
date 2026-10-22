@@ -54,13 +54,7 @@ const { edgeStates, edgeZOrderedList, layouts } = useStates()
       </v-edge-overlay>
     </template>
     <template v-else>
-      <v-edge
-        :id="entry.key"
-        :key="entry.key"
-        :state="edgeStates[entry.key]"
-        :source-pos="layouts.nodes[entry.edge.source]"
-        :target-pos="layouts.nodes[entry.edge.target]"
-      />
+      <v-edge :id="entry.key" :key="entry.key" :state="edgeStates[entry.key]" />
       <v-edge-overlay
         v-if="hasEdgeOverlaySlot"
         :key="entry.key"

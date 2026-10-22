@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { userEvent } from "vitest/browser"
+import { nextTick } from "vue"
 import { GridLayout } from "@/index"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "../helpers/graph"
 
@@ -123,6 +124,36 @@ describe("node drag", () => {
     expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
     expect(payloadsOf(events, "node:dragend")).toEqual([{ node1: { x: -50, y: 30 } }])
     expect(payloadsOf(events, "node:click")).toEqual([])
+  })
+
+  test("dragging a node moves it without a v-model on the layouts", async () => {
+    const { screen, canvas } = await mountGraph({ nodes, layouts }, { layoutsListener: null })
+
+    await drag(canvas, at(-100, 0), at(-50, 30))
+    expect(elementAt(screen.container, at(-50, 30))?.closest(".v-ng-node")).not.toBeNull()
+    expect(elementAt(screen.container, at(-100, 0))?.closest(".v-ng-node")).toBeNull()
+  })
+
+  test("dragging a node emits the layouts once to a listener with the once modifier", async () => {
+    const { canvas, layoutsUpdates } = await mountGraph(
+      { nodes, layouts },
+      { layoutsListener: "onUpdate:layoutsOnce" }
+    )
+
+    await drag(canvas, at(-100, 0), at(-50, 30))
+    expect(layoutsUpdates()).toBe(1)
+  })
+
+  test("dragging a node emits the layouts to a listener added after mounting", async () => {
+    const { canvas, layoutsUpdates, setLayoutsListener } = await mountGraph(
+      { nodes, layouts },
+      { layoutsListener: null }
+    )
+
+    setLayoutsListener("onUpdate:layouts")
+    await nextTick()
+    await drag(canvas, at(-100, 0), at(-50, 30))
+    expect(layoutsUpdates()).toBeGreaterThan(0)
   })
 
   test("dragging a selected node moves the other selected nodes with it", async () => {
