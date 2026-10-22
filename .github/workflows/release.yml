@@ -83,7 +83,9 @@ jobs:
         run: pnpm run build
 
       - name: Test
-        run: pnpm test
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test
 
       - name: Pack
         run: pnpm pack --pack-destination "$RUNNER_TEMP/package"
