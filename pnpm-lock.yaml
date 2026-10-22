@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@dash14/svg-pan-zoom':
-        specifier: ^3.6.10
-        version: 3.6.10
+        specifier: ^4.0.0
+        version: 4.0.0
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -298,8 +298,8 @@ packages:
   '@cacheable/utils@2.5.0':
     resolution: {integrity: sha512-buipgOVDkkPXNR5+xBpDw7Zk2n1EvU7qBJCNUcL7rhQ//kfpOXPAvQ511Os0vpLYJ1pZnvudNytkQt2hst3wqA==}
 
-  '@dash14/svg-pan-zoom@3.6.10':
-    resolution: {integrity: sha512-kdhgu2zfBZkyRenheWeTqVzyuxuM7SOPLI2EFyiSq5flo2a+t9B/I0mJZLseWY1a+PbqaKP/aPGsHWXzP+P2qQ==}
+  '@dash14/svg-pan-zoom@4.0.0':
+    resolution: {integrity: sha512-lMGy8LXbmJh1wS6E2xaDsylBLI3kodsLJ9PCTnZ0a7/Ps3JnF8sNeXt7t1/WXV+NekWD8uBd+HaSFMG4d3ITQg==}
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -2491,7 +2491,7 @@ snapshots:
       hashery: 1.5.1
       keyv: 5.6.0
 
-  '@dash14/svg-pan-zoom@3.6.10': {}
+  '@dash14/svg-pan-zoom@4.0.0': {}
 
   '@esbuild/aix-ppc64@0.28.2':
     optional: true
