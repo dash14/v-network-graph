@@ -2,18 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
   "description": [
-    "lockFileMaintenance is how transitive dependencies get updated at all. Renovate cannot apply minimumReleaseAge to it; pnpm does, from pnpm-workspace.yaml, when it regenerates the lockfile."
+    "lockFileMaintenance is how transitive dependencies get updated at all. It has no release timestamp, so Renovate's minimumReleaseAge would keep it pending forever and is \"0 days\" there; pnpm applies the one in pnpm-workspace.yaml when it regenerates the lockfile.",
+    "lockFileMaintenance has its own default schedule, so it repeats the weekly one."
   ],
+  "timezone": "Asia/Tokyo",
   "schedule": ["* * * * 6"],
   "minimumReleaseAge": "14 days",
-  "lockFileMaintenance": { "enabled": true, "schedule": ["* * * * 6"] },
-  "internalChecksFilter": "strict",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["* * * * 6"],
+    "minimumReleaseAge": "0 days"
+  },
   "packageRules": [
-    {
-      "description": "Lock file maintenance has no release timestamp, so Renovate would leave its stability-days check pending forever. \"0 days\" only turns off Renovate's own check: pnpm still holds every package to the two-week minimumReleaseAge in pnpm-workspace.yaml when it regenerates the lockfile.",
-      "matchUpdateTypes": ["lockFileMaintenance"],
-      "minimumReleaseAge": "0 days"
-    },
     {
       "description": "Our own fork, exempt from minimumReleaseAge in pnpm-workspace.yaml too, so a new release lands right away.",
       "matchPackageNames": ["@dash14/svg-pan-zoom"],
