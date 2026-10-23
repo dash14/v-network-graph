@@ -15,7 +15,7 @@ import type {
   UserConfigs,
   VNetworkGraphInstance,
 } from "@/index"
-import { HEIGHT, WIDTH, inContainer, movePointerAway } from "./container"
+import { HEIGHT, POLL_INTERVAL, WIDTH, inContainer, movePointerAway } from "./container"
 
 export interface GraphProps {
   nodes: Nodes
@@ -44,6 +44,22 @@ type Position = { x: number; y: number }
 
 type LayoutsListener = "onUpdate:layouts" | "onUpdate:layoutsOnce" | null
 
+/** The props with the unset ones at their defaults, and a copy of the data. */
+export function fillGraphProps(props: GraphProps): Required<GraphProps> {
+  const { configs = {}, ...data } = props
+  return {
+    edges: {},
+    paths: {},
+    selectedNodes: [],
+    selectedEdges: [],
+    selectedPaths: [],
+    zoomLevel: 1,
+    // The graph updates the layouts in place, so each mount gets its own copy.
+    ...structuredClone(data),
+    configs,
+  }
+}
+
 /**
  * Mounts a graph whose origin is at the center of a fixed-size
  * container, with the v-model props and the emitted events recorded.
@@ -52,23 +68,15 @@ export async function mountGraph(
   props: GraphProps,
   { layoutsListener = "onUpdate:layouts" as LayoutsListener, slots = {} as Slots } = {}
 ) {
-  const { configs, ...data } = props
-  const initial: Required<GraphProps> = {
-    edges: {},
-    paths: {},
-    selectedNodes: [],
-    selectedEdges: [],
-    selectedPaths: [],
-    zoomLevel: 1,
-    // The graph updates the layouts in place, so each test gets its own copy.
-    ...structuredClone(data),
+  const filled = fillGraphProps(props)
+  const state = reactive({
+    ...filled,
     configs: {
-      ...configs,
+      ...filled.configs,
       // at() relies on the origin being at the center.
-      view: { ...configs?.view, autoPanAndZoomOnLoad: "center-zero" },
+      view: { ...filled.configs.view, autoPanAndZoomOnLoad: "center-zero" as const },
     },
-  }
-  const state = reactive(initial)
+  })
   const listener = ref(layoutsListener)
   const events: RecordedEvent[] = []
   let layoutsUpdates = 0
@@ -113,7 +121,12 @@ export async function mountGraph(
         )
     )
   )
-  await vi.waitUntil(() => events.some(e => e.type === "view:load"), { timeout: 5000 })
+  await vi.waitUntil(() => events.some(e => e.type === "view:load"), {
+    timeout: 5000,
+    interval: POLL_INTERVAL,
+  })
+  // svg-pan-zoom writes the pan and zoom on the next animation frame.
+  await new Promise(resolve => requestAnimationFrame(resolve))
   const canvas = page.elementLocator(screen.container.querySelector("svg.v-ng-canvas")!)
 
   await movePointerAway()

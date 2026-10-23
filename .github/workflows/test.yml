@@ -64,6 +64,29 @@ jobs:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ steps.pnpm-cache.outputs.cache-primary-key }}
 
+      # Playwright installs the system packages of the browser with apt, whose mirrors sometimes
+      # take minutes to send them. The browser itself downloads in seconds, so it is not cached.
+      # The packages follow the runner image and the Playwright version.
+      - name: Name the Playwright system packages
+        id: playwright-packages
+        run: |
+          version=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
+          if [ -z "$version" ]; then
+            echo "playwright is not in pnpm-lock.yaml" >&2
+            exit 1
+          fi
+          echo "prefix=playwright-packages-$ImageOS-" >> "$GITHUB_OUTPUT"
+          echo "key=playwright-packages-$ImageOS-$ImageVersion-$version" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the Playwright system packages
+        id: playwright-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/playwright-packages
+          key: ${{ steps.playwright-packages.outputs.key }}
+          # As with the pnpm store, main starts from no packages, so the saved ones are all in use.
+          restore-keys: ${{ github.ref != 'refs/heads/main' && steps.playwright-packages.outputs.prefix || '' }}
+
       # Safe to share the checkout: none of the checks reads what the build writes. Oxlint and
       # Oxfmt skip gitignored files, and ESLint lints only .vue files and ignores lib/.
       - parallel:
@@ -79,8 +102,27 @@ jobs:
           # Installs Chromium here so that the other checks do not wait for it.
           - name: Test
             run: |
+              mkdir -p ~/playwright-packages
+              find ~/playwright-packages -name '*.deb' -exec sudo cp -t /var/cache/apt/archives {} +
               pnpm exec playwright install --with-deps chromium
+              find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/playwright-packages {} +
               pnpm test
+
+      # Also when the tests fail, but not without the packages, which would be restored from then on.
+      - name: Check for the Playwright system packages
+        id: playwright-saved
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.playwright-cache.outputs.cache-hit != 'true' }}
+        run: |
+          if find ~/playwright-packages -name '*.deb' | grep -q .; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save the Playwright system packages
+        if: ${{ !cancelled() && steps.playwright-saved.outputs.found == 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/playwright-packages
+          key: ${{ steps.playwright-cache.outputs.cache-primary-key }}
 
   # The snapshots and screenshots that depend on the fonts, in the image they were written in.
   # On arm64, like the Apple Silicon Macs that write them.

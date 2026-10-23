@@ -1,8 +1,7 @@
-import { describe, expect, test, vi } from "vitest"
+import { describe, test } from "vitest"
 import type { Paths } from "@/index"
 import { GraphProps, mountGraph } from "./helpers/graph"
-import { serializeGraph } from "./helpers/serialize"
-import { alignNumbers } from "./helpers/snapshot"
+import { expectToRenderAs, markupOf } from "./helpers/markup"
 
 interface UpdateCase {
   name: string
@@ -221,16 +220,10 @@ describe.each(Object.entries(cases))("updating %s after mount", (_, featureCases
     const after = c.props()
     c.update(after)
     const fresh = await mountGraph(after)
-    const expected = serializeGraph(fresh.screen.container, { sortAttributes: true })
+    const expected = markupOf(fresh.screen.container)
 
     const { screen, state } = await mountGraph(c.props())
     c.update(state)
-    await vi.waitFor(
-      () => {
-        const actual = serializeGraph(screen.container, { sortAttributes: true })
-        expect(alignNumbers(actual, expected)).toBe(expected)
-      },
-      { timeout: 5000 }
-    )
+    await expectToRenderAs(screen.container, expected)
   })
 })

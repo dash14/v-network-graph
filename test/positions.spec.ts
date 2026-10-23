@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest"
 import { h, nextTick } from "vue"
 import type { Layouts, UserConfigs } from "@/index"
 import { mountGraph } from "./helpers/graph"
-import { serializeGraph } from "./helpers/serialize"
+import { markupOf } from "./helpers/markup"
 
 const nodes = {
   node1: { name: "Node 1", size: 16 },
@@ -47,19 +47,6 @@ function configsWith(type: "straight" | "curve"): UserConfigs {
       gap: 20,
     },
   }
-}
-
-/**
- * The graph's markup, without the instance number in the marker ids and with the
- * attributes sorted, since an attribute added on an update goes after the others.
- */
-function markupOf(container: Element) {
-  return serializeGraph(container)
-    .replace(/marker_v-\d+_/g, "marker_")
-    .replace(/<([\w-]+)((?: [\w:-]+="[^"]*")*)/g, (_, tag: string, attrs: string) => {
-      const sorted = attrs.match(/ [\w:-]+="[^"]*"/g)?.sort() ?? []
-      return `<${tag}${sorted.join("")}`
-    })
 }
 
 describe("positions", () => {

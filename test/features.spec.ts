@@ -1,18 +1,8 @@
 /// <reference types="vite/client" />
 import { describe, expect, test } from "vitest"
-import { GraphCase, mountGraph } from "./helpers/graph"
+import { featureCases as cases } from "./helpers/cases"
+import { mountGraph } from "./helpers/graph"
 import { expectGraphToMatchSnapshot, snapshotNames } from "./helpers/snapshot"
-
-// Settings that the documentation examples leave out, grouped by the feature they cover.
-const modules = import.meta.glob<GraphCase[]>("./features/*.ts", {
-  eager: true,
-  import: "default",
-})
-
-const cases = Object.entries(modules).flatMap(([path, featureCases]) => {
-  const feature = path.replace(/^\.\/features\/(.*)\.ts$/, "$1")
-  return featureCases.map(c => ({ ...c, name: `${feature}/${c.name}` }))
-})
 
 const snapshots = snapshotNames(
   Object.keys(import.meta.glob("./__snapshots__/features/**/*.svg")),
