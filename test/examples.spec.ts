@@ -1,19 +1,8 @@
 /// <reference types="vite/client" />
 import { describe, expect, test } from "vitest"
-import { Component } from "vue"
+import { exampleCases as cases } from "./helpers/cases"
 import { renderFixture } from "./helpers/render"
 import { expectGraphToMatchSnapshot, snapshotNames } from "./helpers/snapshot"
-
-// Adapted from the examples in the documentation, without their control panels.
-const fixtures = import.meta.glob<Component>("./fixtures/**/Fixture.vue", {
-  eager: true,
-  import: "default",
-})
-
-const cases = Object.entries(fixtures).map(([path, component]) => ({
-  name: path.replace(/^\.\/fixtures\/(.*)\/Fixture\.vue$/, "$1"),
-  component,
-}))
 
 const snapshots = snapshotNames(
   Object.keys(import.meta.glob("./__snapshots__/examples/**/*.svg")),
