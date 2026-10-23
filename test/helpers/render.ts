@@ -1,6 +1,5 @@
 import { onTestFinished, vi } from "vitest"
-import { render } from "vitest-browser-vue"
-import type { RenderResult } from "vitest-browser-vue"
+import { cleanup, render } from "vitest-browser-vue"
 import { Component, camelize, defineComponent, h, reactive, toRaw } from "vue"
 import * as components from "@/components/index"
 import VNetworkGraphPlugin from "@/index"
@@ -24,7 +23,8 @@ const VIEW_PROPS = ["selectedNodes", "selectedEdges", "selectedPaths", "zoomLeve
  * Renders as `renderFixture` does, with the props that the fixture passes to the graph in
  * `state`, so that a test can change them. `prepare` changes them before the graph mounts.
  * The data is changed in place, since the slots of the fixtures read it, and as the fixtures
- * share it between mounts, `unmount` puts it back, as the end of the test does.
+ * share it between mounts, `unmount` puts it back, as the end of the test does. It unmounts
+ * every graph rendered in the test.
  */
 export async function renderFixtureWithState(
   component: Component,
@@ -68,14 +68,13 @@ export async function renderFixtureWithState(
       return () => h(components.VNetworkGraph, { ...given(), ...s, ...listeners }, slots)
     },
   })
-  let screen: RenderResult<unknown> | undefined
+  // cleanup() rather than the unmount of the result, which leaves the container behind.
   const unmount = () => {
-    screen?.unmount()
-    screen = undefined
+    cleanup()
     originals.splice(0).forEach(([value, original]) => restore(value, original))
   }
   onTestFinished(unmount)
-  screen = await render(
+  const screen = await render(
     defineComponent(() => () => inContainer(h(component))),
     { global: { components: { ...components, VNetworkGraph: GraphWithState } } }
   )
@@ -122,13 +121,13 @@ async function waitUntilShown(container: Element) {
 }
 
 // The force layout moves the nodes on animation frames until its simulation ends. A graph
-// that does not change on the first frame does not move, so it is not watched any longer.
+// that does not change on the first frames does not move, so it is not watched any longer.
 export async function waitUntilStill(container: Element, stillFrames = 5, timeout = 20000) {
   const deadline = performance.now() + timeout
   let previous = container.innerHTML
   let moved = false
   let count = 0
-  while (count < (moved ? stillFrames : 1)) {
+  while (count < (moved ? stillFrames : 2)) {
     await new Promise(resolve => requestAnimationFrame(resolve))
     const current = container.innerHTML
     if (current === previous) {

@@ -4,6 +4,9 @@ import { expectToRenderAs, markupOf } from "../helpers/markup"
 import { renderFixtureWithState } from "../helpers/render"
 import { updates } from "../helpers/updates"
 
+// Deselecting a path with an animation leaves an empty style.
+const options = { ignoreEmptyStyles: true }
+
 // The force layout places the nodes itself, so they do not stay where an update puts them.
 const cases = exampleCases.filter(c => !c.name.startsWith("layout/force-layout"))
 
@@ -18,11 +21,11 @@ describe.each(updates)("$name after mount", ({ name, update }) => {
 
   test.each(supported)("renders examples/$name as mounting the result does", async c => {
     const fresh = await renderFixtureWithState(c.component, update)
-    const expected = markupOf(fresh.screen.container)
+    const expected = markupOf(fresh.screen.container, options)
     fresh.unmount()
 
     const { screen, state } = await renderFixtureWithState(c.component)
     update(state)
-    await expectToRenderAs(screen.container, expected)
+    await expectToRenderAs(screen.container, expected, options)
   })
 })
