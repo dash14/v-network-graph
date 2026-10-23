@@ -71,6 +71,10 @@ jobs:
         id: playwright-packages
         run: |
           version=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
+          if [ -z "$version" ]; then
+            echo "playwright is not in pnpm-lock.yaml" >&2
+            exit 1
+          fi
           echo "prefix=playwright-packages-$ImageOS-" >> "$GITHUB_OUTPUT"
           echo "key=playwright-packages-$ImageOS-$ImageVersion-$version" >> "$GITHUB_OUTPUT"
 
@@ -104,8 +108,17 @@ jobs:
               find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/playwright-packages {} +
               pnpm test
 
+      # Also when the tests fail, but not without the packages, which would be restored from then on.
+      - name: Check for the Playwright system packages
+        id: playwright-saved
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.playwright-cache.outputs.cache-hit != 'true' }}
+        run: |
+          if find ~/playwright-packages -name '*.deb' | grep -q .; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Save the Playwright system packages
-        if: github.ref == 'refs/heads/main' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: ${{ !cancelled() && steps.playwright-saved.outputs.found == 'true' }}
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/playwright-packages
