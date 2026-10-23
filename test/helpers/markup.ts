@@ -1,4 +1,5 @@
 import { expect, vi } from "vitest"
+import { POLL_INTERVAL } from "./container"
 import { serializeGraph } from "./serialize"
 import { alignNumbers } from "./snapshot"
 
@@ -17,5 +18,6 @@ export function markupOf(container: Element) {
 export async function expectToRenderAs(container: Element, expected: string) {
   await vi.waitFor(() => expect(alignNumbers(markupOf(container), expected)).toBe(expected), {
     timeout: 5000,
+    interval: POLL_INTERVAL,
   })
 }

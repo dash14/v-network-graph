@@ -4,7 +4,7 @@ import type { RenderResult } from "vitest-browser-vue"
 import { Component, camelize, defineComponent, h, reactive, toRaw } from "vue"
 import * as components from "@/components/index"
 import VNetworkGraphPlugin from "@/index"
-import { inContainer, movePointerAway } from "./container"
+import { POLL_INTERVAL, inContainer, movePointerAway } from "./container"
 import type { GraphState } from "./updates"
 
 /** Renders in a fixed-size container and waits until the graph stops moving. */
@@ -113,20 +113,30 @@ function isPlainObject(value: unknown): value is object {
 }
 
 async function waitUntilShown(container: Element) {
-  await vi.waitUntil(() => container.querySelector(".v-ng-canvas.show"), { timeout: 5000 })
+  await vi.waitUntil(() => container.querySelector(".v-ng-canvas.show"), {
+    timeout: 5000,
+    interval: POLL_INTERVAL,
+  })
   await movePointerAway()
   await waitUntilStill(container)
 }
 
-// The force layout moves the nodes on animation frames until its simulation ends.
+// The force layout moves the nodes on animation frames until its simulation ends. A graph
+// that does not change on the first frame does not move, so it is not watched any longer.
 export async function waitUntilStill(container: Element, stillFrames = 5, timeout = 20000) {
   const deadline = performance.now() + timeout
   let previous = container.innerHTML
+  let moved = false
   let count = 0
-  while (count < stillFrames) {
+  while (count < (moved ? stillFrames : 1)) {
     await new Promise(resolve => requestAnimationFrame(resolve))
     const current = container.innerHTML
-    count = current === previous ? count + 1 : 0
+    if (current === previous) {
+      count++
+    } else {
+      moved = true
+      count = 0
+    }
     if (performance.now() > deadline) throw new Error("The graph did not stop moving")
     previous = current
   }

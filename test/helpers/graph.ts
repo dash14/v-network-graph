@@ -15,7 +15,7 @@ import type {
   UserConfigs,
   VNetworkGraphInstance,
 } from "@/index"
-import { HEIGHT, WIDTH, inContainer, movePointerAway } from "./container"
+import { HEIGHT, POLL_INTERVAL, WIDTH, inContainer, movePointerAway } from "./container"
 
 export interface GraphProps {
   nodes: Nodes
@@ -113,7 +113,12 @@ export async function mountGraph(
         )
     )
   )
-  await vi.waitUntil(() => events.some(e => e.type === "view:load"), { timeout: 5000 })
+  await vi.waitUntil(() => events.some(e => e.type === "view:load"), {
+    timeout: 5000,
+    interval: POLL_INTERVAL,
+  })
+  // svg-pan-zoom writes the pan and zoom on the next animation frame.
+  await new Promise(resolve => requestAnimationFrame(resolve))
   const canvas = page.elementLocator(screen.container.querySelector("svg.v-ng-canvas")!)
 
   await movePointerAway()
