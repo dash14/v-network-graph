@@ -27,7 +27,7 @@ import {
   NodeConfig,
   OppositeNode,
 } from "@/common/configs"
-import { StrokeStyle } from "@/common/configs"
+import { ShapeStyle, StrokeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { FixablePosition, UserLayouts } from "@/common/types"
 import { Position } from "@/common/types"
@@ -489,6 +489,11 @@ function initialEdgeGeometry(): EdgeGeometry {
   }
 }
 
+// Colors do not change where an edge is drawn, so they are left out of what is compared.
+function withoutColors(shape: ShapeStyle): ShapeStyle {
+  return { ...shape, color: "", strokeColor: undefined, strokeDasharray: undefined }
+}
+
 function createNewEdgeState(
   edges: Ref<Edges>,
   id: string,
@@ -583,11 +588,19 @@ function createNewEdgeState(
     return {
       sourceId: edge.source,
       targetId: edge.target,
-      sourceShape: { ...sourceShape },
-      targetShape: { ...targetShape },
-      layoutPoint: layoutPoint && { ...layoutPoint, edge: toRaw(layoutPoint.edge) },
+      sourceShape: withoutColors(sourceShape),
+      targetShape: withoutColors(targetShape),
+      // Only the ends of the user's edge, which may carry any data.
+      layoutPoint: layoutPoint && {
+        ...layoutPoint,
+        edge: { source: layoutPoint.edge.source, target: layoutPoint.edge.target },
+      },
       summarized: isEdgeSummarized.value ?? false,
-      line: { normalWidth: l.normalWidth, source: { ...l.source }, target: { ...l.target } },
+      line: {
+        normalWidth: l.normalWidth,
+        source: { ...l.source, color: null },
+        target: { ...l.target, color: null },
+      },
       // A self-loop is drawn the same with any type, so it does not track it.
       type: selfLoop ? "straight" : config.type,
       margin: config.margin,
