@@ -27,24 +27,17 @@ import {
   NodeConfig,
   OppositeNode,
 } from "@/common/configs"
-import { StrokeStyle, ShapeStyle, SelfLoopEdgeStyle } from "@/common/configs"
+import { StrokeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { FixablePosition, UserLayouts } from "@/common/types"
-import { LinePosition, Position } from "@/common/types"
+import { Position } from "@/common/types"
 import { useId } from "@/composables/id"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import * as PathModel from "@/models/path"
-import * as v2d from "@/modules/calculation/2d"
-import * as LineUtils from "@/modules/calculation/line"
-import { VectorLine } from "@/modules/calculation/line"
 import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
-import * as PointUtils from "@/modules/calculation/point"
+import { calculateEdgeGeometry } from "@/modules/edge/geometry"
 import * as EdgeGroup from "@/modules/edge/group"
-import * as NodeUtils from "@/modules/node/node"
-import { Vector2D } from "@/modules/vector2d"
-import * as V2D from "@/modules/vector2d"
-import { Point2D } from "@/modules/vector2d/core"
 import { updateObjectDiff } from "@/utils/object"
 import { MarkerState, useMarker } from "./marker"
 import { useObjectState } from "./objectState"
@@ -546,111 +539,25 @@ function createNewEdgeState(
     const source = toRaw(positions[edge.source]) ?? { x: 0, y: 0 }
     const target = toRaw(positions[edge.target]) ?? { x: 0, y: 0 }
 
-    // calculate the line segment between center of nodes
-    const shiftedPosition = EdgeGroup.calculateEdgeShiftedPosition(
-      edgeLayoutPoint.value,
-      isEdgeSummarized.value ?? false,
+    const geometry = calculateEdgeGeometry({
       source,
       target,
-      scale.value,
-      config.keepOrder
-    )
-
-    const [sourceShapeMargin, targetShapeMargin] =
-      v2d.calculateDistancesFromCenterOfNodeToEndOfNode(source, target, sourceShape, targetShape)
-
-    const s = scale.value
-
-    // calculate the line segment between the outermost of the nodes
-    state.labelPosition = LineUtils.applyMargin(
-      shiftedPosition,
-      sourceShapeMargin * s,
-      targetShapeMargin * s
-    )
-
-    // calculate margins
-    let sourceMargin = 0
-    let targetMargin = 0
-    const l = line.value
-    if (l.source.type !== "none") {
-      const marker = l.source
-      sourceMargin = marker.margin + marker.width
-      if (marker.units === "strokeWidth") {
-        sourceMargin *= l.normalWidth
-      }
-    }
-    if (l.target.type !== "none") {
-      const marker = l.target
-      targetMargin = marker.margin + marker.width
-      if (marker.units === "strokeWidth") {
-        targetMargin *= l.normalWidth
-      }
-    }
-
-    if (config.margin) {
-      sourceMargin += config.margin
-      targetMargin += config.margin
-    }
-
-    const isStartEdgeOfNode =
-      !!config.margin || l.source.type !== "none" || l.target.type !== "none"
-
-    // calculate self-loop edge
-    if (edge.source === edge.target) {
-      state.origin = LineUtils.toLinePosition(source, target)
-
-      const selfLoopStyle = Config.values(config.selfLoop, edge)
-      const [position, arc] = calculateArcPositionAndState(
-        source,
-        sourceShape,
-        selfLoopStyle,
-        isStartEdgeOfNode,
-        sourceMargin,
-        targetMargin,
-        edgeLayoutPoint.value?.pointInGroup ?? 0,
-        s
-      )
-      state.position = position
-      state.loop = arc
-      state.curve = undefined
-      return
-    } else {
-      state.loop = undefined
-    }
-
-    if (isStartEdgeOfNode) {
-      sourceMargin += sourceShapeMargin
-      targetMargin += targetShapeMargin
-    }
-
-    // calculate the line segments to be displayed with margins applied
-    const type = config.type
-    if (type === "straight" || isEdgeSummarized.value) {
-      state.origin = shiftedPosition
-      state.curve = undefined
-      if (sourceMargin === 0 && targetMargin === 0) {
-        state.position = state.origin
-      } else {
-        state.position = LineUtils.applyMargin(state.origin, sourceMargin * s, targetMargin * s)
-      }
-    } else {
-      // curve
-      state.origin = LineUtils.toLinePosition(source, target)
-
-      const shift = edgeLayoutPoint.value // undefined after node deletion
-        ? edgeLayoutPoint.value.groupWidth / 2 - edgeLayoutPoint.value.pointInGroup
-        : 0
-
-      const [position, curve] = calculateCurvePositionAndState(
-        state.origin,
-        shiftedPosition,
-        shift,
-        sourceMargin * s,
-        targetMargin * s
-      )
-      state.position = position
-      state.curve = curve
-    }
+      sourceShape,
+      targetShape,
+      layoutPoint: edgeLayoutPoint.value,
+      summarized: isEdgeSummarized.value ?? false,
+      line: line.value,
+      type: config.type,
+      margin: config.margin,
+      keepOrder: config.keepOrder,
+      selfLoop: edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined,
+      scale: scale.value,
+    })
+    state.origin = geometry.origin
+    state.labelPosition = geometry.labelPosition
+    state.position = geometry.position
+    state.curve = geometry.curve
+    state.loop = geometry.loop
   }
   const place = effect(placeEdge, { scheduler: () => edgePlacement.schedule(id) })
   edgePlacement.placers.set(id, place)
@@ -712,180 +619,6 @@ function createEdgeEntries(
       }
     })
     .flat()
-}
-
-function calculateCurvePositionAndState(
-  originPosition: LinePosition,
-  shiftedPosition: LinePosition,
-  shift: number,
-  sourceMargin: number,
-  targetMargin: number
-): [LinePosition, EdgeModel.Curve | undefined] {
-  // The curve is assumed to be part of a perfect circle and is drawn
-  // as a Bezier curve.
-
-  const origin = VectorLine.fromLinePosition(originPosition)
-  const shifted = VectorLine.fromLinePosition(shiftedPosition)
-  const shiftedCenter = LineUtils.getCenterOfLinePosition(shiftedPosition)
-
-  // Calculate the center and radius of the circle of the curve.
-  const [center, radius] = v2d.calculateCircleCenterAndRadiusBy3Points(
-    origin.source,
-    origin.target,
-    shiftedCenter
-  )
-
-  let position: LinePosition
-  let curve: EdgeModel.Curve | undefined = undefined
-
-  if (radius === 0) {
-    return [originPosition, curve]
-  } else if (shift === 0) {
-    // The line connecting the centers of the nodes is regarded as a straight line.
-    if (sourceMargin === 0 && targetMargin === 0) {
-      position = originPosition
-    } else {
-      position = LineUtils.applyMargin(originPosition, sourceMargin, targetMargin)
-    }
-    return [position, curve]
-  }
-
-  // Apply margin to the line.
-  const centerToTop = VectorLine.fromVectors(center, shiftedCenter)
-
-  // Direction of rotation from source to center:
-  const theta0 = v2d.calculateRelativeAngleRadian(
-    VectorLine.fromVectors(center, origin.source),
-    centerToTop
-  )
-
-  if (sourceMargin === 0 && targetMargin === 0) {
-    position = originPosition
-  } else {
-    // The endpoints of the display line are the point on the circumference
-    // moved by the margin from the origin end points.
-    let sourceMoveRad = sourceMargin / radius
-    let targetMoveRad = targetMargin / radius
-
-    // Determine which direction to move.
-    if (theta0 > 0) {
-      sourceMoveRad *= -1
-      targetMoveRad *= -1
-    }
-    position = LineUtils.toLinePosition(
-      v2d.moveOnCircumference(origin.source, center, sourceMoveRad),
-      v2d.moveOnCircumference(origin.target, center, -targetMoveRad)
-    )
-
-    // If the endpoints are swapped by applying the margin,
-    // a short line is shown at the center.
-    let theta1 = v2d.calculateRelativeAngleRadian(
-      VectorLine.fromVectors(center, origin.source),
-      VectorLine.fromVectors(center, origin.target)
-    )
-    let theta2 = v2d.calculateRelativeAngleRadian(
-      VectorLine.fromPositions(center, position.p1),
-      VectorLine.fromPositions(center, position.p2)
-    )
-    if (theta0 * theta1 < 0) {
-      theta1 = v2d.reverseAngleRadian(theta1)
-      if (theta0 * theta2 < 0) {
-        theta2 = v2d.reverseAngleRadian(theta2)
-      }
-    }
-    if (theta1 * theta2 < 0) {
-      // reversed
-      const c = shiftedCenter.clone().add(shifted.v.normalize().multiplyScalar(0.5))
-      position = LineUtils.toLinePosition(shiftedCenter, c)
-      return [position, curve]
-    }
-  }
-
-  // Calculate the control/via points of a Bezier curve.
-  const [p1, p2] = LineUtils.toVectorsFromLinePosition(position)
-  const control = v2d
-    .calculateBezierCurveControlPoint(p1, center, p2, theta0)
-    .map(p => p.toObject())
-
-  curve = {
-    center: shiftedCenter,
-    theta: theta0,
-    circle: { center, radius },
-    control,
-  }
-  return [position, curve]
-}
-
-function calculateArcPositionAndState(
-  nodePos: Position,
-  nodeShape: ShapeStyle,
-  selfLoopStyle: SelfLoopEdgeStyle,
-  isStartEdgeOfNode: boolean,
-  sourceMargin: number,
-  targetMargin: number,
-  pointInGroup: number,
-  scale: number
-): [LinePosition, EdgeModel.Arc] {
-  const s = scale
-
-  // calculate the center position of the Arc
-  const radius = (selfLoopStyle.radius + pointInGroup / 2) * s
-  const d = selfLoopStyle.offset * s + radius
-  const rad = (selfLoopStyle.angle - 90) * (Math.PI / 180)
-  const center = Vector2D.fromObject({
-    x: nodePos.x + d * Math.cos(rad),
-    y: nodePos.y + d * Math.sin(rad),
-  })
-
-  const isClockwise = selfLoopStyle.isClockwise
-
-  let p1: Point2D | undefined, p2: Point2D | undefined
-  if (isStartEdgeOfNode) {
-    const intersects = PointUtils.getIntersectionOfCircles(
-      center,
-      radius,
-      Vector2D.fromObject(nodePos),
-      NodeUtils.getNodeRadius(nodeShape) * s
-    )
-    if (intersects) {
-      ;[p1, p2] = intersects
-      let direction = 1
-      if (!isClockwise) {
-        ;[p1, p2] = [p2, p1]
-        direction = -1
-      }
-      if (sourceMargin !== 0 || targetMargin !== 0) {
-        const sourceMoveRad = ((sourceMargin * s) / radius) * direction
-        const targetMoveRad = ((targetMargin * s) / radius) * direction
-        p1 = v2d.moveOnCircumference(p1, center, sourceMoveRad)
-        p2 = v2d.moveOnCircumference(p2, center, -targetMoveRad)
-      }
-    }
-  }
-  if (p1 === undefined || p2 === undefined) {
-    const radiusLine = Vector2D.fromObject(nodePos)
-      .subtract(center)
-      .normalize()
-      .multiplyScalar(radius)
-    let rad = 1 * (Math.PI / 180)
-    if (!isClockwise) rad *= -1
-    p1 = center.clone().add(V2D.rotate(radiusLine, rad))
-    p2 = center.clone().add(V2D.rotate(radiusLine, -rad))
-  }
-  const a1 = Vector2D.fromObject(p1).subtract(center).angleDegree()
-  const a2 = Vector2D.fromObject(p2).subtract(center).angleDegree()
-  const angle = (a2 + 360 - a1) % 360
-
-  const isLargeArc = angle >= 180 ? true : false
-  return [
-    { p1, p2 },
-    {
-      center,
-      radius: [radius, radius],
-      isLargeArc: isClockwise ? isLargeArc : !isLargeArc,
-      isClockwise,
-    },
-  ]
 }
 
 function createSummarizedEdgeStates(
