@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { h, nextTick } from "vue"
+import { h, nextTick, reactive, readonly } from "vue"
 import type { Layouts, UserConfigs } from "@/index"
-import { mountGraph } from "./helpers/graph"
+import { at, drag, mountGraph } from "./helpers/graph"
 import { markupOf } from "./helpers/markup"
 
 const nodes = {
@@ -140,6 +140,50 @@ describe("positions", () => {
       el.getAttribute("transform")
     )
     expect(transforms).toContain("translate(200 0)")
+  })
+
+  test("a node added again follows the layouts given last without a v-model", async () => {
+    const { screen, state } = await mountGraph(
+      {
+        nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
+        layouts: { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } },
+      },
+      { layoutsListener: null }
+    )
+    state.layouts = { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } }
+    await nextTick()
+    const node2 = state.nodes.node2
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = node2
+    await nextTick()
+
+    state.layouts.nodes.node2.x = 300
+    await nextTick()
+
+    const transforms = [...screen.container.querySelectorAll(".v-ng-node")].map(el =>
+      el.getAttribute("transform")
+    )
+    expect(transforms).toContain("translate(300 0)")
+  })
+
+  test("a node added again does not write to readonly layouts", async () => {
+    const given = reactive({ nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } })
+    const { canvas, state } = await mountGraph(
+      { nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } }, layouts: { nodes: {} } },
+      { layoutsListener: null }
+    )
+    state.layouts = readonly(given) as Layouts
+    await nextTick()
+    const node2 = state.nodes.node2
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = node2
+    await nextTick()
+
+    await drag(canvas, at(100, 0), at(150, 50))
+
+    expect(given.nodes.node2).toEqual({ x: 100, y: 0 })
   })
 
   test("a node whose position is removed is drawn at the origin with its edges", async () => {

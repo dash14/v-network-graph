@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { readonly, ref, toRef, computed, nextTick, watch, CSSProperties } from "vue"
+import { readonly, ref, toRaw, toRef, computed, nextTick, watch, CSSProperties } from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
@@ -360,8 +360,9 @@ provideLayouts(currentLayouts)
 // Shallow: the given position objects are taken as they are, so a change of their coordinates
 // reaches the graph without walking them all.
 watch(
-  () => ({ ...props.layouts.nodes }),
-  nodes => Object.assign(currentLayouts.nodes, nodes),
+  // With v-model the given layouts are the graph's own once emitted, and need no copy.
+  () => (toRaw(props.layouts) === toRaw(currentLayouts) ? undefined : { ...props.layouts.nodes }),
+  nodes => nodes && Object.assign(currentLayouts.nodes, nodes),
   { immediate: true }
 )
 
@@ -407,7 +408,7 @@ const { nodeStates, edgeStates, pathStates, positionChanges, layoutsChanged, edg
     makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
     readonly(configs),
     currentLayouts,
-    props.layouts,
+    () => props.layouts,
     markerState,
     scale
   )

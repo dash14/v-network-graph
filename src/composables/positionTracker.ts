@@ -52,7 +52,16 @@ export function trackNodePositions(
         continue
       }
       if (last?.x !== x || last?.y !== y) moved.add(id)
-      tracked.set(id, { x, y, givenX, givenY, fixed })
+      // Updated in place, since a layout tick changes every position.
+      if (last) {
+        last.x = x
+        last.y = y
+        last.givenX = givenX
+        last.givenY = givenY
+        last.fixed = fixed
+      } else {
+        tracked.set(id, { x, y, givenX, givenY, fixed })
+      }
       isChanged = true
     }
     // Every id seen is in the map, so a larger map holds removed positions.

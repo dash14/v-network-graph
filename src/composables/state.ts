@@ -119,7 +119,7 @@ export function provideStates(
   paths: InputObjects<Paths>,
   configs: Readonly<Configs>,
   layouts: Reactive<Layouts>,
-  readonlyLayouts: Readonly<UserLayouts>,
+  givenLayouts: () => Readonly<UserLayouts>,
   makerState: MarkerState,
   scale: ComputedRef<number>
 ) {
@@ -160,7 +160,7 @@ export function provideStates(
         configs.node,
         opposingNodes,
         layouts,
-        readonlyLayouts
+        givenLayouts
       )
     },
     (nodeId, _state) => {
@@ -373,14 +373,16 @@ function createNewNodeState(
   config: NodeConfig,
   oppositeNodeIds: Reactive<Record<string, Record<string, string>>>,
   layouts: Reactive<Layouts>,
-  readonlyLayouts: Readonly<UserLayouts>
+  givenLayouts: () => Readonly<UserLayouts>
 ) {
   // Deleted nodes will lose their position. If it is not a two-way binding,
   // the position remains in the layout specified by the user and is reacquired.
   /* eslint-disable no-restricted-syntax -- takes the given position as it is */
-  if (!layouts.nodes[id] && readonlyLayouts.nodes?.[id]) {
+  const given = givenLayouts().nodes?.[id]
+  if (!layouts.nodes[id] && given) {
     // The given object itself, as when the layouts were first taken, so that it keeps following it.
-    layouts.nodes[id] = <FixablePosition>toRaw(readonlyLayouts.nodes[id])
+    // A readonly one stays readonly, as a reactive object keeps it.
+    layouts.nodes[id] = <FixablePosition>given
   }
   /* eslint-enable no-restricted-syntax */
 
