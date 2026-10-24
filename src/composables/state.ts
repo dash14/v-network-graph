@@ -519,7 +519,6 @@ function createNewEdgeState(
   for (const key of GEOMETRY_KEYS) {
     Object.defineProperty(toRaw(state), key, {
       get: () => geometry[key].value,
-      set: v => (geometry[key].value = v),
       enumerable: true,
       configurable: true,
     })

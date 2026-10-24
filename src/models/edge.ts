@@ -53,11 +53,12 @@ export interface EdgeStateDatum {
   selectable: ComputedRef<boolean | number>
   selected: boolean
   hovered: boolean
-  origin: LinePosition // line segment between center of nodes
-  labelPosition: LinePosition // line segment between the outermost of the nodes for labels
-  position: LinePosition // line segments to be displayed with margins applied
-  curve?: Curve
-  loop?: Arc
+  // Given by the placement of the edge, which replaces them
+  readonly origin: LinePosition // line segment between center of nodes
+  readonly labelPosition: LinePosition // line segment between the outermost of the nodes for labels
+  readonly position: LinePosition // line segments to be displayed with margins applied
+  readonly curve?: Curve
+  readonly loop?: Arc
   sourceMarkerId?: string
   targetMarkerId?: string
   zIndex: ComputedRef<number>
