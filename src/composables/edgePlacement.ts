@@ -6,11 +6,11 @@ import { computed, effect, shallowRef, stop, toRaw, toRef, triggerRef, watchEffe
 import { Reactive } from "@/common/common"
 import { Config, EdgeConfig, ShapeStyle } from "@/common/configs"
 import { Edges, Layouts } from "@/common/types"
-import type { PositionChanges } from "@/composables/state"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
 import { untrackedPositionOf } from "@/modules/node/position"
+import type { PositionChanges } from "./positionWriter"
 
 type EdgePlacementStyle = Omit<EdgeGeometryInput, "source" | "target" | "scale"> & {
   sourceId: string
@@ -34,6 +34,9 @@ function withoutColors(shape: ShapeStyle): ShapeStyle {
   return { ...shape, color: "", strokeColor: undefined, strokeDasharray: undefined }
 }
 
+/** The parts of the geometry of an edge, each replaced as the edge is placed. */
+export type EdgeGeometryRefs = { [K in keyof EdgeGeometry]: ShallowRef<EdgeGeometry[K]> }
+
 export interface EdgePlacement {
   /** The geometry of each placed edge, to read without tracking. */
   geometries: ReadonlyMap<string, EdgeGeometry>
@@ -42,14 +45,13 @@ export interface EdgePlacement {
   /** Start re-placing the edges whose style changed, after the edges are created. */
   followStyleChanges: () => void
   /**
-   * Start placing an edge, whose state shows its geometry.
-   * @returns the function to stop placing it
+   * Start placing an edge.
+   * @returns the geometry of the edge, and the function to stop placing it
    */
   startPlacing: (
     id: string,
-    state: EdgeModel.EdgeStateDatum,
     line: ComputedRef<EdgeModel.Line>
-  ) => () => void
+  ) => { geometry: EdgeGeometryRefs; stop: () => void }
 }
 
 export function makeEdgePlacement(
@@ -91,25 +93,14 @@ export function makeEdgePlacement(
     })
   }
 
-  const startPlacing = (
-    id: string,
-    state: EdgeModel.EdgeStateDatum,
-    line: ComputedRef<EdgeModel.Line>
-  ) => {
+  const startPlacing = (id: string, line: ComputedRef<EdgeModel.Line>) => {
     // One ref for each part, so that a straight edge staying straight does not notify the readers
     // of its curve and loop.
     const initial = initialEdgeGeometry()
     geometries.set(id, initial)
     const geometry = Object.fromEntries(
       GEOMETRY_KEYS.map(key => [key, shallowRef(initial[key])])
-    ) as { [K in keyof EdgeGeometry]: ShallowRef<EdgeGeometry[K]> }
-    for (const key of GEOMETRY_KEYS) {
-      Object.defineProperty(toRaw(state), key, {
-        get: () => geometry[key].value,
-        enumerable: true,
-        configurable: true,
-      })
-    }
+    ) as EdgeGeometryRefs
 
     const edgeLayoutPoint: Ref<EdgeModel.EdgeLayoutPoint | undefined> = toRef(
       edgeGroupStates.edgeLayoutPoints,
@@ -190,11 +181,12 @@ export function makeEdgePlacement(
     })
     placers.set(id, place)
 
-    return () => {
+    const stopPlacing = () => {
       placers.delete(id)
       geometries.delete(id)
       stop(place)
     }
+    return { geometry, stop: stopPlacing }
   }
 
   return { geometries, placeEdges: ids => placeEdges(ids), followStyleChanges, startPlacing }

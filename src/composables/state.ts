@@ -1,4 +1,4 @@
-// the states of nodes and edges
+// Wires the states of nodes, edges and paths together
 
 import type { ComputedRef, InjectionKey, Ref } from "vue"
 import {
@@ -28,16 +28,13 @@ import { createNewNodeState, makeOpposingNodes } from "./nodeState"
 import { useObjectState } from "./objectState"
 import { createNewPathState } from "./pathState"
 import { trackNodePositions } from "./positionTracker"
+import type { PositionChanges } from "./positionWriter"
 
 // -----------------------------------------------------------------------
 // Type definitions
 // -----------------------------------------------------------------------
 
 export type { EdgeGroupStates } from "@/models/edge"
-
-// States of nodes
-
-// Provide states
 
 interface States {
   nodeStates: NodeModel.NodeStates
@@ -49,14 +46,6 @@ interface States {
   edgeZOrderedList: ComputedRef<EdgeModel.EdgeEntry[]>
   pathZOrderedList: ComputedRef<PathModel.PathState[]>
   layouts: Layouts
-}
-
-/** The nodes and edges whose positions changed since the last time they were taken. */
-export interface PositionChanges {
-  nodes: Set<string>
-  edges: Set<string>
-  /** Triggered when ids are added. */
-  changed: Ref<void>
 }
 
 export type ReadonlyStates = Readonly<States>
@@ -188,6 +177,7 @@ export function provideStates(
     () => edgeEntries.value
   )
 
+  // Made after the edge states, so that it runs after their effects in each flush.
   edgePlacement.followStyleChanges()
 
   // Re-places only the edges of the moved nodes, rather than every edge following the positions of

@@ -1,12 +1,12 @@
 // The states of edges
 
 import type { Ref } from "vue"
-import { computed, unref, watchEffect } from "vue"
+import { computed, toRaw, unref, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, Configs, EdgeConfig, MarkerStyle, StrokeStyle } from "@/common/configs"
 import { Edge, Edges } from "@/common/types"
-import type { EdgePlacement } from "@/composables/edgePlacement"
 import * as EdgeModel from "@/models/edge"
+import type { EdgeGeometryRefs, EdgePlacement } from "./edgePlacement"
 import { MarkerState, useMarker } from "./marker"
 
 const NONE_MARKER: MarkerStyle = {
@@ -64,7 +64,8 @@ export function createNewEdgeState(
     return { stroke, normalWidth, source, target }
   })
   state.line = line
-  const stopPlacing = placement.startPlacing(id, state, line)
+  const placing = placement.startPlacing(id, line)
+  showGeometry(state, placing.geometry)
 
   const stopUpdateMarkerHandle = watchEffect(() => {
     if (!edges.value[id]) return
@@ -85,10 +86,21 @@ export function createNewEdgeState(
   })
 
   state.stopWatchHandle = () => {
-    stopPlacing()
+    placing.stop()
     stopUpdateMarkerHandle()
     clearMarker(state.sourceMarkerId)
     clearMarker(state.targetMarkerId)
+  }
+}
+
+// Through accessors, since each placement replaces the parts.
+function showGeometry(state: EdgeModel.EdgeStateDatum, geometry: EdgeGeometryRefs) {
+  for (const key of Object.keys(geometry) as (keyof EdgeGeometryRefs)[]) {
+    Object.defineProperty(toRaw(state), key, {
+      get: () => geometry[key].value,
+      enumerable: true,
+      configurable: true,
+    })
   }
 }
 

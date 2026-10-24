@@ -1,11 +1,19 @@
+import type { Ref } from "vue"
 import { inject, InjectionKey, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
-import { PositionChanges } from "@/composables/state"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
 import { untrackedPositionOf } from "@/modules/node/position"
 
 type ElementRef = (el: unknown) => void
+
+/** The nodes and edges whose positions changed since the last time they were taken. */
+export interface PositionChanges {
+  nodes: Set<string>
+  edges: Set<string>
+  /** Triggered when ids are added. */
+  changed: Ref<void>
+}
 
 interface PositionWriter {
   nodeRef(id: string): ElementRef

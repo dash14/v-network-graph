@@ -86,6 +86,7 @@ describe("object transitions", () => {
     await nextTick()
 
     // Vue finishes the leave of the old one at once, as its key enters again.
+    expect(screen.container.querySelectorAll(".fade-leave-active")).toHaveLength(0)
     const transforms = (selector: string) =>
       [...screen.container.querySelectorAll(selector)].map(e => e.getAttribute("transform"))
     expect(transforms(".v-ng-node")).toEqual(["translate(0 0)", "translate(0 100)"])
