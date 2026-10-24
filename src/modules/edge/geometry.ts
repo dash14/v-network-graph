@@ -189,9 +189,9 @@ export function edgeLengthOf(edge: DrawnEdge): number {
 
 /**
  * Calculate the point at a distance along the drawn line of an edge, as
- * `SVGGeometryElement.getPointAtLength()` does.
+ * `SVGGeometryElement.getPointAtLength()` does for a finite distance.
  * @param edge the geometry of the edge
- * @param distance the distance from the start, clamped to the line
+ * @param distance the distance from the start, clamped to the line even when infinite
  * @returns the point
  */
 export function pointAlongEdge(edge: DrawnEdge, distance: number): Position {
@@ -312,15 +312,19 @@ function quadraticSegment(p0: Position, c: Position, p2: Position): Segment {
     length,
     pointAt: d => {
       if (length === 0) return pointAtT(0)
-      // Newton's method, from where the point would be at an even speed.
+      // Newton's method from where the point would be at an even speed, halving the bracket
+      // instead whenever a step would leave it, so that it always converges.
+      let lo = 0
+      let hi = 1
       let t = d / length
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 40; i++) {
+        const error = lengthTo(t) - d
+        if (Math.abs(error) < 1e-9) break
+        if (error < 0) lo = t
+        else hi = t
         const v = speed(t)
-        if (v === 0) break
-        const next = Math.min(1, Math.max(0, t - (lengthTo(t) - d) / v))
-        const done = Math.abs(next - t) < 1e-10
-        t = next
-        if (done) break
+        const next = v > 0 ? t - error / v : NaN
+        t = next > lo && next < hi ? next : (lo + hi) / 2
       }
       return pointAtT(t)
     },

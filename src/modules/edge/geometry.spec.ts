@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { MarkerStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
-import { EdgeLayoutPoint } from "@/models/edge"
+import { Curve, EdgeLayoutPoint } from "@/models/edge"
 import { Vector2D } from "@/modules/vector2d"
 import {
   calculateEdgeGeometry,
@@ -313,6 +313,20 @@ describe("edgeLengthOf and pointAlongEdge", () => {
 
     expect(edgeLengthOf({ position })).toBe(50)
     expect(edgeLengthOf({ position, loop })).toBeGreaterThan(50)
+  })
+
+  it("should find points along a curve whose speed falls to 0 at its start", () => {
+    // With the control point on the start, a point moves along the line by the square of time.
+    const p2 = { x: 60, y: 80 }
+    const curve = { control: [{ x: 0, y: 0 }] } as unknown as Curve
+    const edge = { position: { p1: { x: 0, y: 0 }, p2 }, curve }
+
+    expect(edgeLengthOf(edge)).toBeCloseTo(100)
+    for (const d of [0.01, 1, 25, 50, 99.99]) {
+      const p = pointAlongEdge(edge, d)
+      expect(p.x).toBeCloseTo((p2.x * d) / 100, 6)
+      expect(p.y).toBeCloseTo((p2.y * d) / 100, 6)
+    }
   })
 
   it("should measure a curve as its path is drawn", () => {
