@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { MarkerStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
 import { EdgeLayoutPoint } from "@/models/edge"
-import { calculateEdgeGeometry, EdgePlacementInput } from "./geometry"
+import { calculateEdgeGeometry, EdgeGeometryInput } from "./geometry"
 
 const shape = { type: "circle", radius: 16, strokeWidth: 0 } as ShapeStyle
 
@@ -23,7 +23,7 @@ function single(): EdgeLayoutPoint {
   return { edge, pointInGroup: 0, groupWidth: 0 }
 }
 
-function input(overrides: Partial<EdgePlacementInput> = {}): EdgePlacementInput {
+function input(overrides: Partial<EdgeGeometryInput> = {}): EdgeGeometryInput {
   return {
     source: { x: 0, y: 0 },
     target: { x: 100, y: 0 },
@@ -101,10 +101,11 @@ describe("calculateEdgeGeometry", () => {
       expect(g.origin.p2.x).toBeCloseTo(100)
     })
 
-    it("should draw at the origin without a layout point", () => {
+    it("should still give finite positions without a layout point", () => {
       const g = calculateEdgeGeometry(input({ layoutPoint: undefined }))
 
-      expect(g.origin).toEqual({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } })
+      const points = [g.origin, g.labelPosition, g.position].flatMap(l => [l.p1, l.p2])
+      expect(points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true)
     })
   })
 
@@ -141,6 +142,24 @@ describe("calculateEdgeGeometry", () => {
       expect(g.position).toEqual({ p1: { x: 0, y: 0 }, p2: { x: 100, y: 0 } })
     })
 
+    it("should draw a short line at the center when the margins pass each other", () => {
+      const g = calculateEdgeGeometry(
+        input({ type: "curve", layoutPoint, target: { x: 40, y: 0 }, margin: 20 })
+      )
+
+      expect(g.curve).toBeUndefined()
+      expect(g.position.p1.x).toBeCloseTo(20)
+      expect(Math.abs(g.position.p1.y)).toBeCloseTo(2)
+      expect(distance(g.position.p1, g.position.p2)).toBeCloseTo(0.5)
+    })
+
+    it("should draw straight between nodes at the same position", () => {
+      const g = calculateEdgeGeometry(input({ type: "curve", layoutPoint, target: { x: 0, y: 0 } }))
+
+      expect(g.curve).toBeUndefined()
+      expect(g.position).toBe(g.origin)
+    })
+
     it("should draw summarized edges straight between the centers", () => {
       const g = calculateEdgeGeometry(input({ type: "curve", layoutPoint, summarized: true }))
 
@@ -153,7 +172,7 @@ describe("calculateEdgeGeometry", () => {
     const node = { x: 0, y: 0 }
     const selfLoop = { radius: 12, offset: 10, angle: 270, isClockwise: true }
     const loopEdge = { source: "node1", target: "node1" }
-    const loopInput = (overrides: Partial<EdgePlacementInput> = {}) =>
+    const loopInput = (overrides: Partial<EdgeGeometryInput> = {}) =>
       input({
         source: node,
         target: node,
@@ -184,6 +203,29 @@ describe("calculateEdgeGeometry", () => {
 
       expect(distance(g.position.p1, node)).toBeCloseTo(16)
       expect(distance(g.position.p2, node)).toBeCloseTo(16)
+    })
+
+    it("should draw a counter-clockwise loop from the other end", () => {
+      const cw = calculateEdgeGeometry(loopInput({ selfLoop: { ...selfLoop, offset: 0 } }))
+      const ccw = calculateEdgeGeometry(
+        loopInput({ selfLoop: { ...selfLoop, offset: 0, isClockwise: false } })
+      )
+
+      expect(ccw.loop!.isClockwise).toBe(false)
+      // Both go around the far side of the loop.
+      expect(cw.loop!.isLargeArc).toBe(true)
+      expect(ccw.loop!.isLargeArc).toBe(true)
+      expect(ccw.position.p1.x).toBeCloseTo(cw.position.p2.x)
+      expect(ccw.position.p1.y).toBeCloseTo(cw.position.p2.y)
+      expect(ccw.position.p2.x).toBeCloseTo(cw.position.p1.x)
+      expect(ccw.position.p2.y).toBeCloseTo(cw.position.p1.y)
+    })
+
+    it("should not depend on the edge type", () => {
+      const straight = calculateEdgeGeometry(loopInput({ type: "straight" }))
+      const curve = calculateEdgeGeometry(loopInput({ type: "curve" }))
+
+      expect(curve).toEqual(straight)
     })
 
     it("should widen the loop for each edge in the group", () => {

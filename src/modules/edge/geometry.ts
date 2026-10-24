@@ -15,7 +15,7 @@ import { Point2D } from "@/modules/vector2d/core"
 // Type definitions
 // -----------------------------------------------------------------------
 
-export interface EdgePlacementInput {
+export interface EdgeGeometryInput {
   source: Position
   target: Position
   sourceShape: ShapeStyle
@@ -48,7 +48,7 @@ export interface EdgeGeometry {
  * @param input the positions, shapes and styles that the edge depends on
  * @returns the geometry of the edge
  */
-export function calculateEdgeGeometry(input: EdgePlacementInput): EdgeGeometry {
+export function calculateEdgeGeometry(input: EdgeGeometryInput): EdgeGeometry {
   const { source, target, sourceShape, targetShape, layoutPoint, summarized, line: l } = input
   const s = input.scale
 
@@ -103,7 +103,7 @@ export function calculateEdgeGeometry(input: EdgePlacementInput): EdgeGeometry {
 
   // calculate self-loop edge
   if (input.selfLoop) {
-    const [position, loop] = calculateArcPositionAndState(
+    const [position, loop] = calculateArcGeometry(
       source,
       sourceShape,
       input.selfLoop,
@@ -139,7 +139,7 @@ export function calculateEdgeGeometry(input: EdgePlacementInput): EdgeGeometry {
     ? layoutPoint.groupWidth / 2 - layoutPoint.pointInGroup
     : 0
 
-  const [position, curve] = calculateCurvePositionAndState(
+  const [position, curve] = calculateCurveGeometry(
     origin,
     shiftedPosition,
     shift,
@@ -153,7 +153,7 @@ export function calculateEdgeGeometry(input: EdgePlacementInput): EdgeGeometry {
 // Private functions
 // -----------------------------------------------------------------------
 
-function calculateCurvePositionAndState(
+function calculateCurveGeometry(
   originPosition: LinePosition,
   shiftedPosition: LinePosition,
   shift: number,
@@ -255,7 +255,7 @@ function calculateCurvePositionAndState(
   return [position, curve]
 }
 
-function calculateArcPositionAndState(
+function calculateArcGeometry(
   nodePos: Position,
   nodeShape: ShapeStyle,
   selfLoopStyle: SelfLoopEdgeStyle,

@@ -539,6 +539,7 @@ function createNewEdgeState(
     const source = toRaw(positions[edge.source]) ?? { x: 0, y: 0 }
     const target = toRaw(positions[edge.target]) ?? { x: 0, y: 0 }
 
+    const selfLoop = edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
     const geometry = calculateEdgeGeometry({
       source,
       target,
@@ -547,10 +548,11 @@ function createNewEdgeState(
       layoutPoint: edgeLayoutPoint.value,
       summarized: isEdgeSummarized.value ?? false,
       line: line.value,
-      type: config.type,
+      // A self-loop is drawn the same with any type, so it does not track it.
+      type: selfLoop ? "straight" : config.type,
       margin: config.margin,
       keepOrder: config.keepOrder,
-      selfLoop: edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined,
+      selfLoop,
       scale: scale.value,
     })
     state.origin = geometry.origin
