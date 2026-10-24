@@ -73,6 +73,25 @@ describe("object transitions", () => {
     leaving.forEach(e => expect(e.getAttribute("transform")).toBe("translate(100 0)"))
   })
 
+  test("a node added again while its old one leaves is drawn at its new position", async () => {
+    addStyle(".fade-leave-active { transition: opacity 1s linear; } .fade-leave-to { opacity: 0; }")
+    const configs = { node: { transition: "fade", label: { visible: true } } }
+    const { screen, state } = await mountGraph({ nodes, layouts, configs })
+    await addNode(state)
+
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = { name: "Node 2" }
+    state.layouts.nodes.node2 = { x: 0, y: 100 }
+    await nextTick()
+
+    // Vue finishes the leave of the old one at once, as its key enters again.
+    const transforms = (selector: string) =>
+      [...screen.container.querySelectorAll(selector)].map(e => e.getAttribute("transform"))
+    expect(transforms(".v-ng-node")).toEqual(["translate(0 0)", "translate(0 100)"])
+    expect(transforms(".v-ng-node-label")).toEqual(["translate(0 0)", "translate(0 100)"])
+  })
+
   test("entering nodes and labels enter at their positions", async () => {
     addStyle(
       ".fade-enter-active { transition: opacity 1s linear; } .fade-enter-from { opacity: 0; }"

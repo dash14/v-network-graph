@@ -1,46 +1,32 @@
 // the states of nodes and edges
 
-import { isEqual } from "lodash-es"
-import type { ComputedRef, InjectionKey, ReactiveEffectRunner, Ref, ShallowRef } from "vue"
+import type { ComputedRef, InjectionKey, Ref } from "vue"
 import {
-  computed,
-  effect,
   reactive,
   ref,
   shallowRef,
   toRaw,
-  toRef,
   triggerRef,
-  unref,
   watch,
   watchEffect,
   inject,
   provide,
-  stop,
 } from "vue"
 import { nonNull, Reactive } from "@/common/common"
-import {
-  Config,
-  Configs,
-  EdgeConfig,
-  MarkerStyle,
-  NodeConfig,
-  OppositeNode,
-} from "@/common/configs"
-import { ShapeStyle, StrokeStyle } from "@/common/configs"
+import { Configs } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
-import { FixablePosition, UserLayouts } from "@/common/types"
+import { UserLayouts } from "@/common/types"
 import { useId } from "@/composables/id"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import * as PathModel from "@/models/path"
-import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
-import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
 import * as EdgeGroup from "@/modules/edge/group"
-import { positionOf, untrackedPositionOf } from "@/modules/node/position"
-import { updateObjectDiff } from "@/utils/object"
-import { MarkerState, useMarker } from "./marker"
+import { makeEdgePlacement } from "./edgePlacement"
+import { createEdgeEntries, createNewEdgeState, createSummarizedEdgeStates } from "./edgeState"
+import { MarkerState } from "./marker"
+import { createNewNodeState, makeOpposingNodes } from "./nodeState"
 import { useObjectState } from "./objectState"
+import { createNewPathState } from "./pathState"
 import { trackNodePositions } from "./positionTracker"
 
 // -----------------------------------------------------------------------
@@ -99,16 +85,6 @@ export function makeStateInput<T>(
 
 const statesKey = Symbol("states") as InjectionKey<States>
 
-const NONE_MARKER: MarkerStyle = {
-  type: "none",
-  width: 0,
-  height: 0,
-  margin: 0,
-  offset: 0,
-  units: "strokeWidth",
-  color: null,
-}
-
 // -----------------------------------------------------------------------
 // Exported functions
 // -----------------------------------------------------------------------
@@ -129,20 +105,7 @@ export function provideStates(
   // States for nodes
   // -----------------------------------------------------------------------
 
-  // { nodeId: { edgeId: opposingNodeId } }
-  const opposingNodes = Reactive<Record<string, Record<string, string>>>({})
-  watchEffect(() => {
-    const _nodes = Object.fromEntries(
-      Object.keys(nodes.objects.value).map(k => [k, {} as Record<string, string>])
-    )
-    Object.entries(edges.objects.value).forEach(([id, e]) => {
-      if (!_nodes?.[e.source]) _nodes[e.source] = {}
-      if (!_nodes?.[e.target]) _nodes[e.target] = {}
-      _nodes[e.source][id] = e.target
-      _nodes[e.target][id] = e.source
-    })
-    updateObjectDiff(opposingNodes, _nodes)
-  })
+  const opposingNodes = makeOpposingNodes(nodes.objects, edges.objects)
 
   const {
     states: nodeStates,
@@ -190,29 +153,15 @@ export function provideStates(
     edges: new Set(),
     changed: shallowRef(),
   }
-  const edgePlacers = new Map<string, ReactiveEffectRunner>()
-  const edgeGeometries = new Map<string, EdgeGeometry>()
-  const dirtyEdges = new Set<string>()
-  const edgesDirty = shallowRef(0)
-  const edgePlacement: EdgePlacement = {
-    placers: edgePlacers,
-    geometries: edgeGeometries,
-    schedule: id => {
-      dirtyEdges.add(id)
-      triggerRef(edgesDirty)
-    },
-  }
-  const placeEdges = (ids: Set<string>, onlyIfDirty = false) => {
-    let placed = false
-    ids.forEach(id => {
-      const place = edgePlacers.get(id)
-      if (!place || (onlyIfDirty && !place.effect.dirty)) return
-      place()
-      positionChanges.edges.add(id)
-      placed = true
-    })
-    if (placed) triggerRef(positionChanges.changed)
-  }
+  const edgePlacement = makeEdgePlacement(
+    edges.objects,
+    configs.edge,
+    nodeStates,
+    edgeGroupStates,
+    layouts,
+    scale,
+    positionChanges
+  )
 
   const {
     states: edgeStates,
@@ -229,10 +178,6 @@ export function provideStates(
         newState as EdgeModel.EdgeStateDatum,
         configs.edge,
         makerState,
-        nodeStates,
-        edgeGroupStates,
-        layouts,
-        scale,
         instanceId,
         edgePlacement
       )
@@ -243,16 +188,7 @@ export function provideStates(
     () => edgeEntries.value
   )
 
-  // Re-place the edges whose own dependencies changed, together in one pass.
-  watchEffect(() => {
-    void edgesDirty.value
-    if (dirtyEdges.size === 0) return
-    // Taken out first, so that an edge scheduled again while placing stays for the next pass.
-    const ids = new Set(dirtyEdges)
-    dirtyEdges.clear()
-    // A computed dependency notifies without knowing whether its value changed.
-    placeEdges(ids, true)
-  })
+  edgePlacement.followStyleChanges()
 
   // Re-places only the edges of the moved nodes, rather than every edge following the positions of
   // its own nodes.
@@ -262,7 +198,7 @@ export function provideStates(
       positionChanges.nodes.add(id)
       Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => movedEdges.add(edgeId))
     })
-    placeEdges(movedEdges)
+    edgePlacement.placeEdges(movedEdges)
     triggerRef(positionChanges.changed)
   })
 
@@ -290,27 +226,14 @@ export function provideStates(
     paths.selected,
     paths.hovered,
     (paths, id, newState) => {
-      const state = newState as PathModel.PathStateDatum
-
-      state.clickable = computed(() => {
-        if (!paths.value[id]) return false
-        return Config.value(configs.path.clickable, paths.value[id])
-      })
-      state.hoverable = computed(() => {
-        if (!paths.value[id]) return false
-        return Config.value(configs.path.hoverable, paths.value[id])
-      })
-
-      // Follows the edges of the path and their source and target.
-      state.stopWatchHandle = watchEffect(() => {
-        if (!paths.value[id]) return
-        state.path = paths.value[id]
-        const pathEdges = toEdgeObjects(state.path, edges, edgeGroupStates)
-        // Keep the arrays when unchanged, so that the path is not redrawn.
-        if (!isEqual(pathEdges, state.edges)) state.edges = pathEdges
-        const directions = calculateDirectionsOfPathEdges(pathEdges)
-        if (!isEqual(directions, state.directions)) state.directions = directions
-      })
+      createNewPathState(
+        paths,
+        id,
+        newState as PathModel.PathStateDatum,
+        configs.path,
+        edges.objects,
+        edgeGroupStates
+      )
     },
     (_, state) => {
       state.stopWatchHandle?.()
@@ -333,7 +256,7 @@ export function provideStates(
     ...states,
     positionChanges,
     layoutsChanged,
-    edgeGeometries: edgeGeometries as ReadonlyMap<string, EdgeGeometry>,
+    edgeGeometries: edgePlacement.geometries,
   }
 }
 
@@ -343,364 +266,4 @@ export function isSummarizedEdges(item: EdgeModel.EdgeItem): item is EdgeModel.S
 
 export function useStates() {
   return nonNull(inject(statesKey), "states") as ReadonlyStates
-}
-
-// -----------------------------------------------------------------------
-// Local functions
-// -----------------------------------------------------------------------
-
-function getNodeShape(node: Node, selected: boolean, hovered: boolean, config: NodeConfig) {
-  if (hovered && config.hover) {
-    return Config.values(config.hover, node)
-  } else {
-    return getNodeStaticShape(node, selected, config)
-  }
-}
-
-function getNodeStaticShape(node: Node, selected: boolean, config: NodeConfig) {
-  // get shape without hovered state
-  if (selected) {
-    return Config.values(config.selected, node)
-  } else {
-    return Config.values(config.normal, node)
-  }
-}
-
-function createNewNodeState(
-  nodes: Ref<Nodes>,
-  id: string,
-  state: NodeModel.NodeStateDatum,
-  config: NodeConfig,
-  oppositeNodeIds: Reactive<Record<string, Record<string, string>>>,
-  layouts: Reactive<Layouts>,
-  givenLayouts: () => Readonly<UserLayouts>
-) {
-  // Deleted nodes will lose their position. If it is not a two-way binding,
-  // the position remains in the layout specified by the user and is reacquired.
-  /* eslint-disable no-restricted-syntax -- takes the given position as it is */
-  const given = givenLayouts().nodes?.[id]
-  if (!layouts.nodes[id] && given) {
-    // The given object itself, as when the layouts were first taken, so that it keeps following it.
-    // A readonly one stays readonly, as a reactive object keeps it.
-    layouts.nodes[id] = <FixablePosition>given
-  }
-  /* eslint-enable no-restricted-syntax */
-
-  state.shape = computed(() => {
-    if (!nodes.value[id]) return unref(state.shape) // Return the previous value
-    return getNodeShape(nodes.value[id], state.selected, state.hovered, config)
-  })
-
-  state.staticShape = computed(() => {
-    if (!nodes.value[id]) return unref(state.staticShape) // Return the previous value
-    return getNodeStaticShape(nodes.value[id], state.selected, config)
-  })
-
-  state.label = computed(() => {
-    if (!nodes.value[id]) return unref(state.label) // Return the previous value
-    return Config.values(config.label, nodes.value[id])
-  })
-
-  state.labelText = computed(() => {
-    if (config.label.text instanceof Function) {
-      return unref(state.label).text
-    } else {
-      if (!nodes.value[id]) return unref(state.labelText) // Return the previous value
-      return nodes.value[id]?.[unref(state.label).text] ?? ""
-    }
-  })
-
-  state.draggable = computed(() => {
-    if (!nodes.value[id]) return unref(state.draggable) // Return the previous value
-    return Config.value(config.draggable, nodes.value[id])
-  })
-
-  state.oppositeNodeIds = toRef(oppositeNodeIds, id)
-
-  state.oppositeNodes = computed<Record<string, OppositeNode>>(() => {
-    return Object.entries(state.oppositeNodeIds).reduce(
-      (nodes, entry) => {
-        const [edgeId, nodeId] = entry as [string, string]
-        if (nodeId in layouts.nodes)
-          nodes[edgeId] = { nodeId, pos: positionOf(layouts.nodes, nodeId) }
-        return nodes
-      },
-      {} as Record<string, OppositeNode>
-    )
-  })
-}
-
-function getEdgeStroke(edge: Edge, selected: boolean, hovered: boolean, config: EdgeConfig) {
-  if (selected) {
-    return Config.values(config.selected, edge)
-  } else if (hovered && config.hover) {
-    return Config.values(config.hover, edge)
-  } else {
-    return Config.values(config.normal, edge)
-  }
-}
-
-function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
-  if (marker.type === "none") {
-    return NONE_MARKER
-  } else {
-    return marker
-  }
-}
-
-interface EdgePlacement {
-  placers: Map<string, ReactiveEffectRunner>
-  geometries: Map<string, EdgeGeometry>
-  schedule: (id: string) => void
-}
-
-type EdgePlacementStyle = Omit<EdgeGeometryInput, "source" | "target" | "scale"> & {
-  sourceId: string
-  targetId: string
-}
-
-const GEOMETRY_KEYS = ["origin", "labelPosition", "position", "curve", "loop"] as const
-
-function initialEdgeGeometry(): EdgeGeometry {
-  return {
-    origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-    labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-    position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-    curve: undefined,
-    loop: undefined,
-  }
-}
-
-// Colors do not change where an edge is drawn, so they are left out of what is compared.
-function withoutColors(shape: ShapeStyle): ShapeStyle {
-  return { ...shape, color: "", strokeColor: undefined, strokeDasharray: undefined }
-}
-
-function createNewEdgeState(
-  edges: Ref<Edges>,
-  id: string,
-  state: EdgeModel.EdgeStateDatum,
-  config: EdgeConfig,
-  makerState: MarkerState,
-  nodeStates: NodeModel.NodeStates,
-  edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
-  layouts: Layouts,
-  scale: Ref<number>,
-  instanceId: string,
-  edgePlacement: EdgePlacement
-) {
-  const { makeMarker, clearMarker } = useMarker(makerState)
-
-  // One ref for each part, so that a straight edge staying straight does not notify the readers of
-  // its curve and loop.
-  const initial = initialEdgeGeometry()
-  edgePlacement.geometries.set(id, initial)
-  const geometry = Object.fromEntries(
-    GEOMETRY_KEYS.map(key => [key, shallowRef(initial[key])])
-  ) as { [K in keyof EdgeGeometry]: ShallowRef<EdgeGeometry[K]> }
-  for (const key of GEOMETRY_KEYS) {
-    Object.defineProperty(toRaw(state), key, {
-      get: () => geometry[key].value,
-      enumerable: true,
-      configurable: true,
-    })
-  }
-
-  state.label = computed(() => {
-    if (!edges.value[id]) return unref(state.label) // Return the previous value
-    return Config.values(config.label, edges.value[id])
-  })
-
-  const line = computed<EdgeModel.Line>(() => {
-    const edge = edges.value[id]
-    const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
-    // Minimum error checking required for drawing
-    if (isNaN(+stroke.width)) {
-      console.warn(
-        "[v-network-graph] Edge width is invalid value. id=[%s] value=[%s]",
-        id,
-        stroke.width
-      )
-      stroke.width = 1
-    }
-    if (stroke.color === undefined || stroke.color === null) {
-      console.warn(
-        "[v-network-graph] Edge color is invalid value. id=[%s] value=[%s]",
-        id,
-        stroke.color
-      )
-      stroke.color = "#000000"
-    }
-    let normalWidth = Config.value(config.normal.width, edge)
-    if (isNaN(+normalWidth)) {
-      normalWidth = 1
-    }
-    const source = toEdgeMarker(Config.values(config.marker.source, [edge, stroke]))
-    const target = toEdgeMarker(Config.values(config.marker.target, [edge, stroke]))
-    return { stroke, normalWidth, source, target }
-  })
-  state.line = line
-  const edgeLayoutPoint: Ref<EdgeModel.EdgeLayoutPoint | undefined> = toRef(
-    edgeGroupStates.edgeLayoutPoints,
-    id
-  )
-  const isEdgeSummarized: Ref<true | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
-
-  // Copied out of the reactive objects so that placing reads none. The positions and the scale are
-  // left out, since a layout tick or a zoom changes them for every edge.
-  const style = computed<EdgePlacementStyle | undefined>(previous => {
-    const next = placementStyle()
-    // Kept when equal, so that a change of the stroke alone does not re-place the edge.
-    return previous && isEqual(previous, next) ? previous : next
-  })
-  const placementStyle = (): EdgePlacementStyle | undefined => {
-    const edge = edges.value[id]
-    if (!edge) return undefined
-
-    const sourceShape = nodeStates[edge.source]?.staticShape
-    const targetShape = nodeStates[edge.target]?.staticShape
-    if (!sourceShape || !targetShape) {
-      return undefined
-    }
-
-    const layoutPoint = edgeLayoutPoint.value
-    const l = line.value
-    const selfLoop = edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
-    return {
-      sourceId: edge.source,
-      targetId: edge.target,
-      sourceShape: withoutColors(sourceShape),
-      targetShape: withoutColors(targetShape),
-      // Only the ends of the user's edge, which may carry any data.
-      layoutPoint: layoutPoint && {
-        ...layoutPoint,
-        edge: { source: layoutPoint.edge.source, target: layoutPoint.edge.target },
-      },
-      summarized: isEdgeSummarized.value ?? false,
-      line: {
-        normalWidth: l.normalWidth,
-        source: { ...l.source, color: null },
-        target: { ...l.target, color: null },
-      },
-      // A self-loop is drawn the same with any type, so it does not track it.
-      type: selfLoop ? "straight" : config.type,
-      margin: config.margin,
-      keepOrder: config.keepOrder,
-      selfLoop: selfLoop && { ...selfLoop },
-    }
-  }
-
-  // Tracks the style and the scale: the effect in provideStates re-places the edges of moved nodes.
-  const placeEdge = () => {
-    const s = style.value
-    if (!s) return
-
-    const positions = toRaw(layouts).nodes
-    const placed = calculateEdgeGeometry({
-      ...s,
-      source: untrackedPositionOf(positions, s.sourceId),
-      target: untrackedPositionOf(positions, s.targetId),
-      scale: scale.value,
-    })
-    edgePlacement.geometries.set(id, placed)
-    geometry.origin.value = placed.origin
-    geometry.labelPosition.value = placed.labelPosition
-    geometry.position.value = placed.position
-    geometry.curve.value = placed.curve
-    geometry.loop.value = placed.loop
-  }
-  const place = effect(placeEdge, { scheduler: () => edgePlacement.schedule(id) })
-  edgePlacement.placers.set(id, place)
-
-  const stopUpdateMarkerHandle = watchEffect(() => {
-    if (!edges.value[id]) return
-    state.sourceMarkerId = makeMarker(
-      line.value.source,
-      true /* isSource */,
-      state.sourceMarkerId,
-      line.value.stroke.color,
-      instanceId
-    )
-    state.targetMarkerId = makeMarker(
-      line.value.target,
-      false /* isSource */,
-      state.targetMarkerId,
-      line.value.stroke.color,
-      instanceId
-    )
-  })
-
-  state.stopWatchHandle = () => {
-    edgePlacement.placers.delete(id)
-    edgePlacement.geometries.delete(id)
-    stop(place)
-    stopUpdateMarkerHandle()
-    clearMarker(state.sourceMarkerId)
-    clearMarker(state.targetMarkerId)
-  }
-}
-
-function createEdgeEntries(
-  edgeGroups: Record<string, EdgeModel.EdgeGroup>,
-  edgeStates: EdgeModel.EdgeStates
-) {
-  return Object.entries(edgeGroups)
-    .map(([key, group]) => {
-      if (group.summarize) {
-        return <EdgeModel.SummarizedEdgeItem>{
-          id: Object.keys(group.edges)[0] ?? key,
-          summarized: true,
-          key,
-          group,
-          zIndex: Object.keys(group.edges)
-            .map(id => edgeStates[id]?.zIndex ?? 0)
-            .reduce((s, z) => Math.max(s, z)),
-        }
-      } else {
-        return Object.entries(group.edges).map(
-          ([id, edge]) =>
-            <EdgeModel.SingleEdgeItem>{
-              id,
-              summarized: false,
-              key: id,
-              edge,
-              zIndex: edgeStates[id]?.zIndex ?? 0,
-            }
-        )
-      }
-    })
-    .flat()
-}
-
-function createSummarizedEdgeStates(
-  summarizedEdgeStates: EdgeModel.SummarizedEdgeStates,
-  edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
-  configs: Configs
-) {
-  const groups = edgeGroupStates.edgeGroups
-  Object.entries(groups)
-    .filter(([id, group]) => group.summarize && !(id in summarizedEdgeStates))
-    .forEach(([id, group]) => {
-      const state = { stroke: undefined as any }
-      state.stroke = computed<StrokeStyle>(() =>
-        Config.values(configs.edge.summarized.stroke, group.edges)
-      )
-      summarizedEdgeStates[id] = state
-    })
-  Object.keys(summarizedEdgeStates).forEach(id => {
-    if (!edgeGroupStates.edgeGroups[id]?.summarize) {
-      delete summarizedEdgeStates[id]
-    }
-  })
-}
-
-function toEdgeObjects(
-  path: Path,
-  edges: InputObjects<Edges>,
-  edgeGroupStates: EdgeModel.EdgeGroupStates
-) {
-  // The path skips the edges that are not drawn, such as those to missing nodes.
-  return path.edges
-    .map(edgeId => ({ edgeId, edge: edges.objects.value[edgeId] }))
-    .filter(e => e.edge && e.edgeId in edgeGroupStates.edgeLayoutPoints)
 }
