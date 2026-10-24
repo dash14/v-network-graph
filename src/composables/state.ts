@@ -265,10 +265,10 @@ export function provideStates(
     let count = 0
     for (const id in positions) {
       count++
-      const { x, y } = positionOf(positions, id)
+      const p = positionOf(positions, id)
       const placed = placedPositions.get(id)
-      if (placed?.x === x && placed?.y === y) continue
-      placedPositions.set(id, { x, y })
+      if (placed?.x === p.x && placed?.y === p.y) continue
+      placedPositions.set(id, p)
       markMoved(id)
     }
     // Every id seen is in the map, so a larger map holds removed nodes.

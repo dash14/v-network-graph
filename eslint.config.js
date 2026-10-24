@@ -5,9 +5,10 @@ import pluginVue from "eslint-plugin-vue"
 
 // Positions are read through positionOf, the one place that decides where a node without a valid
 // one is drawn. Writes and the layout handlers, which own the positions, may index them directly.
+// The rule sees only names, so it catches `*.nodes[id]` and the names the positions are passed by.
 const nodePositionRead = {
   selector:
-    'MemberExpression[computed=true][object.property.name="nodes"]:not(AssignmentExpression > MemberExpression.left, UnaryExpression[operator="delete"] > MemberExpression.argument)',
+    'MemberExpression[computed=true]:matches([object.property.name="nodes"], [object.name=/^(nodeLayouts|nodePositions)$/]):not(AssignmentExpression > MemberExpression.left, UnaryExpression[operator="delete"] > MemberExpression.argument)',
   message: "Read a node position with positionOf or untrackedPositionOf.",
 }
 

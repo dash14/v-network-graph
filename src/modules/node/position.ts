@@ -32,6 +32,8 @@ function isCoordinate(v: unknown): v is number {
 
 function toCoordinate(v: unknown): number {
   if (isCoordinate(v)) return v
+  // Number() also turns booleans, arrays and blank strings into numbers.
+  if (typeof v !== "string" || v.trim() === "") return 0
   const n = Number(v)
   return Number.isFinite(n) ? n : 0
 }

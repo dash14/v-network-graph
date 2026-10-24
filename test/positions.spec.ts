@@ -147,17 +147,17 @@ describe("positions", () => {
   } as unknown as Record<string, Layouts["nodes"]>
 
   test.each(Object.keys(invalidPositions))(
-    "a node with a %s position is drawn at the origin with its edges, label, focus ring and path",
+    "a node with a %s position is drawn at the origin with its edges, label, focus ring and paths",
     async invalid => {
       const graph = {
         nodes,
         edges,
-        paths: { path1: { edges: ["edge1", "edge3"] } },
+        paths: { path1: { edges: ["edge1", "edge3"] }, path2: { edges: ["edge3"] } },
         selectedNodes: ["node2"],
         configs: {
           ...configsWith("straight"),
           view: { layoutHandler: { activate() {}, deactivate() {} } },
-          path: { visible: true },
+          path: { visible: true, end: "edgeOfNode" },
         },
       }
       const others = { node1: before.nodes.node1, node3: before.nodes.node3 }

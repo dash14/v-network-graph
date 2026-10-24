@@ -27,6 +27,13 @@ describe("positionOf", () => {
     const positions = { node1: { x: "10", y: "-5" } } as unknown as NodePositions
     expect(positionOf(positions, "node1")).toEqual({ x: 10, y: -5 })
   })
+
+  it("should replace a coordinate neither a number nor a numeric string with 0", () => {
+    const positions = { node1: { x: true, y: [3] }, node2: { x: " ", y: null } }
+    const p = positions as unknown as NodePositions
+    expect(positionOf(p, "node1")).toEqual({ x: 0, y: 0 })
+    expect(positionOf(p, "node2")).toEqual({ x: 0, y: 0 })
+  })
 })
 
 describe("untrackedPositionOf", () => {
