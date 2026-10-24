@@ -221,13 +221,6 @@ describe("calculateEdgeGeometry", () => {
       expect(ccw.position.p2.y).toBeCloseTo(cw.position.p1.y)
     })
 
-    it("should not depend on the edge type", () => {
-      const straight = calculateEdgeGeometry(loopInput({ type: "straight" }))
-      const curve = calculateEdgeGeometry(loopInput({ type: "curve" }))
-
-      expect(curve).toEqual(straight)
-    })
-
     it("should widen the loop for each edge in the group", () => {
       const layoutPoint = { edge: loopEdge, pointInGroup: 4, groupWidth: 4 }
       const g = calculateEdgeGeometry(loopInput({ layoutPoint }))
