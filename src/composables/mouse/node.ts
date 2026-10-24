@@ -3,6 +3,7 @@ import { watch } from "vue"
 import { Reactive, ReadonlyRef } from "@/common/common"
 import { Events, Layouts, NodePositions, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
+import { positionOf } from "@/modules/node/position"
 import { MapUtil } from "@/utils/map"
 import { entriesOf } from "@/utils/object"
 import {
@@ -365,6 +366,5 @@ export function makeNodeInteractionHandlers(
 }
 
 function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
-  const pos = nodes[node] ?? { x: 0, y: 0 }
-  return { ...pos } // unwrap reactivity
+  return positionOf(nodes, node) // a copy, which unwraps reactivity
 }

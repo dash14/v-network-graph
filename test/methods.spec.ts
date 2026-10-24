@@ -1,6 +1,6 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { HEIGHT, WIDTH } from "./helpers/container"
-import { mountGraph, payloadsOf } from "./helpers/graph"
+import { at, drag, mountGraph, payloadsOf } from "./helpers/graph"
 
 // Labels are hidden, since the fit follows their size, which depends on the fonts.
 const configs = { node: { normal: { radius: 16 }, label: { visible: false } } }
@@ -154,6 +154,27 @@ describe("box selection mode", () => {
     await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection"])
     graph.stopBoxSelection()
     await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection", "default"])
+  })
+})
+
+describe("box selection", () => {
+  test("selects the nodes without a valid position where they are drawn, at the origin", async () => {
+    const { graph, canvas, state, events } = await mountGraph({
+      nodes,
+      edges,
+      layouts: { nodes: { node1: { x: -100, y: 0 }, node2: { x: NaN, y: NaN } } },
+      // A handler that does not give the nodes new positions.
+      configs: {
+        node: { ...configs.node, selectable: true },
+        view: { layoutHandler: { activate() {}, deactivate() {} } },
+      },
+    })
+
+    graph.startBoxSelection()
+    await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+    await drag(canvas, at(-20, -20), at(20, 20))
+
+    await expect.poll(() => [...state.selectedNodes].sort()).toEqual(["node2", "node3"])
   })
 })
 

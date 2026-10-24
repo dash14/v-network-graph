@@ -216,8 +216,8 @@ function defaultCheckSummarize(nodes: Nodes, edges: Edges, configs: Configs, wid
 
 function calculateEdgePositionInner(
   edge: Edge,
-  source: Position | undefined,
-  target: Position | undefined,
+  source: Position,
+  target: Position,
   scale: number,
   groupWidth: number,
   pointInGroup: number,
@@ -226,10 +226,10 @@ function calculateEdgePositionInner(
   let x1, y1, x2, y2
   if (edge.source < edge.target) {
     ;[x1, y1, x2, y2] = calculateLinePosition(
-      source?.x ?? 0,
-      source?.y ?? 0,
-      target?.x ?? 0,
-      target?.y ?? 0,
+      source.x,
+      source.y,
+      target.x,
+      target.y,
       scale,
       groupWidth,
       pointInGroup,
@@ -237,10 +237,10 @@ function calculateEdgePositionInner(
     )
   } else {
     ;[x2, y2, x1, y1] = calculateLinePosition(
-      target?.x ?? 0,
-      target?.y ?? 0,
-      source?.x ?? 0,
-      source?.y ?? 0,
+      target.x,
+      target.y,
+      source.x,
+      source.y,
       scale,
       groupWidth,
       pointInGroup,

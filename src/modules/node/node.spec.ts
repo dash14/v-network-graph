@@ -51,6 +51,12 @@ describe("node", () => {
       })
     })
 
+    it("should count a node without a valid position at the origin, where it is drawn", () => {
+      const layouts = { node1: { x: 10, y: 20 }, node2: { x: NaN, y: NaN }, node3: undefined }
+      const box = getNodesBox(layouts as unknown as NodePositions)
+      expect(box).toStrictEqual({ top: 0, left: 0, right: 10, bottom: 20 })
+    })
+
     it("should return all-zero value box when there are 0 nodes", () => {
       const layouts: NodePositions = {}
       const box = getNodesBox(layouts)

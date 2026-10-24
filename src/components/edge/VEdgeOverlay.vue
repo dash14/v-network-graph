@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import { Config, StrokeStyle } from "@/common/configs"
 import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
-import { useContainers } from "@/composables/container"
 import { useZoomLevel } from "@/composables/zoom"
 import { EdgeState } from "@/models/edge"
+import { edgeLengthOf, pointAlongEdge } from "@/modules/edge/geometry"
 
 interface Props {
   edgeId?: string
@@ -47,7 +48,6 @@ const props = withDefaults(defineProps<Props>(), {
   edges: () => ({}),
 })
 
-const { svg } = useContainers()
 const { scale } = useZoomLevel()
 const edgeConfig = useEdgeConfig()
 
@@ -76,28 +76,14 @@ function calculateCenterPoint(state: EdgeState): Point {
   }
 }
 
-function getPathTotalLength() {
-  if (!svg.value) return 0
-  const edgeId = props.edgeId ?? Object.keys(props.edges)[0]
-  const path = svg.value.querySelector<SVGPathElement>(`path[data-edge-id="${edgeId}"]`)
-  if (!path) return 0
-  return path.getTotalLength()
-}
+// Summarized edges are drawn as a straight line, even between the ends of a self-loop.
+const drawnEdge = computed(() =>
+  props.isSummarized ? { position: props.state.position } : props.state
+)
 
 function calculatePointAtLength(distance: number): Point {
-  if (!svg.value || !isFinite(distance)) return props.state.position.p1
-
-  // for detecting changes and re-calculation
-  // oxlint-disable-next-line no-unused-expressions
-  props.state
-
-  const edgeId = props.edgeId ?? Object.keys(props.edges)[0]
-
-  const path = svg.value.querySelector<SVGPathElement>(`path[data-edge-id="${edgeId}"]`)
-  if (!path) return props.state.position.p1
-
-  const p = path.getPointAtLength(distance)
-  return { x: p.x, y: p.y }
+  if (Number.isNaN(distance)) return props.state.position.p1
+  return pointAlongEdge(drawnEdge.value, distance)
 }
 </script>
 
@@ -113,7 +99,7 @@ function calculatePointAtLength(distance: number): Point {
       :hovered="state.hovered"
       :selected="state.selected"
       :scale="scale"
-      :length="getPathTotalLength()"
+      :length="edgeLengthOf(drawnEdge)"
       :point-at-length="calculatePointAtLength"
     />
     <slot
@@ -128,7 +114,7 @@ function calculatePointAtLength(distance: number): Point {
       :hovered="state.hovered"
       :selected="state.selected"
       :scale="scale"
-      :length="getPathTotalLength()"
+      :length="edgeLengthOf(drawnEdge)"
       :point-at-length="calculatePointAtLength"
     />
   </g>

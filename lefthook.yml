@@ -11,6 +11,13 @@ pre-commit:
       run: pnpm exec eslint --fix {staged_files}
       stage_fixed: true
 
+    # Oxlint has no rule to keep node positions read through positionOf.
+    - name: lint node position reads
+      # The default matcher needs a directory for each **, so files right under src are listed too.
+      glob: ["src/*.ts", "src/**/*.ts"]
+      run: pnpm exec eslint --fix --no-warn-ignored {staged_files}
+      stage_fixed: true
+
     - name: format
       run: pnpm exec oxfmt --no-error-on-unmatched-pattern {staged_files}
       stage_fixed: true

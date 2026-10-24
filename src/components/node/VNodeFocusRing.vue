@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { computed, reactive, watchEffect } from "vue"
 import { CircleShapeStyle, RectangleShapeStyle, ShapeStyle } from "@/common/configs"
-import { Position } from "@/common/types"
 import VShape from "@/components/base/VShape.vue"
 import { useNodeConfig } from "@/composables/config"
+import { useLayouts } from "@/composables/layout"
 import { NodeState } from "@/models/node"
+import { positionOf } from "@/modules/node/position"
 
 interface Props {
   id: string
   state: NodeState
-  pos?: Position
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  pos: undefined,
-})
+const props = defineProps<Props>()
 
-const x = computed(() => props.pos?.x || 0)
-const y = computed(() => props.pos?.y || 0)
+// Read here, so that a moved node updates only its own focus ring.
+const layouts = useLayouts()
+const position = computed(() => positionOf(layouts.nodes, props.id))
+const x = computed(() => position.value.x)
+const y = computed(() => position.value.y)
 
 const config = useNodeConfig()
 const shapeConfig = reactive<ShapeStyle>({} as any)

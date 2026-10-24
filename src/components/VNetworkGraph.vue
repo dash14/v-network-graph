@@ -1,14 +1,5 @@
 <script setup lang="ts">
-import {
-  readonly,
-  ref,
-  toRef,
-  computed,
-  nextTick,
-  watch,
-  CSSProperties,
-  getCurrentInstance,
-} from "vue"
+import { readonly, ref, toRaw, toRef, computed, nextTick, watch, CSSProperties } from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { UserConfigs, ViewConfig, FitContentMargin } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@/common/types"
@@ -64,8 +55,6 @@ enum State {
   UNLOADED = 2,
 }
 
-type LayoutsListener = (v: Layouts) => void
-
 interface Props {
   nodes?: Nodes
   edges?: Edges
@@ -78,11 +67,6 @@ interface Props {
   configs?: UserConfigs
   layers?: Layers
   eventHandlers?: EventHandlers
-  // Props rather than emits, since Vue does not update the component when only an emits listener changes.
-  /* oxlint-disable vue/prop-name-casing, vue/require-default-prop */
-  "onUpdate:layouts"?: LayoutsListener | LayoutsListener[]
-  "onUpdate:layoutsOnce"?: LayoutsListener | LayoutsListener[]
-  /* oxlint-enable vue/prop-name-casing, vue/require-default-prop */
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -101,6 +85,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: "update:zoomLevel", v: number): void
+  (e: "update:layouts", v: Layouts): void
   (e: "update:selectedNodes", v: string[]): void
   (e: "update:selectedEdges", v: string[]): void
   (e: "update:selectedPaths", v: string[]): void
@@ -372,30 +357,13 @@ const currentLayouts = Reactive<Layouts>({ nodes: {} })
 provideLayouts(currentLayouts)
 
 // two-way binding
+// Shallow: the given position objects are taken as they are, so a change of their coordinates
+// reaches the graph without walking them all.
 watch(
-  () => props.layouts,
-  () => Object.assign(currentLayouts.nodes, props.layouts.nodes ?? {}),
-  { deep: true, immediate: true }
-)
-// The deep watch walks every node position on each move, so skip it when nobody listens.
-const instance = getCurrentInstance()!
-const hasListener = (v?: LayoutsListener | LayoutsListener[]) =>
-  Array.isArray(v) ? v.length > 0 : !!v
-const emittedLayoutsOnce = ref(false)
-// A boolean, so that only a change in whether anyone listens re-runs the watch.
-const listensLayouts = computed(
-  () =>
-    hasListener(props["onUpdate:layouts"]) ||
-    (hasListener(props["onUpdate:layoutsOnce"]) && !emittedLayoutsOnce.value)
-)
-watch(
-  () => (listensLayouts.value ? currentLayouts : undefined),
-  (layouts, prev) => {
-    if (!layouts || !prev) return // Nothing changed when the listener was added or removed.
-    emittedLayoutsOnce.value ||= hasListener(props["onUpdate:layoutsOnce"])
-    instance.emit("update:layouts", layouts)
-  },
-  { deep: true }
+  // With v-model the given layouts are the graph's own once emitted, and need no copy.
+  () => (toRaw(props.layouts) === toRaw(currentLayouts) ? undefined : { ...props.layouts.nodes }),
+  nodes => nodes && Object.assign(currentLayouts.nodes, nodes),
+  { immediate: true }
 )
 
 // -----------------------------------------------------------------------
@@ -433,17 +401,20 @@ const touches = computed(() => {
   return configs.view.panEnabled || configs.view.zoomEnabled || configs.node.draggable
 })
 
-const { nodeStates, edgeStates, pathStates, positionChanges } = provideStates(
-  makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
-  makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
-  makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
-  readonly(configs),
-  currentLayouts,
-  props.layouts,
-  markerState,
-  scale
-)
-providePositionWriter(currentLayouts, edgeStates, positionChanges)
+const { nodeStates, edgeStates, pathStates, positionChanges, layoutsChanged, edgeGeometries } =
+  provideStates(
+    makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
+    makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
+    makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
+    readonly(configs),
+    currentLayouts,
+    () => props.layouts,
+    markerState,
+    scale
+  )
+providePositionWriter(currentLayouts, edgeGeometries, positionChanges)
+// The tracking of the positions compares every position anyway, so it tells of the changes.
+watch(layoutsChanged, () => emit("update:layouts", currentLayouts))
 
 const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 

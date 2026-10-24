@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { h, nextTick } from "vue"
+import { h, nextTick, reactive, readonly } from "vue"
 import type { Layouts, UserConfigs } from "@/index"
-import { mountGraph } from "./helpers/graph"
+import { at, drag, mountGraph } from "./helpers/graph"
 import { markupOf } from "./helpers/markup"
 
 const nodes = {
@@ -119,6 +119,73 @@ describe("positions", () => {
     }
   )
 
+  test("a node added again keeps following its given position without a v-model", async () => {
+    const { screen, state } = await mountGraph(
+      {
+        nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
+        layouts: { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } },
+      },
+      { layoutsListener: null }
+    )
+    const node2 = state.nodes.node2
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = node2
+    await nextTick()
+
+    state.layouts.nodes.node2.x = 200
+    await nextTick()
+
+    const transforms = [...screen.container.querySelectorAll(".v-ng-node")].map(el =>
+      el.getAttribute("transform")
+    )
+    expect(transforms).toContain("translate(200 0)")
+  })
+
+  test("a node added again follows the layouts given last without a v-model", async () => {
+    const { screen, state } = await mountGraph(
+      {
+        nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
+        layouts: { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } },
+      },
+      { layoutsListener: null }
+    )
+    state.layouts = { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } }
+    await nextTick()
+    const node2 = state.nodes.node2
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = node2
+    await nextTick()
+
+    state.layouts.nodes.node2.x = 300
+    await nextTick()
+
+    const transforms = [...screen.container.querySelectorAll(".v-ng-node")].map(el =>
+      el.getAttribute("transform")
+    )
+    expect(transforms).toContain("translate(300 0)")
+  })
+
+  test("a node added again does not write to readonly layouts", async () => {
+    const given = reactive({ nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } })
+    const { canvas, state } = await mountGraph(
+      { nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } }, layouts: { nodes: {} } },
+      { layoutsListener: null }
+    )
+    state.layouts = readonly(given) as Layouts
+    await nextTick()
+    const node2 = state.nodes.node2
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = node2
+    await nextTick()
+
+    await drag(canvas, at(100, 0), at(150, 50))
+
+    expect(given.nodes.node2).toEqual({ x: 100, y: 0 })
+  })
+
   test("a node whose position is removed is drawn at the origin with its edges", async () => {
     const { screen, state } = await mountGraph({
       nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
@@ -138,4 +205,40 @@ describe("positions", () => {
     expect(node?.getAttribute("transform")).toBe("translate(0 0)")
     expect(edge?.getAttribute("d")).toBe("M 0 0 L 120 0")
   })
+
+  // A position the layout handler would not fix, given as it is.
+  const invalidPositions = {
+    missing: {},
+    undefined: { node2: undefined },
+    NaN: { node2: { x: NaN, y: NaN } },
+  } as unknown as Record<string, Layouts["nodes"]>
+
+  test.each(Object.keys(invalidPositions))(
+    "a node with a %s position is drawn at the origin with its edges, label, focus ring and paths",
+    async invalid => {
+      const graph = {
+        nodes,
+        edges,
+        paths: { path1: { edges: ["edge1", "edge3"] }, path2: { edges: ["edge3"] } },
+        selectedNodes: ["node2"],
+        configs: {
+          ...configsWith("straight"),
+          view: { layoutHandler: { activate() {}, deactivate() {} } },
+          path: { visible: true, end: "edgeOfNode" },
+        },
+      }
+      const others = { node1: before.nodes.node1, node3: before.nodes.node3 }
+
+      const drawn = await mountGraph({
+        ...graph,
+        layouts: { nodes: { ...others, ...invalidPositions[invalid] } },
+      })
+      const atOrigin = await mountGraph({
+        ...graph,
+        layouts: { nodes: { ...others, node2: { x: 0, y: 0 } } },
+      })
+
+      expect(markupOf(drawn.screen.container)).toBe(markupOf(atOrigin.screen.container))
+    }
+  )
 })

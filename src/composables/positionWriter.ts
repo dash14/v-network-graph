@@ -1,11 +1,19 @@
+import type { Ref } from "vue"
 import { inject, InjectionKey, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
-import { PositionChanges } from "@/composables/state"
-import { EdgeState, EdgeStates } from "@/models/edge"
-import { quadraticCurveCommands } from "@/modules/calculation/path"
+import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
+import { untrackedPositionOf } from "@/modules/node/position"
 
 type ElementRef = (el: unknown) => void
+
+/** The nodes and edges whose positions changed since the last time they were taken. */
+export interface PositionChanges {
+  nodes: Set<string>
+  edges: Set<string>
+  /** Triggered when ids are added. */
+  changed: Ref<void>
+}
 
 interface PositionWriter {
   nodeRef(id: string): ElementRef
@@ -17,7 +25,7 @@ const injectionKey = Symbol("positionWriter") as InjectionKey<PositionWriter>
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
   layouts: Reactive<Layouts>,
-  edgeStates: EdgeStates,
+  edgeGeometries: ReadonlyMap<string, EdgeGeometry>,
   changes: PositionChanges
 ) {
   const nodeElements = new Map<string, Set<Element>>()
@@ -25,25 +33,21 @@ export function providePositionWriter(
 
   // Read untracked: the changes say what to write.
   const writeNode = (el: Element, id: string) => {
-    const p = toRaw(toRaw(layouts).nodes[id])
-    el.setAttribute("transform", `translate(${p?.x || 0} ${p?.y || 0})`)
+    const p = untrackedPositionOf(toRaw(layouts).nodes, id)
+    el.setAttribute("transform", `translate(${p.x} ${p.y})`)
   }
   const writeEdge = (el: Element, id: string) => {
-    const state = toRaw(toRaw(edgeStates)[id])
-    if (state) el.setAttribute("d", edgePath(state))
+    const geometry = edgeGeometries.get(id)
+    if (geometry) el.setAttribute("d", edgePathOf(geometry))
   }
 
-  // Before the renders, since the edge overlays read the paths from the DOM while they render.
-  watchEffect(
-    () => {
-      void changes.changed.value
-      changes.nodes.forEach(id => nodeElements.get(id)?.forEach(el => writeNode(el, id)))
-      changes.edges.forEach(id => edgeElements.get(id)?.forEach(el => writeEdge(el, id)))
-      changes.nodes.clear()
-      changes.edges.clear()
-    },
-    { flush: "pre" }
-  )
+  watchEffect(() => {
+    void changes.changed.value
+    changes.nodes.forEach(id => nodeElements.get(id)?.forEach(el => writeNode(el, id)))
+    changes.edges.forEach(id => edgeElements.get(id)?.forEach(el => writeEdge(el, id)))
+    changes.nodes.clear()
+    changes.edges.clear()
+  })
 
   // Ref callbacks can run inside a render, so they must not read or write anything reactive.
   const elementRef = (
@@ -74,22 +78,6 @@ export function providePositionWriter(
     nodeRef: id => elementRef(nodeElements, id, writeNode),
     edgeRef: id => elementRef(edgeElements, id, writeEdge),
   })
-}
-
-function edgePath(state: EdgeState) {
-  const p = state.position
-  if (state.loop) {
-    const { radius, isLargeArc, isClockwise } = state.loop
-    const [rx, ry] = radius
-    const f1 = isLargeArc ? 1 : 0
-    const f2 = isClockwise ? 1 : 0
-    return `M ${p.p1.x} ${p.p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p.p2.x} ${p.p2.y}`
-  } else if (state.curve) {
-    const points = [...state.curve.control, { x: p.p2.x, y: p.p2.y }]
-    return [`M ${p.p1.x} ${p.p1.y}`, ...quadraticCurveCommands(points)].join(" ")
-  } else {
-    return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`
-  }
 }
 
 export function usePositionWriter() {

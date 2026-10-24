@@ -32,8 +32,8 @@
     }
   },
   "scripts": {
-    "lint": "oxlint --fix && eslint --fix \"**/*.vue\"",
-    "lint:check": "oxlint && eslint \"**/*.vue\"",
+    "lint": "oxlint --fix && eslint --fix \"**/*.vue\" \"src/**/*.ts\"",
+    "lint:check": "oxlint && eslint \"**/*.vue\" \"src/**/*.ts\"",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "build": "pnpm run clean && pnpm run build:tc && pnpm run build:lib",

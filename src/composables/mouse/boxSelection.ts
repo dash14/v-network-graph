@@ -5,6 +5,7 @@ import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"
 import { Layouts, NodePositions, Point, Rectangle } from "@/common/types"
 import { NodeStates } from "@/models/node"
+import { positionOf } from "@/modules/node/position"
 import { Vector2D } from "@/modules/vector2d"
 import { translateFromDomToSvgCoordinates } from "@/utils/svg"
 import { InteractionModes } from "./core"
@@ -318,13 +319,12 @@ function _updateNodesSelection(
     y: box.pos.y + box.size.height,
   })
 
-  // find enclosed nodes
+  // find enclosed nodes, where they are drawn
   const enclosedNodes = new Set(
-    Object.entries(nodePositions)
-      .filter(([_, pos]) => {
-        return pos1.x <= pos.x && pos.x <= pos2.x && pos1.y <= pos.y && pos.y <= pos2.y
-      })
-      .map(([nodeId, _]) => nodeId)
+    Object.keys(nodeStates).filter(nodeId => {
+      const pos = positionOf(nodePositions, nodeId)
+      return pos1.x <= pos.x && pos.x <= pos2.x && pos1.y <= pos.y && pos.y <= pos2.y
+    })
   )
 
   if (selectionType === "append") {

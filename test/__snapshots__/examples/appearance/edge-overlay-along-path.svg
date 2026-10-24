@@ -13,14 +13,14 @@
       <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M 0 0 L 150 100" />
       <g class="v-ng-edge-overlay">
         <g class="edge-icon">
-          <circle cx="33.282020568847656" cy="22.188011169433594" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
-          <text x="33.282020568847656" y="22.188011169433594" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="33.282011773513744" cy="22.188007849009164" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
+          <text x="33.282011773513744" y="22.188007849009164" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
         <g class="edge-icon">
-          <circle cx="116.71798706054688" cy="77.81199645996094" r="10" stroke="#444" stroke-width="1" fill="#fff" />
-          <text x="116.71798706054688" y="77.81199645996094" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="116.71798822648626" cy="77.81199215099083" r="10" stroke="#444" stroke-width="1" fill="#fff" />
+          <text x="116.71798822648626" y="77.81199215099083" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
@@ -28,14 +28,14 @@
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 150 100 Q 173.81591126388452 58.883866895829016 213.3512958792702 32.526943818905295 Q 252.88668049465525 6.170020741981972 300 0" />
       <g class="v-ng-edge-overlay">
         <g class="edge-icon">
-          <circle cx="173.24862670898438" cy="67.52840423583984" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
-          <text x="173.24862670898438" y="67.52840423583984" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="173.24844386494752" cy="67.52821863755072" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
+          <text x="173.24844386494752" y="67.52821863755072" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
         <g class="edge-icon">
-          <circle cx="261.0844421386719" cy="8.97118854522705" r="10" stroke="#444" stroke-width="1" fill="#fff" />
-          <text x="261.0844421386719" y="8.97118854522705" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="261.0843387942975" cy="8.970955351317487" r="10" stroke="#444" stroke-width="1" fill="#fff" />
+          <text x="261.0843387942975" y="8.970955351317487" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
@@ -43,14 +43,14 @@
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" d="M 150 100 Q 197.11331950534475 93.82997925801794 236.64870412072986 67.47305618109475 Q 276.18408873611514 41.116133104171446 300 0" />
       <g class="v-ng-edge-overlay">
         <g class="edge-icon">
-          <circle cx="188.9155731201172" cy="91.02881622314453" r="10" stroke="#444" stroke-width="1" fill="#fff" />
-          <text x="188.9155731201172" y="91.02881622314453" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="188.9156612057025" cy="91.02904464868247" r="10" stroke="#444" stroke-width="1" fill="#fff" />
+          <text x="188.9156612057025" y="91.02904464868247" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
         <g class="edge-icon">
-          <circle cx="276.7513732910156" cy="32.471622467041016" r="10" stroke="#444" stroke-width="1" fill="#fff" />
-          <text x="276.7513732910156" y="32.471622467041016" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="276.7515561350523" cy="32.471781362449505" r="10" stroke="#444" stroke-width="1" fill="#fff" />
+          <text x="276.7515561350523" y="32.471781362449505" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
@@ -58,14 +58,14 @@
       <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" d="M 300 0 L 450 100" />
       <g class="v-ng-edge-overlay">
         <g class="edge-icon">
-          <circle cx="333.2820129394531" cy="22.188011169433594" r="10" stroke="#444" stroke-width="1" fill="#fff" />
-          <text x="333.2820129394531" y="22.188011169433594" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="333.2820117735138" cy="22.188007849009164" r="10" stroke="#444" stroke-width="1" fill="#fff" />
+          <text x="333.2820117735138" y="22.188007849009164" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
         <g class="edge-icon">
-          <circle cx="416.7179870605469" cy="77.81199645996094" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
-          <text x="416.7179870605469" y="77.81199645996094" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
+          <circle cx="416.7179882264862" cy="77.81199215099083" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
+          <text x="416.7179882264862" y="77.81199215099083" font-family="Material Icons" text-anchor="middle" dominant-baseline="central" font-size="16">
             
           </text>
         </g>
