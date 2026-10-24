@@ -1,7 +1,7 @@
 // the states of nodes and edges
 
 import { isEqual } from "lodash-es"
-import type { ComputedRef, InjectionKey, ReactiveEffectRunner, Ref } from "vue"
+import type { ComputedRef, InjectionKey, ReactiveEffectRunner, Ref, ShallowRef } from "vue"
 import {
   computed,
   effect,
@@ -477,12 +477,16 @@ type EdgePlacementStyle = Omit<EdgeGeometryInput, "source" | "target" | "scale">
   targetId: string
 }
 
-const INITIAL_EDGE_GEOMETRY: EdgeGeometry = {
-  origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-  labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-  position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-  curve: undefined,
-  loop: undefined,
+const GEOMETRY_KEYS = ["origin", "labelPosition", "position", "curve", "loop"] as const
+
+function initialEdgeGeometry(): EdgeGeometry {
+  return {
+    origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+    curve: undefined,
+    loop: undefined,
+  }
 }
 
 function createNewEdgeState(
@@ -500,12 +504,17 @@ function createNewEdgeState(
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
-  // Each placement replaces the whole geometry, which the state shows through getters.
-  const geometry = shallowRef(INITIAL_EDGE_GEOMETRY)
-  const geometryKeys = ["origin", "labelPosition", "position", "curve", "loop"] as const
-  for (const key of geometryKeys) {
+  // One ref for each part, so that a straight edge staying straight does not notify the readers of
+  // its curve and loop.
+  const initial = initialEdgeGeometry()
+  edgePlacement.geometries.set(id, initial)
+  const geometry = Object.fromEntries(
+    GEOMETRY_KEYS.map(key => [key, shallowRef(initial[key])])
+  ) as { [K in keyof EdgeGeometry]: ShallowRef<EdgeGeometry[K]> }
+  for (const key of GEOMETRY_KEYS) {
     Object.defineProperty(toRaw(state), key, {
-      get: () => geometry.value[key],
+      get: () => geometry[key].value,
+      set: v => (geometry[key].value = v),
       enumerable: true,
       configurable: true,
     })
@@ -553,7 +562,12 @@ function createNewEdgeState(
 
   // Copied out of the reactive objects so that placing reads none. The positions and the scale are
   // left out, since a layout tick or a zoom changes them for every edge.
-  const style = computed<EdgePlacementStyle | undefined>(() => {
+  const style = computed<EdgePlacementStyle | undefined>(previous => {
+    const next = placementStyle()
+    // Kept when equal, so that a change of the stroke alone does not re-place the edge.
+    return previous && isEqual(previous, next) ? previous : next
+  })
+  const placementStyle = (): EdgePlacementStyle | undefined => {
     const edge = edges.value[id]
     if (!edge) return undefined
 
@@ -580,7 +594,7 @@ function createNewEdgeState(
       keepOrder: config.keepOrder,
       selfLoop: selfLoop && { ...selfLoop },
     }
-  })
+  }
 
   // Tracks the style and the scale: the effect in provideStates re-places the edges of moved nodes.
   const placeEdge = () => {
@@ -595,7 +609,11 @@ function createNewEdgeState(
       scale: scale.value,
     })
     edgePlacement.geometries.set(id, placed)
-    geometry.value = placed
+    geometry.origin.value = placed.origin
+    geometry.labelPosition.value = placed.labelPosition
+    geometry.position.value = placed.position
+    geometry.curve.value = placed.curve
+    geometry.loop.value = placed.loop
   }
   const place = effect(placeEdge, { scheduler: () => edgePlacement.schedule(id) })
   edgePlacement.placers.set(id, place)
