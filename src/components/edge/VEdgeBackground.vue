@@ -46,6 +46,9 @@ const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.
 
 <style lang="scss">
 .v-ng-line-background {
+  // Hit by its stroke without being painted.
+  visibility: hidden;
+  pointer-events: stroke;
   &.selectable {
     cursor: pointer;
   }
