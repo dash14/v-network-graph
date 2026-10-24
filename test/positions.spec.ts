@@ -138,4 +138,40 @@ describe("positions", () => {
     expect(node?.getAttribute("transform")).toBe("translate(0 0)")
     expect(edge?.getAttribute("d")).toBe("M 0 0 L 120 0")
   })
+
+  // A position the layout handler would not fix, given as it is.
+  const invalidPositions = {
+    missing: {},
+    undefined: { node2: undefined },
+    NaN: { node2: { x: NaN, y: NaN } },
+  } as unknown as Record<string, Layouts["nodes"]>
+
+  test.each(Object.keys(invalidPositions))(
+    "a node with a %s position is drawn at the origin with its edges, label, focus ring and path",
+    async invalid => {
+      const graph = {
+        nodes,
+        edges,
+        paths: { path1: { edges: ["edge1", "edge3"] } },
+        selectedNodes: ["node2"],
+        configs: {
+          ...configsWith("straight"),
+          view: { layoutHandler: { activate() {}, deactivate() {} } },
+          path: { visible: true },
+        },
+      }
+      const others = { node1: before.nodes.node1, node3: before.nodes.node3 }
+
+      const drawn = await mountGraph({
+        ...graph,
+        layouts: { nodes: { ...others, ...invalidPositions[invalid] } },
+      })
+      const atOrigin = await mountGraph({
+        ...graph,
+        layouts: { nodes: { ...others, node2: { x: 0, y: 0 } } },
+      })
+
+      expect(markupOf(drawn.screen.container)).toBe(markupOf(atOrigin.screen.container))
+    }
+  )
 })

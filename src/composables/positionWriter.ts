@@ -4,6 +4,7 @@ import { Layouts } from "@/common/types"
 import { PositionChanges } from "@/composables/state"
 import { EdgeState, EdgeStates } from "@/models/edge"
 import { quadraticCurveCommands } from "@/modules/calculation/path"
+import { untrackedPositionOf } from "@/modules/node/position"
 
 type ElementRef = (el: unknown) => void
 
@@ -25,8 +26,8 @@ export function providePositionWriter(
 
   // Read untracked: the changes say what to write.
   const writeNode = (el: Element, id: string) => {
-    const p = toRaw(toRaw(layouts).nodes[id])
-    el.setAttribute("transform", `translate(${p?.x || 0} ${p?.y || 0})`)
+    const p = untrackedPositionOf(toRaw(layouts).nodes, id)
+    el.setAttribute("transform", `translate(${p.x} ${p.y})`)
   }
   const writeEdge = (el: Element, id: string) => {
     const state = toRaw(toRaw(edgeStates)[id])

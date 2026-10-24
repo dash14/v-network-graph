@@ -10,6 +10,7 @@ import { VectorLine } from "@/modules/calculation/line"
 import * as LineUtils from "@/modules/calculation/line"
 import * as PointUtils from "@/modules/calculation/point"
 import * as NodeUtils from "@/modules/node/node"
+import { positionOf } from "@/modules/node/position"
 import V, { Vector2D } from "@/modules/vector2d"
 import { findFirstNonNull } from "@/utils/collection"
 
@@ -70,7 +71,7 @@ export function calculatePathPoints(
     const next = edgePos[i]
 
     const nodeId = next.source
-    const nodePos = Vector2D.fromObject(nodeLayouts[nodeId] ?? { x: 0, y: 0 })
+    const nodePos = Vector2D.fromObject(positionOf(nodeLayouts, nodeId))
 
     // The intersection point of two lines: [X]
     const crossPoint = _getIntersectionOfLines(prev, next, nodePos)
@@ -240,7 +241,7 @@ export function calculatePathPoints(
         : _calculateEdgeOfNode(lastEdge, lineMargin, nodeLayouts, false)
     nodeRadius = NodeUtils.getNodeRadius(nodeStates[lastEdge.source].shape) * scale
     if (lastEdge.loop) {
-      const nodePos = Vector2D.fromObject(nodeLayouts[lastEdge.target] ?? { x: 0, y: 0 })
+      const nodePos = Vector2D.fromObject(positionOf(nodeLayouts, lastEdge.target))
       const [p1, _, arc] = _makeArcString(nodePos, lastEdge, nodeRadius)
       points.push(p1)
       points.push(arc)

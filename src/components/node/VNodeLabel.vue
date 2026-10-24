@@ -11,6 +11,7 @@ import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { NodeState } from "@/models/node"
 import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
+import { positionOf } from "@/modules/node/position"
 
 interface Props {
   id: string
@@ -51,8 +52,8 @@ const {
 const setElement = usePositionWriter().nodeRef(props.id)
 
 // The DOM gets the position from the position writer; it is read here only to adjust the direction.
-const x = computed(() => layouts.nodes[props.id]?.x || 0)
-const y = computed(() => layouts.nodes[props.id]?.y || 0)
+const x = computed(() => positionOf(layouts.nodes, props.id).x)
+const y = computed(() => positionOf(layouts.nodes, props.id).y)
 
 const labelMargin = computed(() => {
   if (props.state.label.direction === NodeLabelDirection.CENTER) {

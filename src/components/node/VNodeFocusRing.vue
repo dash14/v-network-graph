@@ -9,15 +9,13 @@ import { NodeState } from "@/models/node"
 interface Props {
   id: string
   state: NodeState
-  pos?: Position
+  pos: Position
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  pos: undefined,
-})
+const props = defineProps<Props>()
 
-const x = computed(() => props.pos?.x || 0)
-const y = computed(() => props.pos?.y || 0)
+const x = computed(() => props.pos.x)
+const y = computed(() => props.pos.y)
 
 const config = useNodeConfig()
 const shapeConfig = reactive<ShapeStyle>({} as any)

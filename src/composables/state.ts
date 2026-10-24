@@ -38,6 +38,7 @@ import * as PathModel from "@/models/path"
 import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
 import { calculateEdgeGeometry } from "@/modules/edge/geometry"
 import * as EdgeGroup from "@/modules/edge/group"
+import { positionOf, untrackedPositionOf } from "@/modules/node/position"
 import { updateObjectDiff } from "@/utils/object"
 import { MarkerState, useMarker } from "./marker"
 import { useObjectState } from "./objectState"
@@ -264,7 +265,7 @@ export function provideStates(
     let count = 0
     for (const id in positions) {
       count++
-      const { x, y } = positions[id] ?? { x: 0, y: 0 }
+      const { x, y } = positionOf(positions, id)
       const placed = placedPositions.get(id)
       if (placed?.x === x && placed?.y === y) continue
       placedPositions.set(id, { x, y })
@@ -391,9 +392,11 @@ function createNewNodeState(
 ) {
   // Deleted nodes will lose their position. If it is not a two-way binding,
   // the position remains in the layout specified by the user and is reacquired.
+  /* eslint-disable no-restricted-syntax -- copies the given position as it is */
   if (!layouts.nodes[id] && readonlyLayouts.nodes?.[id]) {
     layouts.nodes[id] = <FixablePosition>{ ...readonlyLayouts.nodes?.[id] }
   }
+  /* eslint-enable no-restricted-syntax */
 
   state.shape = computed(() => {
     if (!nodes.value[id]) return unref(state.shape) // Return the previous value
@@ -430,8 +433,8 @@ function createNewNodeState(
     return Object.entries(state.oppositeNodeIds).reduce(
       (nodes, entry) => {
         const [edgeId, nodeId] = entry as [string, string]
-        const pos = layouts.nodes[nodeId]
-        if (pos) nodes[edgeId] = { nodeId, pos: { ...pos } }
+        if (nodeId in layouts.nodes)
+          nodes[edgeId] = { nodeId, pos: positionOf(layouts.nodes, nodeId) }
         return nodes
       },
       {} as Record<string, OppositeNode>
@@ -535,9 +538,8 @@ function createNewEdgeState(
     }
 
     const positions = toRaw(layouts).nodes
-    // The positions themselves can be readonly proxies, which a reactive object keeps as they are.
-    const source = toRaw(positions[edge.source]) ?? { x: 0, y: 0 }
-    const target = toRaw(positions[edge.target]) ?? { x: 0, y: 0 }
+    const source = untrackedPositionOf(positions, edge.source)
+    const target = untrackedPositionOf(positions, edge.target)
 
     const selfLoop = edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
     const geometry = calculateEdgeGeometry({
