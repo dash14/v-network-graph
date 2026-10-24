@@ -65,7 +65,7 @@
     "eslint-plugin-oxlint": "~1.86.0",
     "eslint-plugin-vue": "^10.11.1",
     "lefthook": "^2.1.16",
-    "oxfmt": "^0.71.0",
+    "oxfmt": "^0.72.0",
     "oxlint": "~1.86.0",
     "playwright": "^1.63.0",
     "rimraf": "^6.1.3",
