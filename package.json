@@ -18,7 +18,7 @@
   "files": [
     "lib"
   ],
-  "packageManager": "pnpm@12.9.1",
+  "packageManager": "pnpm@12.11.2",
   "devEngines": {
     "runtime": {
       "name": "node",
@@ -27,7 +27,7 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": "12.9.1",
+      "version": "12.11.2",
       "onFail": "download"
     }
   },
