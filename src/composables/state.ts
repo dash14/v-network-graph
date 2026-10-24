@@ -177,7 +177,7 @@ export function provideStates(
     () => edgeEntries.value
   )
 
-  // Made after the edge states, so that it runs after their effects in each flush.
+  // After the states of the edges given at mount, so that in a flush it runs after their effects.
   edgePlacement.followStyleChanges()
 
   // Re-places only the edges of the moved nodes, rather than every edge following the positions of

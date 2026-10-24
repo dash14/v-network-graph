@@ -93,7 +93,7 @@ export function createNewEdgeState(
   }
 }
 
-// Through accessors, since each placement replaces the parts.
+// Through getters, since each placement replaces the parts.
 function showGeometry(state: EdgeModel.EdgeStateDatum, geometry: EdgeGeometryRefs) {
   for (const key of Object.keys(geometry) as (keyof EdgeGeometryRefs)[]) {
     Object.defineProperty(toRaw(state), key, {
