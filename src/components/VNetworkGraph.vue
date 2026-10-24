@@ -433,7 +433,7 @@ const touches = computed(() => {
   return configs.view.panEnabled || configs.view.zoomEnabled || configs.node.draggable
 })
 
-const { nodeStates, edgeStates, pathStates, positionChanges } = provideStates(
+const { nodeStates, edgeStates, pathStates, positionChanges, edgeGeometries } = provideStates(
   makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
   makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
   makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
@@ -443,7 +443,7 @@ const { nodeStates, edgeStates, pathStates, positionChanges } = provideStates(
   markerState,
   scale
 )
-providePositionWriter(currentLayouts, edgeStates, positionChanges)
+providePositionWriter(currentLayouts, edgeGeometries, positionChanges)
 
 const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 

@@ -2,8 +2,8 @@ import { inject, InjectionKey, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
 import { PositionChanges } from "@/composables/state"
-import { EdgeState, EdgeStates } from "@/models/edge"
 import { quadraticCurveCommands } from "@/modules/calculation/path"
+import { EdgeGeometry } from "@/modules/edge/geometry"
 import { untrackedPositionOf } from "@/modules/node/position"
 
 type ElementRef = (el: unknown) => void
@@ -18,7 +18,7 @@ const injectionKey = Symbol("positionWriter") as InjectionKey<PositionWriter>
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
   layouts: Reactive<Layouts>,
-  edgeStates: EdgeStates,
+  edgeGeometries: ReadonlyMap<string, EdgeGeometry>,
   changes: PositionChanges
 ) {
   const nodeElements = new Map<string, Set<Element>>()
@@ -30,8 +30,8 @@ export function providePositionWriter(
     el.setAttribute("transform", `translate(${p.x} ${p.y})`)
   }
   const writeEdge = (el: Element, id: string) => {
-    const state = toRaw(toRaw(edgeStates)[id])
-    if (state) el.setAttribute("d", edgePath(state))
+    const geometry = edgeGeometries.get(id)
+    if (geometry) el.setAttribute("d", edgePath(geometry))
   }
 
   // Before the renders, since the edge overlays read the paths from the DOM while they render.
@@ -77,16 +77,16 @@ export function providePositionWriter(
   })
 }
 
-function edgePath(state: EdgeState) {
-  const p = state.position
-  if (state.loop) {
-    const { radius, isLargeArc, isClockwise } = state.loop
+function edgePath(geometry: EdgeGeometry) {
+  const p = geometry.position
+  if (geometry.loop) {
+    const { radius, isLargeArc, isClockwise } = geometry.loop
     const [rx, ry] = radius
     const f1 = isLargeArc ? 1 : 0
     const f2 = isClockwise ? 1 : 0
     return `M ${p.p1.x} ${p.p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p.p2.x} ${p.p2.y}`
-  } else if (state.curve) {
-    const points = [...state.curve.control, { x: p.p2.x, y: p.p2.y }]
+  } else if (geometry.curve) {
+    const points = [...geometry.curve.control, { x: p.p2.x, y: p.p2.y }]
     return [`M ${p.p1.x} ${p.p1.y}`, ...quadraticCurveCommands(points)].join(" ")
   } else {
     return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`

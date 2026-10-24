@@ -36,7 +36,7 @@ import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import * as PathModel from "@/models/path"
 import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
-import { calculateEdgeGeometry } from "@/modules/edge/geometry"
+import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
 import * as EdgeGroup from "@/modules/edge/group"
 import { positionOf, untrackedPositionOf } from "@/modules/node/position"
 import { updateObjectDiff } from "@/utils/object"
@@ -191,10 +191,12 @@ export function provideStates(
     changed: shallowRef(),
   }
   const edgePlacers = new Map<string, ReactiveEffectRunner>()
+  const edgeGeometries = new Map<string, EdgeGeometry>()
   const dirtyEdges = new Set<string>()
   const edgesDirty = shallowRef(0)
   const edgePlacement: EdgePlacement = {
     placers: edgePlacers,
+    geometries: edgeGeometries,
     schedule: id => {
       dirtyEdges.add(id)
       triggerRef(edgesDirty)
@@ -349,7 +351,11 @@ export function provideStates(
     pathZOrderedList,
   }
   provide(statesKey, states)
-  return { ...states, positionChanges }
+  return {
+    ...states,
+    positionChanges,
+    edgeGeometries: edgeGeometries as ReadonlyMap<string, EdgeGeometry>,
+  }
 }
 
 export function isSummarizedEdges(item: EdgeModel.EdgeItem): item is EdgeModel.SummarizedEdgeItem {
@@ -462,7 +468,21 @@ function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
 
 interface EdgePlacement {
   placers: Map<string, ReactiveEffectRunner>
+  geometries: Map<string, EdgeGeometry>
   schedule: (id: string) => void
+}
+
+type EdgePlacementStyle = Omit<EdgeGeometryInput, "source" | "target" | "scale"> & {
+  sourceId: string
+  targetId: string
+}
+
+const INITIAL_EDGE_GEOMETRY: EdgeGeometry = {
+  origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
+  curve: undefined,
+  loop: undefined,
 }
 
 function createNewEdgeState(
@@ -480,11 +500,16 @@ function createNewEdgeState(
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
-  Object.assign(state, {
-    origin: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-    labelPosition: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-    position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } },
-  })
+  // Each placement replaces the whole geometry, which the state shows through getters.
+  const geometry = shallowRef(INITIAL_EDGE_GEOMETRY)
+  const geometryKeys = ["origin", "labelPosition", "position", "curve", "loop"] as const
+  for (const key of geometryKeys) {
+    Object.defineProperty(toRaw(state), key, {
+      get: () => geometry.value[key],
+      enumerable: true,
+      configurable: true,
+    })
+  }
 
   state.label = computed(() => {
     if (!edges.value[id]) return unref(state.label) // Return the previous value
@@ -526,42 +551,51 @@ function createNewEdgeState(
   )
   const isEdgeSummarized: Ref<true | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
 
-  // The positions are read untracked: the effect in provideStates re-places the edges of moved nodes.
-  const placeEdge = () => {
+  // Copied out of the reactive objects so that placing reads none. The positions and the scale are
+  // left out, since a layout tick or a zoom changes them for every edge.
+  const style = computed<EdgePlacementStyle | undefined>(() => {
     const edge = edges.value[id]
-    if (!edge) return
+    if (!edge) return undefined
 
     const sourceShape = nodeStates[edge.source]?.staticShape
     const targetShape = nodeStates[edge.target]?.staticShape
     if (!sourceShape || !targetShape) {
-      return
+      return undefined
     }
 
-    const positions = toRaw(layouts).nodes
-    const source = untrackedPositionOf(positions, edge.source)
-    const target = untrackedPositionOf(positions, edge.target)
-
+    const layoutPoint = edgeLayoutPoint.value
+    const l = line.value
     const selfLoop = edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
-    const geometry = calculateEdgeGeometry({
-      source,
-      target,
-      sourceShape,
-      targetShape,
-      layoutPoint: edgeLayoutPoint.value,
+    return {
+      sourceId: edge.source,
+      targetId: edge.target,
+      sourceShape: { ...sourceShape },
+      targetShape: { ...targetShape },
+      layoutPoint: layoutPoint && { ...layoutPoint, edge: toRaw(layoutPoint.edge) },
       summarized: isEdgeSummarized.value ?? false,
-      line: line.value,
+      line: { normalWidth: l.normalWidth, source: { ...l.source }, target: { ...l.target } },
       // A self-loop is drawn the same with any type, so it does not track it.
       type: selfLoop ? "straight" : config.type,
       margin: config.margin,
       keepOrder: config.keepOrder,
-      selfLoop,
+      selfLoop: selfLoop && { ...selfLoop },
+    }
+  })
+
+  // Tracks the style and the scale: the effect in provideStates re-places the edges of moved nodes.
+  const placeEdge = () => {
+    const s = style.value
+    if (!s) return
+
+    const positions = toRaw(layouts).nodes
+    const placed = calculateEdgeGeometry({
+      ...s,
+      source: untrackedPositionOf(positions, s.sourceId),
+      target: untrackedPositionOf(positions, s.targetId),
       scale: scale.value,
     })
-    state.origin = geometry.origin
-    state.labelPosition = geometry.labelPosition
-    state.position = geometry.position
-    state.curve = geometry.curve
-    state.loop = geometry.loop
+    edgePlacement.geometries.set(id, placed)
+    geometry.value = placed
   }
   const place = effect(placeEdge, { scheduler: () => edgePlacement.schedule(id) })
   edgePlacement.placers.set(id, place)
@@ -586,6 +620,7 @@ function createNewEdgeState(
 
   state.stopWatchHandle = () => {
     edgePlacement.placers.delete(id)
+    edgePlacement.geometries.delete(id)
     stop(place)
     stopUpdateMarkerHandle()
     clearMarker(state.sourceMarkerId)
