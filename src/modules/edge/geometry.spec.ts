@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest"
 import { MarkerStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
 import { EdgeLayoutPoint } from "@/models/edge"
-import { calculateEdgeGeometry, EdgeGeometryInput } from "./geometry"
+import { Vector2D } from "@/modules/vector2d"
+import {
+  calculateEdgeGeometry,
+  edgeLengthOf,
+  edgePathOf,
+  EdgeGeometryInput,
+  pointAlongEdge,
+} from "./geometry"
 
 const shape = { type: "circle", radius: 16, strokeWidth: 0 } as ShapeStyle
 
@@ -234,5 +241,68 @@ describe("calculateEdgeGeometry", () => {
       expect(g.loop!.radius).toEqual([24, 24])
       expect(g.loop!.center.x).toBeCloseTo(-44)
     })
+  })
+})
+
+describe("edgeLengthOf and pointAlongEdge", () => {
+  const position = { p1: { x: 0, y: 0 }, p2: { x: 30, y: 40 } }
+
+  it("should measure a straight line", () => {
+    expect(edgeLengthOf({ position })).toBe(50)
+    expect(pointAlongEdge({ position }, 25)).toEqual({ x: 15, y: 20 })
+  })
+
+  it("should clamp the distance to the line", () => {
+    expect(pointAlongEdge({ position }, -10)).toEqual({ x: 0, y: 0 })
+    expect(pointAlongEdge({ position }, 80)).toEqual({ x: 30, y: 40 })
+  })
+
+  it("should measure a quarter of a circle clockwise on screen", () => {
+    // From the right of the center to below it, which is clockwise when y points down.
+    const center = new Vector2D(0, 0)
+    const loop = {
+      center,
+      radius: [10, 10] as [number, number],
+      isLargeArc: false,
+      isClockwise: true,
+    }
+    const arc = { position: { p1: { x: 10, y: 0 }, p2: { x: 0, y: 10 } }, loop }
+
+    expect(edgeLengthOf(arc)).toBeCloseTo((Math.PI * 10) / 2)
+    const p = pointAlongEdge(arc, (Math.PI * 10) / 4)
+    expect(p.x).toBeCloseTo(10 * Math.SQRT1_2)
+    expect(p.y).toBeCloseTo(10 * Math.SQRT1_2)
+  })
+
+  it("should measure the other way around a circle counterclockwise", () => {
+    const center = new Vector2D(0, 0)
+    const loop = {
+      center,
+      radius: [10, 10] as [number, number],
+      isLargeArc: true,
+      isClockwise: false,
+    }
+    const arc = { position: { p1: { x: 10, y: 0 }, p2: { x: 0, y: 10 } }, loop }
+
+    expect(edgeLengthOf(arc)).toBeCloseTo((Math.PI * 10 * 3) / 2)
+    const p = pointAlongEdge(arc, (Math.PI * 10) / 2)
+    expect(p.x).toBeCloseTo(0)
+    expect(p.y).toBeCloseTo(-10)
+  })
+
+  it("should measure a curve as its path is drawn", () => {
+    const g = calculateEdgeGeometry(
+      input({ type: "curve", layoutPoint: { edge, pointInGroup: 0, groupWidth: 40 } })
+    )
+    const end = g.position.p2
+
+    expect(edgePathOf(g)).toMatch(/^M 0 0 Q /)
+    expect(edgeLengthOf(g)).toBeGreaterThan(100)
+    const last = pointAlongEdge(g, edgeLengthOf(g))
+    expect(last.x).toBeCloseTo(end.x)
+    expect(last.y).toBeCloseTo(end.y)
+    const middle = pointAlongEdge(g, edgeLengthOf(g) / 2)
+    expect(middle.x).toBeCloseTo(50)
+    expect(Math.abs(middle.y)).toBeCloseTo(20)
   })
 })

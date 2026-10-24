@@ -1,9 +1,11 @@
+import { toRaw } from "vue"
 import { EdgeKeepOrderType, EdgeType, SelfLoopEdgeStyle, ShapeStyle } from "@/common/configs"
 import { LinePosition, Position } from "@/common/types"
 import { Arc, Curve, EdgeLayoutPoint, Line } from "@/models/edge"
 import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
 import { VectorLine } from "@/modules/calculation/line"
+import { quadraticCurveCommands } from "@/modules/calculation/path"
 import * as PointUtils from "@/modules/calculation/point"
 import { calculateEdgeShiftedPosition } from "@/modules/edge/group"
 import * as NodeUtils from "@/modules/node/node"
@@ -149,9 +151,168 @@ export function calculateEdgeGeometry(input: EdgeGeometryInput): EdgeGeometry {
   return { origin, labelPosition, position, curve, loop: undefined }
 }
 
+interface DrawnEdge {
+  position: LinePosition
+  curve?: Curve
+  loop?: Arc
+}
+
+/**
+ * Make the path commands that draw an edge.
+ * @param edge the geometry of the edge
+ * @returns the value of the `d` attribute
+ */
+export function edgePathOf(edge: DrawnEdge): string {
+  const p = edge.position
+  if (edge.loop) {
+    const { radius, isLargeArc, isClockwise } = edge.loop
+    const [rx, ry] = radius
+    const f1 = isLargeArc ? 1 : 0
+    const f2 = isClockwise ? 1 : 0
+    return `M ${p.p1.x} ${p.p1.y} A ${rx} ${ry} 0 ${f1} ${f2} ${p.p2.x} ${p.p2.y}`
+  } else if (edge.curve) {
+    const points = [...edge.curve.control, { x: p.p2.x, y: p.p2.y }]
+    return [`M ${p.p1.x} ${p.p1.y}`, ...quadraticCurveCommands(points)].join(" ")
+  } else {
+    return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`
+  }
+}
+
+/**
+ * Calculate the length of the drawn line of an edge.
+ * @param edge the geometry of the edge
+ * @returns the length
+ */
+export function edgeLengthOf(edge: DrawnEdge): number {
+  return segmentsOf(edge).reduce((sum, s) => sum + s.length, 0)
+}
+
+/**
+ * Calculate the point at a distance along the drawn line of an edge, as
+ * `SVGGeometryElement.getPointAtLength()` does.
+ * @param edge the geometry of the edge
+ * @param distance the distance from the start, clamped to the line
+ * @returns the point
+ */
+export function pointAlongEdge(edge: DrawnEdge, distance: number): Position {
+  const segments = segmentsOf(edge)
+  let rest = Math.max(distance, 0)
+  for (const segment of segments) {
+    if (rest <= segment.length) return segment.pointAt(rest)
+    rest -= segment.length
+  }
+  const { p2 } = edge.position
+  return { x: p2.x, y: p2.y }
+}
+
 // -----------------------------------------------------------------------
 // Private functions
 // -----------------------------------------------------------------------
+
+interface Segment {
+  length: number
+  pointAt: (distance: number) => Position
+}
+
+// Each placement makes a new position, so the segments are kept for as long as it is drawn.
+const segmentCache = new WeakMap<LinePosition, Segment[]>()
+
+function segmentsOf(edge: DrawnEdge): Segment[] {
+  const key = toRaw(edge.position)
+  let segments = segmentCache.get(key)
+  if (!segments) {
+    segments = measureSegments(edge)
+    segmentCache.set(key, segments)
+  }
+  return segments
+}
+
+function measureSegments(edge: DrawnEdge): Segment[] {
+  const { p1, p2 } = edge.position
+  if (edge.loop) {
+    return [arcSegment(p1, p2, edge.loop)]
+  } else if (edge.curve) {
+    const points = [p1, ...edge.curve.control, p2]
+    const segments: Segment[] = []
+    for (let i = 0; i + 2 < points.length; i += 2) {
+      segments.push(quadraticSegment(points[i], points[i + 1], points[i + 2]))
+    }
+    return segments
+  } else {
+    return [lineSegment(p1, p2)]
+  }
+}
+
+function lineSegment(p1: Position, p2: Position): Segment {
+  const length = Math.hypot(p2.x - p1.x, p2.y - p1.y)
+  return {
+    length,
+    pointAt: d => {
+      const t = length === 0 ? 0 : d / length
+      return { x: p1.x + (p2.x - p1.x) * t, y: p1.y + (p2.y - p1.y) * t }
+    },
+  }
+}
+
+function arcSegment(p1: Position, p2: Position, arc: Arc): Segment {
+  const { center } = arc
+  const radius = arc.radius[0]
+  const start = Math.atan2(p1.y - center.y, p1.x - center.x)
+  const end = Math.atan2(p2.y - center.y, p2.x - center.x)
+  // A clockwise arc on screen, where y points down, goes toward larger angles.
+  const turn = 2 * Math.PI
+  const sweep = arc.isClockwise
+    ? (((end - start) % turn) + turn) % turn
+    : -((((start - end) % turn) + turn) % turn)
+  return {
+    length: Math.abs(sweep) * radius,
+    pointAt: d => {
+      const angle = start + Math.sign(sweep) * (d / radius)
+      return { x: center.x + radius * Math.cos(angle), y: center.y + radius * Math.sin(angle) }
+    },
+  }
+}
+
+// Gauss-Legendre nodes and weights on [-1, 1], exact enough for the speed of a quadratic curve.
+const GAUSS_POINTS = [
+  [-0.9324695142031521, 0.1713244923791704],
+  [-0.6612093864662645, 0.3607615730481386],
+  [-0.2386191860831969, 0.467913934572691],
+  [0.2386191860831969, 0.467913934572691],
+  [0.6612093864662645, 0.3607615730481386],
+  [0.9324695142031521, 0.1713244923791704],
+]
+
+function quadraticSegment(p0: Position, c: Position, p2: Position): Segment {
+  const pointAtT = (t: number) => {
+    const u = 1 - t
+    return {
+      x: u * u * p0.x + 2 * u * t * c.x + t * t * p2.x,
+      y: u * u * p0.y + 2 * u * t * c.y + t * t * p2.y,
+    }
+  }
+  const speed = (t: number) => {
+    const dx = 2 * ((1 - t) * (c.x - p0.x) + t * (p2.x - c.x))
+    const dy = 2 * ((1 - t) * (c.y - p0.y) + t * (p2.y - c.y))
+    return Math.hypot(dx, dy)
+  }
+  const lengthTo = (t: number) =>
+    (GAUSS_POINTS.reduce((sum, [x, w]) => sum + w * speed((t * (x + 1)) / 2), 0) * t) / 2
+  const length = lengthTo(1)
+  return {
+    length,
+    pointAt: d => {
+      let lo = 0
+      let hi = 1
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2
+        if (lengthTo(mid) < d) lo = mid
+        else hi = mid
+      }
+      return pointAtT((lo + hi) / 2)
+    },
+  }
+}
 
 function calculateCurveGeometry(
   originPosition: LinePosition,
