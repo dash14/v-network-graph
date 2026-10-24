@@ -1,5 +1,6 @@
 import { AnyShapeStyle } from "@/common/configs"
 import { Box, NodePositions } from "@/common/types"
+import { positionOf } from "@/modules/node/position"
 
 export function getNodeRadius(shape: AnyShapeStyle) {
   if (shape.type == "circle") {
@@ -10,7 +11,7 @@ export function getNodeRadius(shape: AnyShapeStyle) {
 }
 
 export function getNodesBox(layouts: NodePositions): Box {
-  const positions = Object.values(layouts)
+  const positions = Object.keys(layouts).map(id => positionOf(layouts, id))
   if (positions.length === 0) {
     return {
       top: 0,
