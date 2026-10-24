@@ -19,6 +19,11 @@
       "matchPackageNames": ["@dash14/svg-pan-zoom"],
       "minimumReleaseAge": "0 days",
       "schedule": ["at any time"]
+    },
+    {
+      "description": "TypeScript 7 ships no JS API yet, and vue-tsc, typescript-eslint and unplugin-dts all run on it.",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
     }
   ]
 }
