@@ -30,7 +30,6 @@ import {
 import { ShapeStyle, StrokeStyle } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
 import { FixablePosition, UserLayouts } from "@/common/types"
-import { Position } from "@/common/types"
 import { useId } from "@/composables/id"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
@@ -42,6 +41,7 @@ import { positionOf, untrackedPositionOf } from "@/modules/node/position"
 import { updateObjectDiff } from "@/utils/object"
 import { MarkerState, useMarker } from "./marker"
 import { useObjectState } from "./objectState"
+import { trackNodePositions } from "./positionTracker"
 
 // -----------------------------------------------------------------------
 // Type definitions
@@ -254,38 +254,16 @@ export function provideStates(
     placeEdges(ids, true)
   })
 
-  // Positions change on every layout tick, so one effect follows them all and re-places only the
-  // edges of the moved nodes, rather than every edge following the positions of its own nodes.
-  const placedPositions = new Map<string, Position>()
-  watchEffect(() => {
-    const positions = layouts.nodes
-    const moved = new Set<string>()
-    const markMoved = (id: string) => {
+  // Re-places only the edges of the moved nodes, rather than every edge following the positions of
+  // its own nodes.
+  const layoutsChanged = trackNodePositions(layouts, nodes.objects, moved => {
+    const movedEdges = new Set<string>()
+    moved.forEach(id => {
       positionChanges.nodes.add(id)
-      Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => moved.add(edgeId))
-    }
-    let count = 0
-    for (const id in positions) {
-      count++
-      const p = positionOf(positions, id)
-      const placed = placedPositions.get(id)
-      if (placed?.x === p.x && placed?.y === p.y) continue
-      placedPositions.set(id, p)
-      markMoved(id)
-    }
-    // Every id seen is in the map, so a larger map holds removed nodes.
-    if (placedPositions.size > count) {
-      const rawPositions = toRaw(positions)
-      placedPositions.forEach((_, id) => {
-        if (id in rawPositions) return
-        placedPositions.delete(id)
-        // A node can stay without a position, and is then drawn at the origin. A removed one is
-        // left as it is, since it may still be leaving with a transition.
-        if (id in toRaw(nodes.objects.value)) markMoved(id)
-      })
-    }
-    placeEdges(moved)
-    if (positionChanges.nodes.size > 0) triggerRef(positionChanges.changed)
+      Object.keys(toRaw(opposingNodes)[id] ?? {}).forEach(edgeId => movedEdges.add(edgeId))
+    })
+    placeEdges(movedEdges)
+    triggerRef(positionChanges.changed)
   })
 
   // Edge item for display (an edge or summarized edges)
@@ -354,6 +332,7 @@ export function provideStates(
   return {
     ...states,
     positionChanges,
+    layoutsChanged,
     edgeGeometries: edgeGeometries as ReadonlyMap<string, EdgeGeometry>,
   }
 }

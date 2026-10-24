@@ -9,7 +9,15 @@ import { NodePositions, Position } from "@/common/types"
  * @returns a copy of the position
  */
 export function positionOf(positions: Readonly<NodePositions>, id: string): Position {
-  const p = positions[id]
+  return drawnPositionOf(positions[id])
+}
+
+/**
+ * Same as `positionOf`, for a position already taken out of the positions.
+ * @param p the position of a node, if any
+ * @returns a copy of the position
+ */
+export function drawnPositionOf(p: Position | undefined): Position {
   return { x: toCoordinate(p?.x), y: toCoordinate(p?.y) }
 }
 
