@@ -67,6 +67,15 @@ const cases: { name: string; edges: Edges; configs: UserConfigs; line: string }[
     configs: { edge: { summarize: () => true } },
     line: ".v-ng-line-summarized [data-edge-id]",
   },
+  {
+    name: "summarized self-loop edges",
+    edges: {
+      edge1: { source: "node1", target: "node1" },
+      edge2: { source: "node1", target: "node1" },
+    },
+    configs: { edge: { summarize: () => true } },
+    line: ".v-ng-line-summarized [data-edge-id]",
+  },
 ]
 
 describe("edge overlay", () => {

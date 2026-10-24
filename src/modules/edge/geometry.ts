@@ -214,16 +214,24 @@ interface Segment {
   pointAt: (distance: number) => Position
 }
 
+interface MeasuredEdge {
+  curve: Curve | undefined
+  loop: Arc | undefined
+  segments: Segment[]
+}
+
 // Each placement makes a new position, so the segments are kept for as long as it is drawn.
-const segmentCache = new WeakMap<LinePosition, Segment[]>()
+const segmentCache = new WeakMap<LinePosition, MeasuredEdge>()
 
 function segmentsOf(edge: DrawnEdge): Segment[] {
   const key = toRaw(edge.position)
-  let segments = segmentCache.get(key)
-  if (!segments) {
-    segments = measureSegments(edge)
-    segmentCache.set(key, segments)
-  }
+  const curve = toRaw(edge.curve)
+  const loop = toRaw(edge.loop)
+  const measured = segmentCache.get(key)
+  // The same position may be drawn with another curve or loop.
+  if (measured && measured.curve === curve && measured.loop === loop) return measured.segments
+  const segments = measureSegments(edge)
+  segmentCache.set(key, { curve, loop, segments })
   return segments
 }
 
@@ -267,6 +275,7 @@ function arcSegment(p1: Position, p2: Position, arc: Arc): Segment {
   return {
     length: Math.abs(sweep) * radius,
     pointAt: d => {
+      if (radius === 0) return { x: p1.x, y: p1.y }
       const angle = start + Math.sign(sweep) * (d / radius)
       return { x: center.x + radius * Math.cos(angle), y: center.y + radius * Math.sin(angle) }
     },
@@ -302,14 +311,18 @@ function quadraticSegment(p0: Position, c: Position, p2: Position): Segment {
   return {
     length,
     pointAt: d => {
-      let lo = 0
-      let hi = 1
-      for (let i = 0; i < 40; i++) {
-        const mid = (lo + hi) / 2
-        if (lengthTo(mid) < d) lo = mid
-        else hi = mid
+      if (length === 0) return pointAtT(0)
+      // Newton's method, from where the point would be at an even speed.
+      let t = d / length
+      for (let i = 0; i < 8; i++) {
+        const v = speed(t)
+        if (v === 0) break
+        const next = Math.min(1, Math.max(0, t - (lengthTo(t) - d) / v))
+        const done = Math.abs(next - t) < 1e-10
+        t = next
+        if (done) break
       }
-      return pointAtT((lo + hi) / 2)
+      return pointAtT(t)
     },
   }
 }

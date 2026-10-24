@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import { Config, StrokeStyle } from "@/common/configs"
 import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
@@ -75,9 +76,14 @@ function calculateCenterPoint(state: EdgeState): Point {
   }
 }
 
+// Summarized edges are drawn as a straight line, even between the ends of a self-loop.
+const drawnEdge = computed(() =>
+  props.isSummarized ? { position: props.state.position } : props.state
+)
+
 function calculatePointAtLength(distance: number): Point {
-  if (!isFinite(distance)) return props.state.position.p1
-  return pointAlongEdge(props.state, distance)
+  if (Number.isNaN(distance)) return props.state.position.p1
+  return pointAlongEdge(drawnEdge.value, distance)
 }
 </script>
 
@@ -93,7 +99,7 @@ function calculatePointAtLength(distance: number): Point {
       :hovered="state.hovered"
       :selected="state.selected"
       :scale="scale"
-      :length="edgeLengthOf(state)"
+      :length="edgeLengthOf(drawnEdge)"
       :point-at-length="calculatePointAtLength"
     />
     <slot
@@ -108,7 +114,7 @@ function calculatePointAtLength(distance: number): Point {
       :hovered="state.hovered"
       :selected="state.selected"
       :scale="scale"
-      :length="edgeLengthOf(state)"
+      :length="edgeLengthOf(drawnEdge)"
       :point-at-length="calculatePointAtLength"
     />
   </g>

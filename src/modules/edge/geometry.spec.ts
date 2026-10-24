@@ -290,6 +290,31 @@ describe("edgeLengthOf and pointAlongEdge", () => {
     expect(p.y).toBeCloseTo(-10)
   })
 
+  it("should give the start of a loop of no radius", () => {
+    const loop = {
+      center: new Vector2D(5, 5),
+      radius: [0, 0] as [number, number],
+      isLargeArc: true,
+      isClockwise: true,
+    }
+    const arc = { position: { p1: { x: 5, y: 5 }, p2: { x: 5, y: 5 } }, loop }
+
+    expect(edgeLengthOf(arc)).toBe(0)
+    expect(pointAlongEdge(arc, 0)).toEqual({ x: 5, y: 5 })
+  })
+
+  it("should measure the same position again when drawn as a loop", () => {
+    const loop = {
+      center: new Vector2D(15, 20),
+      radius: [25, 25] as [number, number],
+      isLargeArc: true,
+      isClockwise: true,
+    }
+
+    expect(edgeLengthOf({ position })).toBe(50)
+    expect(edgeLengthOf({ position, loop })).toBeGreaterThan(50)
+  })
+
   it("should measure a curve as its path is drawn", () => {
     const g = calculateEdgeGeometry(
       input({ type: "curve", layoutPoint: { edge, pointInGroup: 0, groupWidth: 40 } })
