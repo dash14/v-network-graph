@@ -126,32 +126,21 @@ describe("update:layouts", () => {
     expect(await moveNode2()).toBe(1)
   })
 
-  test("stops walking the layouts once a listener with the once modifier received them", async () => {
-    const unwatchedGraph = await mountCounting({})
-    const unwatched = await unwatchedGraph.moveNode2()
-    unwatchedGraph.screen.unmount()
-
+  test("reads each position once per move after a once listener received the layouts", async () => {
     const listener = vi.fn()
     const { moveNode2 } = await mountCounting({ "onUpdate:layoutsOnce": listener })
     await moveNode2()
     expect(listener).toHaveBeenCalledTimes(1)
-    expect(await moveNode2()).toBe(unwatched)
+    expect(await moveNode2()).toBe(1)
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 
-  test("does not walk the layouts for an empty array of handlers", async () => {
-    const unwatchedGraph = await mountCounting({})
-    const unwatched = await unwatchedGraph.moveNode2()
-    unwatchedGraph.screen.unmount()
-
+  test("reads each position once per move for an empty array of handlers", async () => {
     const { moveNode2 } = await mountCounting({ "onUpdate:layouts": [] })
-    expect(await moveNode2()).toBe(unwatched)
+    expect(await moveNode2()).toBe(1)
   })
 
   test("stays done, as Vue does, when a once listener is removed and another one is added", async () => {
-    const unwatchedGraph = await mountCounting({})
-    const unwatched = await unwatchedGraph.moveNode2()
-    unwatchedGraph.screen.unmount()
-
     const first = vi.fn()
     const second = vi.fn()
     const { moveNode2, setListeners } = await mountCounting({ "onUpdate:layoutsOnce": first })
@@ -159,9 +148,18 @@ describe("update:layouts", () => {
     await setListeners({})
     await setListeners({ "onUpdate:layoutsOnce": second })
 
-    expect(await moveNode2()).toBe(unwatched)
+    expect(await moveNode2()).toBe(1)
     expect(first).toHaveBeenCalledTimes(1)
     expect(second).not.toHaveBeenCalled()
+  })
+
+  test("is emitted when a coordinate changes to one drawn at the same place", async () => {
+    const listener = vi.fn()
+    const { layouts } = await mountCounting({ "onUpdate:layouts": listener })
+
+    Object.assign(layouts.nodes.node2, { x: "100" })
+    await nextTick()
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 
   test("is emitted when a position is fixed without moving", async () => {

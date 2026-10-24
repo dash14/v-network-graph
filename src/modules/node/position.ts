@@ -9,16 +9,8 @@ import { NodePositions, Position } from "@/common/types"
  * @returns a copy of the position
  */
 export function positionOf(positions: Readonly<NodePositions>, id: string): Position {
-  return drawnPositionOf(positions[id])
-}
-
-/**
- * Same as `positionOf`, for a position already taken out of the positions.
- * @param p the position of a node, if any
- * @returns a copy of the position
- */
-export function drawnPositionOf(p: Position | undefined): Position {
-  return { x: toCoordinate(p?.x), y: toCoordinate(p?.y) }
+  const p = positions[id]
+  return { x: drawnCoordinateOf(p?.x), y: drawnCoordinateOf(p?.y) }
 }
 
 /**
@@ -31,14 +23,19 @@ export function untrackedPositionOf(positions: Readonly<NodePositions>, id: stri
   // The positions themselves can be readonly proxies, which a reactive object keeps as they are.
   const p = toRaw(toRaw(positions)[id])
   if (p && isCoordinate(p.x) && isCoordinate(p.y)) return p
-  return { x: toCoordinate(p?.x), y: toCoordinate(p?.y) }
+  return { x: drawnCoordinateOf(p?.x), y: drawnCoordinateOf(p?.y) }
 }
 
 function isCoordinate(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v)
 }
 
-function toCoordinate(v: unknown): number {
+/**
+ * Get where a node is drawn on one axis: a missing or invalid coordinate is 0.
+ * @param v the given coordinate
+ * @returns the coordinate
+ */
+export function drawnCoordinateOf(v: unknown): number {
   if (isCoordinate(v)) return v
   // Number() also turns booleans, arrays and blank strings into numbers.
   if (typeof v !== "string" || v.trim() === "") return 0

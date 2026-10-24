@@ -377,9 +377,10 @@ function createNewNodeState(
 ) {
   // Deleted nodes will lose their position. If it is not a two-way binding,
   // the position remains in the layout specified by the user and is reacquired.
-  /* eslint-disable no-restricted-syntax -- copies the given position as it is */
+  /* eslint-disable no-restricted-syntax -- takes the given position as it is */
   if (!layouts.nodes[id] && readonlyLayouts.nodes?.[id]) {
-    layouts.nodes[id] = <FixablePosition>{ ...readonlyLayouts.nodes?.[id] }
+    // The given object itself, as when the layouts were first taken, so that it keeps following it.
+    layouts.nodes[id] = <FixablePosition>toRaw(readonlyLayouts.nodes[id])
   }
   /* eslint-enable no-restricted-syntax */
 

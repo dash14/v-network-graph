@@ -119,6 +119,29 @@ describe("positions", () => {
     }
   )
 
+  test("a node added again keeps following its given position without a v-model", async () => {
+    const { screen, state } = await mountGraph(
+      {
+        nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
+        layouts: { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } },
+      },
+      { layoutsListener: null }
+    )
+    const node2 = state.nodes.node2
+    delete state.nodes.node2
+    await nextTick()
+    state.nodes.node2 = node2
+    await nextTick()
+
+    state.layouts.nodes.node2.x = 200
+    await nextTick()
+
+    const transforms = [...screen.container.querySelectorAll(".v-ng-node")].map(el =>
+      el.getAttribute("transform")
+    )
+    expect(transforms).toContain("translate(200 0)")
+  })
+
   test("a node whose position is removed is drawn at the origin with its edges", async () => {
     const { screen, state } = await mountGraph({
       nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },

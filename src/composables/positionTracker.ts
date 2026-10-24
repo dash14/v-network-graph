@@ -1,11 +1,13 @@
 import { Ref, shallowRef, toRaw, triggerRef, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Layouts, Nodes } from "@/common/types"
-import { drawnPositionOf } from "@/modules/node/position"
+import { drawnCoordinateOf } from "@/modules/node/position"
 
 interface TrackedPosition {
   x: number
   y: number
+  givenX: unknown
+  givenY: unknown
   fixed: boolean | undefined
 }
 
@@ -34,12 +36,23 @@ export function trackNodePositions(
       count++
       // Taken out once, since a layout tick reads every position.
       const p = positions[id]
-      const { x, y } = drawnPositionOf(p)
+      const givenX: unknown = p?.x
+      const givenY: unknown = p?.y
+      const x = drawnCoordinateOf(givenX)
+      const y = drawnCoordinateOf(givenY)
       const fixed = p?.fixed
       const last = tracked.get(id)
-      if (last?.x === x && last?.y === y && last?.fixed === fixed) continue
+      // The given values too, since a change drawn the same is still a change of the layouts.
+      if (
+        last &&
+        Object.is(last.givenX, givenX) &&
+        Object.is(last.givenY, givenY) &&
+        last.fixed === fixed
+      ) {
+        continue
+      }
       if (last?.x !== x || last?.y !== y) moved.add(id)
-      tracked.set(id, { x, y, fixed })
+      tracked.set(id, { x, y, givenX, givenY, fixed })
       isChanged = true
     }
     // Every id seen is in the map, so a larger map holds removed positions.
