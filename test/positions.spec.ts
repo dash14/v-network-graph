@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
 import { h, nextTick, reactive, readonly } from "vue"
 import type { Layouts, UserConfigs } from "@/index"
 import { at, drag, mountGraph } from "./helpers/graph"
@@ -204,6 +204,33 @@ describe("positions", () => {
     const edge = screen.container.querySelector(".v-ng-edge")
     expect(node?.getAttribute("transform")).toBe("translate(0 0)")
     expect(edge?.getAttribute("d")).toBe("M 0 0 L 120 0")
+  })
+
+  test("edges change their stroke without a transition only while the positions keep changing", async () => {
+    const { screen, state } = await mountGraph({
+      nodes: { node1: {}, node2: {} },
+      edges: { edge1: { source: "node1", target: "node2" } },
+      layouts: { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } },
+    })
+    const edge = screen.container.querySelector(".v-ng-edge")!
+    const duration = () => getComputedStyle(edge).transitionDuration
+    const frame = () => new Promise(resolve => requestAnimationFrame(resolve))
+    expect(duration()).not.toBe("0s")
+    // Long past the positions written on mount.
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // A single change keeps it.
+    state.layouts.nodes.node2.x = 110
+    await frame()
+    expect(duration()).not.toBe("0s")
+
+    for (let x = 120; x <= 150; x += 10) {
+      state.layouts.nodes.node2.x = x
+      await frame()
+    }
+    expect(duration()).toBe("0s")
+
+    await vi.waitFor(() => expect(duration()).not.toBe("0s"), { timeout: 1000 })
   })
 
   // A position the layout handler would not fix, given as it is.

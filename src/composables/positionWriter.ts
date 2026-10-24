@@ -1,5 +1,5 @@
 import type { Ref } from "vue"
-import { inject, InjectionKey, provide, toRaw, watchEffect } from "vue"
+import { inject, InjectionKey, onScopeDispose, provide, shallowRef, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
@@ -22,6 +22,9 @@ interface PositionWriter {
 
 const injectionKey = Symbol("positionWriter") as InjectionKey<PositionWriter>
 
+// Long enough to span the frames between the ticks of a layout.
+const MOVING_TIMEOUT = 200
+
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
   layouts: Reactive<Layouts>,
@@ -41,8 +44,23 @@ export function providePositionWriter(
     if (geometry) el.setAttribute("d", edgePathOf(geometry))
   }
 
+  // Set while the positions keep changing, so that styles making each change costlier can be left
+  // out. Not for a single change, which would restyle every edge twice for nothing.
+  const moving = shallowRef(false)
+  let movingTimer: ReturnType<typeof setTimeout> | undefined
+  const markMoving = () => {
+    if (movingTimer !== undefined) moving.value = true
+    clearTimeout(movingTimer)
+    movingTimer = setTimeout(() => {
+      moving.value = false
+      movingTimer = undefined
+    }, MOVING_TIMEOUT)
+  }
+  onScopeDispose(() => clearTimeout(movingTimer))
+
   watchEffect(() => {
     void changes.changed.value
+    if (changes.nodes.size > 0 || changes.edges.size > 0) markMoving()
     changes.nodes.forEach(id => nodeElements.get(id)?.forEach(el => writeNode(el, id)))
     changes.edges.forEach(id => edgeElements.get(id)?.forEach(el => writeEdge(el, id)))
     changes.nodes.clear()
@@ -78,6 +96,8 @@ export function providePositionWriter(
     nodeRef: id => elementRef(nodeElements, id, writeNode),
     edgeRef: id => elementRef(edgeElements, id, writeEdge),
   })
+
+  return { moving }
 }
 
 export function usePositionWriter() {

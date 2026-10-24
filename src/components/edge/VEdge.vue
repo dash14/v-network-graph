@@ -48,9 +48,14 @@ const setPathElement = usePositionWriter().edgeRef(props.id)
 $transition: 0.1s linear;
 
 .v-ng-edge {
+  pointer-events: none;
+}
+
+// Moved edges restyle faster with no transition to check. `:where` keeps the specificity of
+// `.v-ng-edge`, so that the other rules still override it.
+:where(.v-ng-viewport:not([data-moving])) .v-ng-edge {
   transition:
     stroke $transition,
     stroke-width $transition;
-  pointer-events: none;
 }
 </style>

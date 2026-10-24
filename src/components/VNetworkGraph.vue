@@ -412,7 +412,7 @@ const { nodeStates, edgeStates, pathStates, positionChanges, layoutsChanged, edg
     markerState,
     scale
   )
-providePositionWriter(currentLayouts, edgeGeometries, positionChanges)
+const { moving } = providePositionWriter(currentLayouts, edgeGeometries, positionChanges)
 // The tracking of the positions compares every position anyway, so it tells of the changes.
 watch(layoutsChanged, () => emit("update:layouts", currentLayouts))
 
@@ -759,6 +759,7 @@ function stopEventPropagation(event: Event) {
         class="v-ng-viewport"
         :class="{ 'v-ng-transition': transitionOption.enabled }"
         :style="transitionStyles"
+        :data-moving="moving || undefined"
       >
         <g v-for="layerName in layerDefs['base']" :key="layerName" class="v-ng-layer">
           <slot :name="layerName" :scale="scale" />
