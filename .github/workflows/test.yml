@@ -128,7 +128,7 @@ jobs:
   # On arm64, like the Apple Silicon Macs that write them.
   test-docker:
     name: Font-dependent tests
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 15
     permissions:
       contents: read
