@@ -1,5 +1,6 @@
 import { computed, ref, watchEffect } from "vue"
 import { NodeLabelDirection } from "@/common/configs"
+import { useCurrentPositions } from "@/composables/currentPositions"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
@@ -16,10 +17,16 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
   const { edgeStates } = useStates()
   const { scale } = useZoomLevel()
   const layouts = useLayouts()
+  const currentPositions = useCurrentPositions()
 
-  // The DOM gets the position from the position writer; it is read here only to adjust the direction.
-  const x = computed(() => positionOf(layouts.nodes, props.id).x)
-  const y = computed(() => positionOf(layouts.nodes, props.id).y)
+  // The DOM gets the position from the position writer; it is read here only to adjust the
+  // direction. Where the node is now, so that the direction follows the nodes drawn ahead.
+  const currentPositionOf = (id: string) => {
+    void currentPositions.drawn.value
+    void positionOf(layouts.nodes, id) // tracks the layouts
+    const { x, y } = currentPositions.of(id)
+    return { x, y }
+  }
 
   const labelMargin = computed(() => {
     if (props.state.label.direction === NodeLabelDirection.CENTER) {
@@ -41,12 +48,18 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
       return direction
     }
 
-    const pos = { x: x.value, y: y.value }
+    const pos = currentPositionOf(props.id)
+    const oppositeNodes = Object.fromEntries(
+      Object.entries(props.state.oppositeNodes).map(([edgeId, node]) => [
+        edgeId,
+        { ...node, pos: currentPositionOf(node.nodeId) },
+      ])
+    )
     if (autoAdjustment === true) {
       return handleNodeLabelAutoAdjustment(
         props.state.id,
         pos,
-        props.state.oppositeNodes,
+        oppositeNodes,
         (edgeId: string) => edgeStates[edgeId]?.loop?.center,
         direction
       )
@@ -55,7 +68,7 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
         autoAdjustment({
           nodeId: props.state.id,
           pos,
-          oppositeNodes: props.state.oppositeNodes,
+          oppositeNodes,
         }) ?? direction
       )
     }

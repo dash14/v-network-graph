@@ -1,10 +1,10 @@
 import type { Ref } from "vue"
-import { inject, InjectionKey, onScopeDispose, provide, toRaw, watchEffect } from "vue"
-import { nonNull, Reactive } from "@/common/common"
-import { Layouts, Position } from "@/common/types"
-import type { PositionDrawer, PositionOf } from "@/layouts/handler"
+import { inject, InjectionKey, onScopeDispose, provide, watchEffect } from "vue"
+import { nonNull } from "@/common/common"
+import { Position } from "@/common/types"
+import type { PositionDrawer } from "@/layouts/handler"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
-import { untrackedPositionOf } from "@/modules/node/position"
+import type { CurrentPositionsWithDrawer } from "./currentPositions"
 import type { DrawEdge } from "./edgePlacement"
 
 type ElementRef = (el: unknown) => void
@@ -29,8 +29,6 @@ export interface PositionChanges {
 interface PositionWriter {
   nodeRef(id: string): ElementRef
   edgeRef(id: string): ElementRef
-  /** Bring the layouts up to the positions drawn, before reading them. */
-  flushPositions(): void
 }
 
 const injectionKey = Symbol("positionWriter") as InjectionKey<PositionWriter>
@@ -40,7 +38,7 @@ const MOVING_TIMEOUT = 200
 
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
-  layouts: Reactive<Layouts>,
+  currentPositions: CurrentPositionsWithDrawer,
   edgeGeometries: ReadonlyMap<string, EdgeGeometry>,
   changes: PositionChanges,
   viewport: Ref<Element | undefined>
@@ -65,7 +63,7 @@ export function providePositionWriter(
     }
   }
   const writeNode = (el: Element, written: Written, id: string) => {
-    writeNodeAt(el, written, untrackedPositionOf(toRaw(layouts).nodes, id))
+    writeNodeAt(el, written, currentPositions.of(id))
   }
   const writeLineAt = (
     el: Element,
@@ -170,19 +168,19 @@ export function providePositionWriter(
   let flush: (() => void) | undefined
   const makePositionDrawer = (
     interval: () => number,
-    placeEdgesAt: (positionOf: PositionOf, draw: DrawEdge) => void
+    placeEdgesAhead: (draw: DrawEdge) => void
   ): PositionDrawer => ({
     get interval() {
       return interval()
     },
     draw: positionOf => {
       markMoving()
-      const positions = toRaw(layouts).nodes
+      currentPositions.drawAhead(positionOf)
       nodeElements.forEach((elements, id) => {
-        const p = positionOf(id) ?? untrackedPositionOf(positions, id)
+        const p = currentPositions.of(id)
         elements.forEach((w, el) => writeNodeAt(el, w, p, true))
       })
-      placeEdgesAt(positionOf, (id, p1, p2) =>
+      placeEdgesAhead((id, p1, p2) =>
         edgeElements.get(id)?.forEach((w, el) => {
           if (el.localName === "line") writeLineAt(el, w, p1, p2, true)
           else writeEdge(el, w, id)
@@ -192,13 +190,13 @@ export function providePositionWriter(
     setFlush: f => (flush = f),
   })
 
-  const flushPositions = () => flush?.()
-
   provide(injectionKey, {
     nodeRef: id => elementRef(nodeElements, id, writeNode),
     edgeRef: id => elementRef(edgeElements, id, writeEdge),
-    flushPositions,
   })
+
+  // Updates the layouts to tell the user, which the graph does not need.
+  const flushPositions = () => flush?.()
 
   return { makePositionDrawer, flushPositions }
 }

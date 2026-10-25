@@ -5,6 +5,7 @@ import { LiteUserConfigs, UserConfigs } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, Layouts, UserLayouts, Layers, Paths } from "@/common/types"
 import { isMouseWheelZoomEnabled, useGraphCanvas } from "@/composables/canvas"
 import { provideConfigs } from "@/composables/config"
+import { provideCurrentPositions } from "@/composables/currentPositions"
 import { provideEventEmitter } from "@/composables/event-emitter"
 import { useGraphLoading } from "@/composables/graphLoading"
 import { LayerSlotProps, useBuiltInLayerOrder, useLayerDefs } from "@/composables/layer"
@@ -121,6 +122,7 @@ const hoveredNodes = Reactive(new Set<string>())
 const hoveredEdges = Reactive(new Set<string>())
 const hoveredPaths = Reactive(new Set<string>())
 const currentLayouts = useLayoutsBinding(() => props.layouts)
+const currentPositions = provideCurrentPositions(currentLayouts)
 
 // -----------------------------------------------------------------------
 // SVG Markers
@@ -140,7 +142,7 @@ const {
   positionChanges,
   layoutsChanged,
   edgeGeometries,
-  placeEdgesAt,
+  placeEdgesAhead,
 } = provideStates(
   makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
   makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
@@ -149,10 +151,11 @@ const {
   currentLayouts,
   () => props.layouts,
   markerState,
-  scale
+  scale,
+  currentPositions
 )
 const { makePositionDrawer, flushPositions } = providePositionWriter(
-  currentLayouts,
+  currentPositions,
   edgeGeometries,
   positionChanges,
   viewport
@@ -166,7 +169,7 @@ const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.vie
 const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
   provideMouseOperation(
     svg,
-    readonly(currentLayouts),
+    currentPositions.of,
     readonly(zoomLevel),
     nodeStates,
     edgeStates,
@@ -180,28 +183,19 @@ const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } 
     ref(false),
     isSvgWheelZoomEnabled,
     configs,
-    emitter,
-    flushPositions
+    emitter
   )
 
 // -----------------------------------------------------------------------
 // View methods and loading
 // -----------------------------------------------------------------------
 
-const view = useViewMethods(
-  canvas,
-  zoomLevel,
-  nodesRef,
-  currentLayouts,
-  configs,
-  emitter,
-  flushPositions
-)
+const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
 
 // Lets a layout draw its ticks ahead of the layouts, which cost more to update.
 const positionDrawer = makePositionDrawer(
   () => props.configs.view?.layoutsUpdateInterval ?? DEFAULT_LAYOUTS_UPDATE_INTERVAL,
-  placeEdgesAt
+  placeEdgesAhead
 )
 
 useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({

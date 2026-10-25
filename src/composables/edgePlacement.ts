@@ -2,15 +2,13 @@
 
 import { isEqual } from "lodash-es"
 import type { ComputedRef, ReactiveEffectRunner, Ref, ShallowRef } from "vue"
-import { computed, effect, shallowRef, stop, toRaw, toRef, triggerRef, watchEffect } from "vue"
+import { computed, effect, shallowRef, stop, toRef, triggerRef, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, EdgeConfig, ShapeStyle } from "@/common/configs"
-import { Edges, Layouts, Position } from "@/common/types"
-import type { PositionOf } from "@/layouts/handler"
+import { Edges, Position } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
-import { untrackedPositionOf } from "@/modules/node/position"
 import type { PositionChanges } from "./positionWriter"
 
 /** Draws an edge between the given ends. */
@@ -47,11 +45,11 @@ export interface EdgePlacement {
   /** Re-place the given edges, as their nodes moved. */
   placeEdges: (ids: Set<string>) => void
   /**
-   * Place every edge at the given positions of its nodes, which may not be in the layouts yet,
-   * and pass the ends to draw. Neither the refs nor, for an edge between the node centers, the
-   * geometries are updated until the layouts follow.
+   * Place every edge where its nodes are now, ahead of the layouts, and pass the ends to draw.
+   * Neither the refs nor, for an edge between the node centers, the geometries are updated until
+   * the layouts follow.
    */
-  placeEdgesAt: (positionOf: PositionOf, draw: DrawEdge) => void
+  placeEdgesAhead: (draw: DrawEdge) => void
   /** Start re-placing the edges whose style changed, after the edges are created. */
   followStyleChanges: () => void
   /**
@@ -69,12 +67,12 @@ export function makeEdgePlacement(
   config: EdgeConfig,
   nodeStates: NodeModel.NodeStates,
   edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
-  layouts: Layouts,
+  positionOf: (node: string) => Position,
   scale: Ref<number>,
   changes: PositionChanges
 ): EdgePlacement {
   const placers = new Map<string, ReactiveEffectRunner>()
-  const placersAt = new Map<string, (positionOf: PositionOf, draw: DrawEdge) => void>()
+  const placersAhead = new Map<string, (draw: DrawEdge) => void>()
   const geometries = new Map<string, EdgeGeometry>()
   const dirtyEdges = new Set<string>()
   const edgesDirty = shallowRef(0)
@@ -164,15 +162,14 @@ export function makeEdgePlacement(
       }
     }
 
-    // Made by the effect, so that placing at positions not in the layouts tracks nothing. Only the
-    // positions change from one placing to the next.
+    // Made by the effect, so that placing ahead of the layouts tracks nothing. Only the positions
+    // change from one placing to the next.
     let input: (EdgePlacementStyle & EdgeGeometryInput) | undefined
     let betweenCenters = false
-    const geometryAt = (positionOf: PositionOf): EdgeGeometry | undefined => {
+    const currentGeometry = (): EdgeGeometry | undefined => {
       if (!input) return undefined
-      const { sourceId, targetId } = input
-      input.source = positionOf(sourceId) ?? untrackedPositionOf(toRaw(layouts).nodes, sourceId)
-      input.target = positionOf(targetId) ?? untrackedPositionOf(toRaw(layouts).nodes, targetId)
+      input.source = positionOf(input.sourceId)
+      input.target = positionOf(input.targetId)
       return calculateEdgeGeometry(input)
     }
 
@@ -189,7 +186,7 @@ export function makeEdgePlacement(
         !s.margin &&
         s.line.source.type === "none" &&
         s.line.target.type === "none"
-      const placed = geometryAt(() => undefined)
+      const placed = currentGeometry()
       if (!placed) return
       geometries.set(id, placed)
       geometry.origin.value = placed.origin
@@ -207,18 +204,13 @@ export function makeEdgePlacement(
     placers.set(id, place)
     // Only the position is drawn ahead of the layouts, so an edge between the node centers is
     // drawn from them, with no geometry worked out.
-    placersAt.set(id, (positionOf, draw) => {
+    placersAhead.set(id, draw => {
       if (!input) return
       if (betweenCenters) {
-        const { sourceId, targetId } = input
-        draw(
-          id,
-          positionOf(sourceId) ?? untrackedPositionOf(toRaw(layouts).nodes, sourceId),
-          positionOf(targetId) ?? untrackedPositionOf(toRaw(layouts).nodes, targetId)
-        )
+        draw(id, positionOf(input.sourceId), positionOf(input.targetId))
         return
       }
-      const placed = geometryAt(positionOf)
+      const placed = currentGeometry()
       if (!placed) return
       geometries.set(id, placed)
       draw(id, placed.position.p1, placed.position.p2)
@@ -226,21 +218,21 @@ export function makeEdgePlacement(
 
     const stopPlacing = () => {
       placers.delete(id)
-      placersAt.delete(id)
+      placersAhead.delete(id)
       geometries.delete(id)
       stop(place)
     }
     return { geometry, stop: stopPlacing }
   }
 
-  const placeEdgesAt = (positionOf: PositionOf, draw: DrawEdge) => {
-    placersAt.forEach(place => place(positionOf, draw))
+  const placeEdgesAhead = (draw: DrawEdge) => {
+    placersAhead.forEach(place => place(draw))
   }
 
   return {
     geometries,
     placeEdges: ids => placeEdges(ids),
-    placeEdgesAt,
+    placeEdgesAhead,
     followStyleChanges,
     startPlacing,
   }

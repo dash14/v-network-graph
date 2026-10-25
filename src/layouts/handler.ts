@@ -28,10 +28,14 @@ export type PositionOf = (node: string) => Position | undefined
 export interface PositionDrawer {
   /** The longest time in milliseconds that the layouts may stay behind what is drawn. */
   readonly interval: number
-  /** Draw the nodes at the given positions, without updating the layouts. */
+  /**
+   * Draw the nodes at the given positions, without updating the layouts. The graph keeps reading
+   * the positions from the function, wherever it has one, until the next draw.
+   */
   draw(positionOf: PositionOf): void
   /**
-   * Set the function that brings the layouts up to what is drawn, called before they are read.
+   * Set the function that brings the layouts up to what is drawn, called when the user asks for
+   * them.
    * @param flush the function, or undefined to clear it
    */
   setFlush(flush: (() => void) | undefined): void

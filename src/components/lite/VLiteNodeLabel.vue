@@ -47,8 +47,6 @@ const eventHandlers = computed(() => {
   return {
     pointerdown: (e: PointerEvent) => {
       e.stopPropagation()
-      // The layouts may be behind the position drawn, and a drag starts from where they have it.
-      writer.flushPositions()
       handleNodePointerDownEvent(id, e)
     },
     pointerenter: (e: PointerEvent) => handleNodePointerOverEvent(id, e),

@@ -2,33 +2,32 @@ import type { Emitter } from "mitt"
 import type { Ref } from "vue"
 import { nonNull } from "@/common/common"
 import { Configs, FitContentMargin } from "@/common/configs"
-import { Events, Layouts, Nodes, Point, Sizes } from "@/common/types"
+import { Events, Nodes, Point, Sizes } from "@/common/types"
 import { Box } from "@/modules/svg-pan-zoom-ex"
 import { calculateFit, parseFitContentMargin } from "@/modules/view/fit"
 import { asyncNextTick } from "@/modules/vue/nextTick"
 import * as svgUtils from "@/utils/svg"
 import { exportSvgElement, exportSvgElementWithOptions, ExportOptions } from "@/utils/svg"
 import type { GraphCanvas } from "./canvas"
+import type { CurrentPositions } from "./currentPositions"
 
 /**
  * Make the methods of a graph that move and export its view.
  * @param canvas the canvas of the graph
  * @param zoomLevel the zoom level, bound to the prop
  * @param nodes the nodes
- * @param layouts the layouts the graph draws
+ * @param currentPositions where the nodes are now
  * @param configs the configs of the graph
  * @param emitter the event emitter of the graph
- * @param flushPositions brings the layouts up to the positions drawn, before they are read
  * @returns the methods
  */
 export function useViewMethods(
   canvas: GraphCanvas,
   zoomLevel: Ref<number>,
   nodes: Ref<Nodes>,
-  layouts: Layouts,
+  currentPositions: CurrentPositions,
   configs: Configs,
-  emitter: Emitter<Events>,
-  flushPositions: () => void = () => {}
+  emitter: Emitter<Events>
 ) {
   const { svg, viewport, svgPanZoom, applyAbsoluteZoomLevel, scale } = canvas
 
@@ -48,14 +47,13 @@ export function useViewMethods(
 
     await updateBorderBox()
 
-    flushPositions()
     const rect = nonNull(svg.value).getBoundingClientRect()
     const margins = parseFitContentMargin(fitContentMargin, rect)
 
     const result = calculateFit(
       nonNull(viewport.value),
       rect,
-      layouts.nodes,
+      currentPositions.all(),
       zoomLevel.value,
       margins,
       configs.view.scalingObjects

@@ -194,26 +194,6 @@ describe("force layout", () => {
     )
   })
 
-  test("updates the layouts before a node is grabbed", async () => {
-    const { screen, state } = await mountLite({
-      configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },
-    })
-    await vi.waitUntil(
-      () => {
-        const p = state.layouts.nodes.node2
-        const d = drawnPosition(screen.container, "node2")
-        return Math.hypot(p.x - d.x, p.y - d.y) > 1
-      },
-      { timeout: 5000, interval: POLL_INTERVAL }
-    )
-
-    // Dispatched, so that no tick comes between the grab and the check.
-    const node = screen.container.querySelectorAll(".v-ng-node")[1]
-    node.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerId: 1 }))
-    expect(isNear(state.layouts.nodes.node2, drawnPosition(screen.container, "node2"))).toBe(true)
-    document.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }))
-  })
-
   test("getLayouts() returns the positions drawn, while the layouts lag behind", async () => {
     const { screen, state, graph } = await mountLite({
       configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },
@@ -258,9 +238,10 @@ describe("force layout", () => {
 
   describe("reading the positions drawn ahead of the layouts", () => {
     // Stopped, so that a node is drawn only where the test moves it.
-    const mountStopped = async () => {
+    const mountStopped = async (configs: LiteUserConfigs = {}, positionFixedByDrag = false) => {
       let simulation: Simulation<ForceNodeDatum, ForceEdgeDatum> | undefined
       const layoutHandler = new ForceLayout({
+        positionFixedByDrag,
         createSimulation: (d3, nodes, edges) =>
           (simulation = d3
             .forceSimulation(nodes)
@@ -272,8 +253,9 @@ describe("force layout", () => {
       })
       const mounted = await mountLite({
         configs: {
+          ...configs,
           view: { layoutHandler, layoutsUpdateInterval: 60000 },
-          node: { selectable: true },
+          node: { selectable: true, ...configs.node },
         },
       })
       const moveTo = (id: string, x: number, y: number) => {
@@ -285,6 +267,41 @@ describe("force layout", () => {
       }
       return { ...mounted, moveTo }
     }
+
+    test("a drag starts from where the node is drawn", async () => {
+      // Fixed where it is dropped, so that the simulation leaves it there.
+      const { canvas, graph, moveTo } = await mountStopped({}, true)
+      moveTo("node1", 100, 100)
+
+      await drag(canvas, at(100, 100), at(150, 130))
+
+      expect(graph.getLayouts().nodes.node1).toMatchObject({ x: 150, y: 130 })
+    })
+
+    test("an edge placed again, as its style changes, is drawn where its nodes are", async () => {
+      const { screen, state, moveTo } = await mountStopped()
+      moveTo("node1", 100, 100)
+
+      state.configs.edge = { normal: { width: 3 } }
+      const line = screen.container.querySelector('[data-edge-id="edge1"]')!
+      // Placed before the edge renders, in the same flush.
+      await expect.poll(() => line.getAttribute("stroke-width")).toBe("3")
+
+      expect(attributes(line, ["x1", "y1"])).toEqual({ x1: "100", y1: "100" })
+    })
+
+    test("a label adjusts its direction to where the nodes are drawn", async () => {
+      const { screen, moveTo } = await mountStopped({
+        node: { label: { directionAutoAdjustment: true } },
+      })
+      const label = screen.container.querySelector("text.v-ng-node-label")!
+      const baseline = label.getAttribute("dominant-baseline")
+
+      // Right above node2, where the label below would lie on the edge.
+      moveTo("node1", 0, -100)
+
+      await expect.poll(() => label.getAttribute("dominant-baseline")).not.toBe(baseline)
+    })
 
     test("a box selection selects the nodes where they are drawn", async () => {
       const { graph, canvas, state, events, moveTo } = await mountStopped()

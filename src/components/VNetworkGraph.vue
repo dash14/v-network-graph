@@ -6,6 +6,7 @@ import { EventHandlers, Nodes, Edges, InputPaths, Layouts, UserLayouts } from "@
 import { Layers } from "@/common/types"
 import { isMouseWheelZoomEnabled, useGraphCanvas } from "@/composables/canvas"
 import { provideConfigs } from "@/composables/config"
+import { provideCurrentPositions } from "@/composables/currentPositions"
 import { provideEventEmitter } from "@/composables/event-emitter"
 import { useGraphLoading } from "@/composables/graphLoading"
 import { LayerSlotProps, useBuiltInLayerOrder, useLayerDefs } from "@/composables/layer"
@@ -148,6 +149,7 @@ const hoveredNodes = Reactive(new Set<string>())
 const hoveredEdges = Reactive(new Set<string>())
 const hoveredPaths = Reactive(new Set<string>())
 const currentLayouts = useLayoutsBinding(() => props.layouts)
+const currentPositions = provideCurrentPositions(currentLayouts)
 
 // -----------------------------------------------------------------------
 // SVG Markers
@@ -169,9 +171,10 @@ const { nodeStates, edgeStates, pathStates, positionChanges, layoutsChanged, edg
     currentLayouts,
     () => props.layouts,
     markerState,
-    scale
+    scale,
+    currentPositions
   )
-providePositionWriter(currentLayouts, edgeGeometries, positionChanges, viewport)
+providePositionWriter(currentPositions, edgeGeometries, positionChanges, viewport)
 // The tracking of the positions compares every position anyway, so it tells of the changes.
 watch(layoutsChanged, () => emit("update:layouts", currentLayouts))
 
@@ -181,7 +184,7 @@ const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.vie
 const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
   provideMouseOperation(
     svg,
-    readonly(currentLayouts),
+    currentPositions.of,
     readonly(zoomLevel),
     nodeStates,
     edgeStates,
@@ -202,7 +205,7 @@ const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } 
 // View methods and loading
 // -----------------------------------------------------------------------
 
-const view = useViewMethods(canvas, zoomLevel, nodesRef, currentLayouts, configs, emitter)
+const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
 
 useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({
   layouts: Reactive(currentLayouts.nodes), // deprecated parameter.

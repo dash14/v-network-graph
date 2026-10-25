@@ -42,12 +42,6 @@ const {
   handleNodeDoubleClickEvent,
   handleNodeContextMenu,
 } = useMouseOperation()
-
-// The layouts may be behind the position drawn, and a drag starts from where they have the node.
-function handlePointerDown(event: PointerEvent) {
-  writer.flushPositions()
-  handleNodePointerDownEvent(props.id, event)
-}
 </script>
 
 <template>
@@ -62,7 +56,7 @@ function handlePointerDown(event: PointerEvent) {
     :stroke="strokeColor"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
-    @pointerdown.stop="handlePointerDown"
+    @pointerdown.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
     @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
     @click.stop="handleNodeClickEvent(id, $event)"
@@ -83,7 +77,7 @@ function handlePointerDown(event: PointerEvent) {
     :stroke="strokeColor"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
-    @pointerdown.stop="handlePointerDown"
+    @pointerdown.stop="handleNodePointerDownEvent(id, $event)"
     @pointerenter.passive="handleNodePointerOverEvent(id, $event)"
     @pointerleave.passive="handleNodePointerOutEvent(id, $event)"
     @click.stop="handleNodeClickEvent(id, $event)"
