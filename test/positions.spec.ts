@@ -219,8 +219,9 @@ describe("positions", () => {
     // Long past the positions written on mount.
     await new Promise(resolve => setTimeout(resolve, 500))
 
-    // A single change keeps it.
+    // A single change keeps it, even when its edges are placed in a later flush.
     state.layouts.nodes.node2.x = 110
+    state.configs.edge = { normal: { width: 4 } }
     await frame()
     expect(duration()).not.toBe("0s")
 

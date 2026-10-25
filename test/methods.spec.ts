@@ -196,6 +196,19 @@ describe("export", () => {
     expect(text).not.toContain("<!--")
   })
 
+  test("exportAsSvgText leaves out that the positions are changing", async () => {
+    const { screen, graph, state } = await mountGraph({ nodes, edges, layouts, configs })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    for (let x = 10; !viewport.hasAttribute("data-moving"); x += 10) {
+      state.layouts.nodes.node1.x = x
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    }
+
+    const text = await graph.exportAsSvgText()
+
+    expect(text).not.toContain("data-moving")
+  })
+
   test.each([
     {
       scalingObjects: false,

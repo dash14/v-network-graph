@@ -50,6 +50,7 @@ export function exportSvgElement(
   const v = target.querySelector(".v-ng-viewport") as SVGGElement
   v.setAttribute("transform", `translate(${-svgRect.x} ${-svgRect.y}), scale(${z})`)
   v.removeAttribute("style")
+  v.removeAttribute("data-moving")
 
   target.setAttribute("viewBox", `0 0 ${svgRect.width} ${svgRect.height}`)
   target.removeAttribute("style")

@@ -44,11 +44,17 @@ export function providePositionWriter(
     if (geometry) el.setAttribute("d", edgePathOf(geometry))
   }
 
-  // Set while the positions keep changing, so that styles making each change costlier can be left
-  // out. Not for a single change, which would restyle every edge twice for nothing.
+  // Set while the positions keep changing, as in a layout, a drag or a zoom, so that styles making
+  // each change costlier can be left out. Not for a single change, which would restyle every edge
+  // twice for nothing.
   const moving = shallowRef(false)
   let movingTimer: ReturnType<typeof setTimeout> | undefined
+  // A single change can be written over several flushes of the same task.
+  let writtenInTask = false
   const markMoving = () => {
+    if (writtenInTask) return
+    writtenInTask = true
+    setTimeout(() => (writtenInTask = false))
     if (movingTimer !== undefined) moving.value = true
     clearTimeout(movingTimer)
     movingTimer = setTimeout(() => {
