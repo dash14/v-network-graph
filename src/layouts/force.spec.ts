@@ -3,11 +3,9 @@ import mitt from "mitt"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
 import { getFullConfigs } from "@/common/config-defaults"
-import { Edges, Events, NodePositions, Nodes, Position } from "@/common/types"
+import { Edges, Events, NodePositions, Nodes } from "@/common/types"
 import { ForceEdgeDatum, ForceLayout, ForceNodeDatum } from "./force"
-import { PositionDrawer } from "./handler"
-
-type PositionOf = (node: string) => Position | undefined
+import { PositionDrawer, PositionOf } from "./handler"
 
 function setup(drawerInterval?: number) {
   let simulation: Simulation<ForceNodeDatum, ForceEdgeDatum> | undefined

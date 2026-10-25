@@ -6,14 +6,15 @@ import { computed, effect, shallowRef, stop, toRaw, toRef, triggerRef, watchEffe
 import { Reactive } from "@/common/common"
 import { Config, EdgeConfig, ShapeStyle } from "@/common/configs"
 import { Edges, Layouts, Position } from "@/common/types"
+import type { PositionOf } from "@/layouts/handler"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
 import { untrackedPositionOf } from "@/modules/node/position"
 import type { PositionChanges } from "./positionWriter"
 
-type PositionOf = (node: string) => Position | undefined
-type DrawEdge = (edge: string, p1: Position, p2: Position) => void
+/** Draws an edge between the given ends. */
+export type DrawEdge = (edge: string, p1: Position, p2: Position) => void
 
 type EdgePlacementStyle = Omit<EdgeGeometryInput, "source" | "target" | "scale"> & {
   sourceId: string

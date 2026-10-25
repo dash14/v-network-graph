@@ -2,13 +2,12 @@ import type { Ref } from "vue"
 import { inject, InjectionKey, onScopeDispose, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts, Position } from "@/common/types"
-import type { PositionDrawer } from "@/layouts/handler"
+import type { PositionDrawer, PositionOf } from "@/layouts/handler"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
 import { untrackedPositionOf } from "@/modules/node/position"
+import type { DrawEdge } from "./edgePlacement"
 
 type ElementRef = (el: unknown) => void
-type PositionOf = (node: string) => Position | undefined
-type DrawEdge = (edge: string, p1: Position, p2: Position) => void
 
 // What was last written to an element, so that the same position is not written again. A node
 // has its position in x1 and y1.
