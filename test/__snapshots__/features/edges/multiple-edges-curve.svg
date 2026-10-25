@@ -2,10 +2,10 @@
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -100 0 Q -50.98000000000028 -14 1.4210854715202004e-14 -14 Q 50.98000000000027 -14 100 0" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 100 0 L -100 0" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="100" y1="0" x2="-100" y2="0" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -100 0 Q -50.98000000000026 14 1.4210854715202004e-14 14 Q 50.98000000000028 14 100 0" />
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#ff0000" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M -100 0 Q -50.98000000000028 -14 1.4210854715202004e-14 -14 Q 50.98000000000027 -14 100 0" />
-      <path class="v-ng-line v-ng-edge" stroke="#00aa00" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 100 0 L -100 0" />
+      <line class="v-ng-line v-ng-edge" stroke="#00aa00" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" x1="100" y1="0" x2="-100" y2="0" />
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#0000ff" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" d="M -100 0 Q -50.98000000000026 14 1.4210854715202004e-14 14 Q 50.98000000000028 14 100 0" />
     </g>
     <g class="v-ng-layer-nodes-selections" />

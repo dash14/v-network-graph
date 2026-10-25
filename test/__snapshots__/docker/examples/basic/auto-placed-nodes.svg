@@ -1,12 +1,12 @@
 <svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1,0,0,1,221.5019769668579,186)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 0.249 7 L 52.249 7" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 52.249 7 L 104.249 7" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 104.249 7 L 156.249 7" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M 0.249 7 L 52.249 7" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 52.249 7 L 104.249 7" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" d="M 104.249 7 L 156.249 7" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="0.249" y1="7" x2="52.249" y2="7" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="52.249" y1="7" x2="104.249" y2="7" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="104.249" y1="7" x2="156.249" y2="7" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" x1="0.249" y1="7" x2="52.249" y2="7" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" x1="52.249" y1="7" x2="104.249" y2="7" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" x1="104.249" y1="7" x2="156.249" y2="7" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">

@@ -4,38 +4,38 @@
       <image href="/worldmap.svg" x="0" y="0" width="1000px" />
     </g>
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 365 39 L 642 161" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 642 161 L 802 243" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 854 428 L 642 161" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 809 85 L 642 161" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 642 161 L 513 307" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 328 385 L 513 307" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 82 110 L 226 193" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 226 193 L 365 39" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 486 191 L 328 385" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 226 193 L 486 191" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 226 193 L 328 385" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 486 191 L 642 161" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 365 39 L 486 191" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 802 243 L 809 85" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 854 428 L 513 307" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 365 39 L 82 110" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M 365 39 L 642 161" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 642 161 L 802 243" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" d="M 854 428 L 642 161" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" d="M 809 85 L 642 161" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" d="M 642 161 L 513 307" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge6" d="M 328 385 L 513 307" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge7" d="M 82 110 L 226 193" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge8" d="M 226 193 L 365 39" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge9" d="M 486 191 L 328 385" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge10" d="M 226 193 L 486 191" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge11" d="M 226 193 L 328 385" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge12" d="M 486 191 L 642 161" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge13" d="M 365 39 L 486 191" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge14" d="M 802 243 L 809 85" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge15" d="M 854 428 L 513 307" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge16" d="M 365 39 L 82 110" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="365" y1="39" x2="642" y2="161" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="642" y1="161" x2="802" y2="243" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="854" y1="428" x2="642" y2="161" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="809" y1="85" x2="642" y2="161" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="642" y1="161" x2="513" y2="307" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="328" y1="385" x2="513" y2="307" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="82" y1="110" x2="226" y2="193" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="226" y1="193" x2="365" y2="39" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="486" y1="191" x2="328" y2="385" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="226" y1="193" x2="486" y2="191" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="226" y1="193" x2="328" y2="385" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="486" y1="191" x2="642" y2="161" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="365" y1="39" x2="486" y2="191" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="802" y1="243" x2="809" y2="85" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="854" y1="428" x2="513" y2="307" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="365" y1="39" x2="82" y2="110" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" x1="365" y1="39" x2="642" y2="161" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" x1="642" y1="161" x2="802" y2="243" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" x1="854" y1="428" x2="642" y2="161" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" x1="809" y1="85" x2="642" y2="161" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" x1="642" y1="161" x2="513" y2="307" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge6" x1="328" y1="385" x2="513" y2="307" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge7" x1="82" y1="110" x2="226" y2="193" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge8" x1="226" y1="193" x2="365" y2="39" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge9" x1="486" y1="191" x2="328" y2="385" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge10" x1="226" y1="193" x2="486" y2="191" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge11" x1="226" y1="193" x2="328" y2="385" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge12" x1="486" y1="191" x2="642" y2="161" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge13" x1="365" y1="39" x2="486" y2="191" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge14" x1="802" y1="243" x2="809" y2="85" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge15" x1="854" y1="428" x2="513" y2="307" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge16" x1="365" y1="39" x2="82" y2="110" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">

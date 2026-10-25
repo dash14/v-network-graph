@@ -6,11 +6,11 @@
   </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 0 0 L 150 100" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="0" y1="0" x2="150" y2="100" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 150 100 Q 173.81591126388452 58.883866895829016 213.3512958792702 32.526943818905295 Q 252.88668049465525 6.170020741981972 300 0" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 150 100 Q 197.11331950534475 93.82997925801794 236.64870412072986 67.47305618109475 Q 276.18408873611514 41.116133104171446 300 0" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 300 0 L 450 100" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M 0 0 L 150 100" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="300" y1="0" x2="450" y2="100" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" x1="0" y1="0" x2="150" y2="100" />
       <g class="v-ng-edge-overlay">
         <g class="edge-icon">
           <circle cx="33.282011773513744" cy="22.188007849009164" r="10" stroke="#444" stroke-width="1" fill="#fcc" />
@@ -55,7 +55,7 @@
           </text>
         </g>
       </g>
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" d="M 300 0 L 450 100" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" x1="300" y1="0" x2="450" y2="100" />
       <g class="v-ng-edge-overlay">
         <g class="edge-icon">
           <circle cx="333.2820117735138" cy="22.188007849009164" r="10" stroke="#444" stroke-width="1" fill="#fff" />

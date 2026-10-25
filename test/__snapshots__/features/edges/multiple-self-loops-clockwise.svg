@@ -4,11 +4,11 @@
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -110.0018276581233 0.20942887724740336 A 12 12 0 1 1 -110.0018276581233 -0.20942887724740092" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -110.00220842023232 0.25305989334061213 A 14.5 14.5 0 1 1 -110.00220842023232 -0.2530598933406097" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -110.00258918234135 0.296690909433821 A 17 17 0 1 1 -110.00258918234135 -0.29669090943381843" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -100 0 L 100 0" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="-100" y1="0" x2="100" y2="0" />
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#ff0000" stroke-width="2" stroke-linecap="butt" d="M -110.0018276581233 0.20942887724740336 A 12 12 0 1 1 -110.0018276581233 -0.20942887724740092" />
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#00aa00" stroke-width="2" stroke-linecap="butt" d="M -110.00220842023232 0.25305989334061213 A 14.5 14.5 0 1 1 -110.00220842023232 -0.2530598933406097" />
       <path class="v-ng-line v-ng-edge" fill="none" stroke="#0000ff" stroke-width="2" stroke-linecap="butt" d="M -110.00258918234135 0.296690909433821 A 17 17 0 1 1 -110.00258918234135 -0.29669090943381843" />
-      <path class="v-ng-line v-ng-edge" stroke="#888888" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" d="M -100 0 L 100 0" />
+      <line class="v-ng-line v-ng-edge" stroke="#888888" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" x1="-100" y1="0" x2="100" y2="0" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">

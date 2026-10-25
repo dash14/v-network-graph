@@ -6,16 +6,16 @@
   </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 16.263455967290593 16.263455967290593 L 63.7365440327094 63.7365440327094" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 63.7365440327094 96.2634559672906 L 16.263455967290593 143.73654403270942" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 103 80 L 217 80" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 256.2634559672906 63.7365440327094 L 303.7365440327094 16.263455967290593" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 256.2634559672906 96.2634559672906 L 303.7365440327094 143.73654403270942" />
-      <path class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" d="M 16.263455967290593 16.263455967290593 L 63.7365440327094 63.7365440327094" />
-      <path class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" d="M 63.7365440327094 96.2634559672906 L 16.263455967290593 143.73654403270942" />
-      <path class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" d="M 103 80 L 217 80" />
-      <path class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" d="M 256.2634559672906 63.7365440327094 L 303.7365440327094 16.263455967290593" />
-      <path class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" d="M 256.2634559672906 96.2634559672906 L 303.7365440327094 143.73654403270942" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="16.263455967290593" y1="16.263455967290593" x2="63.7365440327094" y2="63.7365440327094" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="63.7365440327094" y1="96.2634559672906" x2="16.263455967290593" y2="143.73654403270942" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="103" y1="80" x2="217" y2="80" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="256.2634559672906" y1="63.7365440327094" x2="303.7365440327094" y2="16.263455967290593" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="256.2634559672906" y1="96.2634559672906" x2="303.7365440327094" y2="143.73654403270942" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" x1="16.263455967290593" y1="16.263455967290593" x2="63.7365440327094" y2="63.7365440327094" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" x1="63.7365440327094" y1="96.2634559672906" x2="16.263455967290593" y2="143.73654403270942" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" x1="103" y1="80" x2="217" y2="80" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge4" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" x1="256.2634559672906" y1="63.7365440327094" x2="303.7365440327094" y2="16.263455967290593" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" marker-start="url('#marker-custom-diamond')" marker-end="url('#marker-custom-diamond')" x1="256.2634559672906" y1="96.2634559672906" x2="303.7365440327094" y2="143.73654403270942" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">

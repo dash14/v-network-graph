@@ -6,23 +6,23 @@
   </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 80 0 L 0 120" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 0 114 L 160 114" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 160 126 L 0 126" />
-      <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 80 0 L 160 120" />
-      <path class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M 80 0 L 0 120" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="80" y1="0" x2="0" y2="120" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="0" y1="114" x2="160" y2="114" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="160" y1="126" x2="0" y2="126" />
+      <line class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" x1="80" y1="0" x2="160" y2="120" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" x1="80" y1="0" x2="0" y2="120" />
       <g class="v-ng-edge-overlay">
         <path class="marker" d="M-5 -5 L5 0 L-5 5 Z" transform="translate(40 60) scale(1, 1) rotate(123.69006752597979)" />
       </g>
-      <path class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 0 114 L 160 114" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" x1="0" y1="114" x2="160" y2="114" />
       <g class="v-ng-edge-overlay">
         <path class="marker" d="M-5 -5 L5 0 L-5 5 Z" transform="translate(80 114) scale(1, 1) rotate(0)" />
       </g>
-      <path class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" d="M 160 126 L 0 126" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" x1="160" y1="126" x2="0" y2="126" />
       <g class="v-ng-edge-overlay">
         <path class="marker" d="M-5 -5 L5 0 L-5 5 Z" transform="translate(80 126) scale(1, 1) rotate(180)" />
       </g>
-      <path class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" d="M 80 0 L 160 120" />
+      <line class="v-ng-line selectable v-ng-edge" stroke="#5555dd" stroke-width="2" stroke-linecap="butt" data-edge-id="edge5" x1="80" y1="0" x2="160" y2="120" />
       <g class="v-ng-edge-overlay">
         <path class="marker" d="M-5 -5 L5 0 L-5 5 Z" transform="translate(120 60) scale(1, 1) rotate(56.309932474020215)" />
       </g>

@@ -6,16 +6,16 @@
   </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 11.667261889578032 11.667261889578032 L 68.33273811042197 68.33273811042197" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 11.667261889578032 148.33273811042196 L 68.33273811042197 91.66726188957803" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 96.5 80 L 223.5 80" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 251.66726188957804 68.33273811042197 L 308.332738110422 11.667261889578032" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 251.66726188957804 91.66726188957803 L 308.332738110422 148.33273811042196" />
-      <path class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge1" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" d="M 11.667261889578032 11.667261889578032 L 68.33273811042197 68.33273811042197" />
-      <path class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge2" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" d="M 11.667261889578032 148.33273811042196 L 68.33273811042197 91.66726188957803" />
-      <path class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge3" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" d="M 96.5 80 L 223.5 80" />
-      <path class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge4" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" d="M 251.66726188957804 68.33273811042197 L 308.332738110422 11.667261889578032" />
-      <path class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge5" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" d="M 251.66726188957804 91.66726188957803 L 308.332738110422 148.33273811042196" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" x1="11.667261889578032" y1="11.667261889578032" x2="68.33273811042197" y2="68.33273811042197" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" x1="11.667261889578032" y1="148.33273811042196" x2="68.33273811042197" y2="91.66726188957803" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" x1="96.5" y1="80" x2="223.5" y2="80" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" x1="251.66726188957804" y1="68.33273811042197" x2="308.332738110422" y2="11.667261889578032" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" x1="251.66726188957804" y1="91.66726188957803" x2="308.332738110422" y2="148.33273811042196" />
+      <line class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge1" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" x1="11.667261889578032" y1="11.667261889578032" x2="68.33273811042197" y2="68.33273811042197" />
+      <line class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge2" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" x1="11.667261889578032" y1="148.33273811042196" x2="68.33273811042197" y2="91.66726188957803" />
+      <line class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge3" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" x1="96.5" y1="80" x2="223.5" y2="80" />
+      <line class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge4" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" x1="251.66726188957804" y1="68.33273811042197" x2="308.332738110422" y2="11.667261889578032" />
+      <line class="v-ng-line v-ng-edge" stroke="#444444" stroke-width="1" stroke-linecap="butt" data-edge-id="edge5" marker-end="url('#marker_v-0_angle_10_10_-10_0_IzQ0NDQ0NA_R_rel')" x1="251.66726188957804" y1="91.66726188957803" x2="308.332738110422" y2="148.33273811042196" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">

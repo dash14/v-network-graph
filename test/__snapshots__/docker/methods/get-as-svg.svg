@@ -1,10 +1,10 @@
 <svg class="v-ng-canvas show touches" width="253" height="66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" viewBox="0 0 253 66">
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="translate(27 -24), scale(1)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 0 50 L 100 50" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 100 50 L 200 50" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M 0 50 L 100 50" />
-      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 100 50 L 200 50" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="0" y1="50" x2="100" y2="50" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="100" y1="50" x2="200" y2="50" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" x1="0" y1="50" x2="100" y2="50" />
+      <line class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" x1="100" y1="50" x2="200" y2="50" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">

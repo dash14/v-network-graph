@@ -9,10 +9,10 @@
   </defs>
   <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 24.04163056034261 15.556349186104043 L 70.10050506338834 61.61522368914976" />
-      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 55.95836943965738 64.44365081389597 L 9.899494936611664 18.384776310850235" />
-      <path class="v-ng-line v-ng-edge" stroke="red" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" marker-start="url('#marker_v-0_arrow_5_5_-1_0_cmVk_L_rel')" d="M 24.04163056034261 15.556349186104043 L 70.10050506338834 61.61522368914976" />
-      <path class="v-ng-line v-ng-edge" stroke="green" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" marker-start="url('#marker_v-0_arrow_5_5_-1_0_Z3JlZW4_L_rel')" d="M 55.95836943965738 64.44365081389597 L 9.899494936611664 18.384776310850235" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="24.04163056034261" y1="15.556349186104043" x2="70.10050506338834" y2="61.61522368914976" />
+      <line class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" x1="55.95836943965738" y1="64.44365081389597" x2="9.899494936611664" y2="18.384776310850235" />
+      <line class="v-ng-line v-ng-edge" stroke="red" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" marker-start="url('#marker_v-0_arrow_5_5_-1_0_cmVk_L_rel')" x1="24.04163056034261" y1="15.556349186104043" x2="70.10050506338834" y2="61.61522368914976" />
+      <line class="v-ng-line v-ng-edge" stroke="green" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" marker-start="url('#marker_v-0_arrow_5_5_-1_0_Z3JlZW4_L_rel')" x1="55.95836943965738" y1="64.44365081389597" x2="9.899494936611664" y2="18.384776310850235" />
     </g>
     <g class="v-ng-layer-nodes-selections" />
     <g class="v-ng-layer-nodes v-ng-graph-objects">
