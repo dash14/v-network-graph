@@ -363,3 +363,50 @@ export function defineConfigs<
 >(configs: U): U & UserConfigs<N, E, P> {
   return configs
 }
+
+/* Lite graph configuration */
+
+/** The built-in layers of a lite graph. */
+export type LiteLayerName = "edges" | "nodes" | "node-labels"
+
+export interface LiteViewConfig extends Omit<ViewConfig, "builtInLayerOrder"> {
+  builtInLayerOrder: Readonly<LiteLayerName[]>
+  /** The longest time in milliseconds that the layouts may stay behind what a layout draws. */
+  layoutsUpdateInterval: number
+}
+
+/** The label of a node in a lite graph, drawn with no background. */
+export type LiteNodeLabelStyle = Omit<NodeLabelStyle, "background">
+
+export interface LiteNodeConfig<N extends Node = Node> extends Omit<
+  NodeConfig<N>,
+  "label" | "focusring" | "transition"
+> {
+  label: CallableValues<LiteNodeLabelStyle, N>
+}
+
+/** The edges of a lite graph, drawn straight, each on its own and with no labels. */
+export type LiteEdgeConfig<E extends Edge = Edge> = Omit<
+  EdgeConfig<E>,
+  "type" | "summarize" | "summarized" | "selfLoop" | "label"
+>
+
+export interface LiteConfigs<N extends Node = Node, E extends Edge = Edge> {
+  view: LiteViewConfig
+  node: LiteNodeConfig<N>
+  edge: LiteEdgeConfig<E>
+}
+
+/** For specification by the user of a lite graph */
+export type LiteUserConfigs<N extends Node = Node, E extends Edge = Edge> = RecursivePartial<
+  LiteConfigs<N, E>
+>
+
+/** Define configurations of a lite graph */
+export function defineLiteConfigs<
+  N extends Node = Node,
+  E extends Edge = Edge,
+  U extends LiteUserConfigs<N, E> = LiteUserConfigs<N, E>,
+>(configs: U): U & LiteUserConfigs<N, E> {
+  return configs
+}

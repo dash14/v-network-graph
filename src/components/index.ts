@@ -1,5 +1,7 @@
 export { default as VNetworkGraph } from "./VNetworkGraph.vue"
 
+export { default as VNetworkGraphLite } from "./VNetworkGraphLite.vue"
+
 export { default as VShape } from "./base/VShape.vue"
 
 export { default as VStyle } from "./base/VStyle.vue"

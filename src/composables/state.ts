@@ -247,6 +247,7 @@ export function provideStates(
     positionChanges,
     layoutsChanged,
     edgeGeometries: edgePlacement.geometries,
+    placeEdgesAt: edgePlacement.placeEdgesAt,
   }
 }
 

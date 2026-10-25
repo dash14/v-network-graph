@@ -11,19 +11,20 @@ export interface LayerSlotProps {
 }
 export type LayerSlots = Record<string, Slot<LayerSlotProps>>
 
+const BUILT_IN_LAYERS: Readonly<LayerName[]> = [
+  "edges",
+  "edge-labels",
+  "focusring",
+  "nodes",
+  "node-labels",
+  "paths",
+] as const
+
 export function useBuiltInLayerOrder<T extends Configs>(
   configs: T,
-  slots: Readonly<LayerSlots>
+  slots: Readonly<LayerSlots>,
+  builtInLayers: Readonly<LayerName[]> = BUILT_IN_LAYERS
 ): ComputedRef<LayerName[]> {
-  const builtInLayers: Readonly<LayerName[]> = [
-    "edges",
-    "edge-labels",
-    "focusring",
-    "nodes",
-    "node-labels",
-    "paths",
-  ] as const
-
   return computed<LayerName[]>(() => {
     const request = uniq(configs.view.builtInLayerOrder)
       .filter(layer => {

@@ -5,7 +5,7 @@ import type { ComputedRef, ReactiveEffectRunner, Ref, ShallowRef } from "vue"
 import { computed, effect, shallowRef, stop, toRaw, toRef, triggerRef, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, EdgeConfig, ShapeStyle } from "@/common/configs"
-import { Edges, Layouts } from "@/common/types"
+import { Edges, Layouts, Position } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
@@ -42,6 +42,11 @@ export interface EdgePlacement {
   geometries: ReadonlyMap<string, EdgeGeometry>
   /** Re-place the given edges, as their nodes moved. */
   placeEdges: (ids: Set<string>) => void
+  /**
+   * Place every edge at the given positions of its nodes, which may not be in the layouts yet.
+   * Only the geometries are updated, not the refs, until the layouts follow.
+   */
+  placeEdgesAt: (positionOf: (node: string) => Position | undefined) => void
   /** Start re-placing the edges whose style changed, after the edges are created. */
   followStyleChanges: () => void
   /**
@@ -64,6 +69,7 @@ export function makeEdgePlacement(
   changes: PositionChanges
 ): EdgePlacement {
   const placers = new Map<string, ReactiveEffectRunner>()
+  const placersAt = new Map<string, (positionOf: (node: string) => Position | undefined) => void>()
   const geometries = new Map<string, EdgeGeometry>()
   const dirtyEdges = new Set<string>()
   const edgesDirty = shallowRef(0)
@@ -153,19 +159,24 @@ export function makeEdgePlacement(
       }
     }
 
+    // Made by the effect, so that placing at positions not in the layouts tracks nothing. Only the
+    // positions change from one placing to the next.
+    let input: (EdgePlacementStyle & EdgeGeometryInput) | undefined
+    const geometryAt = (positionOf: (node: string) => Position | undefined) => {
+      if (!input) return undefined
+      const { sourceId, targetId } = input
+      input.source = positionOf(sourceId) ?? untrackedPositionOf(toRaw(layouts).nodes, sourceId)
+      input.target = positionOf(targetId) ?? untrackedPositionOf(toRaw(layouts).nodes, targetId)
+      return calculateEdgeGeometry(input)
+    }
+
     // Tracks the style and the scale: the tracking of the positions re-places the edges of moved
     // nodes.
     const placeEdge = () => {
       const s = style.value
-      if (!s) return
-
-      const positions = toRaw(layouts).nodes
-      const placed = calculateEdgeGeometry({
-        ...s,
-        source: untrackedPositionOf(positions, s.sourceId),
-        target: untrackedPositionOf(positions, s.targetId),
-        scale: scale.value,
-      })
+      input = s && { ...s, source: { x: 0, y: 0 }, target: { x: 0, y: 0 }, scale: scale.value }
+      const placed = geometryAt(() => undefined)
+      if (!placed) return
       geometries.set(id, placed)
       geometry.origin.value = placed.origin
       geometry.labelPosition.value = placed.labelPosition
@@ -180,14 +191,29 @@ export function makeEdgePlacement(
       },
     })
     placers.set(id, place)
+    placersAt.set(id, positionOf => {
+      const placed = geometryAt(positionOf)
+      if (placed) geometries.set(id, placed)
+    })
 
     const stopPlacing = () => {
       placers.delete(id)
+      placersAt.delete(id)
       geometries.delete(id)
       stop(place)
     }
     return { geometry, stop: stopPlacing }
   }
 
-  return { geometries, placeEdges: ids => placeEdges(ids), followStyleChanges, startPlacing }
+  const placeEdgesAt = (positionOf: (node: string) => Position | undefined) => {
+    placersAt.forEach(place => place(positionOf))
+  }
+
+  return {
+    geometries,
+    placeEdges: ids => placeEdges(ids),
+    placeEdgesAt,
+    followStyleChanges,
+    startPlacing,
+  }
 }
