@@ -16,6 +16,8 @@ interface Written {
   y1: number
   x2: number
   y2: number
+  // The lengths of a line, taken once: each stays the same object, reflecting its attribute.
+  lengths?: [SVGLength, SVGLength, SVGLength, SVGLength]
 }
 
 /** The nodes and edges whose positions changed since the last time they were taken. */
@@ -82,10 +84,16 @@ export function providePositionWriter(
     written.y2 = p2.y
     const line = el as Partial<SVGLineElement>
     if (asNumbers && line.x1 && line.y1 && line.x2 && line.y2) {
-      line.x1.baseVal.value = p1.x
-      line.y1.baseVal.value = p1.y
-      line.x2.baseVal.value = p2.x
-      line.y2.baseVal.value = p2.y
+      const lengths = (written.lengths ??= [
+        line.x1.baseVal,
+        line.y1.baseVal,
+        line.x2.baseVal,
+        line.y2.baseVal,
+      ])
+      lengths[0].value = p1.x
+      lengths[1].value = p1.y
+      lengths[2].value = p2.x
+      lengths[3].value = p2.y
     } else {
       el.setAttribute("x1", `${p1.x}`)
       el.setAttribute("y1", `${p1.y}`)
