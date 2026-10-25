@@ -5,7 +5,7 @@ import type { InjectionKey, Ref } from "vue"
 import { inject, provide, ref, watch } from "vue"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
 import { Configs } from "@/common/configs"
-import { Events, Layouts, Rectangle } from "@/common/types"
+import { Events, Position, Rectangle } from "@/common/types"
 import { EdgeStates } from "@/models/edge"
 import { NodeStates } from "@/models/node"
 import { PathStates } from "@/models/path"
@@ -69,7 +69,7 @@ const mouseEventHandlersKey = Symbol("mouseEventHandlers") as InjectionKey<Mouse
 
 export function provideMouseOperation(
   container: Ref<SVGElement | undefined>,
-  layouts: Readonly<Layouts>,
+  positionOf: (node: string) => Position,
   zoomLevel: ReadonlyRef<number>,
   nodeStates: NodeStates,
   edgeStates: EdgeStates,
@@ -113,7 +113,7 @@ export function provideMouseOperation(
     hoveredPaths,
     ...makeNodeInteractionHandlers(
       nodeStates,
-      layouts,
+      positionOf,
       modes,
       hoveredNodes,
       selectedNodes,
@@ -129,7 +129,7 @@ export function provideMouseOperation(
       isInCompatibilityModeForPath,
       emitter
     ),
-    ...makeBoxSelectionMethods(container, modes, layouts, nodeStates, selectedNodes, configs),
+    ...makeBoxSelectionMethods(container, modes, positionOf, nodeStates, selectedNodes, configs),
   }
   provide(mouseEventHandlersKey, provides)
   return provides

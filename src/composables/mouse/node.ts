@@ -1,9 +1,8 @@
 import { Emitter } from "mitt"
 import { watch } from "vue"
 import { Reactive, ReadonlyRef } from "@/common/common"
-import { Events, Layouts, NodePositions, Position } from "@/common/types"
+import { Events, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
-import { positionOf } from "@/modules/node/position"
 import { MapUtil } from "@/utils/map"
 import { entriesOf } from "@/utils/object"
 import {
@@ -29,7 +28,7 @@ interface NodeInteractionState {
 
 export function makeNodeInteractionHandlers(
   nodeStates: NodeStates,
-  layouts: Readonly<Layouts>,
+  positionOf: (node: string) => Position,
   modes: InteractionModes,
   hoveredNodes: Reactive<Set<string>>,
   selectedNodes: Reactive<Set<string>>,
@@ -83,10 +82,10 @@ export function makeNodeInteractionHandlers(
         Array.from(selectedNodes)
           .filter(n => !userGrabs.includes(n))
           .filter(n => nodeStates[n]?.draggable)
-          .map(n => [n, _unwrapNodePosition(layouts.nodes, n)])
+          .map(n => [n, _copyPosition(positionOf(n))])
       )
       pointerState.dragBasePosition = { ...pointerState.latestPosition }
-      pointerState.nodeBasePosition = _unwrapNodePosition(layouts.nodes, pointerState.nodeId)
+      pointerState.nodeBasePosition = _copyPosition(positionOf(pointerState.nodeId))
     }
   }
 
@@ -310,7 +309,7 @@ export function makeNodeInteractionHandlers(
       pointerId: event.pointerId,
       nodeId: node,
       moveCounter: 0,
-      nodeBasePosition: _unwrapNodePosition(layouts.nodes, node),
+      nodeBasePosition: _copyPosition(positionOf(node)),
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
       eventTarget: event.currentTarget,
@@ -365,6 +364,7 @@ export function makeNodeInteractionHandlers(
   }
 }
 
-function _unwrapNodePosition(nodes: Readonly<NodePositions>, node: string) {
-  return positionOf(nodes, node) // a copy, which unwraps reactivity
+// A copy, as the position can be the object in the layouts, which the drag moves.
+function _copyPosition({ x, y }: Position): Position {
+  return { x, y }
 }

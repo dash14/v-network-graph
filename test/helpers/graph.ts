@@ -4,7 +4,7 @@ import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
 import { defineComponent, h, reactive, ref } from "vue"
 import type { Slots } from "vue"
-import { VNetworkGraph } from "@/index"
+import { VNetworkGraph, VNetworkGraphLite } from "@/index"
 import type {
   Edges,
   Events,
@@ -66,7 +66,11 @@ export function fillGraphProps(props: GraphProps): Required<GraphProps> {
  */
 export async function mountGraph(
   props: GraphProps,
-  { layoutsListener = "onUpdate:layouts" as LayoutsListener, slots = {} as Slots } = {}
+  {
+    layoutsListener = "onUpdate:layouts" as LayoutsListener,
+    slots = {} as Slots,
+    lite = false,
+  } = {}
 ) {
   const filled = fillGraphProps(props)
   const state = reactive({
@@ -94,12 +98,12 @@ export async function mountGraph(
       () => () =>
         inContainer(
           h(
-            VNetworkGraph,
+            (lite ? VNetworkGraphLite : VNetworkGraph) as typeof VNetworkGraph,
             {
               ref: graph,
               nodes: state.nodes,
               edges: state.edges,
-              paths: state.paths,
+              ...(!lite && { paths: state.paths }),
               configs: state.configs,
               eventHandlers,
               layouts: state.layouts,
@@ -108,8 +112,10 @@ export async function mountGraph(
               "onUpdate:selectedNodes": (v: string[]) => (state.selectedNodes = v),
               selectedEdges: state.selectedEdges,
               "onUpdate:selectedEdges": (v: string[]) => (state.selectedEdges = v),
-              selectedPaths: state.selectedPaths,
-              "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
+              ...(!lite && {
+                selectedPaths: state.selectedPaths,
+                "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
+              }),
               // Only when given, so that the other tests zoom as they would without a v-model.
               ...("zoomLevel" in props && {
                 zoomLevel: state.zoomLevel,

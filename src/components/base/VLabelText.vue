@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, Ref, ref, useAttrs, watch, onMounted, onUnmounted } from "vue"
 import { LabelStyle } from "@/common/configs"
+import { useLabelTextLines } from "@/composables/labelText"
 import { useZoomLevel } from "@/composables/zoom"
 
 type Rect = { x: number; y: number; width: number; height: number }
@@ -23,25 +24,10 @@ const attrs = useAttrs()
 
 const { scale } = useZoomLevel()
 
-const texts = computed(() => props.text?.toString().split(/\r?\n/) ?? "")
-
-const fontSize = computed(() => {
-  return (attrs["font-size"] as number) ?? props.config.fontSize * scale.value
-})
-
-const lineHeight = computed(() => fontSize.value * props.config.lineHeight)
-
-const topDeltaY = computed(() => {
-  const dominantBaseline = props.dominantBaseline
-  if (dominantBaseline === "hanging") {
-    return 0
-  } else if (dominantBaseline === "central") {
-    return -(lineHeight.value * (texts.value.length - 1)) / 2
-  } else {
-    // "auto", "text-top"
-    return -lineHeight.value * (texts.value.length - 1)
-  }
-})
+const { texts, fontSize, lineHeight, topDeltaY } = useLabelTextLines(
+  props,
+  () => attrs["font-size"] as number | undefined
+)
 
 const element = ref<SVGTextElement>()
 const transform = ref("") // copy from <text>

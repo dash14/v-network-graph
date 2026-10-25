@@ -35,32 +35,67 @@ export class ForceLayout implements LayoutHandler {
   constructor(private options: ForceLayoutParameters = {}) {}
 
   activate(parameters: LayoutActivateParameters): void {
-    const { nodePositions, nodes, edges, emitter } = parameters
-    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions)
+    const { nodePositions, nodes, edges, emitter, positionDrawer } = parameters
+    // What was last written to the layouts, to tell the positions the user changed since.
+    const written = new Map<string, { x: number; y: number }>()
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(
+      nodes.value,
+      nodePositions,
+      {},
+      written
+    )
 
     const simulation = this.createSimulation(
       nodeLayouts,
       this.forceLayoutEdges(edges.value, nodes.value)
     )
 
-    this.onTick = () => {
+    // With a drawer, the ticks are drawn as they come but reach the layouts only once in a while,
+    // since updating the layouts costs more than drawing.
+    let lastUpdate = -Infinity
+    let updateTimer: ReturnType<typeof setTimeout> | undefined
+    const updateLayouts = () => {
+      clearTimeout(updateTimer)
+      updateTimer = undefined
+      lastUpdate = performance.now()
       for (const node of nodeLayouts) {
         const layout = nodePositions.value?.[node.id]
+        const x = node.x ?? 0
+        const y = node.y ?? 0
         if (layout) {
-          const x = node.x ?? 0
-          const y = node.y ?? 0
           if (layout.x !== x || layout.y !== y) {
             Object.assign(layout, { x, y })
           }
         } else {
-          nodePositions.value[node.id] = {
-            x: node.x ?? 0,
-            y: node.y ?? 0,
-          }
+          nodePositions.value[node.id] = { x, y }
         }
+        const last = written.get(node.id)
+        if (last) Object.assign(last, { x, y })
+        else written.set(node.id, { x, y })
       }
     }
+    // Only while the layouts lag behind: they have the positions otherwise.
+    const positionOf = (id: string) => {
+      if (updateTimer === undefined) return undefined
+      const node = nodeLayoutMap[id]
+      return node && { x: node.x ?? 0, y: node.y ?? 0 }
+    }
+    const updatePendingLayouts = () => {
+      if (updateTimer !== undefined) updateLayouts()
+    }
+    this.onTick = () => {
+      const wait = positionDrawer ? lastUpdate + positionDrawer.interval - performance.now() : 0
+      if (!positionDrawer || wait <= 0) {
+        updateLayouts()
+        return
+      }
+      updateTimer ??= setTimeout(updateLayouts, wait)
+      positionDrawer.draw(positionOf)
+    }
     simulation.on("tick", this.onTick)
+    // Namespaced, so that the listener of the user's simulation stays.
+    simulation.on("end.v-network-graph", updatePendingLayouts)
+    positionDrawer?.setFlush(updatePendingLayouts)
 
     // for ticked manually
     this.onTick()
@@ -72,6 +107,11 @@ export class ForceLayout implements LayoutHandler {
     }
 
     const onDrag: OnDragHandler = positions => {
+      for (const [id, pos] of Object.entries(positions)) {
+        // At the pointer before the next tick, as it is read while the layouts lag behind.
+        const node = nodeLayoutMap[id]
+        if (node) Object.assign(node, { x: pos.x, y: pos.y })
+      }
       if (this.options.noAutoRestartSimulation) {
         for (const [id, pos] of Object.entries(positions)) {
           const nodePos = nodePositions.value?.[id]
@@ -142,7 +182,12 @@ export class ForceLayout implements LayoutHandler {
         Object.values(nodePositions.value).map(p => p.fixed),
       ],
       () => {
-        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(
+          nodes.value,
+          nodePositions,
+          nodeLayoutMap,
+          written
+        ))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {
@@ -159,6 +204,9 @@ export class ForceLayout implements LayoutHandler {
 
     this.onDeactivate = () => {
       simulation.stop()
+      simulation.on("end.v-network-graph", null)
+      positionDrawer?.setFlush(undefined)
+      updatePendingLayouts()
       stopNetworkWatch()
       emitter.off("node:dragstart", onDrag)
       emitter.off("node:pointermove", onDrag)
@@ -196,19 +244,39 @@ export class ForceLayout implements LayoutHandler {
     }
   }
 
-  private buildNodeLayouts(nodes: Readonly<Nodes>, nodePositions: Ref<NodePositions>) {
-    const newNodes = Object.keys(nodes).filter(n => !(n in nodePositions.value))
-    const nodeLayouts = this.forceNodeLayouts(nodePositions.value, newNodes)
-    const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
-    return { nodeLayouts, nodeLayoutMap }
-  }
-
-  private forceNodeLayouts(layouts: NodePositions, newNodes: string[]): ForceNodeDatum[] {
-    const data: ForceNodeDatum[] = Object.entries(layouts).map(([id, v]) => {
-      return v.fixed ? { id, ...v, fx: v.x, fy: v.y } : { id, ...v }
+  /**
+   * The nodes of the simulation, where the simulation has them unless the user moved them in the
+   * layouts, since the layouts can lag behind the simulation.
+   */
+  private buildNodeLayouts(
+    nodes: Readonly<Nodes>,
+    nodePositions: Ref<NodePositions>,
+    current: Readonly<Record<string, ForceNodeDatum>>,
+    written: Map<string, { x: number; y: number }>
+  ) {
+    const nodeLayouts: ForceNodeDatum[] = Object.entries(nodePositions.value).map(([id, v]) => {
+      const node = current[id]
+      const last = written.get(id)
+      const moved = !node || !last || v.x !== last.x || v.y !== last.y
+      // Kept with its velocity.
+      const datum: ForceNodeDatum = moved ? { id, ...v } : node
+      if (v.fixed) {
+        datum.fx = datum.x
+        datum.fy = datum.y
+      } else {
+        delete datum.fx
+        delete datum.fy
+      }
+      return datum
     })
-    newNodes.map(id => ({ id })).forEach(n => data.push(n))
-    return data
+    for (const id of Object.keys(nodes)) {
+      if (!(id in nodePositions.value)) nodeLayouts.push({ id })
+    }
+    const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
+    for (const id of written.keys()) {
+      if (!(id in nodeLayoutMap)) written.delete(id)
+    }
+    return { nodeLayouts, nodeLayoutMap }
   }
 
   private forceLayoutEdges(edges: Edges, nodes: Nodes): ForceEdgeDatum[] {

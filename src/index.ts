@@ -15,6 +15,7 @@ export default install
 
 export type VNetworkGraphInstance = InstanceType<typeof components.VNetworkGraph>
 export type Instance = InstanceType<typeof components.VNetworkGraph>
+export type VNetworkGraphLiteInstance = InstanceType<typeof components.VNetworkGraphLite>
 
 // To allow individual component use, export components
 // each can be registered via Vue.component()

@@ -3,9 +3,8 @@ import type { Ref } from "vue"
 import { computed, onMounted, onUnmounted, ref, watch } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"
-import { Layouts, NodePositions, Point, Rectangle } from "@/common/types"
+import { Point, Position, Rectangle } from "@/common/types"
 import { NodeStates } from "@/models/node"
-import { positionOf } from "@/modules/node/position"
 import { Vector2D } from "@/modules/vector2d"
 import { translateFromDomToSvgCoordinates } from "@/utils/svg"
 import { InteractionModes } from "./core"
@@ -30,7 +29,7 @@ export interface BoxSelectionOption {
 export function makeBoxSelectionMethods(
   container: Ref<SVGElement | undefined>,
   modes: InteractionModes,
-  layouts: Readonly<Layouts>,
+  positionOf: (node: string) => Position,
   nodeStates: NodeStates,
   selectedNodes: Reactive<Set<string>>,
   configs: Configs
@@ -69,7 +68,7 @@ export function makeBoxSelectionMethods(
         nonNull(container.value, "container") as SVGSVGElement,
         nonNull(viewport.value, "viewport"),
         selectionBox,
-        layouts.nodes,
+        positionOf,
         nodeStates,
         selectedNodes,
         states.selectedNodesAtSelectStarted,
@@ -305,7 +304,7 @@ function _updateNodesSelection(
   svg: SVGSVGElement,
   viewport: SVGGElement,
   selectionBox: Ref<Rectangle | undefined>,
-  nodePositions: Readonly<NodePositions>,
+  positionOf: (node: string) => Position,
   nodeStates: Readonly<NodeStates>,
   selectedNodes: Reactive<Set<string>>,
   selectedNodesAtSelectStarted: Set<string>,
@@ -322,7 +321,7 @@ function _updateNodesSelection(
   // find enclosed nodes, where they are drawn
   const enclosedNodes = new Set(
     Object.keys(nodeStates).filter(nodeId => {
-      const pos = positionOf(nodePositions, nodeId)
+      const pos = positionOf(nodeId)
       return pos1.x <= pos.x && pos.x <= pos2.x && pos1.y <= pos.y && pos.y <= pos2.y
     })
   )

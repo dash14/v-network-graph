@@ -21,6 +21,7 @@ import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import * as PathModel from "@/models/path"
 import * as EdgeGroup from "@/modules/edge/group"
+import type { UpdatableCurrentPositions } from "./currentPositions"
 import { makeEdgePlacement } from "./edgePlacement"
 import { createEdgeEntries, createNewEdgeState, createSummarizedEdgeStates } from "./edgeState"
 import { MarkerState } from "./marker"
@@ -86,7 +87,8 @@ export function provideStates(
   layouts: Reactive<Layouts>,
   givenLayouts: () => Readonly<UserLayouts>,
   makerState: MarkerState,
-  scale: ComputedRef<number>
+  scale: ComputedRef<number>,
+  currentPositions: UpdatableCurrentPositions
 ) {
   const summarizedEdgeStates = reactive<EdgeModel.SummarizedEdgeStates>({})
 
@@ -147,7 +149,7 @@ export function provideStates(
     configs.edge,
     nodeStates,
     edgeGroupStates,
-    layouts,
+    currentPositions.of,
     scale,
     positionChanges
   )
@@ -190,6 +192,7 @@ export function provideStates(
     })
     edgePlacement.placeEdges(movedEdges)
     triggerRef(positionChanges.changed)
+    currentPositions.moved(moved)
   })
 
   // Edge item for display (an edge or summarized edges)
@@ -247,6 +250,7 @@ export function provideStates(
     positionChanges,
     layoutsChanged,
     edgeGeometries: edgePlacement.geometries,
+    placeEdgesAhead: edgePlacement.placeEdgesAhead,
   }
 }
 
