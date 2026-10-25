@@ -1,5 +1,5 @@
 import type { Ref } from "vue"
-import { inject, InjectionKey, onScopeDispose, provide, shallowRef, toRaw, watchEffect } from "vue"
+import { inject, InjectionKey, onScopeDispose, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
@@ -29,7 +29,8 @@ const MOVING_TIMEOUT = 200
 export function providePositionWriter(
   layouts: Reactive<Layouts>,
   edgeGeometries: ReadonlyMap<string, EdgeGeometry>,
-  changes: PositionChanges
+  changes: PositionChanges,
+  viewport: Ref<Element | undefined>
 ) {
   const nodeElements = new Map<string, Set<Element>>()
   const edgeElements = new Map<string, Set<Element>>()
@@ -44,23 +45,29 @@ export function providePositionWriter(
     if (geometry) el.setAttribute("d", edgePathOf(geometry))
   }
 
-  // Set while the positions keep changing, as in a layout, a drag or a zoom, so that styles making
-  // each change costlier can be left out. Not for a single change, which would restyle every edge
-  // twice for nothing.
-  const moving = shallowRef(false)
+  // Marked while the positions keep changing over frames, as in a layout, a drag or a zoom, so that
+  // styles making each change costlier can be left out. Not for a single change, which would restyle
+  // every edge twice for nothing. Written directly, so that the graph does not re-render for it.
+  let lastFrame: CSSNumberish | null | undefined
+  let lastWriteAt = 0
   let movingTimer: ReturnType<typeof setTimeout> | undefined
-  // A single change can be written over several flushes of the same task.
-  let writtenInTask = false
-  const markMoving = () => {
-    if (writtenInTask) return
-    writtenInTask = true
-    setTimeout(() => (writtenInTask = false))
-    if (movingTimer !== undefined) moving.value = true
-    clearTimeout(movingTimer)
+  const setMoving = (moving: boolean) => viewport.value?.toggleAttribute("data-moving", moving)
+  const waitForStop = (delay: number) => {
     movingTimer = setTimeout(() => {
-      moving.value = false
+      const idle = performance.now() - lastWriteAt
+      if (idle < MOVING_TIMEOUT) return waitForStop(MOVING_TIMEOUT - idle)
       movingTimer = undefined
-    }, MOVING_TIMEOUT)
+      setMoving(false)
+    }, delay)
+  }
+  const markMoving = () => {
+    // A single change can be written over several flushes, all in the same frame.
+    const frame = document.timeline.currentTime
+    if (frame === lastFrame) return
+    lastFrame = frame
+    lastWriteAt = performance.now()
+    if (movingTimer === undefined) waitForStop(MOVING_TIMEOUT)
+    else setMoving(true)
   }
   onScopeDispose(() => clearTimeout(movingTimer))
 
@@ -102,8 +109,6 @@ export function providePositionWriter(
     nodeRef: id => elementRef(nodeElements, id, writeNode),
     edgeRef: id => elementRef(edgeElements, id, writeEdge),
   })
-
-  return { moving }
 }
 
 export function usePositionWriter() {
