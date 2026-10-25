@@ -29,6 +29,8 @@ export interface CurrentPositions {
 export interface UpdatableCurrentPositions extends CurrentPositions {
   /** Take the positions from the given function wherever it has one, ahead of the layouts. */
   drawAhead(positionOf: PositionOf): void
+  /** Stop taking the positions ahead of the layouts. */
+  endAhead(): void
   /** Tell of the nodes moved in the layouts. */
   moved(ids: ReadonlySet<string>): void
 }
@@ -72,6 +74,7 @@ export function provideCurrentPositions(layouts: Layouts): UpdatableCurrentPosit
       ahead = positionOf
       listeners.forEach(listener => listener())
     },
+    endAhead: () => (ahead = undefined),
   }
   provide(injectionKey, current)
   return current

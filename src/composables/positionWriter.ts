@@ -48,7 +48,8 @@ export function providePositionWriter(
 
   // Read untracked: the changes say what to write.
   // Drawn ahead as numbers where the browser has them, which skips formatting and parsing a string.
-  // Not otherwise, as the attributes then read back with fewer digits.
+  // The attributes then read back with fewer digits, and keep them when the layouts catch up with
+  // the same position, so the other writes stay strings to keep every digit where they can.
   const writeNodeAt = (el: Element, written: Written, p: Position, asNumbers = false) => {
     if (written.x1 === p.x && written.y1 === p.y) return
     written.x1 = p.x
@@ -187,7 +188,11 @@ export function providePositionWriter(
         })
       )
     },
-    setFlush: f => (flush = f),
+    setFlush: f => {
+      flush = f
+      // Without a layout drawing ahead, the layouts have the positions.
+      if (!f) currentPositions.endAhead()
+    },
   })
 
   provide(injectionKey, {

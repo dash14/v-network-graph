@@ -178,9 +178,13 @@ export function makeEdgePlacement(
     const placeEdge = () => {
       const s = style.value
       input = s && { ...s, source: { x: 0, y: 0 }, target: { x: 0, y: 0 }, scale: scale.value }
-      // With no marker, no margin and no other edge beside it, the edge runs between the centers.
+      // A straight edge with no marker, no margin and no other edge beside it runs between the
+      // centers, as the geometry would have it.
       betweenCenters =
         !!s &&
+        s.type === "straight" &&
+        !s.summarized &&
+        !s.selfLoop &&
         !!s.layoutPoint &&
         s.layoutPoint.groupWidth === 0 &&
         !s.margin &&

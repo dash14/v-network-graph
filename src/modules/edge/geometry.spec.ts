@@ -63,6 +63,27 @@ describe("calculateEdgeGeometry", () => {
       expect(g.loop).toBeUndefined()
     })
 
+    // A graph drawing the nodes ahead of the layouts draws such an edge between the centers itself.
+    it.each([
+      ["clock", shape, 1],
+      [
+        "vertical",
+        { type: "rect", width: 30, height: 10, borderRadius: 2, strokeWidth: 1 } as ShapeStyle,
+        1,
+      ],
+      ["horizontal", shape, 2],
+    ] as const)(
+      "should draw between the centers with no marker, margin or edge beside it, kept in %s order",
+      (keepOrder, nodeShape, scale) => {
+        const ends = { source: { x: 40, y: 30 }, target: { x: -20, y: -70 } }
+        const g = calculateEdgeGeometry(
+          input({ ...ends, keepOrder, sourceShape: nodeShape, targetShape: nodeShape, scale })
+        )
+
+        expect(g.position).toEqual({ p1: ends.source, p2: ends.target })
+      }
+    )
+
     it("should place the labels between the outlines of the nodes", () => {
       const g = calculateEdgeGeometry(input())
 
