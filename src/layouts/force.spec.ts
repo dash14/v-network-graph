@@ -29,6 +29,7 @@ function setup(drawerInterval?: number) {
     edge2: { source: "node2", target: "node3" },
   })
   const nodePositions = ref<NodePositions>({})
+  const emitter = mitt<Events>()
   const drawn: PositionOf[] = []
   let flush: (() => void) | undefined
   const positionDrawer: PositionDrawer | undefined =
@@ -47,7 +48,7 @@ function setup(drawerInterval?: number) {
     edges,
     configs: getFullConfigs(),
     scale: ref(1),
-    emitter: mitt<Events>(),
+    emitter,
     svgPanZoom: {} as any,
     positionDrawer,
   })
@@ -74,6 +75,7 @@ function setup(drawerInterval?: number) {
     simulated,
     layoutOf,
     simulation: () => simulation!,
+    emitter,
   }
 }
 
@@ -121,6 +123,20 @@ describe("ForceLayout", () => {
       tick()
       flush()
       expect(layoutOf("node1")).toEqual(simulated("node1"))
+    })
+
+    it("tells a dragged node at the pointer before the next tick", () => {
+      const { tick, drawn, emitter } = start(10000)
+      tick()
+      emitter.emit("node:pointermove", { node1: { x: 500, y: 600 } })
+      expect(drawn[0]("node1")).toEqual({ x: 500, y: 600 })
+    })
+
+    it("tells no position to draw once the layouts are up to date", () => {
+      const { tick, flush, drawn } = start(10000)
+      tick()
+      flush()
+      expect(drawn[0]("node1")).toBeUndefined()
     })
 
     it("keeps the drawn positions when the simulation is rebuilt", async () => {

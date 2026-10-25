@@ -74,7 +74,9 @@ export class ForceLayout implements LayoutHandler {
         else written.set(node.id, { x, y })
       }
     }
+    // Only while the layouts lag behind: they have the positions otherwise.
     const positionOf = (id: string) => {
+      if (updateTimer === undefined) return undefined
       const node = nodeLayoutMap[id]
       return node && { x: node.x ?? 0, y: node.y ?? 0 }
     }
@@ -87,8 +89,8 @@ export class ForceLayout implements LayoutHandler {
         updateLayouts()
         return
       }
-      positionDrawer.draw(positionOf)
       updateTimer ??= setTimeout(updateLayouts, wait)
+      positionDrawer.draw(positionOf)
     }
     simulation.on("tick", this.onTick)
     // Namespaced, so that the listener of the user's simulation stays.
@@ -105,6 +107,11 @@ export class ForceLayout implements LayoutHandler {
     }
 
     const onDrag: OnDragHandler = positions => {
+      for (const [id, pos] of Object.entries(positions)) {
+        // At the pointer before the next tick, as it is read while the layouts lag behind.
+        const node = nodeLayoutMap[id]
+        if (node) Object.assign(node, { x: pos.x, y: pos.y })
+      }
       if (this.options.noAutoRestartSimulation) {
         for (const [id, pos] of Object.entries(positions)) {
           const nodePos = nodePositions.value?.[id]
