@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, readonly, ref, toRef, watch } from "vue"
+import { computed, readonly, ref, toRaw, toRef, watch } from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { LiteUserConfigs, UserConfigs } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, Layouts, UserLayouts, Layers, Paths } from "@/common/types"
@@ -151,7 +151,7 @@ const {
   markerState,
   scale
 )
-const { makePositionDrawer } = providePositionWriter(
+const { makePositionDrawer, flushPositions } = providePositionWriter(
   currentLayouts,
   edgeGeometries,
   positionChanges,
@@ -207,8 +207,17 @@ useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({
   positionDrawer,
 }))
 
+// The layouts may lag behind the positions drawn, so this brings them up to date first.
+// A copy, so that it stays as it was when taken.
+function getLayouts(): Layouts {
+  flushPositions()
+  const nodes = Object.entries(toRaw(currentLayouts).nodes).map(([id, p]) => [id, { ...p }])
+  return { nodes: Object.fromEntries(nodes) }
+}
+
 defineExpose({
   // methods
+  getLayouts,
   fitToContents: view.fitToContents,
   panToCenter: view.panToCenter,
   getViewBox: view.getViewBox,

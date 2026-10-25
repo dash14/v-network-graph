@@ -143,13 +143,15 @@ export function providePositionWriter(
     setFlush: f => (flush = f),
   })
 
+  const flushPositions = () => flush?.()
+
   provide(injectionKey, {
     nodeRef: id => elementRef(nodeElements, id, writeNode),
     edgeRef: id => elementRef(edgeElements, id, writeEdge),
-    flushPositions: () => flush?.(),
+    flushPositions,
   })
 
-  return { makePositionDrawer }
+  return { makePositionDrawer, flushPositions }
 }
 
 export function usePositionWriter() {

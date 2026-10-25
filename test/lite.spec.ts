@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
-import type { Edges, LiteUserConfigs, UserConfigs } from "@/index"
+import type { Edges, LiteUserConfigs, UserConfigs, VNetworkGraphLiteInstance } from "@/index"
 import { ForceLayout } from "@/layouts/force"
 import { POLL_INTERVAL } from "./helpers/container"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "./helpers/graph"
@@ -22,11 +22,16 @@ const layouts = {
   },
 }
 
-function mountLite(props: { edges?: Edges; configs?: LiteUserConfigs; selectedNodes?: string[] }) {
-  return mountGraph(
+async function mountLite(props: {
+  edges?: Edges
+  configs?: LiteUserConfigs
+  selectedNodes?: string[]
+}) {
+  const mounted = await mountGraph(
     { nodes, edges, layouts, ...props, configs: props.configs as UserConfigs },
     { lite: true }
   )
+  return { ...mounted, graph: mounted.graph as unknown as VNetworkGraphLiteInstance }
 }
 
 const attributes = (element: Element | null | undefined, names: string[]) =>
@@ -208,5 +213,22 @@ describe("force layout", () => {
     const { x, y } = state.layouts.nodes.node2
     expect({ x, y }).toEqual(drawnPosition(screen.container, "node2"))
     document.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }))
+  })
+
+  test("getLayouts() returns the positions drawn, while the layouts lag behind", async () => {
+    const { screen, state, graph } = await mountLite({
+      configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },
+    })
+    await vi.waitUntil(
+      () => {
+        const p = state.layouts.nodes.node2
+        const d = drawnPosition(screen.container, "node2")
+        return Math.hypot(p.x - d.x, p.y - d.y) > 1
+      },
+      { timeout: 5000, interval: POLL_INTERVAL }
+    )
+
+    const { x, y } = graph.getLayouts().nodes.node2
+    expect({ x, y }).toEqual(drawnPosition(screen.container, "node2"))
   })
 })
