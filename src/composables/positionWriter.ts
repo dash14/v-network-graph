@@ -38,6 +38,10 @@ const injectionKey = Symbol("positionWriter") as InjectionKey<PositionWriter>
 // Long enough to span the frames between the ticks of a layout.
 const MOVING_TIMEOUT = 200
 
+// The least move in screen pixels drawn ahead of the layouts, which write every move once they
+// catch up. Late in a layout, most nodes move less than this on each tick.
+const MIN_MOVE_AHEAD = 0.2
+
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
   currentPositions: UpdatableCurrentPositions,
@@ -177,31 +181,61 @@ export function providePositionWriter(
   let flush: (() => void) | undefined
   const makePositionDrawer = (
     interval: () => number,
+    zoomLevel: () => number,
     placeEdgesAhead: (draw: DrawEdge) => void
-  ): PositionDrawer => ({
-    get interval() {
-      return interval()
-    },
-    draw: positionOf => {
-      markMoving()
-      currentPositions.drawAhead(positionOf)
-      nodeElements.forEach((elements, id) => {
-        const p = currentPositions.of(id)
-        elements.forEach((w, el) => writeNodeAt(el, w, p, true))
-      })
-      placeEdgesAhead((id, p1, p2) =>
-        edgeElements.get(id)?.forEach((w, el) => {
-          if (el.localName === "line") writeLineAt(el, w, p1, p2, true)
-          else writeEdge(el, w, id)
+  ): PositionDrawer => {
+    // Where each node is drawn ahead, kept while it moves less than the least move from there, so
+    // that a node moving a little on each tick is drawn once the moves add up. Its edges and
+    // everything else read the same position. Dropped as the layouts move the node and draw it.
+    const drawnAhead = new Map<string, Position>()
+    currentPositions.onMoved(ids => ids.forEach(id => drawnAhead.delete(id)))
+    return {
+      get interval() {
+        return interval()
+      },
+      draw: positionOf => {
+        markMoving()
+        const minMove = MIN_MOVE_AHEAD / zoomLevel()
+        // Once for each node, rather than for each read of it.
+        nodeElements.forEach((_, id) => {
+          const p = positionOf(id)
+          const drawn = drawnAhead.get(id)
+          if (!p) {
+            drawnAhead.delete(id)
+          } else if (
+            !drawn ||
+            Math.abs(p.x - drawn.x) >= minMove ||
+            Math.abs(p.y - drawn.y) >= minMove
+          ) {
+            drawnAhead.set(id, p)
+          }
         })
-      )
-    },
-    setFlush: f => {
-      flush = f
-      // Without a layout drawing ahead, the layouts have the positions.
-      if (!f) currentPositions.endAhead()
-    },
-  })
+        // Through the layout's function, which has no position once the layouts catch up.
+        currentPositions.drawAhead(id => {
+          const p = positionOf(id)
+          return p && (drawnAhead.get(id) ?? p)
+        })
+        nodeElements.forEach((elements, id) => {
+          const p = currentPositions.of(id)
+          elements.forEach((w, el) => writeNodeAt(el, w, p, true))
+        })
+        placeEdgesAhead((id, p1, p2) =>
+          edgeElements.get(id)?.forEach((w, el) => {
+            if (el.localName === "line") writeLineAt(el, w, p1, p2, true)
+            else writeEdge(el, w, id)
+          })
+        )
+      },
+      setFlush: f => {
+        flush = f
+        // Without a layout drawing ahead, the layouts have the positions.
+        if (!f) {
+          currentPositions.endAhead()
+          drawnAhead.clear()
+        }
+      },
+    }
+  }
 
   provide(injectionKey, {
     nodeRef: id => elementRef(nodeElements, id, writeNode),

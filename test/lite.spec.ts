@@ -303,6 +303,30 @@ describe("force layout", () => {
       expect(graph.getLayouts().nodes.node1).toMatchObject({ x: 150, y: 130 })
     })
 
+    test("a node moving less than 0.2 pixels is drawn once its moves add up, with its edges", async () => {
+      const { screen, graph, moveTo } = await mountStopped()
+      const line = screen.container.querySelector('[data-edge-id="edge1"]')!
+      const drawn = () => ({
+        node: drawnPosition(screen.container, "node1"),
+        edge: { x: Number(line.getAttribute("x1")), y: Number(line.getAttribute("y1")) },
+      })
+      moveTo("node1", 100, 100)
+
+      moveTo("node1", 100.15, 100)
+      expect(drawn()).toEqual({ node: { x: 100, y: 100 }, edge: { x: 100, y: 100 } })
+
+      // From where it was drawn, not from the last tick.
+      moveTo("node1", 100.3, 100)
+      expect(isNear(drawn().node, { x: 100.3, y: 100 })).toBe(true)
+      expect(isNear(drawn().edge, { x: 100.3, y: 100 })).toBe(true)
+
+      // Where the layouts have it, once they catch up.
+      moveTo("node1", 100.35, 100)
+      graph.getLayouts()
+      await nextTick()
+      expect(drawn()).toEqual({ node: { x: 100.35, y: 100 }, edge: { x: 100.35, y: 100 } })
+    })
+
     test("an edge placed again, as its style changes, is drawn where its nodes are", async () => {
       const { screen, state, moveTo } = await mountStopped()
       moveTo("node1", 100, 100)

@@ -200,7 +200,11 @@ const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } 
 const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
 
 // Lets a layout draw its ticks ahead of the layouts, which cost more to update.
-const positionDrawer = makePositionDrawer(() => viewConfig.layoutsUpdateInterval, placeEdgesAhead)
+const positionDrawer = makePositionDrawer(
+  () => viewConfig.layoutsUpdateInterval,
+  () => zoomLevel.value,
+  placeEdgesAhead
+)
 
 useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({
   layouts: Reactive(currentLayouts.nodes), // deprecated parameter.
