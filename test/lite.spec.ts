@@ -48,7 +48,7 @@ const attributes = (element: Element | null | undefined, names: string[]) =>
   Object.fromEntries(names.map(n => [n, element?.getAttribute(n)]))
 
 describe("drawing", () => {
-  test("draws a node as a shape, a label as a text and an edge as a line, with no group", async () => {
+  test("draws a node as a shape, a label as a text in a group and an edge as a line", async () => {
     const { screen } = await mountLite({
       configs: { node: { normal: { type: node => (node.name === "Node 3" ? "rect" : "circle") } } },
     })
@@ -65,9 +65,10 @@ describe("drawing", () => {
     expect(attributes(shapes[0], ["cx", "cy"])).toEqual({ cx: "0", cy: "0" })
     expect(Number(shapes[2].getAttribute("x"))).toBeLessThan(0)
 
-    const labels = [...c.querySelectorAll(".v-ng-layer-node-labels > text.v-ng-node-label")]
+    const labels = [...c.querySelectorAll(".v-ng-layer-node-labels > g > text.v-ng-node-label")]
     expect(labels.map(e => e.textContent?.trim())).toEqual(["Node 1", "Node 2", "Node 3"])
-    expect(labels[0].getAttribute("transform")).toBe("translate(-200 0)")
+    expect(labels[0].parentElement!.getAttribute("transform")).toBe("translate(-200 0)")
+    expect(labels[0].getAttribute("transform")).toBeNull()
     // Below the node, by default.
     expect(Number(labels[0].getAttribute("y"))).toBeGreaterThan(0)
 
@@ -79,7 +80,7 @@ describe("drawing", () => {
       x2: "0",
       y2: "0",
     })
-    expect(c.querySelector(".v-ng-viewport g g")).toBeNull()
+    expect(c.querySelector(".v-ng-layer-nodes g, .v-ng-layer-edges g")).toBeNull()
   })
 
   test("leaves out a self-loop", async () => {

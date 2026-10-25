@@ -18,7 +18,7 @@ const configs = useNodeConfig()
 const writer = usePositionWriter()
 const setElement = writer.nodeRef(props.id)
 
-// Offset by the attributes, as the position writer moves the text itself to the node.
+// Offset by the attributes, as the position writer moves the group around the text to the node.
 const { textAnchor, dominantBaseline, labelX, labelY } = useNodeLabelPlacement(props)
 const { texts, fontSize, lineHeight, topDeltaY } = useLabelTextLines({
   get text() {
@@ -78,33 +78,35 @@ const classes = computed(() => {
 </script>
 
 <template>
-  <text
-    :ref="setElement"
-    :class="classes"
-    :x="labelX"
-    :y="labelY"
-    :text-anchor="textAnchor"
-    :dominant-baseline="dominantBaseline"
-    :font-family="state.label.fontFamily"
-    :font-size="fontSize"
-    :fill="state.label.color"
-    v-on="eventHandlers"
-  >
-    <template v-if="texts.length <= 1">
-      {{ state.labelText }}
-    </template>
-    <template v-else>
-      <!-- With the baseline on each `<tspan>`, which Safari does not inherit from the `<text>`. -->
-      <tspan
-        v-for="(t, i) in texts"
-        :key="i"
-        :x="labelX"
-        :dy="i == 0 ? topDeltaY : lineHeight"
-        :dominant-baseline="dominantBaseline"
-        >{{ t }}</tspan
-      >
-    </template>
-  </text>
+  <!-- Moved as a group, since Chrome lays out a text again when its own transform changes. -->
+  <g :ref="setElement">
+    <text
+      :class="classes"
+      :x="labelX"
+      :y="labelY"
+      :text-anchor="textAnchor"
+      :dominant-baseline="dominantBaseline"
+      :font-family="state.label.fontFamily"
+      :font-size="fontSize"
+      :fill="state.label.color"
+      v-on="eventHandlers"
+    >
+      <template v-if="texts.length <= 1">
+        {{ state.labelText }}
+      </template>
+      <template v-else>
+        <!-- With the baseline on each `<tspan>`, which Safari does not inherit from the `<text>`. -->
+        <tspan
+          v-for="(t, i) in texts"
+          :key="i"
+          :x="labelX"
+          :dy="i == 0 ? topDeltaY : lineHeight"
+          :dominant-baseline="dominantBaseline"
+          >{{ t }}</tspan
+        >
+      </template>
+    </text>
+  </g>
 </template>
 
 <style lang="scss">
