@@ -4,7 +4,7 @@ import { nonNull } from "@/common/common"
 import { Position } from "@/common/types"
 import type { PositionDrawer } from "@/layouts/handler"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
-import type { CurrentPositionsWithDrawer } from "./currentPositions"
+import type { UpdatableCurrentPositions } from "./currentPositions"
 import type { DrawEdge } from "./edgePlacement"
 
 type ElementRef = (el: unknown) => void
@@ -38,7 +38,7 @@ const MOVING_TIMEOUT = 200
 
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
-  currentPositions: CurrentPositionsWithDrawer,
+  currentPositions: UpdatableCurrentPositions,
   edgeGeometries: ReadonlyMap<string, EdgeGeometry>,
   changes: PositionChanges,
   viewport: Ref<Element | undefined>

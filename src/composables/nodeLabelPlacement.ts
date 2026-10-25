@@ -1,12 +1,11 @@
-import { computed, ref, watchEffect } from "vue"
-import { NodeLabelDirection } from "@/common/configs"
+import { computed, ref, shallowRef, toRaw, watchEffect } from "vue"
+import { NodeLabelDirection, OppositeNodes } from "@/common/configs"
 import { useCurrentPositions } from "@/composables/currentPositions"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { NodeState } from "@/models/node"
 import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
-import { positionOf } from "@/modules/node/position"
 
 /**
  * Where the label of a node is drawn, relative to the node.
@@ -18,15 +17,6 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
   const { scale } = useZoomLevel()
   const layouts = useLayouts()
   const currentPositions = useCurrentPositions()
-
-  // The DOM gets the position from the position writer; it is read here only to adjust the
-  // direction. Where the node is now, so that the direction follows the nodes drawn ahead.
-  const currentPositionOf = (id: string) => {
-    void currentPositions.drawn.value
-    void positionOf(layouts.nodes, id) // tracks the layouts
-    const { x, y } = currentPositions.of(id)
-    return { x, y }
-  }
 
   const labelMargin = computed(() => {
     if (props.state.label.direction === NodeLabelDirection.CENTER) {
@@ -41,20 +31,25 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
   const labelDiagonalShiftV = ref(0) // Amount of shift in diagonal direction (vertical)
   const labelDiagonalShiftH = ref(0) // Amount of shift in diagonal direction (horizontal)
 
-  const labelDirection = computed(() => {
-    const direction = props.state.label.direction
-    const autoAdjustment = props.state.label.directionAutoAdjustment
+  // Taken out in the tracked effect below, so that the adjustments as the nodes move read plain
+  // values.
+  let label = props.state.label
+  let oppositeNodeIds: [edgeId: string, nodeId: string][] = []
+
+  // The DOM gets the positions from the position writer; they are read here only to adjust the
+  // direction, where the nodes are now. Untracked, as the moves are listened for instead.
+  const adjustDirection = () => {
+    const { direction, directionAutoAdjustment: autoAdjustment } = label
     if (autoAdjustment === false) {
       return direction
     }
 
-    const pos = currentPositionOf(props.id)
-    const oppositeNodes = Object.fromEntries(
-      Object.entries(props.state.oppositeNodes).map(([edgeId, node]) => [
-        edgeId,
-        { ...node, pos: currentPositionOf(node.nodeId) },
-      ])
-    )
+    const pos = currentPositions.of(props.id)
+    const positions = toRaw(layouts).nodes
+    const oppositeNodes: OppositeNodes = {}
+    for (const [edgeId, nodeId] of oppositeNodeIds) {
+      if (nodeId in positions) oppositeNodes[edgeId] = { nodeId, pos: currentPositions.of(nodeId) }
+    }
     if (autoAdjustment === true) {
       return handleNodeLabelAutoAdjustment(
         props.state.id,
@@ -72,6 +67,27 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
         }) ?? direction
       )
     }
+  }
+
+  // Set only when it changes, so that a label re-renders only then, though a layout tick moves
+  // every node.
+  const labelDirection = shallowRef(props.state.label.direction)
+  const adjust = () => (labelDirection.value = adjustDirection())
+  watchEffect(() => {
+    label = props.state.label
+    oppositeNodeIds = Object.entries(props.state.oppositeNodeIds)
+    adjust()
+  })
+  watchEffect(onCleanup => {
+    if (props.state.label.directionAutoAdjustment === false) return
+    const isMoved = (ids: ReadonlySet<string>) =>
+      ids.has(props.id) || oppositeNodeIds.some(([, id]) => ids.has(id))
+    const stopDrawn = currentPositions.onDrawn(adjust)
+    const stopMoved = currentPositions.onMoved(ids => isMoved(ids) && adjust())
+    onCleanup(() => {
+      stopDrawn()
+      stopMoved()
+    })
   })
 
   const textAnchor = computed(() => {
