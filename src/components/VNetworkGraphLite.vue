@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, readonly, ref, toRaw, toRef, watch } from "vue"
 import { Reactive, nonNull } from "@/common/common"
-import { LiteUserConfigs, UserConfigs } from "@/common/configs"
+import { Configs, LiteUserConfigs, LiteViewConfig, UserConfigs } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, Layouts, UserLayouts, Layers, Paths } from "@/common/types"
 import { isMouseWheelZoomEnabled, useGraphCanvas } from "@/composables/canvas"
 import { provideConfigs } from "@/composables/config"
@@ -75,13 +75,20 @@ Object.entries(props.eventHandlers).forEach(([type, event]) => {
   emitter.on(type as any, event as any)
 })
 
-// Style settings, with the edges straight and each on its own, as a lite graph draws them
+// Style settings, with the edges straight and each on its own, as a lite graph draws them, and
+// the defaults of its own settings, which the configs of VNetworkGraph do not have.
 const configs = provideConfigs(
   computed<UserConfigs>(() => ({
     ...(props.configs as UserConfigs),
+    view: {
+      ...props.configs.view,
+      layoutsUpdateInterval:
+        props.configs.view?.layoutsUpdateInterval ?? DEFAULT_LAYOUTS_UPDATE_INTERVAL,
+    } as UserConfigs["view"],
     edge: { ...props.configs.edge, type: "straight", summarize: false },
   }))
 )
+const viewConfig = configs.view as Configs["view"] & Pick<LiteViewConfig, "layoutsUpdateInterval">
 
 // Additional layers
 const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
@@ -193,10 +200,7 @@ const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } 
 const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
 
 // Lets a layout draw its ticks ahead of the layouts, which cost more to update.
-const positionDrawer = makePositionDrawer(
-  () => props.configs.view?.layoutsUpdateInterval ?? DEFAULT_LAYOUTS_UPDATE_INTERVAL,
-  placeEdgesAhead
-)
+const positionDrawer = makePositionDrawer(() => viewConfig.layoutsUpdateInterval, placeEdgesAhead)
 
 useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({
   layouts: Reactive(currentLayouts.nodes), // deprecated parameter.

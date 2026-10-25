@@ -1,11 +1,14 @@
 import { computed, ref, shallowRef, toRaw, watchEffect } from "vue"
 import { NodeLabelDirection, OppositeNodes } from "@/common/configs"
+import { Position } from "@/common/types"
 import { useCurrentPositions } from "@/composables/currentPositions"
 import { useLayouts } from "@/composables/layout"
 import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { NodeState } from "@/models/node"
 import { handleNodeLabelAutoAdjustment } from "@/modules/node/label"
+
+const copyPosition = ({ x, y }: Position): Position => ({ x, y })
 
 /**
  * Where the label of a node is drawn, relative to the node.
@@ -44,11 +47,14 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
       return direction
     }
 
-    const pos = currentPositions.of(props.id)
+    // Copies, as the positions can be the objects in the layouts, which the user's function gets.
+    const pos = copyPosition(currentPositions.of(props.id))
     const positions = toRaw(layouts).nodes
     const oppositeNodes: OppositeNodes = {}
     for (const [edgeId, nodeId] of oppositeNodeIds) {
-      if (nodeId in positions) oppositeNodes[edgeId] = { nodeId, pos: currentPositions.of(nodeId) }
+      if (nodeId in positions) {
+        oppositeNodes[edgeId] = { nodeId, pos: copyPosition(currentPositions.of(nodeId)) }
+      }
     }
     if (autoAdjustment === true) {
       return handleNodeLabelAutoAdjustment(

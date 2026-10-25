@@ -2,7 +2,14 @@ import type { Simulation } from "d3-force"
 import { describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
-import type { Edges, LiteUserConfigs, UserConfigs, VNetworkGraphLiteInstance } from "@/index"
+import type {
+  Edges,
+  LiteUserConfigs,
+  NodeLabelDirectionAutoAdjustmentHandler,
+  Position,
+  UserConfigs,
+  VNetworkGraphLiteInstance,
+} from "@/index"
 import { ForceLayout } from "@/layouts/force"
 import type { ForceEdgeDatum, ForceNodeDatum } from "@/layouts/force"
 import { POLL_INTERVAL } from "./helpers/container"
@@ -104,6 +111,23 @@ describe("drawing", () => {
     const line = screen.container.querySelector('[data-edge-id="edge1"]')
     expect(line?.getAttribute("marker-end")).toMatch(/^url\('#.+'\)$/)
     expect(Number(line?.getAttribute("x2"))).toBeLessThan(-16)
+  })
+
+  test("gives the function adjusting a label copies of the positions", async () => {
+    const given: Position[] = []
+    const adjust: NodeLabelDirectionAutoAdjustmentHandler = ({ pos, oppositeNodes }) => {
+      given.push(pos, ...Object.values(oppositeNodes).map(n => n.pos))
+      return null
+    }
+    // Returned by a function, as a function given in the configs is called with the node.
+    const { state } = await mountLite({
+      configs: { node: { label: { directionAutoAdjustment: () => adjust } } },
+    })
+    expect(given.length).toBeGreaterThan(0)
+
+    given.forEach(p => (p.x = 999))
+
+    expect(Object.values(state.layouts.nodes).map(p => p.x)).toEqual([-200, 0, 200])
   })
 
   test("exports the graph as SVG", async () => {
