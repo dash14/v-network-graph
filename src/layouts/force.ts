@@ -36,7 +36,14 @@ export class ForceLayout implements LayoutHandler {
 
   activate(parameters: LayoutActivateParameters): void {
     const { nodePositions, nodes, edges, emitter, positionDrawer } = parameters
-    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions)
+    // What was last written to the layouts, to tell the positions the user changed since.
+    const written = new Map<string, { x: number; y: number }>()
+    let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(
+      nodes.value,
+      nodePositions,
+      {},
+      written
+    )
 
     const simulation = this.createSimulation(
       nodeLayouts,
@@ -47,7 +54,6 @@ export class ForceLayout implements LayoutHandler {
     // since updating the layouts costs more than drawing.
     let lastUpdate = -Infinity
     let updateTimer: ReturnType<typeof setTimeout> | undefined
-    const written = new Map<string, { x: number; y: number }>()
     const updateLayouts = () => {
       clearTimeout(updateTimer)
       updateTimer = undefined
@@ -63,19 +69,9 @@ export class ForceLayout implements LayoutHandler {
         } else {
           nodePositions.value[node.id] = { x, y }
         }
-        if (positionDrawer) written.set(node.id, { x, y })
-      }
-    }
-    // Before the layouts are read to rebuild the simulation, as they would take it back to where
-    // they were last updated. The nodes the user moved since are left where the user put them.
-    const updateUnchangedLayouts = () => {
-      if (updateTimer === undefined) return
-      for (const node of nodeLayouts) {
-        const layout = nodePositions.value?.[node.id]
         const last = written.get(node.id)
-        if (layout && last && layout.x === last.x && layout.y === last.y) {
-          Object.assign(layout, { x: node.x ?? 0, y: node.y ?? 0 })
-        }
+        if (last) Object.assign(last, { x, y })
+        else written.set(node.id, { x, y })
       }
     }
     const positionOf = (id: string) => {
@@ -179,8 +175,12 @@ export class ForceLayout implements LayoutHandler {
         Object.values(nodePositions.value).map(p => p.fixed),
       ],
       () => {
-        updateUnchangedLayouts()
-        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
+        ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(
+          nodes.value,
+          nodePositions,
+          nodeLayoutMap,
+          written
+        ))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
         if (forceEdges) {
@@ -237,19 +237,39 @@ export class ForceLayout implements LayoutHandler {
     }
   }
 
-  private buildNodeLayouts(nodes: Readonly<Nodes>, nodePositions: Ref<NodePositions>) {
-    const newNodes = Object.keys(nodes).filter(n => !(n in nodePositions.value))
-    const nodeLayouts = this.forceNodeLayouts(nodePositions.value, newNodes)
-    const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
-    return { nodeLayouts, nodeLayoutMap }
-  }
-
-  private forceNodeLayouts(layouts: NodePositions, newNodes: string[]): ForceNodeDatum[] {
-    const data: ForceNodeDatum[] = Object.entries(layouts).map(([id, v]) => {
-      return v.fixed ? { id, ...v, fx: v.x, fy: v.y } : { id, ...v }
+  /**
+   * The nodes of the simulation, where the simulation has them unless the user moved them in the
+   * layouts, since the layouts can lag behind the simulation.
+   */
+  private buildNodeLayouts(
+    nodes: Readonly<Nodes>,
+    nodePositions: Ref<NodePositions>,
+    current: Readonly<Record<string, ForceNodeDatum>>,
+    written: Map<string, { x: number; y: number }>
+  ) {
+    const nodeLayouts: ForceNodeDatum[] = Object.entries(nodePositions.value).map(([id, v]) => {
+      const node = current[id]
+      const last = written.get(id)
+      const moved = !node || !last || v.x !== last.x || v.y !== last.y
+      // Kept with its velocity.
+      const datum: ForceNodeDatum = moved ? { id, ...v } : node
+      if (v.fixed) {
+        datum.fx = datum.x
+        datum.fy = datum.y
+      } else {
+        delete datum.fx
+        delete datum.fy
+      }
+      return datum
     })
-    newNodes.map(id => ({ id })).forEach(n => data.push(n))
-    return data
+    for (const id of Object.keys(nodes)) {
+      if (!(id in nodePositions.value)) nodeLayouts.push({ id })
+    }
+    const nodeLayoutMap = Object.fromEntries(nodeLayouts.map(n => [n.id, n]))
+    for (const id of written.keys()) {
+      if (!(id in nodeLayoutMap)) written.delete(id)
+    }
+    return { nodeLayouts, nodeLayoutMap }
   }
 
   private forceLayoutEdges(edges: Edges, nodes: Nodes): ForceEdgeDatum[] {

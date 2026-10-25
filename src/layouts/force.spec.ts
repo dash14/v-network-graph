@@ -64,7 +64,17 @@ function setup(drawerInterval?: number) {
     const p = nodePositions.value[id]
     return { x: p.x, y: p.y }
   }
-  return { layout, nodes, nodePositions, drawn, flush: () => flush?.(), tick, simulated, layoutOf }
+  return {
+    layout,
+    nodes,
+    nodePositions,
+    drawn,
+    flush: () => flush?.(),
+    tick,
+    simulated,
+    layoutOf,
+    simulation: () => simulation!,
+  }
 }
 
 describe("ForceLayout", () => {
@@ -119,8 +129,37 @@ describe("ForceLayout", () => {
       const drawnPosition = simulated("node1")
       nodes.value = { ...nodes.value, node4: {} }
       await nextTick()
-      expect(layoutOf("node1")).toEqual(drawnPosition)
       expect(simulated("node1")).toEqual(drawnPosition)
+      // Left to follow as they would, not caught up for the rebuild.
+      expect(layoutOf("node1")).not.toEqual(drawnPosition)
+    })
+
+    it("keeps the drawn positions when the simulation is rebuilt again before the layouts follow", async () => {
+      const { tick, simulated, layoutOf, nodes } = start(10000)
+      tick()
+      nodes.value = { ...nodes.value, node4: {} }
+      await nextTick()
+      tick()
+      const drawnPosition = simulated("node1")
+      nodes.value = { ...nodes.value, node5: {} }
+      await nextTick()
+      expect(simulated("node1")).toEqual(drawnPosition)
+      expect(layoutOf("node1")).not.toEqual(drawnPosition)
+    })
+
+    it("keeps the velocities when the simulation is rebuilt", async () => {
+      const { tick, nodes, simulation } = start(10000)
+      tick()
+      const velocity = () => {
+        const node = simulation()
+          .nodes()
+          .find(n => n.id === "node1")!
+        return { vx: node.vx, vy: node.vy }
+      }
+      const before = velocity()
+      nodes.value = { ...nodes.value, node4: {} }
+      await nextTick()
+      expect(velocity()).toEqual(before)
     })
 
     it("leaves the position of a node the user moved, when the simulation is rebuilt", async () => {
