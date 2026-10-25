@@ -35,7 +35,7 @@ export class ForceLayout implements LayoutHandler {
   constructor(private options: ForceLayoutParameters = {}) {}
 
   activate(parameters: LayoutActivateParameters): void {
-    const { nodePositions, nodes, edges, emitter } = parameters
+    const { nodePositions, nodes, edges, emitter, positionDrawer } = parameters
     let { nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions)
 
     const simulation = this.createSimulation(
@@ -43,24 +43,61 @@ export class ForceLayout implements LayoutHandler {
       this.forceLayoutEdges(edges.value, nodes.value)
     )
 
-    this.onTick = () => {
+    // With a drawer, the ticks are drawn as they come but reach the layouts only once in a while,
+    // since updating the layouts costs more than drawing.
+    let lastUpdate = -Infinity
+    let updateTimer: ReturnType<typeof setTimeout> | undefined
+    const written = new Map<string, { x: number; y: number }>()
+    const updateLayouts = () => {
+      clearTimeout(updateTimer)
+      updateTimer = undefined
+      lastUpdate = performance.now()
       for (const node of nodeLayouts) {
         const layout = nodePositions.value?.[node.id]
+        const x = node.x ?? 0
+        const y = node.y ?? 0
         if (layout) {
-          const x = node.x ?? 0
-          const y = node.y ?? 0
           if (layout.x !== x || layout.y !== y) {
             Object.assign(layout, { x, y })
           }
         } else {
-          nodePositions.value[node.id] = {
-            x: node.x ?? 0,
-            y: node.y ?? 0,
-          }
+          nodePositions.value[node.id] = { x, y }
+        }
+        if (positionDrawer) written.set(node.id, { x, y })
+      }
+    }
+    // Before the layouts are read to rebuild the simulation, as they would take it back to where
+    // they were last updated. The nodes the user moved since are left where the user put them.
+    const updateUnchangedLayouts = () => {
+      if (updateTimer === undefined) return
+      for (const node of nodeLayouts) {
+        const layout = nodePositions.value?.[node.id]
+        const last = written.get(node.id)
+        if (layout && last && layout.x === last.x && layout.y === last.y) {
+          Object.assign(layout, { x: node.x ?? 0, y: node.y ?? 0 })
         }
       }
     }
+    const positionOf = (id: string) => {
+      const node = nodeLayoutMap[id]
+      return node && { x: node.x ?? 0, y: node.y ?? 0 }
+    }
+    const updatePendingLayouts = () => {
+      if (updateTimer !== undefined) updateLayouts()
+    }
+    this.onTick = () => {
+      const wait = positionDrawer ? lastUpdate + positionDrawer.interval - performance.now() : 0
+      if (!positionDrawer || wait <= 0) {
+        updateLayouts()
+        return
+      }
+      positionDrawer.draw(positionOf)
+      updateTimer ??= setTimeout(updateLayouts, wait)
+    }
     simulation.on("tick", this.onTick)
+    // Namespaced, so that the listener of the user's simulation stays.
+    simulation.on("end.v-network-graph", updatePendingLayouts)
+    positionDrawer?.setFlush(updatePendingLayouts)
 
     // for ticked manually
     this.onTick()
@@ -142,6 +179,7 @@ export class ForceLayout implements LayoutHandler {
         Object.values(nodePositions.value).map(p => p.fixed),
       ],
       () => {
+        updateUnchangedLayouts()
         ;({ nodeLayouts, nodeLayoutMap } = this.buildNodeLayouts(nodes.value, nodePositions))
         simulation.nodes(nodeLayouts)
         const forceEdges = simulation.force<d3.ForceLink<ForceNodeDatum, ForceEdgeDatum>>("edge")
@@ -159,6 +197,9 @@ export class ForceLayout implements LayoutHandler {
 
     this.onDeactivate = () => {
       simulation.stop()
+      simulation.on("end.v-network-graph", null)
+      positionDrawer?.setFlush(undefined)
+      updatePendingLayouts()
       stopNetworkWatch()
       emitter.off("node:dragstart", onDrag)
       emitter.off("node:pointermove", onDrag)
