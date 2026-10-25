@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
+import { nextTick } from "vue"
 import type { Edges, LiteUserConfigs, UserConfigs, VNetworkGraphLiteInstance } from "@/index"
 import { ForceLayout } from "@/layouts/force"
 import { POLL_INTERVAL } from "./helpers/container"
@@ -157,6 +158,9 @@ describe("force layout", () => {
           .force("charge", d3.forceManyBody())
           .alphaDecay(0.2),
     })
+  // Drawn ahead as numbers, which the attributes read back with fewer digits.
+  const isNear = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+    Math.hypot(a.x - b.x, a.y - b.y) < 0.01
   const drawnPosition = (container: Element, id: string) => {
     const index = Object.keys(nodes).indexOf(id)
     const node = container.querySelectorAll(".v-ng-node")[index]
@@ -171,25 +175,17 @@ describe("force layout", () => {
 
     // Ahead of the layouts while the simulation runs.
     await vi.waitUntil(
-      () => {
-        const p = state.layouts.nodes.node1
-        const d = drawnPosition(screen.container, "node1")
-        return p.x !== d.x || p.y !== d.y
-      },
+      () => !isNear(state.layouts.nodes.node1, drawnPosition(screen.container, "node1")),
       { timeout: 5000, interval: POLL_INTERVAL }
     )
     // The edges follow the nodes drawn ahead, between their centers with no marker or margin.
     const line = screen.container.querySelector('[data-edge-id="edge1"]')
-    const node1 = drawnPosition(screen.container, "node1")
-    expect(attributes(line, ["x1", "y1"])).toEqual({ x1: `${node1.x}`, y1: `${node1.y}` })
+    const end = { x: Number(line?.getAttribute("x1")), y: Number(line?.getAttribute("y1")) }
+    expect(isNear(end, drawnPosition(screen.container, "node1"))).toBe(true)
 
     // Caught up when it ends.
     await vi.waitUntil(
-      () => {
-        const p = state.layouts.nodes.node1
-        const d = drawnPosition(screen.container, "node1")
-        return p.x === d.x && p.y === d.y
-      },
+      () => isNear(state.layouts.nodes.node1, drawnPosition(screen.container, "node1")),
       { timeout: 10000, interval: POLL_INTERVAL }
     )
   })
@@ -210,8 +206,7 @@ describe("force layout", () => {
     // Dispatched, so that no tick comes between the grab and the check.
     const node = screen.container.querySelectorAll(".v-ng-node")[1]
     node.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerId: 1 }))
-    const { x, y } = state.layouts.nodes.node2
-    expect({ x, y }).toEqual(drawnPosition(screen.container, "node2"))
+    expect(isNear(state.layouts.nodes.node2, drawnPosition(screen.container, "node2"))).toBe(true)
     document.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }))
   })
 
@@ -228,7 +223,32 @@ describe("force layout", () => {
       { timeout: 5000, interval: POLL_INTERVAL }
     )
 
-    const { x, y } = graph.getLayouts().nodes.node2
-    expect({ x, y }).toEqual(drawnPosition(screen.container, "node2"))
+    expect(isNear(graph.getLayouts().nodes.node2, drawnPosition(screen.container, "node2"))).toBe(
+      true
+    )
+  })
+
+  test("writes nothing again when the layouts catch up with the positions drawn", async () => {
+    const { screen, state, graph } = await mountLite({
+      configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },
+    })
+    await vi.waitUntil(
+      () => !isNear(state.layouts.nodes.node2, drawnPosition(screen.container, "node2")),
+      { timeout: 5000, interval: POLL_INTERVAL }
+    )
+
+    const records: MutationRecord[] = []
+    const observer = new MutationObserver(r => records.push(...r))
+    observer.observe(screen.container, {
+      subtree: true,
+      attributeFilter: ["transform", "x1", "y1", "x2", "y2"],
+    })
+    // No tick comes before the writes that follow the layouts, as they are in the same task.
+    graph.getLayouts()
+    await nextTick()
+    records.push(...observer.takeRecords())
+    observer.disconnect()
+    expect(isNear(state.layouts.nodes.node2, drawnPosition(screen.container, "node2"))).toBe(true)
+    expect(records).toEqual([])
   })
 })

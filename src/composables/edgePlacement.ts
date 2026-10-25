@@ -12,6 +12,9 @@ import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/module
 import { untrackedPositionOf } from "@/modules/node/position"
 import type { PositionChanges } from "./positionWriter"
 
+type PositionOf = (node: string) => Position | undefined
+type DrawEdge = (edge: string, p1: Position, p2: Position) => void
+
 type EdgePlacementStyle = Omit<EdgeGeometryInput, "source" | "target" | "scale"> & {
   sourceId: string
   targetId: string
@@ -43,10 +46,11 @@ export interface EdgePlacement {
   /** Re-place the given edges, as their nodes moved. */
   placeEdges: (ids: Set<string>) => void
   /**
-   * Place every edge at the given positions of its nodes, which may not be in the layouts yet.
-   * Only the geometries are updated, not the refs, until the layouts follow.
+   * Place every edge at the given positions of its nodes, which may not be in the layouts yet,
+   * and pass the ends to draw. Neither the refs nor, for an edge between the node centers, the
+   * geometries are updated until the layouts follow.
    */
-  placeEdgesAt: (positionOf: (node: string) => Position | undefined) => void
+  placeEdgesAt: (positionOf: PositionOf, draw: DrawEdge) => void
   /** Start re-placing the edges whose style changed, after the edges are created. */
   followStyleChanges: () => void
   /**
@@ -69,7 +73,7 @@ export function makeEdgePlacement(
   changes: PositionChanges
 ): EdgePlacement {
   const placers = new Map<string, ReactiveEffectRunner>()
-  const placersAt = new Map<string, (positionOf: (node: string) => Position | undefined) => void>()
+  const placersAt = new Map<string, (positionOf: PositionOf, draw: DrawEdge) => void>()
   const geometries = new Map<string, EdgeGeometry>()
   const dirtyEdges = new Set<string>()
   const edgesDirty = shallowRef(0)
@@ -163,24 +167,11 @@ export function makeEdgePlacement(
     // positions change from one placing to the next.
     let input: (EdgePlacementStyle & EdgeGeometryInput) | undefined
     let betweenCenters = false
-    const geometryAt = (
-      positionOf: (node: string) => Position | undefined,
-      onlyPosition = false
-    ): EdgeGeometry | undefined => {
+    const geometryAt = (positionOf: PositionOf): EdgeGeometry | undefined => {
       if (!input) return undefined
       const { sourceId, targetId } = input
       input.source = positionOf(sourceId) ?? untrackedPositionOf(toRaw(layouts).nodes, sourceId)
       input.target = positionOf(targetId) ?? untrackedPositionOf(toRaw(layouts).nodes, targetId)
-      if (onlyPosition && betweenCenters) {
-        const position = { p1: input.source, p2: input.target }
-        return {
-          origin: position,
-          labelPosition: position,
-          position,
-          curve: undefined,
-          loop: undefined,
-        }
-      }
       return calculateEdgeGeometry(input)
     }
 
@@ -213,10 +204,23 @@ export function makeEdgePlacement(
       },
     })
     placers.set(id, place)
-    // Only the position is drawn ahead of the layouts, so the rest is left out where it costs.
-    placersAt.set(id, positionOf => {
-      const placed = geometryAt(positionOf, true)
-      if (placed) geometries.set(id, placed)
+    // Only the position is drawn ahead of the layouts, so an edge between the node centers is
+    // drawn from them, with no geometry worked out.
+    placersAt.set(id, (positionOf, draw) => {
+      if (!input) return
+      if (betweenCenters) {
+        const { sourceId, targetId } = input
+        draw(
+          id,
+          positionOf(sourceId) ?? untrackedPositionOf(toRaw(layouts).nodes, sourceId),
+          positionOf(targetId) ?? untrackedPositionOf(toRaw(layouts).nodes, targetId)
+        )
+        return
+      }
+      const placed = geometryAt(positionOf)
+      if (!placed) return
+      geometries.set(id, placed)
+      draw(id, placed.position.p1, placed.position.p2)
     })
 
     const stopPlacing = () => {
@@ -228,8 +232,8 @@ export function makeEdgePlacement(
     return { geometry, stop: stopPlacing }
   }
 
-  const placeEdgesAt = (positionOf: (node: string) => Position | undefined) => {
-    placersAt.forEach(place => place(positionOf))
+  const placeEdgesAt = (positionOf: PositionOf, draw: DrawEdge) => {
+    placersAt.forEach(place => place(positionOf, draw))
   }
 
   return {

@@ -8,6 +8,16 @@ import { untrackedPositionOf } from "@/modules/node/position"
 
 type ElementRef = (el: unknown) => void
 type PositionOf = (node: string) => Position | undefined
+type DrawEdge = (edge: string, p1: Position, p2: Position) => void
+
+// What was last written to an element, so that the same position is not written again. A node
+// has its position in x1 and y1.
+interface Written {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
 
 /** The nodes and edges whose positions changed since the last time they were taken. */
 export interface PositionChanges {
@@ -36,26 +46,61 @@ export function providePositionWriter(
   changes: PositionChanges,
   viewport: Ref<Element | undefined>
 ) {
-  const nodeElements = new Map<string, Set<Element>>()
-  const edgeElements = new Map<string, Set<Element>>()
+  const nodeElements = new Map<string, Map<Element, Written>>()
+  const edgeElements = new Map<string, Map<Element, Written>>()
 
   // Read untracked: the changes say what to write.
-  const writeNodeAt = (el: Element, p: Position) => {
-    el.setAttribute("transform", `translate(${p.x} ${p.y})`)
+  // Drawn ahead as numbers where the browser has them, which skips formatting and parsing a string.
+  // Not otherwise, as the attributes then read back with fewer digits.
+  const writeNodeAt = (el: Element, written: Written, p: Position, asNumbers = false) => {
+    if (written.x1 === p.x && written.y1 === p.y) return
+    written.x1 = p.x
+    written.y1 = p.y
+    const transforms = asNumbers
+      ? (el as Partial<SVGGraphicsElement>).transform?.baseVal
+      : undefined
+    if (transforms?.numberOfItems === 1) {
+      transforms.getItem(0).setTranslate(p.x, p.y)
+    } else {
+      el.setAttribute("transform", `translate(${p.x} ${p.y})`)
+    }
   }
-  const writeNode = (el: Element, id: string) => {
-    writeNodeAt(el, untrackedPositionOf(toRaw(layouts).nodes, id))
+  const writeNode = (el: Element, written: Written, id: string) => {
+    writeNodeAt(el, written, untrackedPositionOf(toRaw(layouts).nodes, id))
   }
-  const writeEdge = (el: Element, id: string) => {
-    const geometry = edgeGeometries.get(id)
-    if (!geometry) return
-    // By the tag name, as the element classes may be missing outside a browser, as in jsdom.
-    if (el.localName === "line") {
-      const { p1, p2 } = geometry.position
+  const writeLineAt = (
+    el: Element,
+    written: Written,
+    p1: Position,
+    p2: Position,
+    asNumbers = false
+  ) => {
+    if (written.x1 === p1.x && written.y1 === p1.y && written.x2 === p2.x && written.y2 === p2.y) {
+      return
+    }
+    written.x1 = p1.x
+    written.y1 = p1.y
+    written.x2 = p2.x
+    written.y2 = p2.y
+    const line = el as Partial<SVGLineElement>
+    if (asNumbers && line.x1 && line.y1 && line.x2 && line.y2) {
+      line.x1.baseVal.value = p1.x
+      line.y1.baseVal.value = p1.y
+      line.x2.baseVal.value = p2.x
+      line.y2.baseVal.value = p2.y
+    } else {
       el.setAttribute("x1", `${p1.x}`)
       el.setAttribute("y1", `${p1.y}`)
       el.setAttribute("x2", `${p2.x}`)
       el.setAttribute("y2", `${p2.y}`)
+    }
+  }
+  const writeEdge = (el: Element, written: Written, id: string) => {
+    const geometry = edgeGeometries.get(id)
+    if (!geometry) return
+    // By the tag name, as the element classes may be missing outside a browser, as in jsdom.
+    if (el.localName === "line") {
+      writeLineAt(el, written, geometry.position.p1, geometry.position.p2)
     } else {
       el.setAttribute("d", edgePathOf(geometry))
     }
@@ -90,17 +135,17 @@ export function providePositionWriter(
   watchEffect(() => {
     void changes.changed.value
     if (changes.nodes.size > 0 || changes.edges.size > 0) markMoving()
-    changes.nodes.forEach(id => nodeElements.get(id)?.forEach(el => writeNode(el, id)))
-    changes.edges.forEach(id => edgeElements.get(id)?.forEach(el => writeEdge(el, id)))
+    changes.nodes.forEach(id => nodeElements.get(id)?.forEach((w, el) => writeNode(el, w, id)))
+    changes.edges.forEach(id => edgeElements.get(id)?.forEach((w, el) => writeEdge(el, w, id)))
     changes.nodes.clear()
     changes.edges.clear()
   })
 
   // Ref callbacks can run inside a render, so they must not read or write anything reactive.
   const elementRef = (
-    elements: Map<string, Set<Element>>,
+    elements: Map<string, Map<Element, Written>>,
     id: string,
-    write: (el: Element, id: string) => void
+    write: (el: Element, written: Written, id: string) => void
   ): ElementRef => {
     let current: Element | undefined
     return el => {
@@ -108,16 +153,17 @@ export function providePositionWriter(
       // Called on every render of the object, not only when its element changes.
       if (next === current) return
       if (current) {
-        const set = elements.get(id)
-        set?.delete(current)
-        if (set?.size === 0) elements.delete(id)
+        const byElement = elements.get(id)
+        byElement?.delete(current)
+        if (byElement?.size === 0) elements.delete(id)
       }
       current = next
       if (!current) return
-      let set = elements.get(id)
-      if (!set) elements.set(id, (set = new Set()))
-      set.add(current)
-      write(current, id)
+      let byElement = elements.get(id)
+      if (!byElement) elements.set(id, (byElement = new Map()))
+      const written = { x1: NaN, y1: NaN, x2: NaN, y2: NaN }
+      byElement.set(current, written)
+      write(current, written, id)
     }
   }
 
@@ -125,7 +171,7 @@ export function providePositionWriter(
   let flush: (() => void) | undefined
   const makePositionDrawer = (
     interval: () => number,
-    placeEdgesAt: (positionOf: PositionOf) => void
+    placeEdgesAt: (positionOf: PositionOf, draw: DrawEdge) => void
   ): PositionDrawer => ({
     get interval() {
       return interval()
@@ -135,10 +181,14 @@ export function providePositionWriter(
       const positions = toRaw(layouts).nodes
       nodeElements.forEach((elements, id) => {
         const p = positionOf(id) ?? untrackedPositionOf(positions, id)
-        elements.forEach(el => writeNodeAt(el, p))
+        elements.forEach((w, el) => writeNodeAt(el, w, p, true))
       })
-      placeEdgesAt(positionOf)
-      edgeElements.forEach((elements, id) => elements.forEach(el => writeEdge(el, id)))
+      placeEdgesAt(positionOf, (id, p1, p2) =>
+        edgeElements.get(id)?.forEach((w, el) => {
+          if (el.localName === "line") writeLineAt(el, w, p1, p2, true)
+          else writeEdge(el, w, id)
+        })
+      )
     },
     setFlush: f => (flush = f),
   })
