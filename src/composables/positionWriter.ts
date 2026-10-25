@@ -187,7 +187,10 @@ export function providePositionWriter(
     // Where each node is drawn ahead, kept while it moves less than the least move from there, so
     // that a node moving a little on each tick is drawn once the moves add up. Its edges and
     // everything else read the same position. Dropped as the layouts move the node and draw it.
-    const drawnAhead = new Map<string, Position>()
+    let drawnAhead = new Map<string, Position>()
+    let minMove = 0
+    const isNear = (p: Position, drawn: Position | undefined): drawn is Position =>
+      !!drawn && Math.abs(p.x - drawn.x) < minMove && Math.abs(p.y - drawn.y) < minMove
     currentPositions.onMoved(ids => ids.forEach(id => drawnAhead.delete(id)))
     return {
       get interval() {
@@ -195,25 +198,23 @@ export function providePositionWriter(
       },
       draw: positionOf => {
         markMoving()
-        const minMove = MIN_MOVE_AHEAD / zoomLevel()
-        // Once for each node, rather than for each read of it.
+        minMove = MIN_MOVE_AHEAD / zoomLevel()
+        // Made again on each draw, so that it leaves out the nodes removed.
+        const previous = drawnAhead
+        drawnAhead = new Map()
         nodeElements.forEach((_, id) => {
           const p = positionOf(id)
-          const drawn = drawnAhead.get(id)
-          if (!p) {
-            drawnAhead.delete(id)
-          } else if (
-            !drawn ||
-            Math.abs(p.x - drawn.x) >= minMove ||
-            Math.abs(p.y - drawn.y) >= minMove
-          ) {
-            drawnAhead.set(id, p)
-          }
+          if (!p) return
+          const drawn = previous.get(id)
+          drawnAhead.set(id, isNear(p, drawn) ? drawn : p)
         })
-        // Through the layout's function, which has no position once the layouts catch up.
+        // Through the layout's function, which has no position once the layouts catch up, and
+        // which has a node moved since the draw, as by a drag, where it is now.
         currentPositions.drawAhead(id => {
           const p = positionOf(id)
-          return p && (drawnAhead.get(id) ?? p)
+          if (!p) return undefined
+          const drawn = drawnAhead.get(id)
+          return isNear(p, drawn) ? drawn : p
         })
         nodeElements.forEach((elements, id) => {
           const p = currentPositions.of(id)

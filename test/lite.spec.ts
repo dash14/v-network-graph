@@ -283,12 +283,12 @@ describe("force layout", () => {
           node: { selectable: true, ...configs.node },
         },
       })
-      const moveTo = (id: string, x: number, y: number) => {
+      const moveTo = (id: string, x: number, y: number, draw = true) => {
         Object.assign(
           simulation!.nodes().find(n => n.id === id)!,
           { x, y }
         )
-        layoutHandler.ticked()
+        if (draw) layoutHandler.ticked()
       }
       return { ...mounted, moveTo }
     }
@@ -360,6 +360,18 @@ describe("force layout", () => {
       graph.startBoxSelection()
       await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection"])
       await drag(canvas, at(80, 80), at(120, 120))
+
+      await expect.poll(() => [...state.selectedNodes]).toEqual(["node1"])
+    })
+
+    test("a node moved in the layout since the last draw is read where it is now", async () => {
+      const { graph, canvas, state, events, moveTo } = await mountStopped()
+      moveTo("node1", 100, 100)
+      moveTo("node1", 50, 50, false)
+
+      graph.startBoxSelection()
+      await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+      await drag(canvas, at(40, 40), at(60, 60))
 
       await expect.poll(() => [...state.selectedNodes]).toEqual(["node1"])
     })
