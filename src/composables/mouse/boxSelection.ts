@@ -33,7 +33,9 @@ export function makeBoxSelectionMethods(
   layouts: Readonly<Layouts>,
   nodeStates: NodeStates,
   selectedNodes: Reactive<Set<string>>,
-  configs: Configs
+  configs: Configs,
+  // Brings the layouts up to the positions drawn, before they are read.
+  flushPositions: () => void
 ) {
   const isBoxSelectionEnabled = computed(
     () => !!configs.node.selectable && configs.view.boxSelectionEnabled
@@ -65,6 +67,7 @@ export function makeBoxSelectionMethods(
 
   const updateNodesSelection = debounce(
     () => {
+      flushPositions()
       _updateNodesSelection(
         nonNull(container.value, "container") as SVGSVGElement,
         nonNull(viewport.value, "viewport"),

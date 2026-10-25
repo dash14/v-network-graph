@@ -180,14 +180,23 @@ const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } 
     ref(false),
     isSvgWheelZoomEnabled,
     configs,
-    emitter
+    emitter,
+    flushPositions
   )
 
 // -----------------------------------------------------------------------
 // View methods and loading
 // -----------------------------------------------------------------------
 
-const view = useViewMethods(canvas, zoomLevel, nodesRef, currentLayouts, configs, emitter)
+const view = useViewMethods(
+  canvas,
+  zoomLevel,
+  nodesRef,
+  currentLayouts,
+  configs,
+  emitter,
+  flushPositions
+)
 
 // Lets a layout draw its ticks ahead of the layouts, which cost more to update.
 const positionDrawer = makePositionDrawer(

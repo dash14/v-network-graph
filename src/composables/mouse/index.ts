@@ -83,7 +83,8 @@ export function provideMouseOperation(
   isInCompatibilityModeForPath: Ref<boolean>,
   isSvgWheelZoomEnabled: Ref<boolean>,
   configs: Configs,
-  emitter: Emitter<Events>
+  emitter: Emitter<Events>,
+  flushPositions: () => void = () => {}
 ): MouseEventHandlers {
   const modes: InteractionModes = {
     selectionMode: ref("container"),
@@ -129,7 +130,15 @@ export function provideMouseOperation(
       isInCompatibilityModeForPath,
       emitter
     ),
-    ...makeBoxSelectionMethods(container, modes, layouts, nodeStates, selectedNodes, configs),
+    ...makeBoxSelectionMethods(
+      container,
+      modes,
+      layouts,
+      nodeStates,
+      selectedNodes,
+      configs,
+      flushPositions
+    ),
   }
   provide(mouseEventHandlersKey, provides)
   return provides

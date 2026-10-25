@@ -18,6 +18,7 @@ import type { GraphCanvas } from "./canvas"
  * @param layouts the layouts the graph draws
  * @param configs the configs of the graph
  * @param emitter the event emitter of the graph
+ * @param flushPositions brings the layouts up to the positions drawn, before they are read
  * @returns the methods
  */
 export function useViewMethods(
@@ -26,7 +27,8 @@ export function useViewMethods(
   nodes: Ref<Nodes>,
   layouts: Layouts,
   configs: Configs,
-  emitter: Emitter<Events>
+  emitter: Emitter<Events>,
+  flushPositions: () => void = () => {}
 ) {
   const { svg, viewport, svgPanZoom, applyAbsoluteZoomLevel, scale } = canvas
 
@@ -46,6 +48,7 @@ export function useViewMethods(
 
     await updateBorderBox()
 
+    flushPositions()
     const rect = nonNull(svg.value).getBoundingClientRect()
     const margins = parseFitContentMargin(fitContentMargin, rect)
 

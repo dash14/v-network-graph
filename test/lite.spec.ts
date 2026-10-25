@@ -1,8 +1,10 @@
+import type { Simulation } from "d3-force"
 import { describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
 import type { Edges, LiteUserConfigs, UserConfigs, VNetworkGraphLiteInstance } from "@/index"
 import { ForceLayout } from "@/layouts/force"
+import type { ForceEdgeDatum, ForceNodeDatum } from "@/layouts/force"
 import { POLL_INTERVAL } from "./helpers/container"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -252,5 +254,58 @@ describe("force layout", () => {
     observer.disconnect()
     expect(isNear(state.layouts.nodes.node2, drawnPosition(screen.container, "node2"))).toBe(true)
     expect(records).toEqual([])
+  })
+
+  describe("reading the positions drawn ahead of the layouts", () => {
+    // Stopped, so that a node is drawn only where the test moves it.
+    const mountStopped = async () => {
+      let simulation: Simulation<ForceNodeDatum, ForceEdgeDatum> | undefined
+      const layoutHandler = new ForceLayout({
+        createSimulation: (d3, nodes, edges) =>
+          (simulation = d3
+            .forceSimulation(nodes)
+            .force(
+              "edge",
+              d3.forceLink<ForceNodeDatum, ForceEdgeDatum>(edges).id(d => d.id)
+            )
+            .stop()),
+      })
+      const mounted = await mountLite({
+        configs: {
+          view: { layoutHandler, layoutsUpdateInterval: 60000 },
+          node: { selectable: true },
+        },
+      })
+      const moveTo = (id: string, x: number, y: number) => {
+        Object.assign(
+          simulation!.nodes().find(n => n.id === id)!,
+          { x, y }
+        )
+        layoutHandler.ticked()
+      }
+      return { ...mounted, moveTo }
+    }
+
+    test("a box selection selects the nodes where they are drawn", async () => {
+      const { graph, canvas, state, events, moveTo } = await mountStopped()
+      moveTo("node1", 100, 100)
+      expect(state.layouts.nodes.node1).toMatchObject({ x: -200, y: 0 })
+
+      graph.startBoxSelection()
+      await expect.poll(() => payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+      await drag(canvas, at(80, 80), at(120, 120))
+
+      await expect.poll(() => [...state.selectedNodes]).toEqual(["node1"])
+    })
+
+    test("fitToContents() fits the nodes where they are drawn", async () => {
+      const { graph, state, moveTo } = await mountStopped()
+      moveTo("node1", 2000, 0)
+      expect(state.layouts.nodes.node1).toMatchObject({ x: -200, y: 0 })
+
+      await graph.fitToContents()
+
+      expect(graph.getViewBox().right).toBeGreaterThan(2000)
+    })
   })
 })
