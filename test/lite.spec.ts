@@ -158,9 +158,11 @@ describe("force layout", () => {
           .force("charge", d3.forceManyBody())
           .alphaDecay(0.2),
     })
-  // Drawn ahead as numbers, which the attributes read back with fewer digits.
+  // Drawn ahead as numbers, which the attributes read back with 6 significant digits.
+  const isNearValue = (a: number, b: number) =>
+    Math.abs(a - b) <= 1e-5 * Math.max(Math.abs(a), Math.abs(b), 1e-3)
   const isNear = (a: { x: number; y: number }, b: { x: number; y: number }) =>
-    Math.hypot(a.x - b.x, a.y - b.y) < 0.01
+    isNearValue(a.x, b.x) && isNearValue(a.y, b.y)
   const drawnPosition = (container: Element, id: string) => {
     const index = Object.keys(nodes).indexOf(id)
     const node = container.querySelectorAll(".v-ng-node")[index]
