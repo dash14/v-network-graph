@@ -29,6 +29,7 @@ const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.
 </script>
 
 <template>
+  <!-- Transparent for SVG exported without the stylesheet that hides it. -->
   <path
     :ref="setPathElement"
     :class="{ 'v-ng-line-background': true, selectable: state.selectable }"
@@ -45,6 +46,11 @@ const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.
 </template>
 
 <style lang="scss">
+// Hit by its stroke without being painted. `:where` lets any user rule for the class win.
+:where(.v-ng-line-background) {
+  visibility: hidden;
+  pointer-events: stroke;
+}
 .v-ng-line-background {
   &.selectable {
     cursor: pointer;

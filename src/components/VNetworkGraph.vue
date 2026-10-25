@@ -412,7 +412,7 @@ const { nodeStates, edgeStates, pathStates, positionChanges, layoutsChanged, edg
     markerState,
     scale
   )
-providePositionWriter(currentLayouts, edgeGeometries, positionChanges)
+providePositionWriter(currentLayouts, edgeGeometries, positionChanges, viewport)
 // The tracking of the positions compares every position anyway, so it tells of the changes.
 watch(layoutsChanged, () => emit("update:layouts", currentLayouts))
 

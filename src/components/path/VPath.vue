@@ -107,9 +107,6 @@ $transition: 0.1s linear;
 
 .v-ng-path {
   pointer-events: none;
-  transition:
-    stroke $transition,
-    stroke-width $transition;
 
   &.clickable {
     pointer-events: stroke;
@@ -118,5 +115,12 @@ $transition: 0.1s linear;
   &.hoverable {
     pointer-events: stroke;
   }
+}
+
+// Moved paths restyle faster with no transition to check, as the edges do.
+:where(.v-ng-viewport:not([data-moving])) .v-ng-path {
+  transition:
+    stroke $transition,
+    stroke-width $transition;
 }
 </style>

@@ -1,5 +1,5 @@
 import type { Ref } from "vue"
-import { inject, InjectionKey, provide, toRaw, watchEffect } from "vue"
+import { inject, InjectionKey, onScopeDispose, provide, toRaw, watchEffect } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Layouts } from "@/common/types"
 import { EdgeGeometry, edgePathOf } from "@/modules/edge/geometry"
@@ -22,11 +22,15 @@ interface PositionWriter {
 
 const injectionKey = Symbol("positionWriter") as InjectionKey<PositionWriter>
 
+// Long enough to span the frames between the ticks of a layout.
+const MOVING_TIMEOUT = 200
+
 // Positions change on every layout tick, so write them to the DOM directly instead of re-rendering each object.
 export function providePositionWriter(
   layouts: Reactive<Layouts>,
   edgeGeometries: ReadonlyMap<string, EdgeGeometry>,
-  changes: PositionChanges
+  changes: PositionChanges,
+  viewport: Ref<Element | undefined>
 ) {
   const nodeElements = new Map<string, Set<Element>>()
   const edgeElements = new Map<string, Set<Element>>()
@@ -41,8 +45,35 @@ export function providePositionWriter(
     if (geometry) el.setAttribute("d", edgePathOf(geometry))
   }
 
+  // Marked while the positions keep changing over frames, as in a layout, a drag or a zoom, so that
+  // styles making each change costlier can be left out. Not for a single change, which would restyle
+  // every edge twice for nothing. Written directly, so that the graph does not re-render for it.
+  let lastFrame: CSSNumberish | null | undefined
+  let lastWriteAt = 0
+  let movingTimer: ReturnType<typeof setTimeout> | undefined
+  const setMoving = (moving: boolean) => viewport.value?.toggleAttribute("data-moving", moving)
+  const waitForStop = (delay: number) => {
+    movingTimer = setTimeout(() => {
+      const idle = performance.now() - lastWriteAt
+      if (idle < MOVING_TIMEOUT) return waitForStop(MOVING_TIMEOUT - idle)
+      movingTimer = undefined
+      setMoving(false)
+    }, delay)
+  }
+  const markMoving = () => {
+    // A single change can be written over several flushes, all in the same frame.
+    const frame = document.timeline.currentTime
+    if (frame === lastFrame) return
+    lastFrame = frame
+    lastWriteAt = performance.now()
+    if (movingTimer === undefined) waitForStop(MOVING_TIMEOUT)
+    else setMoving(true)
+  }
+  onScopeDispose(() => clearTimeout(movingTimer))
+
   watchEffect(() => {
     void changes.changed.value
+    if (changes.nodes.size > 0 || changes.edges.size > 0) markMoving()
     changes.nodes.forEach(id => nodeElements.get(id)?.forEach(el => writeNode(el, id)))
     changes.edges.forEach(id => edgeElements.get(id)?.forEach(el => writeEdge(el, id)))
     changes.nodes.clear()

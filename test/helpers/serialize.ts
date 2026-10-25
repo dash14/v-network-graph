@@ -16,6 +16,8 @@ export function serializeGraph(container: Element, options: SerializeOptions = {
   const target = svg.cloneNode(true) as SVGSVGElement
   const viewport = target.querySelector(".v-ng-viewport")
   viewport?.removeAttribute("style")
+  // Set only for a moment after the positions change, and draws nothing.
+  viewport?.removeAttribute("data-moving")
   if (!options.pan) {
     const zoom = svg.querySelector<SVGGElement>(".v-ng-viewport")?.transform.baseVal.consolidate()
     if (zoom) {
