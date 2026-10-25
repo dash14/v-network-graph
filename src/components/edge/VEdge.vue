@@ -2,6 +2,7 @@
 import { computed } from "vue"
 import { usePositionWriter } from "@/composables/positionWriter"
 import { useStrokeAttributes } from "@/composables/stroke"
+import { useTransitionEnabled } from "@/composables/transition"
 import { EdgeState } from "@/models/edge"
 
 interface Props {
@@ -19,10 +20,15 @@ const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(
 const isLoop = computed(() => !!props.state.loop)
 const isStraight = computed(() => !isLoop.value && !props.state.curve)
 const setPathElement = usePositionWriter().edgeRef(props.id)
+// A line costs no style recalculation when it moves, but only the path of a straight edge has
+// its shape in CSS, which a transition of `transitionWhile()` needs.
+const isTransitioning = useTransitionEnabled()
+const isLine = computed(() => isStraight.value && !isTransitioning())
 </script>
 
 <template>
-  <path
+  <component
+    :is="isLine ? 'line' : 'path'"
     :ref="setPathElement"
     :class="{
       'v-ng-line': true,

@@ -1,5 +1,5 @@
-import type { Ref } from "vue"
-import { nextTick, ref } from "vue"
+import type { InjectionKey, Ref } from "vue"
+import { inject, nextTick, provide, readonly, ref } from "vue"
 
 type TimingFunction = "ease" | "linear" | "ease-in" | "ease-out" | "ease-in-out" | string
 
@@ -21,6 +21,8 @@ export interface UseTransitionWhileReturn {
   transitionOption: Ref<TransitionParameters>
 }
 
+const injectionKey = Symbol("transition") as InjectionKey<Readonly<Ref<TransitionParameters>>>
+
 function isPromise(obj: any): boolean {
   return obj instanceof Promise || (obj && typeof obj.then === "function")
 }
@@ -32,6 +34,7 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
     duration: 300,
     timingFunction: "linear",
   })
+  provide(injectionKey, readonly(transitionOption))
 
   function transitionWhile(
     func: CallbackFunction,
@@ -49,6 +52,8 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
     }
 
     nextTick(async () => {
+      // Elements made for the transition need a style to start it from.
+      document.documentElement.getBoundingClientRect()
       const promise = func()
       if (isPromise(promise)) {
         await promise
@@ -65,4 +70,10 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
   }
 
   return { transitionWhile, transitionOption }
+}
+
+/** Whether the objects move by a transition of `transitionWhile()` now. */
+export function useTransitionEnabled() {
+  const option = inject(injectionKey, undefined)
+  return () => option?.value.enabled ?? false
 }

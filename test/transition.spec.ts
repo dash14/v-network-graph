@@ -115,12 +115,14 @@ describe("transitionWhile", () => {
       layouts: { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } },
       configs: { node: { label: { visible: true } } },
     })
-    const elements = [".v-ng-node", ".v-ng-node-label", ".v-ng-edge"].map(selector =>
-      screen.container.querySelector(selector)!
-    )
+    // Found each time, since a straight edge is drawn with another element while it moves.
+    const elements = () =>
+      [".v-ng-node", ".v-ng-node-label", ".v-ng-edge"].map(selector =>
+        screen.container.querySelector(selector)!
+      )
     // The left of the node and its label, and the length of the edge, all move by 100.
     const measure = () =>
-      elements.map((e, i) => {
+      elements().map((e, i) => {
         const rect = e.getBoundingClientRect()
         return i < 2 ? -rect.x : rect.width
       })

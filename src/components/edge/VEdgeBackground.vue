@@ -24,13 +24,15 @@ const {
 } = useMouseOperation()
 
 const setPathElement = usePositionWriter().edgeRef(props.id)
+const isStraight = computed(() => !props.state.loop && !props.state.curve)
 
 const strokeWidth = computed(() => (props.state.line.stroke.width + 10) * scale.value)
 </script>
 
 <template>
   <!-- Transparent for SVG exported without the stylesheet that hides it. -->
-  <path
+  <component
+    :is="isStraight ? 'line' : 'path'"
     :ref="setPathElement"
     :class="{ 'v-ng-line-background': true, selectable: state.selectable }"
     stroke="transparent"

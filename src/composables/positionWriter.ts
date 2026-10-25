@@ -42,7 +42,16 @@ export function providePositionWriter(
   }
   const writeEdge = (el: Element, id: string) => {
     const geometry = edgeGeometries.get(id)
-    if (geometry) el.setAttribute("d", edgePathOf(geometry))
+    if (!geometry) return
+    if (el instanceof SVGLineElement) {
+      const { p1, p2 } = geometry.position
+      el.setAttribute("x1", `${p1.x}`)
+      el.setAttribute("y1", `${p1.y}`)
+      el.setAttribute("x2", `${p2.x}`)
+      el.setAttribute("y2", `${p2.y}`)
+    } else {
+      el.setAttribute("d", edgePathOf(geometry))
+    }
   }
 
   // Marked while the positions keep changing over frames, as in a layout, a drag or a zoom, so that

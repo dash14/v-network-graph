@@ -203,7 +203,8 @@ describe("positions", () => {
     const node = screen.container.querySelector(".v-ng-node")
     const edge = screen.container.querySelector(".v-ng-edge")
     expect(node?.getAttribute("transform")).toBe("translate(0 0)")
-    expect(edge?.getAttribute("d")).toBe("M 0 0 L 120 0")
+    const ends = ["x1", "y1", "x2", "y2"].map(name => edge?.getAttribute(name))
+    expect(ends).toEqual(["0", "0", "120", "0"])
   })
 
   test("edges change their stroke without a transition only while the positions keep changing", async () => {
