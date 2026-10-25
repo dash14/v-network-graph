@@ -162,11 +162,25 @@ export function makeEdgePlacement(
     // Made by the effect, so that placing at positions not in the layouts tracks nothing. Only the
     // positions change from one placing to the next.
     let input: (EdgePlacementStyle & EdgeGeometryInput) | undefined
-    const geometryAt = (positionOf: (node: string) => Position | undefined) => {
+    let betweenCenters = false
+    const geometryAt = (
+      positionOf: (node: string) => Position | undefined,
+      onlyPosition = false
+    ): EdgeGeometry | undefined => {
       if (!input) return undefined
       const { sourceId, targetId } = input
       input.source = positionOf(sourceId) ?? untrackedPositionOf(toRaw(layouts).nodes, sourceId)
       input.target = positionOf(targetId) ?? untrackedPositionOf(toRaw(layouts).nodes, targetId)
+      if (onlyPosition && betweenCenters) {
+        const position = { p1: input.source, p2: input.target }
+        return {
+          origin: position,
+          labelPosition: position,
+          position,
+          curve: undefined,
+          loop: undefined,
+        }
+      }
       return calculateEdgeGeometry(input)
     }
 
@@ -175,6 +189,14 @@ export function makeEdgePlacement(
     const placeEdge = () => {
       const s = style.value
       input = s && { ...s, source: { x: 0, y: 0 }, target: { x: 0, y: 0 }, scale: scale.value }
+      // With no marker, no margin and no other edge beside it, the edge runs between the centers.
+      betweenCenters =
+        !!s &&
+        !!s.layoutPoint &&
+        s.layoutPoint.groupWidth === 0 &&
+        !s.margin &&
+        s.line.source.type === "none" &&
+        s.line.target.type === "none"
       const placed = geometryAt(() => undefined)
       if (!placed) return
       geometries.set(id, placed)
@@ -191,8 +213,9 @@ export function makeEdgePlacement(
       },
     })
     placers.set(id, place)
+    // Only the position is drawn ahead of the layouts, so the rest is left out where it costs.
     placersAt.set(id, positionOf => {
-      const placed = geometryAt(positionOf)
+      const placed = geometryAt(positionOf, true)
       if (placed) geometries.set(id, placed)
     })
 

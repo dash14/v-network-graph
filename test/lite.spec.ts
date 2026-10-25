@@ -173,6 +173,11 @@ describe("force layout", () => {
       },
       { timeout: 5000, interval: POLL_INTERVAL }
     )
+    // The edges follow the nodes drawn ahead, between their centers with no marker or margin.
+    const line = screen.container.querySelector('[data-edge-id="edge1"]')
+    const node1 = drawnPosition(screen.container, "node1")
+    expect(attributes(line, ["x1", "y1"])).toEqual({ x1: `${node1.x}`, y1: `${node1.y}` })
+
     // Caught up when it ends.
     await vi.waitUntil(
       () => {
