@@ -2,7 +2,7 @@ import { uniq } from "lodash-es"
 import type { ComputedRef, Slot } from "vue"
 import { computed } from "vue"
 import { Configs } from "@/common/configs"
-import { LayerName } from "@/common/types"
+import { LayerName, LayerPosition, LayerPositions, Layers } from "@/common/types"
 import { insertAfter, removeItem } from "@/modules/collection/array"
 import { pairwise } from "@/modules/collection/iterate"
 
@@ -56,4 +56,54 @@ export function useBuiltInLayerOrder<T extends Configs>(
 
     return order
   })
+}
+
+/**
+ * Sort the user's layers into the positions they are drawn at.
+ * @param configs the configs of the graph
+ * @param slots the slots of the graph
+ * @param layers the layers given in the props
+ * @param systemSlots the slots of the graph that are not layers
+ * @returns the names of the layers at each position, and whether the grid and the background are
+ * shown
+ */
+export function useLayerDefs(
+  configs: Configs,
+  slots: Readonly<LayerSlots>,
+  layers: () => Layers,
+  systemSlots: Readonly<string[]>
+) {
+  const layerDefs = computed(() => {
+    const definedSlots = new Set(Object.keys(slots))
+    systemSlots.forEach(s => definedSlots.delete(s))
+
+    const layerNames = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))
+    Object.assign(
+      layerNames,
+      Object.entries(layers()).reduce(
+        (accum, [name, type]) => {
+          definedSlots.delete(name)
+          if (type in accum) {
+            accum[type].push(name)
+          } else {
+            accum[type] = [name]
+          }
+          return accum
+        },
+        {} as Record<LayerPosition, string[]>
+      )
+    )
+    // The default slot and any slots not defined in the layers into root.
+    layerNames["root"].push(...definedSlots)
+    return layerNames as Record<LayerPosition, string[]>
+  })
+
+  // Grid layer
+  const isShowGrid = computed(() => configs.view.grid.visible)
+  const isShowBackgroundViewport = computed(() => {
+    const layers = layerDefs.value
+    return isShowGrid.value || layers["background"].length > 0 || layers["grid"].length > 0
+  })
+
+  return { layerDefs, isShowGrid, isShowBackgroundViewport }
 }
