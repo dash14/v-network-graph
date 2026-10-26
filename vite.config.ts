@@ -21,7 +21,7 @@ export default defineConfig({
     alias: [{ find: "@", replacement: resolvePath("src") }],
   },
   build: {
-    target: "es2015",
+    target: "es2020",
     lib: {
       formats: ["es"],
       entry: [resolvePath("src/index.ts"), resolvePath("src/force-layout.ts")],
