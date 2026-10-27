@@ -11,7 +11,6 @@
     "lib": ["es2020", "dom"],
     "types": ["vue", "node"],
     "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
     "skipLibCheck": true,
     "stripInternal": true,
     "paths": {
