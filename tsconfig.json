@@ -8,7 +8,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "lib": ["es2020", "dom"],
     "types": ["vue", "node"],
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
