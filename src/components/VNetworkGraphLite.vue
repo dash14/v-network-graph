@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, readonly, ref, toRaw, toRef, watch } from "vue"
 import { Reactive, nonNull } from "@/common/common"
-import { Configs, LiteUserConfigs, LiteViewConfig, UserConfigs } from "@/common/configs"
+import { getLiteConfigDefaults } from "@/common/config-defaults"
+import { LiteUserConfigs, UserConfigs } from "@/common/configs"
 import { EventHandlers, Nodes, Edges, Layouts, UserLayouts, Layers, Paths } from "@/common/types"
 import { isMouseWheelZoomEnabled, useGraphCanvas } from "@/composables/canvas"
 import { provideConfigs } from "@/composables/config"
@@ -32,8 +33,6 @@ import VLiteNodesLayer from "./lite/VLiteNodesLayer.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 
 const BUILT_IN_LAYERS = ["edges", "nodes", "node-labels"] as const
-
-const DEFAULT_LAYOUTS_UPDATE_INTERVAL = 300
 
 interface Props {
   nodes?: Nodes
@@ -86,20 +85,15 @@ Object.entries(props.eventHandlers).forEach(([type, event]) => {
   emitter.on(type as any, event as any)
 })
 
-// Style settings, with the edges straight and each on its own, as a lite graph draws them, and
-// the defaults of its own settings, which the configs of VNetworkGraph do not have.
+// Style settings, with the edges straight and each on its own whatever is given, as a lite graph
+// draws them.
 const configs = provideConfigs(
   computed<UserConfigs>(() => ({
     ...(props.configs as UserConfigs),
-    view: {
-      ...props.configs.view,
-      layoutsUpdateInterval:
-        props.configs.view?.layoutsUpdateInterval ?? DEFAULT_LAYOUTS_UPDATE_INTERVAL,
-    } as UserConfigs["view"],
     edge: { ...props.configs.edge, type: "straight", summarize: false },
-  }))
+  })),
+  getLiteConfigDefaults
 )
-const viewConfig = configs.view as Configs["view"] & Pick<LiteViewConfig, "layoutsUpdateInterval">
 
 // Additional layers
 const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
@@ -212,7 +206,7 @@ const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, confi
 
 // Lets a layout draw its ticks ahead of the layouts, which cost more to update.
 const positionDrawer = makePositionDrawer(
-  () => viewConfig.layoutsUpdateInterval,
+  () => configs.view.layoutsUpdateInterval,
   () => zoomLevel.value,
   placeEdgesAhead
 )

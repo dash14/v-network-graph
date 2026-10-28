@@ -1,6 +1,13 @@
 import { merge } from "lodash-es"
 import { SimpleLayout } from "../layouts/simple"
-import { Config, Configs, NodeLabelDirection, UserConfigs, withSelf } from "./configs"
+import {
+  Config,
+  Configs,
+  LiteViewConfig,
+  NodeLabelDirection,
+  UserConfigs,
+  withSelf,
+} from "./configs"
 import { Edge, Edges, Node, Path } from "./types"
 
 /**
@@ -324,6 +331,25 @@ export function getConfigDefaults(): Configs {
       },
       transition: undefined,
     })),
+  }
+}
+
+/** The configs a lite graph runs with: those of VNetworkGraph, and the settings of its own view. */
+export type LiteGraphConfigs = Configs & {
+  view: Pick<LiteViewConfig, "layoutsUpdateInterval">
+}
+
+/**
+ * Get all default configs of a lite graph: those of VNetworkGraph, with the edges as it draws
+ * them and the settings of its own.
+ * @returns configs
+ */
+export function getLiteConfigDefaults(): LiteGraphConfigs {
+  const configs = getConfigDefaults()
+  return {
+    ...configs,
+    view: { ...configs.view, layoutsUpdateInterval: 300 },
+    edge: { ...configs.edge, type: "straight", summarize: false },
   }
 }
 
