@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2020",
     "module": "esnext",
     "moduleResolution": "bundler",
     "strict": true,
@@ -8,10 +8,9 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "lib": ["es2020", "dom"],
     "types": ["vue", "node"],
     "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
     "skipLibCheck": true,
     "stripInternal": true,
     "paths": {

@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "lib": ["esnext", "dom"],
     "paths": {
       "@/*": ["./src/*"],
       "v-network-graph": ["./src/index.ts"],
