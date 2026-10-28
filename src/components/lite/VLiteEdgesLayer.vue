@@ -5,9 +5,9 @@ import VLiteEdge from "./VLiteEdge.vue"
 
 const { edgeStates, edgeZOrderedList } = useStates()
 
-// A self-loop needs a curve, which a lite graph does not draw.
+// A lite graph does not summarize edges, which leaves every entry a single edge.
 function isDrawn(entry: EdgeEntry) {
-  return !isSummarizedEdges(entry) && entry.edge.source !== entry.edge.target
+  return !isSummarizedEdges(entry)
 }
 </script>
 

@@ -83,14 +83,20 @@ describe("drawing", () => {
     expect(c.querySelector(".v-ng-layer-nodes g, .v-ng-layer-edges g")).toBeNull()
   })
 
-  test("leaves out a self-loop", async () => {
-    const { screen } = await mountLite({
+  test("draws a self-loop as an arc that is hit by its stroke", async () => {
+    const { screen, canvas, events } = await mountLite({
       edges: { ...edges, loop: { source: "node1", target: "node1" } },
+      configs: { edge: { selectable: true } },
     })
-    const ids = [...screen.container.querySelectorAll(".v-ng-edge")].map(e =>
-      e.getAttribute("data-edge-id")
-    )
-    expect(ids).toEqual(["edge1", "edge2"])
+    const loop = screen.container.querySelector('[data-edge-id="loop"]')
+    expect(loop?.localName).toBe("path")
+    expect(loop?.getAttribute("d")).toMatch(/^M \S+ \S+ A /)
+    expect(loop?.getAttribute("fill")).toBe("none")
+
+    // On the far side of the arc from the node, beside it.
+    const { x, y, height } = (loop as SVGPathElement).getBBox()
+    await userEvent.click(canvas, { position: at(x, y + height / 2) })
+    expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "loop" }])
   })
 
   test("draws edges between the same nodes apart, rather than summarizing them", async () => {
@@ -263,7 +269,11 @@ describe("force layout", () => {
 
   describe("reading the positions drawn ahead of the layouts", () => {
     // Stopped, so that a node is drawn only where the test moves it.
-    const mountStopped = async (configs: LiteUserConfigs = {}, positionFixedByDrag = false) => {
+    const mountStopped = async (
+      configs: LiteUserConfigs = {},
+      positionFixedByDrag = false,
+      edges?: Edges
+    ) => {
       let simulation: Simulation<ForceNodeDatum, ForceEdgeDatum> | undefined
       const layoutHandler = new ForceLayout({
         positionFixedByDrag,
@@ -277,6 +287,7 @@ describe("force layout", () => {
             .stop()),
       })
       const mounted = await mountLite({
+        ...(edges && { edges }),
         configs: {
           ...configs,
           view: { layoutHandler, layoutsUpdateInterval: 60000 },
@@ -337,6 +348,22 @@ describe("force layout", () => {
       await expect.poll(() => line.getAttribute("stroke-width")).toBe("3")
 
       expect(attributes(line, ["x1", "y1"])).toEqual({ x1: "100", y1: "100" })
+    })
+
+    test("a self-loop moves with its node", async () => {
+      const { screen, moveTo } = await mountStopped({}, false, {
+        loop: { source: "node1", target: "node1" },
+      })
+      const loop = screen.container.querySelector('[data-edge-id="loop"]')!
+      const start = () => {
+        const [, x, y] = /^M (\S+) (\S+)/.exec(loop.getAttribute("d")!)!
+        return { x: Number(x), y: Number(y) }
+      }
+      const before = start()
+
+      moveTo("node1", 100, 100)
+
+      expect(isNear(start(), { x: before.x + 300, y: before.y + 100 })).toBe(true)
     })
 
     test("a label adjusts its direction to where the nodes are drawn", async () => {

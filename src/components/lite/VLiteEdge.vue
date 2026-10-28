@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import { useMouseOperation } from "@/composables/mouse"
 import { usePositionWriter } from "@/composables/positionWriter"
 import { useStrokeAttributes } from "@/composables/stroke"
@@ -15,6 +16,8 @@ const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(
   () => props.state.line.stroke
 )
 const setElement = usePositionWriter().edgeRef(props.id)
+// Computed, so that the edge re-renders only when its kind changes, not when its loop moves.
+const isLoop = computed(() => !!props.state.loop)
 
 const {
   handleEdgePointerDownEvent,
@@ -27,8 +30,9 @@ const {
 </script>
 
 <template>
-  <!-- Hit by its own stroke, with no wider line to hit it by. -->
-  <line
+  <!-- Hit by its own stroke, with no wider line to hit it by. A self-loop is an arc on a path. -->
+  <component
+    :is="isLoop ? 'path' : 'line'"
     :ref="setElement"
     :class="{
       'v-ng-edge': true,
@@ -39,6 +43,7 @@ const {
       hover: state.hovered,
       selected: state.selected,
     }"
+    :fill="isLoop ? 'none' : undefined"
     :stroke="state.line.stroke.color"
     :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
