@@ -1,29 +1,10 @@
 <script setup lang="ts">
-import { computed, readonly, ref, toRaw, toRef, watch } from "vue"
-import { Reactive, nonNull } from "@/common/common"
+import { computed } from "vue"
 import { getLiteConfigDefaults } from "@/common/config-defaults"
 import { LiteUserConfigs, UserConfigs } from "@/common/configs"
-import { EventHandlers, Nodes, Edges, Layouts, UserLayouts, Layers, Paths } from "@/common/types"
-import { isMouseWheelZoomEnabled, useGraphCanvas } from "@/composables/canvas"
-import { provideConfigs } from "@/composables/config"
-import { provideCurrentPositions } from "@/composables/currentPositions"
-import { provideEventEmitter } from "@/composables/event-emitter"
-import { useGraphLoading } from "@/composables/graphLoading"
-import {
-  GRAPH_SYSTEM_SLOTS,
-  LayerSlotProps,
-  useBuiltInLayerOrder,
-  useLayerDefs,
-} from "@/composables/layer"
-import { useLayoutsBinding } from "@/composables/layout"
-import { makeMarkerState } from "@/composables/marker"
-import { provideMouseOperation } from "@/composables/mouse"
-import { providePositionWriter } from "@/composables/positionWriter"
-import { provideSelections } from "@/composables/selection"
-import { provideStates, makeStateInput } from "@/composables/state"
-import { useViewMethods } from "@/composables/viewMethods"
-import { useViewMode } from "@/composables/viewMode"
-import { bindProp, bindPropKeySet } from "@/utils/props"
+import { EventHandlers, Nodes, Edges, Layouts, UserLayouts, Layers } from "@/common/types"
+import { useGraph } from "@/composables/graph"
+import { GRAPH_SYSTEM_SLOTS, LayerSlotProps } from "@/composables/layer"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VBackgroundViewport from "./background/VBackgroundViewport.vue"
 import VSelectionBox from "./base/VSelectionBox.vue"
@@ -75,180 +56,38 @@ if (unsupported.length > 0) {
   console.warn(`VNetworkGraphLite does not support ${unsupported.join(", ")}.`)
 }
 
-const nodesRef = toRef(props, "nodes")
-const edgesRef = toRef(props, "edges")
-const pathsRef = ref<Paths>({})
-
-// Event Bus
-const emitter = provideEventEmitter()
-Object.entries(props.eventHandlers).forEach(([type, event]) => {
-  emitter.on(type as any, event as any)
-})
-
 // A lite graph forces edge.type to straight and summarize off, whatever the configs say.
-const configs = provideConfigs(
-  computed<UserConfigs>(() => ({
-    ...(props.configs as UserConfigs),
-    edge: { ...props.configs.edge, type: "straight", summarize: false },
-  })),
-  getLiteConfigDefaults
-)
-
-// Additional layers
-const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
-  configs,
-  slots,
-  () => props.layers,
-  GRAPH_SYSTEM_SLOTS
-)
-
-const builtInLayerOrder = useBuiltInLayerOrder(configs, slots, BUILT_IN_LAYERS)
-
-// -----------------------------------------------------------------------
-// SVG
-// -----------------------------------------------------------------------
-const zoomLevel = bindProp(props, "zoomLevel", emit, v => {
-  v = Math.max(v, configs.view.minZoomLevel)
-  v = Math.min(v, configs.view.maxZoomLevel)
-  return v
-})
-
-const canvas = useGraphCanvas(zoomLevel, () => props.zoomLevel, configs, emitter)
-const { container, svg, viewport, show, svgPanZoom, scale } = canvas
-
-// -----------------------------------------------------------------------
-// States of selected nodes/edges
-// -----------------------------------------------------------------------
-const currentSelectedNodes = bindPropKeySet(props, "selectedNodes", nodesRef, emit)
-watch(currentSelectedNodes, nodes => emitter.emit("node:select", Array.from(nodes)))
-
-const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", edgesRef, emit)
-watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
-
-const currentSelectedPaths = Reactive(new Set<string>())
-
-provideSelections(currentSelectedNodes, currentSelectedEdges, currentSelectedPaths)
-
-const hoveredNodes = Reactive(new Set<string>())
-const hoveredEdges = Reactive(new Set<string>())
-const hoveredPaths = Reactive(new Set<string>())
-const currentLayouts = useLayoutsBinding(() => props.layouts)
-const currentPositions = provideCurrentPositions(currentLayouts)
-
-// -----------------------------------------------------------------------
-// SVG Markers
-// -----------------------------------------------------------------------
-const markerState = makeMarkerState()
-
-// -----------------------------------------------------------------------
-// Mouse processing
-// -----------------------------------------------------------------------
-
-const { dragging, touches } = useViewMode(svgPanZoom, configs, emitter)
-
-const {
-  nodeStates,
-  edgeStates,
-  pathStates,
-  positionChanges,
-  layoutsChanged,
-  edgeGeometries,
-  placeEdgesAhead,
-} = provideStates(
-  makeStateInput(nodesRef, currentSelectedNodes, hoveredNodes),
-  makeStateInput(edgesRef, currentSelectedEdges, hoveredEdges),
-  makeStateInput(pathsRef, currentSelectedPaths, hoveredPaths),
-  readonly(configs),
-  currentLayouts,
-  () => props.layouts,
-  markerState,
-  scale,
-  currentPositions
-)
-const { makePositionDrawer, flushPositions } = providePositionWriter(
-  currentPositions,
-  edgeGeometries,
-  positionChanges,
-  viewport
-)
-// The tracking of the positions compares every position anyway, so it tells of the changes.
-watch(layoutsChanged, () => emit("update:layouts", currentLayouts))
-
-const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
-
-// mouse and touch support
-const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
-  provideMouseOperation(
-    svg,
-    currentPositions.of,
-    readonly(zoomLevel),
-    nodeStates,
-    edgeStates,
-    pathStates,
-    currentSelectedNodes,
-    currentSelectedEdges,
-    currentSelectedPaths,
-    hoveredNodes,
-    hoveredEdges,
-    hoveredPaths,
-    ref(false),
-    isSvgWheelZoomEnabled,
-    configs,
-    emitter
-  )
-
-// -----------------------------------------------------------------------
-// View methods and loading
-// -----------------------------------------------------------------------
-
-const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
-
-// Lets a layout draw its ticks ahead of the layouts, which cost more to update.
-const positionDrawer = makePositionDrawer(
-  () => configs.view.layoutsUpdateInterval,
-  () => zoomLevel.value,
-  placeEdgesAhead
-)
-
-useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({
-  layouts: Reactive(currentLayouts.nodes), // deprecated parameter.
-  nodePositions: toRef(currentLayouts, "nodes"),
-  nodes: nodesRef,
-  edges: edgesRef,
-  configs: readonly(configs),
-  scale: readonly(scale),
-  emitter,
-  svgPanZoom: nonNull(svgPanZoom.value),
-  positionDrawer,
+const userConfigs = computed<UserConfigs>(() => ({
+  ...(props.configs as UserConfigs),
+  edge: { ...props.configs.edge, type: "straight", summarize: false },
 }))
 
-// The layouts may lag behind the positions drawn, so this brings them up to date first.
-// A copy, so that it stays as it was when taken.
-function getLayouts(): Layouts {
-  flushPositions()
-  const nodes = Object.entries(toRaw(currentLayouts).nodes).map(([id, p]) => [id, { ...p }])
-  return { nodes: Object.fromEntries(nodes) }
-}
+const {
+  configs,
+  layerDefs,
+  isShowGrid,
+  isShowBackgroundViewport,
+  builtInLayerOrder,
+  canvas,
+  markerState,
+  dragging,
+  touches,
+  isBoxSelectionMode,
+  selectionBox,
+  getLayouts,
+  methods,
+} = useGraph(props, emit, {
+  configs: userConfigs,
+  defaultConfigs: getLiteConfigDefaults,
+  slots,
+  builtInLayers: BUILT_IN_LAYERS,
+  layoutsUpdateInterval: configs => configs.view.layoutsUpdateInterval,
+})
+const { container, svg, viewport, show, scale } = canvas
 
 defineExpose({
-  // methods
   getLayouts,
-  fitToContents: view.fitToContents,
-  panToCenter: view.panToCenter,
-  getViewBox: view.getViewBox,
-  setViewBox: view.setViewBox,
-  startBoxSelection,
-  stopBoxSelection,
-  zoomIn: view.zoomIn,
-  zoomOut: view.zoomOut,
-  panTo: view.panTo,
-  panBy: view.panBy,
-  getPan: view.getPan,
-  getSizes: view.getSizes,
-  translateFromDomToSvgCoordinates: view.translateFromDomToSvgCoordinates,
-  translateFromSvgToDomCoordinates: view.translateFromSvgToDomCoordinates,
-  exportAsSvgText: view.exportAsSvgText,
-  exportAsSvgElement: view.exportAsSvgElement,
+  ...methods,
 })
 </script>
 
