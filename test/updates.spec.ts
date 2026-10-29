@@ -225,6 +225,14 @@ const cases: Record<string, UpdateCase[]> = {
       },
     },
     {
+      name: "select a node and another edge at once while an edge is selected",
+      props: () => ({ ...graph(), selectedEdges: ["edge1"] }),
+      update: props => {
+        props.selectedNodes = ["node1"]
+        props.selectedEdges = ["edge2"]
+      },
+    },
+    {
       name: "deselect a node",
       props: () => ({ ...graph(), selectedNodes: ["node1", "node2"] }),
       update: props => (props.selectedNodes = ["node2"]),
@@ -245,9 +253,9 @@ describe.each(Object.entries(cases))("updating %s after mount", (_, featureCases
   })
 })
 
-// Selecting several kinds at once keeps the last of nodes, edges and paths, as updating does.
-describe("mounting with several kinds of objects selected", () => {
-  test("keeps only the edges of nodes and edges", async () => {
+// The last of nodes, edges and paths stays selected, whether given at mount or by an update.
+describe("selecting several kinds of objects at once", () => {
+  test("mounting with nodes and edges keeps only the edges", async () => {
     const { state } = await mountGraph({
       ...graph(),
       selectedNodes: ["node1"],
@@ -257,7 +265,7 @@ describe("mounting with several kinds of objects selected", () => {
     expect(state.selectedEdges).toEqual(["edge2"])
   })
 
-  test("keeps only the paths of nodes, edges and paths", async () => {
+  test("mounting with nodes, edges and paths keeps only the paths", async () => {
     const { state } = await mountGraph({
       ...graphWithPath(),
       selectedNodes: ["node1"],
@@ -265,6 +273,24 @@ describe("mounting with several kinds of objects selected", () => {
       selectedPaths: ["path1"],
     })
     await expect.poll(() => [state.selectedNodes, state.selectedEdges]).toEqual([[], []])
+    expect(state.selectedPaths).toEqual(["path1"])
+  })
+
+  test("updating nodes and edges keeps only the edges while an edge is selected", async () => {
+    const { state } = await mountGraph({ ...graph(), selectedEdges: ["edge1"] })
+    state.selectedNodes = ["node1"]
+    state.selectedEdges = ["edge2"]
+    await expect.poll(() => state.selectedNodes).toEqual([])
+    expect(state.selectedEdges).toEqual(["edge2"])
+  })
+
+  test("mounting with nodes and paths keeps only the paths", async () => {
+    const { state } = await mountGraph({
+      ...graphWithPath(),
+      selectedNodes: ["node1"],
+      selectedPaths: ["path1"],
+    })
+    await expect.poll(() => state.selectedNodes).toEqual([])
     expect(state.selectedPaths).toEqual(["path1"])
   })
 })
