@@ -99,6 +99,9 @@ jobs:
           - name: Build
             run: pnpm run build
 
+          - name: Type-check the tests
+            run: pnpm run test:tc
+
           # Installs Chromium here so that the other checks do not wait for it.
           - name: Test
             run: |

@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest"
-import { Slots } from "vue"
 import { getFullConfigs } from "../common/config-defaults"
 import { LayerName } from "../common/types"
-import { useBuiltInLayerOrder } from "./layer"
+import { LayerSlots, useBuiltInLayerOrder } from "./layer"
 
 function getConfigs() {
   const configs = getFullConfigs({
@@ -22,7 +21,7 @@ describe("useBuiltInLayerOrder", () => {
   const slots = {
     "edge-label": {},
     "edges-label": {},
-  } as unknown as Slots
+  } as unknown as LayerSlots
 
   describe("Empty is specified", () => {
     it("should be returned the default order", () => {
@@ -73,7 +72,7 @@ describe("useBuiltInLayerOrder", () => {
       const slots = {
         // "edge-label": {},
         "edges-label": {},
-      } as unknown as Slots
+      } as unknown as LayerSlots
       const configs = getConfigs()
       const layers = useBuiltInLayerOrder(configs, slots)
       expect(layers.value.includes("edge-labels")).toBe(true)
@@ -83,14 +82,14 @@ describe("useBuiltInLayerOrder", () => {
       const slots = {
         "edge-label": {},
         // "edges-label": {},
-      } as unknown as Slots
+      } as unknown as LayerSlots
       const configs = getConfigs()
       const layers = useBuiltInLayerOrder(configs, slots)
       expect(layers.value.includes("edge-labels")).toBe(true)
     })
 
     it("should not contain edge-labels layer", () => {
-      const slots = {} as unknown as Slots
+      const slots = {} as unknown as LayerSlots
       const configs = getConfigs()
       const layers = useBuiltInLayerOrder(configs, slots)
       expect(layers.value.includes("edge-labels")).toBe(false)

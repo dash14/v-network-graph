@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { CircleShapeStyle, RectangleShapeStyle } from "../../common/configs"
+import { CircleShapeStyle, RectangleShapeStyle, StrokeStyle } from "../../common/configs"
 import { Vector2D } from "../vector2d"
 import * as v2d from "./2d"
 import { VectorLine } from "./line"
@@ -285,7 +285,7 @@ describe("calculateCircleCenterAndRadiusBy3Points", () => {
 })
 
 describe("calculateEdgeLabelArea", () => {
-  const edgeStyle = { width: 2, color: "#000", dasharray: undefined, linecap: undefined }
+  const edgeStyle: StrokeStyle = { width: 2, color: "#000", animate: false, animationSpeed: 50 }
 
   it("should calculate edge label area for horizontal line", () => {
     const linePos = { p1: { x: 0, y: 0 }, p2: { x: 100, y: 0 } }

@@ -1,5 +1,6 @@
 import { cloneDeep } from "lodash-es"
 import { describe, expect, it, vi } from "vitest"
+import { FitContentMargin } from "../../common/configs"
 import { Box, NodePositions, Size, ViewBox } from "../../common/types"
 import { exportedForTesting, parseFitContentMargin } from "./fit"
 
@@ -79,7 +80,7 @@ describe("fit", () => {
     it("should return default value and warn for invalid string", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       const size: Size = { width: 200, height: 150 }
-      const actual: Box = parseFitContentMargin("invalid", size)
+      const actual: Box = parseFitContentMargin("invalid" as FitContentMargin, size)
       expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
       expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", "invalid")
       warnSpy.mockRestore()
@@ -88,7 +89,7 @@ describe("fit", () => {
     it("should return default value and warn for empty string", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       const size: Size = { width: 200, height: 150 }
-      const actual: Box = parseFitContentMargin("", size)
+      const actual: Box = parseFitContentMargin("" as FitContentMargin, size)
       expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
       expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", "")
       warnSpy.mockRestore()
@@ -101,7 +102,7 @@ describe("fit", () => {
       ["string '0'", "0", { top: 0, left: 0, right: 0, bottom: 0 }],
     ])("should handle zero value: %s", (_, input, expected) => {
       const size: Size = { width: 200, height: 150 }
-      const actual: Box = parseFitContentMargin(input as number | string, size)
+      const actual: Box = parseFitContentMargin(input as FitContentMargin, size)
       expect(actual).toStrictEqual(expected)
     })
 
@@ -345,7 +346,7 @@ describe("fit", () => {
         params.nodesLayouts,
         params.zoomLevel,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-400, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-600, 1)
       expect(zoomAt.zoom).toBeCloseTo(2.5, 3)
@@ -360,7 +361,7 @@ describe("fit", () => {
         params.nodesLayouts,
         params.zoomLevel,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-200, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-400, 1)
       expect(zoomAt.zoom).toBeCloseTo(2, 3)
@@ -377,7 +378,7 @@ describe("fit", () => {
         params.nodesLayouts,
         params.zoomLevel,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-100, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-200, 1)
       expect(zoomAt.zoom).toBeCloseTo(1, 3)
@@ -393,7 +394,7 @@ describe("fit", () => {
         params.nodesLayouts,
         params.zoomLevel,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-100, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-200, 1)
       expect(zoomAt.zoom).toBeCloseTo(1, 3)
@@ -411,7 +412,7 @@ describe("fit", () => {
         params.nodesLayouts,
         params.zoomLevel,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-350, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-550, 1)
       expect(zoomAt.zoom).toBeCloseTo(2.5, 3)
@@ -470,7 +471,7 @@ describe("fit", () => {
         params.container,
         params.nodesLayouts,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-200, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-400, 1)
       expect(zoomAt.zoom).toBeCloseTo(2, 1)
@@ -484,7 +485,7 @@ describe("fit", () => {
         params.container,
         params.nodesLayouts,
         params.margins
-      )
+      )!
       expect(zoomAt.pos.x).toBeCloseTo(-100, 1)
       expect(zoomAt.pos.y).toBeCloseTo(-200, 1)
       expect(zoomAt.zoom).toBeCloseTo(1, 1)

@@ -3,7 +3,7 @@ import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
 import { defineComponent, h, reactive, ref } from "vue"
-import type { Slots } from "vue"
+import type { VNodeChild } from "vue"
 import { VNetworkGraph, VNetworkGraphLite } from "@/index"
 import type {
   Edges,
@@ -31,6 +31,9 @@ export interface GraphProps {
   layers?: Layers
 }
 
+/** Slot functions, which may return a single node as render functions do. */
+export type GraphSlots = Record<string, (props: any) => VNodeChild>
+
 /** A named set of props to render a graph with. */
 export interface GraphCase {
   name: string
@@ -46,8 +49,10 @@ type Position = { x: number; y: number }
 
 type LayoutsListener = "onUpdate:layouts" | "onUpdate:layoutsOnce" | null
 
-/** The props with the unset ones at their defaults, and a copy of the data. */
-export function fillGraphProps(props: GraphProps): Required<GraphProps> {
+/** The props with the unset ones but the layers at their defaults, and a copy of the data. */
+export function fillGraphProps(
+  props: GraphProps
+): Required<Omit<GraphProps, "layers">> & Pick<GraphProps, "layers"> {
   const { configs = {}, ...data } = props
   return {
     edges: {},
@@ -70,7 +75,7 @@ export async function mountGraph(
   props: GraphProps,
   {
     layoutsListener = "onUpdate:layouts" as LayoutsListener,
-    slots = {} as Slots,
+    slots = {} as GraphSlots,
     lite = false,
   } = {}
 ) {
