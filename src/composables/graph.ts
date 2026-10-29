@@ -56,15 +56,22 @@ export interface GraphPaths {
   bindSelected: () => Reactive<Set<string>>
 }
 
+/** How a graph lets a layout draw ahead of the layouts, which cost more to update. */
+export interface GraphDrawAhead<T extends Configs> {
+  /** The defaults of the configs, which hold the interval. */
+  defaultConfigs: () => T
+  /** The interval in milliseconds at which the layouts catch up with the positions drawn. */
+  layoutsUpdateInterval: (configs: T) => number
+}
+
 export interface GraphOptions<T extends Configs> {
   configs: Ref<UserConfigs>
-  defaultConfigs?: () => T
   slots: Readonly<LayerSlots>
   builtInLayers?: Readonly<LayerName[]>
   /** Given by a graph that draws paths. Without them, there are none to select. */
   paths?: GraphPaths
-  /** Given by a graph that lets a layout draw ahead of the layouts, for how long it may. */
-  layoutsUpdateInterval?: (configs: T) => number
+  /** Given by a graph that lets a layout draw ahead of the layouts. */
+  drawAhead?: GraphDrawAhead<T>
 }
 
 /**
@@ -91,7 +98,10 @@ export function useGraph<T extends Configs = Configs>(
   })
 
   // Style settings
-  const configs = provideConfigs(options.configs, options.defaultConfigs)
+  const drawAhead = options.drawAhead
+  const configs = drawAhead
+    ? provideConfigs(options.configs, drawAhead.defaultConfigs)
+    : (provideConfigs(options.configs) as T)
 
   // Additional layers
   const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
@@ -205,15 +215,13 @@ export function useGraph<T extends Configs = Configs>(
 
   const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
 
-  // Lets a layout draw its ticks ahead of the layouts, which cost more to update.
-  const layoutsUpdateInterval = options.layoutsUpdateInterval
-  const positionDrawer =
-    layoutsUpdateInterval &&
-    makePositionDrawer(
-      () => layoutsUpdateInterval(configs),
-      () => zoomLevel.value,
-      placeEdgesAhead
-    )
+  const positionDrawer = drawAhead
+    ? makePositionDrawer(
+        () => drawAhead.layoutsUpdateInterval(configs),
+        () => zoomLevel.value,
+        placeEdgesAhead
+      )
+    : undefined
 
   useGraphLoading(canvas, view, nodesRef, configs, emitter, () => ({
     layouts: Reactive(currentLayouts.nodes), // deprecated parameter.
@@ -224,7 +232,7 @@ export function useGraph<T extends Configs = Configs>(
     scale: readonly(scale),
     emitter,
     svgPanZoom: nonNull(svgPanZoom.value),
-    ...(positionDrawer && { positionDrawer }),
+    positionDrawer,
   }))
 
   // The layouts may lag behind the positions drawn, so this brings them up to date first.

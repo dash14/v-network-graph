@@ -78,10 +78,12 @@ const {
   methods,
 } = useGraph(props, emit, {
   configs: userConfigs,
-  defaultConfigs: getLiteConfigDefaults,
   slots,
   builtInLayers: BUILT_IN_LAYERS,
-  layoutsUpdateInterval: configs => configs.view.layoutsUpdateInterval,
+  drawAhead: {
+    defaultConfigs: getLiteConfigDefaults,
+    layoutsUpdateInterval: configs => configs.view.layoutsUpdateInterval,
+  },
 })
 const { container, svg, viewport, show, scale } = canvas
 
