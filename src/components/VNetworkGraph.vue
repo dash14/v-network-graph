@@ -9,7 +9,12 @@ import { provideConfigs } from "@/composables/config"
 import { provideCurrentPositions } from "@/composables/currentPositions"
 import { provideEventEmitter } from "@/composables/event-emitter"
 import { useGraphLoading } from "@/composables/graphLoading"
-import { LayerSlotProps, useBuiltInLayerOrder, useLayerDefs } from "@/composables/layer"
+import {
+  GRAPH_SYSTEM_SLOTS,
+  LayerSlotProps,
+  useBuiltInLayerOrder,
+  useLayerDefs,
+} from "@/composables/layer"
 import { useLayoutsBinding } from "@/composables/layout"
 import { makeMarkerState } from "@/composables/marker"
 import { provideMouseOperation } from "@/composables/mouse"
@@ -36,14 +41,6 @@ import VPathsLayer from "./layers/VPathsLayer.vue"
 import VMarkerHead from "./marker/VMarkerHead.vue"
 import { NodeSlotProps } from "./node/VNode.vue"
 import { NodeLabelSlotProps } from "./node/VNodeLabel.vue"
-
-const SYSTEM_SLOTS = [
-  "override-node",
-  "override-node-label",
-  "edge-overlay",
-  "edge-label",
-  "edges-label",
-] as const
 
 interface Props {
   nodes?: Nodes
@@ -114,7 +111,7 @@ const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
   configs,
   slots,
   () => props.layers,
-  SYSTEM_SLOTS
+  GRAPH_SYSTEM_SLOTS
 )
 
 const builtInLayerOrder = useBuiltInLayerOrder(configs, slots)

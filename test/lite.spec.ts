@@ -1,9 +1,11 @@
 import type { Simulation } from "d3-force"
-import { describe, expect, test, vi } from "vitest"
+import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
-import { nextTick } from "vue"
+import { h, nextTick } from "vue"
+import type { Slots } from "vue"
 import type {
   Edges,
+  Layers,
   LiteUserConfigs,
   NodeLabelDirectionAutoAdjustmentHandler,
   Position,
@@ -32,14 +34,18 @@ const layouts = {
   },
 }
 
-async function mountLite(props: {
-  edges?: Edges
-  configs?: LiteUserConfigs
-  selectedNodes?: string[]
-}) {
+async function mountLite(
+  props: {
+    edges?: Edges
+    configs?: LiteUserConfigs
+    selectedNodes?: string[]
+    layers?: Layers
+  },
+  slots: Slots = {}
+) {
   const mounted = await mountGraph(
     { nodes, edges, layouts, ...props, configs: props.configs as UserConfigs },
-    { lite: true }
+    { lite: true, slots }
   )
   return { ...mounted, graph: mounted.graph as unknown as VNetworkGraphLiteInstance }
 }
@@ -136,6 +142,35 @@ describe("drawing", () => {
     const svg = await graph.exportAsSvgText()
     expect(svg).toContain("<line")
     expect(svg).toContain("<circle")
+  })
+})
+
+describe("what a lite graph does not support", () => {
+  const spyWarn = () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    return warn
+  }
+
+  test("ignores the VNetworkGraph-only slots with a warning", async () => {
+    const warn = spyWarn()
+    const { screen } = await mountLite(
+      // Listed as a layer too, which must not draw it either.
+      { layers: { "edge-label": "base" } },
+      {
+        "override-node": () => h("text", { class: "unsupported" }),
+        "edge-label": () => h("text", { class: "unsupported" }),
+      }
+    )
+    expect(screen.container.querySelector(".unsupported")).toBeNull()
+    expect(warn.mock.calls.flat().join(" ")).toContain("#override-node, #edge-label")
+  })
+
+  test("draws other slots as layers with no warning", async () => {
+    const warn = spyWarn()
+    const { screen } = await mountLite({}, { custom: () => h("text", { class: "custom" }) })
+    expect(screen.container.querySelector(".custom")).not.toBeNull()
+    expect(warn).not.toHaveBeenCalled()
   })
 })
 

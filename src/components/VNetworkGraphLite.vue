@@ -8,7 +8,12 @@ import { provideConfigs } from "@/composables/config"
 import { provideCurrentPositions } from "@/composables/currentPositions"
 import { provideEventEmitter } from "@/composables/event-emitter"
 import { useGraphLoading } from "@/composables/graphLoading"
-import { LayerSlotProps, useBuiltInLayerOrder, useLayerDefs } from "@/composables/layer"
+import {
+  GRAPH_SYSTEM_SLOTS,
+  LayerSlotProps,
+  useBuiltInLayerOrder,
+  useLayerDefs,
+} from "@/composables/layer"
 import { useLayoutsBinding } from "@/composables/layout"
 import { makeMarkerState } from "@/composables/marker"
 import { provideMouseOperation } from "@/composables/mouse"
@@ -65,6 +70,12 @@ const slots = defineSlots<{
   [key: string]: (props: LayerSlotProps) => any
 }>()
 
+// Checked at setup, for code ported from VNetworkGraph.
+const unsupported = GRAPH_SYSTEM_SLOTS.filter(name => name in slots).map(name => `#${name}`)
+if (unsupported.length > 0) {
+  console.warn(`VNetworkGraphLite does not support ${unsupported.join(", ")}.`)
+}
+
 const nodesRef = toRef(props, "nodes")
 const edgesRef = toRef(props, "edges")
 const pathsRef = ref<Paths>({})
@@ -95,7 +106,7 @@ const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
   configs,
   slots,
   () => props.layers,
-  []
+  GRAPH_SYSTEM_SLOTS
 )
 
 const builtInLayerOrder = useBuiltInLayerOrder(configs, slots, BUILT_IN_LAYERS)

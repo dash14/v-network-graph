@@ -10,6 +10,7 @@ import type {
   Events,
   EventHandlers,
   InputPaths,
+  Layers,
   Layouts,
   Nodes,
   UserConfigs,
@@ -27,6 +28,7 @@ export interface GraphProps {
   selectedEdges?: string[]
   selectedPaths?: string[]
   zoomLevel?: number
+  layers?: Layers
 }
 
 /** A named set of props to render a graph with. */
@@ -116,6 +118,7 @@ export async function mountGraph(
                 selectedPaths: state.selectedPaths,
                 "onUpdate:selectedPaths": (v: string[]) => (state.selectedPaths = v),
               }),
+              ...(props.layers && { layers: props.layers }),
               // Only when given, so that the other tests zoom as they would without a v-model.
               ...("zoomLevel" in props && {
                 zoomLevel: state.zoomLevel,
