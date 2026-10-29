@@ -1,0 +1,81 @@
+name: Deploy docs
+
+# The docs live in dash14/v-network-graph-docs and are served from this repository's Pages,
+# which only a workflow of this repository can deploy to.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          echo "::error::Deploy must be dispatched from main; github.ref is $REF"
+          exit 1
+
+      - name: Checkout the docs
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: dash14/v-network-graph-docs
+          persist-credentials: false
+
+      # Buildcage keeps the build to packages and the Node.js that devEngines pins.
+      - name: Start Buildcage builder
+        uses: buildcage/docker@ef2b79a3baaddc6a69c1b10a2c473a134ece2eca # v4.4.0
+        with:
+          proxy-mode: restrict
+          allowed-url-rules: |
+            GET|HEAD https://registry.npmjs.org/**
+            GET https://nodejs.org/download/release/**
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver: remote
+          endpoint: docker-container://buildcage
+
+      # No cache, so what gets deployed never depends on a cache another run saved.
+      - name: Build the site
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          outputs: type=local,dest=${{ runner.temp }}/dist
+
+      - name: Show Buildcage report
+        if: always()
+        uses: buildcage/docker/report@ef2b79a3baaddc6a69c1b10a2c473a134ece2eca # v4.4.0
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
