@@ -54,7 +54,7 @@ export interface GraphPaths {
   isInCompatibilityMode: Ref<boolean>
   /** The props and emit of the graph, for binding the selected paths. */
   props: { selectedPaths: string[] }
-  emit: (e: "update:selectedPaths", v: string[]) => void
+  emit: { (e: "update:selectedPaths", v: string[]): void }
 }
 
 /** Configs that also hold view.layoutsUpdateInterval. */
