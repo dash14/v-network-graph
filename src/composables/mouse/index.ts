@@ -9,6 +9,7 @@ import { Events, Position, Rectangle } from "@/common/types"
 import { EdgeStates } from "@/models/edge"
 import { NodeStates } from "@/models/node"
 import { PathStates } from "@/models/path"
+import { entriesOf } from "@/utils/object"
 import { BoxSelectionOption, makeBoxSelectionMethods } from "./boxSelection"
 import { setupContainerInteractionHandlers } from "./container"
 import { InteractionModes } from "./core"
@@ -90,13 +91,29 @@ export function provideMouseOperation(
     viewMode: ref("default"),
   }
 
-  if (selectedNodes.size > 0) {
-    modes.selectionMode.value = "node"
+  // The last of nodes, edges and paths wins, as when an update selects them all at once.
+  if (selectedPaths.size > 0) {
+    modes.selectionMode.value = "path"
   } else if (selectedEdges.size > 0) {
     modes.selectionMode.value = "edge"
-  } else if (selectedPaths.size > 0) {
-    modes.selectionMode.value = "path"
+  } else if (selectedNodes.size > 0) {
+    modes.selectionMode.value = "node"
   }
+
+  // The selectionMode watchers miss a mode that switches and comes back within one tick, so
+  // clear the other kinds here too. "post" runs it after the per-kind watchers have set the mode.
+  const selections = { node: selectedNodes, edge: selectedEdges, path: selectedPaths }
+  watch(
+    [selectedNodes, selectedEdges, selectedPaths],
+    () => {
+      entriesOf(selections).forEach(([kind, selected]) => {
+        if (kind !== modes.selectionMode.value && selected.size > 0) {
+          selected.clear()
+        }
+      })
+    },
+    { flush: "post", immediate: true }
+  )
 
   watch(modes.viewMode, mode => {
     emitter.emit("view:mode", mode)
