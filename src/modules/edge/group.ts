@@ -1,4 +1,5 @@
-import { Ref, watchEffect } from "vue"
+import { isEqual } from "lodash-es"
+import { Ref, toRaw, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, Configs, EdgeKeepOrderType } from "@/common/configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "@/common/types"
@@ -40,6 +41,7 @@ export function makeEdgeGroupStates(
     )
     updateObjectDiff(state.edgeLayoutPoints, edgeLayoutPoints)
     updateObjectDiff(state.edgeGroups, edgeGroups)
+    keepOrderOfEdgeGroups(state.edgeGroups, edgeGroups)
   })
 
   // calc layout and check summarize
@@ -112,6 +114,26 @@ export function calculateEdgeShiftedPosition(
 // -----------------------------------------------------------------------
 // Private functions
 // -----------------------------------------------------------------------
+
+/**
+ * Puts the groups, and the edges in each, in the order of `from`, as mounting with them does.
+ * The edges are drawn in this order, but updateObjectDiff appends new groups after the remaining
+ * ones and ignores the order of the edges in a group.
+ */
+function keepOrderOfEdgeGroups(target: Record<string, EdgeGroup>, from: Record<string, EdgeGroup>) {
+  const raw = toRaw(target)
+  for (const [key, group] of Object.entries(from)) {
+    if (!isEqual(Object.keys(raw[key].edges), Object.keys(group.edges))) {
+      target[key] = group
+    }
+  }
+  const keys = Object.keys(from)
+  if (isEqual(Object.keys(raw), keys)) return
+  // Re-inserts the same objects, keeping the summarize flag the groups already have.
+  const groups = keys.map(key => raw[key])
+  keys.forEach(key => delete target[key])
+  keys.forEach((key, i) => (target[key] = groups[i]))
+}
 
 function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: Edges) {
   const edgeLayoutPoints: Record<string, EdgeLayoutPoint> = {}
