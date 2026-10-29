@@ -6,6 +6,19 @@ defineProps<{ color: string; withSlots: boolean }>()
 const nodes = { node1: { name: "Node 1" }, node2: { name: "Node 2" } }
 const edges = { edge1: { source: "node1", target: "node2" } }
 const layouts = { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } }
+
+// edge2 and edge3 are summarized, being too wide for the nodes side by side.
+const labeledNodes = { ...nodes, node3: { name: "Node 3" } }
+const labeledEdges = {
+  edge1: { source: "node1", target: "node2" },
+  edge2: { source: "node2", target: "node3" },
+  edge3: { source: "node3", target: "node2" },
+}
+const labeledLayers = { badges: "nodes" } as const
+const labeledLayouts = { nodes: { ...layouts.nodes, node3: { x: 100, y: 100 } } }
+const labeledConfigs = {
+  edge: { normal: { width: (e: { source: string }) => (e.source === "node1" ? 1 : 30) } },
+}
 </script>
 
 <template>
@@ -25,6 +38,28 @@ const layouts = { nodes: { node1: { x: 0, y: 0 }, node2: { x: 100, y: 0 } } }
     </template>
     <template v-if="withSlots" #edge-overlay>
       <circle class="custom-edge-overlay" r="2" />
+    </template>
+  </v-network-graph>
+  <v-network-graph
+    class="labels"
+    :nodes="labeledNodes"
+    :edges="labeledEdges"
+    :layouts="labeledLayouts"
+    :configs="labeledConfigs"
+    :layers="labeledLayers"
+  >
+    <template v-if="withSlots" #edge-label>
+      <text class="custom-edge-label">edge</text>
+    </template>
+    <template v-if="withSlots" #edges-label>
+      <text class="custom-edges-label">edges</text>
+    </template>
+    <template v-if="withSlots" #badges>
+      <circle class="custom-layer" r="2" />
+    </template>
+    <!-- Not in the layers, so drawn in the root. -->
+    <template v-if="withSlots" #extra>
+      <div class="custom-root" />
     </template>
   </v-network-graph>
 </template>
