@@ -42,6 +42,7 @@
     "clean": "rimraf lib",
     "prepare": "lefthook install",
     "test": "vitest run",
+    "test:tc": "vue-tsc --noEmit -p tsconfig.test.json",
     "test:docker": "scripts/test-docker.sh"
   },
   "dependencies": {

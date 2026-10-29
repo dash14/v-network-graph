@@ -2,6 +2,7 @@ import type { Simulation } from "d3-force"
 import mitt from "mitt"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
+import { Reactive } from "@/common/common"
 import { getFullConfigs } from "@/common/config-defaults"
 import { Edges, Events, NodePositions, Nodes } from "@/common/types"
 import { ForceEdgeDatum, ForceLayout, ForceNodeDatum } from "./force"
@@ -40,7 +41,7 @@ function setup(drawerInterval?: number) {
         }
 
   layout.activate({
-    layouts: nodePositions.value,
+    layouts: Reactive(nodePositions.value),
     nodePositions,
     nodes,
     edges,

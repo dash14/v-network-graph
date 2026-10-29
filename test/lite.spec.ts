@@ -2,7 +2,6 @@ import type { Simulation } from "d3-force"
 import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { h, nextTick } from "vue"
-import type { Slots } from "vue"
 import type {
   Edges,
   Layers,
@@ -17,6 +16,7 @@ import type { ForceEdgeDatum, ForceNodeDatum } from "@/layouts/force"
 import type { LayoutHandler, PositionDrawer } from "@/layouts/handler"
 import { POLL_INTERVAL } from "./helpers/container"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "./helpers/graph"
+import type { GraphSlots } from "./helpers/graph"
 
 const nodes = {
   node1: { name: "Node 1" },
@@ -42,7 +42,7 @@ async function mountLite(
     selectedNodes?: string[]
     layers?: Layers
   },
-  slots: Slots = {}
+  slots: GraphSlots = {}
 ) {
   const mounted = await mountGraph(
     { nodes, edges, layouts, ...props, configs: props.configs as UserConfigs },

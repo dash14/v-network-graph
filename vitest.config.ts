@@ -39,9 +39,6 @@ export default defineConfig({
         test: {
           name: "unit",
           include: ["src/**/*.spec.ts"],
-          typecheck: {
-            tsconfig: "./tsconfig.test.json",
-          },
         },
       },
       {

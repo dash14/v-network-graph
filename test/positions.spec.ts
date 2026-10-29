@@ -212,7 +212,14 @@ describe("positions", () => {
     await mountGraph({
       nodes: { node1: {} },
       layouts: { nodes: { node1: { x: 0, y: 0 } } },
-      configs: { view: { layoutHandler: { activate: p => (parameters = p), deactivate() {} } } },
+      configs: {
+        view: {
+          layoutHandler: {
+            activate: (p: LayoutActivateParameters) => (parameters = p),
+            deactivate() {},
+          },
+        },
+      },
     })
     expect(parameters).toBeDefined()
     expect(parameters).not.toHaveProperty("positionDrawer")
@@ -264,7 +271,7 @@ describe("positions", () => {
         configs: {
           ...configsWith("straight"),
           view: { layoutHandler: { activate() {}, deactivate() {} } },
-          path: { visible: true, end: "edgeOfNode" },
+          path: { visible: true, end: "edgeOfNode" as const },
         },
       }
       const others = { node1: before.nodes.node1, node3: before.nodes.node3 }
