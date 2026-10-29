@@ -80,10 +80,7 @@ const {
   configs: userConfigs,
   slots,
   builtInLayers: BUILT_IN_LAYERS,
-  drawAhead: {
-    defaultConfigs: getLiteConfigDefaults,
-    layoutsUpdateInterval: configs => configs.view.layoutsUpdateInterval,
-  },
+  drawAheadDefaults: getLiteConfigDefaults,
 })
 const { container, svg, viewport, show, scale } = canvas
 

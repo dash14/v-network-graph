@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest"
 import { h, nextTick, reactive, readonly } from "vue"
 import type { Layouts, UserConfigs } from "@/index"
+import type { LayoutActivateParameters } from "@/layouts/handler"
 import { at, drag, mountGraph } from "./helpers/graph"
 import { markupOf } from "./helpers/markup"
 
@@ -204,6 +205,17 @@ describe("positions", () => {
     const edge = screen.container.querySelector(".v-ng-edge")
     expect(node?.getAttribute("transform")).toBe("translate(0 0)")
     expect(edge?.getAttribute("d")).toBe("M 0 0 L 120 0")
+  })
+
+  test("a layout gets no position drawer, as VNetworkGraph does not draw ahead", async () => {
+    let parameters: LayoutActivateParameters | undefined
+    await mountGraph({
+      nodes: { node1: {} },
+      layouts: { nodes: { node1: { x: 0, y: 0 } } },
+      configs: { view: { layoutHandler: { activate: p => (parameters = p), deactivate() {} } } },
+    })
+    expect(parameters).toBeDefined()
+    expect(parameters).not.toHaveProperty("positionDrawer")
   })
 
   test("edges change their stroke without a transition only while the positions keep changing", async () => {

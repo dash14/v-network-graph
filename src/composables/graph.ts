@@ -48,7 +48,7 @@ export interface GraphEmit {
   (e: "update:selectedEdges", v: string[]): void
 }
 
-/** The paths of a graph that draws them. */
+/** Path support, given only by VNetworkGraph. */
 export interface GraphPaths {
   objects: Ref<Paths>
   isInCompatibilityMode: Ref<boolean>
@@ -56,37 +56,30 @@ export interface GraphPaths {
   bindSelected: () => Reactive<Set<string>>
 }
 
-/** How a graph lets a layout draw ahead of the layouts, which cost more to update. */
-export interface GraphDrawAhead<T extends Configs> {
-  /** The defaults of the configs, which hold the interval. */
-  defaultConfigs: () => T
-  /** The interval in milliseconds at which the layouts catch up with the positions drawn. */
-  layoutsUpdateInterval: (configs: T) => number
-}
+/** Configs that also hold view.layoutsUpdateInterval. */
+export type DrawAheadConfigs = Configs & { view: { layoutsUpdateInterval: number } }
 
-export interface GraphOptions<T extends Configs> {
+export interface GraphOptions {
   configs: Ref<UserConfigs>
   slots: Readonly<LayerSlots>
   builtInLayers?: Readonly<LayerName[]>
-  /** Given by a graph that draws paths. Without them, there are none to select. */
+  /** Path support, given only by VNetworkGraph. */
   paths?: GraphPaths
-  /** Given by a graph that lets a layout draw ahead of the layouts. */
-  drawAhead?: GraphDrawAhead<T>
+  /**
+   * Default configs of a graph that draws layout ticks before updating the layouts prop, which is
+   * costly. Given only by the lite graph.
+   */
+  drawAheadDefaults?: () => DrawAheadConfigs
 }
 
 /**
- * Set up what a graph shows and how it is operated, leaving the drawing of the objects to the
- * graph.
+ * Set up the state and behavior shared by both graphs; each component renders its own objects.
  * @param props the props of the graph
  * @param emit the function to emit the events of the graph
- * @param options how the graph differs
+ * @param options what differs between the graphs
  * @returns what the template of the graph and its methods use
  */
-export function useGraph<T extends Configs = Configs>(
-  props: GraphProps,
-  emit: GraphEmit,
-  options: GraphOptions<T>
-) {
+export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptions) {
   const nodesRef = toRef(props, "nodes")
   const edgesRef = toRef(props, "edges")
   const pathsRef = options.paths?.objects ?? ref<Paths>({})
@@ -98,10 +91,11 @@ export function useGraph<T extends Configs = Configs>(
   })
 
   // Style settings
-  const drawAhead = options.drawAhead
-  const configs = drawAhead
-    ? provideConfigs(options.configs, drawAhead.defaultConfigs)
-    : (provideConfigs(options.configs) as T)
+  const drawAheadDefaults = options.drawAheadDefaults
+  const drawAheadConfigs = drawAheadDefaults
+    ? provideConfigs(options.configs, drawAheadDefaults)
+    : undefined
+  const configs: Configs = drawAheadConfigs ?? provideConfigs(options.configs)
 
   // Additional layers
   const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
@@ -215,9 +209,9 @@ export function useGraph<T extends Configs = Configs>(
 
   const view = useViewMethods(canvas, zoomLevel, nodesRef, currentPositions, configs, emitter)
 
-  const positionDrawer = drawAhead
+  const positionDrawer = drawAheadConfigs
     ? makePositionDrawer(
-        () => drawAhead.layoutsUpdateInterval(configs),
+        () => drawAheadConfigs.view.layoutsUpdateInterval,
         () => zoomLevel.value,
         placeEdgesAhead
       )
@@ -232,7 +226,8 @@ export function useGraph<T extends Configs = Configs>(
     scale: readonly(scale),
     emitter,
     svgPanZoom: nonNull(svgPanZoom.value),
-    positionDrawer,
+    // Left out when not given, so that a handler checking for the key finds none.
+    ...(positionDrawer ? { positionDrawer } : {}),
   }))
 
   // The layouts may lag behind the positions drawn, so this brings them up to date first.
