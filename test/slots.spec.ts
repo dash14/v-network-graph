@@ -47,7 +47,7 @@ describe("slots", () => {
       edgeLabel: graph().querySelectorAll(".v-ng-layer-edge-labels .custom-edge-label").length,
       edgesLabel: graph().querySelectorAll(".v-ng-layer-edge-labels .custom-edges-label").length,
       layer: graph().querySelectorAll(".custom-layer").length,
-      root: graph().querySelectorAll(".custom-root").length,
+      root: graph().querySelectorAll("svg.v-ng-canvas > .custom-root").length,
     })
     const none = { edgeLabel: 0, edgesLabel: 0, layer: 0, root: 0 }
     expect(custom()).toEqual(none)

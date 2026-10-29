@@ -59,7 +59,7 @@ const labeledConfigs = {
     </template>
     <!-- Not in the layers, so drawn in the root. -->
     <template v-if="withSlots" #extra>
-      <div class="custom-root" />
+      <rect class="custom-root" width="10" height="10" />
     </template>
   </v-network-graph>
 </template>
