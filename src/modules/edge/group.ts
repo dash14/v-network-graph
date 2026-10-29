@@ -1,3 +1,4 @@
+import { isEqual } from "lodash-es"
 import { Ref, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, Configs, EdgeKeepOrderType } from "@/common/configs"
@@ -40,6 +41,13 @@ export function makeEdgeGroupStates(
     )
     updateObjectDiff(state.edgeLayoutPoints, edgeLayoutPoints)
     updateObjectDiff(state.edgeGroups, edgeGroups)
+    // The edges are drawn in the order of the groups. updateObjectDiff leaves the remaining groups
+    // where they were and ignores the order of the edges in a group, so replace them all when
+    // either order differs, to draw the edges in the order mounting them does.
+    if (!isEqual(orderOf(state.edgeGroups), orderOf(edgeGroups))) {
+      Object.keys(state.edgeGroups).forEach(key => delete state.edgeGroups[key])
+      Object.assign(state.edgeGroups, edgeGroups)
+    }
   })
 
   // calc layout and check summarize
@@ -112,6 +120,10 @@ export function calculateEdgeShiftedPosition(
 // -----------------------------------------------------------------------
 // Private functions
 // -----------------------------------------------------------------------
+
+function orderOf(edgeGroups: Record<string, EdgeGroup>): string[][] {
+  return Object.entries(edgeGroups).map(([key, group]) => [key, ...Object.keys(group.edges)])
+}
 
 function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: Edges) {
   const edgeLayoutPoints: Record<string, EdgeLayoutPoint> = {}

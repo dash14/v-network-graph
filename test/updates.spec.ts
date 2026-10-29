@@ -96,6 +96,30 @@ const cases: Record<string, UpdateCase[]> = {
       props: graph,
       update: props => (props.edges!.edge2.source = "node1"),
     },
+    {
+      name: "replace the edges, keeping a pair of nodes they connect",
+      props: graph,
+      update: props =>
+        (props.edges = {
+          edge1: { source: "node1", target: "node3" },
+          edge2: { source: "node3", target: "node2" },
+        }),
+    },
+    {
+      name: "reorder the edges between the same nodes",
+      props: () => ({
+        ...graph(),
+        edges: {
+          edge1: { source: "node1", target: "node2" },
+          edge2: { source: "node2", target: "node1" },
+        },
+      }),
+      update: props =>
+        (props.edges = {
+          edge2: { source: "node2", target: "node1" },
+          edge1: { source: "node1", target: "node2" },
+        }),
+    },
   ],
   paths: [
     {
