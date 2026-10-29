@@ -90,12 +90,16 @@ export function provideMouseOperation(
     viewMode: ref("default"),
   }
 
-  if (selectedNodes.size > 0) {
-    modes.selectionMode.value = "node"
+  // Keep one kind as an update selecting them all at once does: the last of nodes, edges and paths.
+  if (selectedPaths.size > 0) {
+    modes.selectionMode.value = "path"
+    selectedNodes.clear()
+    selectedEdges.clear()
   } else if (selectedEdges.size > 0) {
     modes.selectionMode.value = "edge"
-  } else if (selectedPaths.size > 0) {
-    modes.selectionMode.value = "path"
+    selectedNodes.clear()
+  } else if (selectedNodes.size > 0) {
+    modes.selectionMode.value = "node"
   }
 
   watch(modes.viewMode, mode => {

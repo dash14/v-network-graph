@@ -1,4 +1,4 @@
-import { describe, test } from "vitest"
+import { describe, expect, test } from "vitest"
 import type { Paths } from "@/index"
 import { GraphProps, mountGraph } from "./helpers/graph"
 import { expectToRenderAs, markupOf } from "./helpers/markup"
@@ -208,6 +208,23 @@ const cases: Record<string, UpdateCase[]> = {
       update: props => (props.selectedPaths = ["path1"]),
     },
     {
+      name: "select a node and an edge at once",
+      props: graph,
+      update: props => {
+        props.selectedNodes = ["node1"]
+        props.selectedEdges = ["edge2"]
+      },
+    },
+    {
+      name: "select a node, an edge and a path at once",
+      props: graphWithPath,
+      update: props => {
+        props.selectedNodes = ["node1"]
+        props.selectedEdges = ["edge2"]
+        props.selectedPaths = ["path1"]
+      },
+    },
+    {
       name: "deselect a node",
       props: () => ({ ...graph(), selectedNodes: ["node1", "node2"] }),
       update: props => (props.selectedNodes = ["node2"]),
@@ -225,5 +242,29 @@ describe.each(Object.entries(cases))("updating %s after mount", (_, featureCases
     const { screen, state } = await mountGraph(c.props())
     c.update(state)
     await expectToRenderAs(screen.container, expected)
+  })
+})
+
+// Selecting several kinds at once keeps the last of nodes, edges and paths, as updating does.
+describe("mounting with several kinds of objects selected", () => {
+  test("keeps only the edges of nodes and edges", async () => {
+    const { state } = await mountGraph({
+      ...graph(),
+      selectedNodes: ["node1"],
+      selectedEdges: ["edge2"],
+    })
+    await expect.poll(() => state.selectedNodes).toEqual([])
+    expect(state.selectedEdges).toEqual(["edge2"])
+  })
+
+  test("keeps only the paths of nodes, edges and paths", async () => {
+    const { state } = await mountGraph({
+      ...graphWithPath(),
+      selectedNodes: ["node1"],
+      selectedEdges: ["edge2"],
+      selectedPaths: ["path1"],
+    })
+    await expect.poll(() => [state.selectedNodes, state.selectedEdges]).toEqual([[], []])
+    expect(state.selectedPaths).toEqual(["path1"])
   })
 })
