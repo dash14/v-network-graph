@@ -127,6 +127,63 @@ jobs:
           path: ~/playwright-packages
           key: ${{ steps.playwright-cache.outputs.cache-primary-key }}
 
+  # The build compiles with the Vue in the lockfile, while packages may install the lowest one
+  # that the peer dependency allows. Runs the examples on lib/ with that Vue.
+  test-lowest-vue:
+    name: Test with the lowest supported Vue
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+
+      - name: Locate the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      # Only restored: the test job saves the store.
+      - name: Restore the pnpm store
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: ${{ github.ref != 'refs/heads/main' && format('pnpm-store-{0}-', runner.os) || '' }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      # The compiler too, as the packages compile their own components with it.
+      - name: Install the lowest supported Vue
+        run: |
+          version=$(node -p 'require("./package.json").peerDependencies.vue')
+          if [[ ! "$version" =~ ^\^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Cannot take the lowest version from the peer dependency on vue: $version" >&2
+            exit 1
+          fi
+          pnpm add -D "vue@${version#^}" "@vue/compiler-sfc@${version#^}"
+
+      - name: Test
+        env:
+          VNG_LIB: "1"
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test
+
   # The snapshots and screenshots that depend on the fonts, in the image they were written in.
   # On arm64, like the Apple Silicon Macs that write them.
   test-docker:
@@ -157,7 +214,7 @@ jobs:
   tests-passed:
     name: Tests passed
     runs-on: ubuntu-latest
-    needs: [test, test-docker]
+    needs: [test, test-lowest-vue, test-docker]
     if: always()
     permissions: {}
     steps:

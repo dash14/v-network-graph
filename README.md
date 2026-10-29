@@ -205,6 +205,7 @@ If you find any bugs and/or want to contribute, feel free to submit issues or pu
 `pnpm test:docker` runs all of them in the Playwright Docker image, and `pnpm test:docker -u`
 updates their snapshots and screenshots.
 `pnpm test:tc` type-checks the tests, which the build leaves out.
+`VNG_LIB=1 pnpm test` runs the examples on the built library in `lib/` instead of `src/`.
 
 ## License
 
