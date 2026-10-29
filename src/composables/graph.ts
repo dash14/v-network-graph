@@ -52,8 +52,9 @@ export interface GraphEmit {
 export interface GraphPaths {
   objects: Ref<Paths>
   isInCompatibilityMode: Ref<boolean>
-  /** Binds the selected paths to the props, called after the nodes and edges are bound. */
-  bindSelected: () => Reactive<Set<string>>
+  /** The props and emit of the graph, for binding the selected paths. */
+  props: { selectedPaths: string[] }
+  emit: { (e: "update:selectedPaths", v: string[]): void }
 }
 
 /** Configs that also hold view.layoutsUpdateInterval. */
@@ -128,7 +129,9 @@ export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptio
   const currentSelectedEdges = bindPropKeySet(props, "selectedEdges", edgesRef, emit)
   watch(currentSelectedEdges, edges => emitter.emit("edge:select", Array.from(edges)))
 
-  const currentSelectedPaths = options.paths?.bindSelected() ?? Reactive(new Set<string>())
+  const currentSelectedPaths = options.paths
+    ? bindPropKeySet(options.paths.props, "selectedPaths", pathsRef, options.paths.emit)
+    : Reactive(new Set<string>())
   if (options.paths) {
     watch(currentSelectedPaths, paths => emitter.emit("path:select", Array.from(paths)))
   }

@@ -7,7 +7,6 @@ import { useGraph } from "@/composables/graph"
 import { LayerSlotProps } from "@/composables/layer"
 import { useTranslatePathsToObject } from "@/composables/object"
 import { useTransitionWhile } from "@/composables/transition"
-import { bindPropKeySet } from "@/utils/props"
 import VBackgroundGrid from "./background/VBackgroundGrid.vue"
 import VBackgroundViewport from "./background/VBackgroundViewport.vue"
 import VSelectionBox from "./base/VSelectionBox.vue"
@@ -96,7 +95,8 @@ const {
   paths: {
     objects: pathsRef,
     isInCompatibilityMode: isInCompatibilityModeForPath,
-    bindSelected: () => bindPropKeySet(props, "selectedPaths", pathsRef, emit),
+    props,
+    emit,
   },
 })
 const { container, svg, viewport, show, scale } = canvas
