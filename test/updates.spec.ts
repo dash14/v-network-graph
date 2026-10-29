@@ -106,6 +106,24 @@ const cases: Record<string, UpdateCase[]> = {
         }),
     },
     {
+      name: "reorder the groups of edges, keeping one summarized",
+      props: () => ({
+        ...graph(),
+        edges: {
+          edge1: { source: "node1", target: "node2" },
+          edge2: { source: "node2", target: "node3" },
+          edge3: { source: "node2", target: "node1" },
+        },
+        configs: { ...graph().configs, edge: { normal: { width: 30 } } },
+      }),
+      update: props =>
+        (props.edges = {
+          edge2: { source: "node2", target: "node3" },
+          edge1: { source: "node1", target: "node2" },
+          edge3: { source: "node2", target: "node1" },
+        }),
+    },
+    {
       name: "reorder the edges between the same nodes",
       props: () => ({
         ...graph(),
