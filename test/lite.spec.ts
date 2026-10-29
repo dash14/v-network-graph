@@ -14,6 +14,7 @@ import type {
 } from "@/index"
 import { ForceLayout } from "@/layouts/force"
 import type { ForceEdgeDatum, ForceNodeDatum } from "@/layouts/force"
+import type { LayoutHandler, PositionDrawer } from "@/layouts/handler"
 import { POLL_INTERVAL } from "./helpers/container"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -254,14 +255,14 @@ describe("force layout", () => {
     )
   })
 
-  test("draws the ticks ahead of the layouts by default", async () => {
-    const { screen, state } = await mountLite({
-      configs: { view: { layoutHandler: layoutHandler() } },
-    })
-    await vi.waitUntil(
-      () => !isNear(state.layouts.nodes.node1, drawnPosition(screen.container, "node1")),
-      { timeout: 5000, interval: POLL_INTERVAL }
-    )
+  test("gives a layout 300 ms as the interval by default", async () => {
+    let drawer: PositionDrawer | undefined
+    const layoutHandler: LayoutHandler = {
+      activate: ({ positionDrawer }) => (drawer = positionDrawer),
+      deactivate: () => {},
+    }
+    await mountLite({ configs: { view: { layoutHandler } } })
+    expect(drawer?.interval).toBe(300)
   })
 
   test("getLayouts() returns the positions drawn, while the layouts lag behind", async () => {

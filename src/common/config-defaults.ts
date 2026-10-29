@@ -334,18 +334,23 @@ export function getConfigDefaults(): Configs {
   }
 }
 
-/** The configs a lite graph runs with: those of VNetworkGraph, and the settings of its own view. */
+/** The configs of VNetworkGraph plus view.layoutsUpdateInterval. */
 export type LiteGraphConfigs = Configs & {
   view: Pick<LiteViewConfig, "layoutsUpdateInterval">
 }
 
+const DEFAULT_LAYOUTS_UPDATE_INTERVAL = 300
+
 /**
- * Get all default configs of a lite graph: those of VNetworkGraph, and the settings of its own.
+ * Get the default configs of a lite graph.
  * @returns configs
  */
 export function getLiteConfigDefaults(): LiteGraphConfigs {
   const configs = getConfigDefaults()
-  return { ...configs, view: { ...configs.view, layoutsUpdateInterval: 300 } }
+  return {
+    ...configs,
+    view: { ...configs.view, layoutsUpdateInterval: DEFAULT_LAYOUTS_UPDATE_INTERVAL },
+  }
 }
 
 export function getFullConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(

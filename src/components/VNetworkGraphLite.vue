@@ -85,8 +85,7 @@ Object.entries(props.eventHandlers).forEach(([type, event]) => {
   emitter.on(type as any, event as any)
 })
 
-// Style settings, with the edges straight and each on its own whatever is given, as a lite graph
-// draws them.
+// A lite graph forces edge.type to straight and summarize off, whatever the configs say.
 const configs = provideConfigs(
   computed<UserConfigs>(() => ({
     ...(props.configs as UserConfigs),
