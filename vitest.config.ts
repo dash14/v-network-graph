@@ -29,7 +29,7 @@ function entry(name: string) {
 export default defineConfig({
   resolve: {
     alias: [
-      // The ones that the examples render the graph with.
+      // The test helpers render the examples with these.
       ...(lib
         ? [
             {

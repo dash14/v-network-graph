@@ -176,6 +176,11 @@ jobs:
             exit 1
           fi
           pnpm add -D "vue@${version#^}" "@vue/compiler-sfc@${version#^}"
+          installed=$(node -p 'require("vue/package.json").version')
+          if [[ "$installed" != "${version#^}" ]]; then
+            echo "Installed vue $installed instead of ${version#^}" >&2
+            exit 1
+          fi
 
       - name: Test
         env:
