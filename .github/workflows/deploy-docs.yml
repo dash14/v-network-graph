@@ -54,6 +54,8 @@ jobs:
         with:
           context: .
           outputs: type=local,dest=${{ runner.temp }}/dist
+          # Would add provenance.json to the site.
+          provenance: false
 
       - name: Show Buildcage report
         if: always()
