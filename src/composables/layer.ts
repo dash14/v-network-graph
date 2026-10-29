@@ -20,6 +20,15 @@ const BUILT_IN_LAYERS: Readonly<LayerName[]> = [
   "paths",
 ] as const
 
+/** The slots of VNetworkGraph that are not layers. */
+export const GRAPH_SYSTEM_SLOTS = [
+  "override-node",
+  "override-node-label",
+  "edge-overlay",
+  "edge-label",
+  "edges-label",
+] as const
+
 export function useBuiltInLayerOrder<T extends Configs>(
   configs: T,
   slots: Readonly<LayerSlots>,
@@ -83,6 +92,7 @@ export function useLayerDefs(
       layerNames,
       Object.entries(layers()).reduce(
         (accum, [name, type]) => {
+          if (systemSlots.includes(name)) return accum
           definedSlots.delete(name)
           if (type in accum) {
             accum[type].push(name)

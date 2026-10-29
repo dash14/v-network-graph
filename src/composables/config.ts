@@ -15,8 +15,13 @@ function merger(destination: any, source: any) {
   }
 }
 
-export function provideConfigs(configs: Ref<UserConfigs>) {
-  const results: Configs = reactive(getConfigDefaults())
+export function provideConfigs(configs: Ref<UserConfigs>): Configs
+export function provideConfigs<T extends Configs>(configs: Ref<UserConfigs>, defaults: () => T): T
+export function provideConfigs(
+  configs: Ref<UserConfigs>,
+  defaults: () => Configs = getConfigDefaults
+): Configs {
+  const results: Configs = reactive(defaults())
   const styleKeys = Object.keys(results) as (keyof Configs)[]
   for (const key of styleKeys) {
     watch(
