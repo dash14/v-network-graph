@@ -256,6 +256,7 @@ export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptio
     translateFromSvgToDomCoordinates: view.translateFromSvgToDomCoordinates,
     exportAsSvgText: view.exportAsSvgText,
     exportAsSvgElement: view.exportAsSvgElement,
+    getAsSvg: view.getAsSvg,
   }
 
   return {
@@ -270,7 +271,6 @@ export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptio
     touches,
     isBoxSelectionMode,
     selectionBox,
-    view,
     getLayouts,
     methods,
   }

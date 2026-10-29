@@ -89,7 +89,6 @@ const {
   touches,
   isBoxSelectionMode,
   selectionBox,
-  view,
   methods,
 } = useGraph(props, emit, {
   configs: toRef(props, "configs"),
@@ -123,7 +122,6 @@ const transitionStyles = computed(() => {
 defineExpose({
   ...methods,
   transitionWhile,
-  getAsSvg: view.getAsSvg,
 })
 </script>
 

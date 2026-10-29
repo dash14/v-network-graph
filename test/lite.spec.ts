@@ -143,6 +143,7 @@ describe("drawing", () => {
     const svg = await graph.exportAsSvgText()
     expect(svg).toContain("<line")
     expect(svg).toContain("<circle")
+    expect(graph.getAsSvg()).toContain("<line")
   })
 })
 
