@@ -90,14 +90,40 @@ describe("drawing", () => {
     expect(c.querySelector(".v-ng-layer-nodes g, .v-ng-layer-edges g")).toBeNull()
   })
 
-  test("leaves out a self-loop", async () => {
-    const { screen } = await mountLite({
+  test("draws a self-loop as an arc that is hit by its stroke", async () => {
+    const { screen, canvas, events } = await mountLite({
       edges: { ...edges, loop: { source: "node1", target: "node1" } },
+      configs: { edge: { selectable: true } },
     })
-    const ids = [...screen.container.querySelectorAll(".v-ng-edge")].map(e =>
-      e.getAttribute("data-edge-id")
-    )
-    expect(ids).toEqual(["edge1", "edge2"])
+    const loop = screen.container.querySelector('[data-edge-id="loop"]')
+    expect(loop?.localName).toBe("path")
+    expect(loop?.getAttribute("d")).toMatch(/^M \S+ \S+ A /)
+    expect(loop?.getAttribute("fill")).toBe("none")
+
+    // The arc's outermost point, west of the node.
+    const { x, y, height } = (loop as SVGPathElement).getBBox()
+    await userEvent.click(canvas, { position: at(x, y + height / 2) })
+    expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "loop" }])
+  })
+
+  test("draws an edge again as a line or as a self-loop, as its ends change", async () => {
+    const { screen, state } = await mountLite({
+      edges: { loop: { source: "node1", target: "node1" } },
+    })
+    const edge = () => screen.container.querySelector('[data-edge-id="loop"]')!
+
+    state.edges.loop = { source: "node1", target: "node2" }
+    await expect.poll(() => edge().localName).toBe("line")
+    expect(attributes(edge(), ["x1", "y1", "x2", "y2"])).toEqual({
+      x1: "-200",
+      y1: "0",
+      x2: "0",
+      y2: "0",
+    })
+
+    state.edges.loop = { source: "node2", target: "node2" }
+    await expect.poll(() => edge().localName).toBe("path")
+    expect(edge().getAttribute("d")).toMatch(/^M \S+ \S+ A /)
   })
 
   test("draws edges between the same nodes apart, rather than summarizing them", async () => {
@@ -310,7 +336,11 @@ describe("force layout", () => {
 
   describe("reading the positions drawn ahead of the layouts", () => {
     // Stopped, so that a node is drawn only where the test moves it.
-    const mountStopped = async (configs: LiteUserConfigs = {}, positionFixedByDrag = false) => {
+    const mountStopped = async (
+      configs: LiteUserConfigs = {},
+      positionFixedByDrag = false,
+      edges?: Edges
+    ) => {
       let simulation: Simulation<ForceNodeDatum, ForceEdgeDatum> | undefined
       const layoutHandler = new ForceLayout({
         positionFixedByDrag,
@@ -324,6 +354,7 @@ describe("force layout", () => {
             .stop()),
       })
       const mounted = await mountLite({
+        ...(edges && { edges }),
         configs: {
           ...configs,
           view: { layoutHandler, layoutsUpdateInterval: 60000 },
@@ -384,6 +415,59 @@ describe("force layout", () => {
       await expect.poll(() => line.getAttribute("stroke-width")).toBe("3")
 
       expect(attributes(line, ["x1", "y1"])).toEqual({ x1: "100", y1: "100" })
+    })
+
+    test("a self-loop moves with its node", async () => {
+      const { screen, moveTo } = await mountStopped({}, false, {
+        loop: { source: "node1", target: "node1" },
+      })
+      const loop = screen.container.querySelector('[data-edge-id="loop"]')!
+      // M x y A rx ry rotation large-arc sweep x y
+      const numbers = () =>
+        loop
+          .getAttribute("d")!
+          .match(/-?[\d.]+(e-?\d+)?/g)!
+          .map(Number)
+      const before = numbers()
+
+      moveTo("node1", 100, 100)
+
+      const shift = [300, 100, 0, 0, 0, 0, 0, 300, 100]
+      numbers().forEach((n, i) => expect(isNearValue(n, before[i] + shift[i])).toBe(true))
+    })
+
+    test("a self-loop is not written again while its node stays", async () => {
+      const { screen, moveTo } = await mountStopped({}, false, {
+        ...edges,
+        loop: { source: "node1", target: "node1" },
+      })
+      const loop = screen.container.querySelector('[data-edge-id="loop"]')!
+      const records: MutationRecord[] = []
+      const observer = new MutationObserver(r => records.push(...r))
+      observer.observe(loop, { attributeFilter: ["d"] })
+
+      moveTo("node2", 100, 100)
+      records.push(...observer.takeRecords())
+      observer.disconnect()
+
+      expect(records).toEqual([])
+    })
+
+    test("a label avoids a self-loop where it is drawn", async () => {
+      const { screen, moveTo } = await mountStopped(
+        { node: { label: { direction: "west", directionAutoAdjustment: true } } },
+        false,
+        { loop: { source: "node1", target: "node1" } }
+      )
+      const label = screen.container.querySelector("text.v-ng-node-label")!
+      // Turned east, away from the loop on the west of the node.
+      expect(label.getAttribute("text-anchor")).toBe("start")
+
+      // A loop left at the old position would now be north of the node.
+      moveTo("node1", -200, 300)
+      await nextTick()
+
+      expect(label.getAttribute("text-anchor")).toBe("start")
     })
 
     test("a label adjusts its direction to where the nodes are drawn", async () => {

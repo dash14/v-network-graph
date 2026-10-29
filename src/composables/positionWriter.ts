@@ -10,12 +10,13 @@ import type { DrawEdge } from "./edgePlacement"
 type ElementRef = (el: unknown) => void
 
 // What was last written to an element, so that the same position is not written again. A node
-// has its position in x1 and y1.
+// has its position in x1 and y1, and an edge drawn as a path, in either graph, its d.
 interface Written {
   x1: number
   y1: number
   x2: number
   y2: number
+  d?: string
   // The lengths of a line, taken once: each stays the same object, reflecting its attribute.
   lengths?: [SVGLength, SVGLength, SVGLength, SVGLength]
 }
@@ -112,7 +113,10 @@ export function providePositionWriter(
     if (el.localName === "line") {
       writeLineAt(el, written, geometry.position.p1, geometry.position.p2)
     } else {
-      el.setAttribute("d", edgePathOf(geometry))
+      const d = edgePathOf(geometry)
+      if (written.d === d) return
+      written.d = d
+      el.setAttribute("d", d)
     }
   }
 
