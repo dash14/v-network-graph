@@ -30,7 +30,7 @@ const {
 </script>
 
 <template>
-  <!-- Hit by its own stroke, with no wider line to hit it by. A self-loop is an arc on a path. -->
+  <!-- Hit-tested on the stroke itself. Self-loops are drawn as a path. -->
   <component
     :is="isLoop ? 'path' : 'line'"
     :ref="setElement"

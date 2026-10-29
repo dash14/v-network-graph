@@ -7,7 +7,7 @@ const { edgeStates, edgeZOrderedList } = useStates()
 
 <template>
   <g class="v-ng-layer-edges v-ng-graph-objects">
-    <!-- A lite graph does not summarize edges, which leaves every entry a single edge. -->
+    <!-- Edges are never summarized in a lite graph. -->
     <template v-for="entry in edgeZOrderedList" :key="entry.key">
       <v-lite-edge
         v-if="!isSummarizedEdges(entry)"

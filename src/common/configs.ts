@@ -385,7 +385,7 @@ export interface LiteNodeConfig<N extends Node = Node> extends Omit<
   label: CallableValues<LiteNodeLabelStyle, N>
 }
 
-/** The edges of a lite graph, each on its own and with no labels, straight unless a self-loop. */
+/** Edge configs of a lite graph, without type, summarize and label. */
 export type LiteEdgeConfig<E extends Edge = Edge> = Omit<
   EdgeConfig<E>,
   "type" | "summarize" | "summarized" | "label"

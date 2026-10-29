@@ -10,7 +10,7 @@ import type { DrawEdge } from "./edgePlacement"
 type ElementRef = (el: unknown) => void
 
 // What was last written to an element, so that the same position is not written again. A node
-// has its position in x1 and y1, and a self-loop its path in d.
+// has its position in x1 and y1, and an edge drawn as a path, in either graph, its d.
 interface Written {
   x1: number
   y1: number

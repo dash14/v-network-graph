@@ -61,8 +61,8 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
         props.state.id,
         pos,
         oppositeNodes,
-        // The loop as it lies from its node, put where the node is drawn: while a layout draws
-        // ahead, the states stay where the layouts have the node.
+        // Edge states lag behind the drawn positions during a layout, so apply the loop's offset
+        // from its node to the drawn position.
         (edgeId: string) => {
           const edge = edgeStates[edgeId]
           if (!edge?.loop) return undefined

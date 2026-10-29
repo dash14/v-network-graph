@@ -93,7 +93,7 @@ describe("drawing", () => {
     expect(loop?.getAttribute("d")).toMatch(/^M \S+ \S+ A /)
     expect(loop?.getAttribute("fill")).toBe("none")
 
-    // On the far side of the arc from the node, beside it.
+    // The arc's outermost point, west of the node.
     const { x, y, height } = (loop as SVGPathElement).getBBox()
     await userEvent.click(canvas, { position: at(x, y + height / 2) })
     expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "loop" }])
@@ -416,7 +416,7 @@ describe("force layout", () => {
       // Turned east, away from the loop on the west of the node.
       expect(label.getAttribute("text-anchor")).toBe("start")
 
-      // Below where the node was, so that a loop left there would be north of it.
+      // A loop left at the old position would now be north of the node.
       moveTo("node1", -200, 300)
       await nextTick()
 
