@@ -65,7 +65,8 @@ jobs:
     name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Longer than the 10 minutes deploy-pages waits, so it fails with its own error.
+    timeout-minutes: 15
     permissions:
       pages: write
       id-token: write
