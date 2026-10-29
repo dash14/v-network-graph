@@ -33,38 +33,33 @@ jobs:
           repository: dash14/v-network-graph-docs
           persist-credentials: false
 
+      # Takes the version from packageManager in package.json.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      # Takes the version from devEngines.runtime in package.json.
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+
+      # No cache, so what gets deployed never depends on a cache another run saved.
       # Buildcage keeps the build to packages and the Node.js that devEngines pins.
-      - name: Start Buildcage builder
-        uses: buildcage/docker@ef2b79a3baaddc6a69c1b10a2c473a134ece2eca # v4.4.0
+      - name: Build the site
+        uses: buildcage/isolated-run@e17dbc9c53e03b39835b2f3e11834243d90aa183 # v2.5.0
         with:
           proxy-mode: restrict
           allowed-url-rules: |
             GET|HEAD https://registry.npmjs.org/**
             GET https://nodejs.org/download/release/**
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-        with:
-          driver: remote
-          endpoint: docker-container://buildcage
-
-      # No cache, so what gets deployed never depends on a cache another run saved.
-      - name: Build the site
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
-        with:
-          context: .
-          outputs: type=local,dest=${{ runner.temp }}/dist
-          # Otherwise the provenance lands in the site as provenance.json.
-          provenance: false
-
-      - name: Show Buildcage report
-        if: always()
-        uses: buildcage/docker/report@ef2b79a3baaddc6a69c1b10a2c473a134ece2eca # v4.4.0
+          run: |
+            pnpm install --frozen-lockfile
+            pnpm run docs:build
 
       - name: Upload the site
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: ${{ runner.temp }}/dist
+          path: docs/.vitepress/dist
 
   deploy:
     name: Deploy to GitHub Pages
