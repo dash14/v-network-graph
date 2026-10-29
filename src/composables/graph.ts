@@ -1,5 +1,6 @@
+import { isEqual } from "lodash-es"
 import type { Ref } from "vue"
-import { computed, readonly, ref, toRaw, toRef, watch } from "vue"
+import { computed, onBeforeUpdate, readonly, ref, shallowRef, toRaw, toRef, watch } from "vue"
 import { Reactive, nonNull } from "@/common/common"
 import { Configs, UserConfigs } from "@/common/configs"
 import {
@@ -98,15 +99,23 @@ export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptio
     : undefined
   const configs: Configs = drawAheadConfigs ?? provideConfigs(options.configs)
 
+  // The slots object is not reactive. The layers follow these names, synced before each update, so
+  // that slots given or taken away after mount are drawn or removed.
+  const slotNames = shallowRef(Object.keys(options.slots))
+  onBeforeUpdate(() => {
+    const names = Object.keys(options.slots)
+    if (!isEqual(names, slotNames.value)) slotNames.value = names
+  })
+
   // Additional layers
   const { layerDefs, isShowGrid, isShowBackgroundViewport } = useLayerDefs(
     configs,
-    options.slots,
+    slotNames,
     () => props.layers,
     GRAPH_SYSTEM_SLOTS
   )
 
-  const builtInLayerOrder = useBuiltInLayerOrder(configs, options.slots, options.builtInLayers)
+  const builtInLayerOrder = useBuiltInLayerOrder(configs, slotNames, options.builtInLayers)
 
   // -----------------------------------------------------------------------
   // SVG

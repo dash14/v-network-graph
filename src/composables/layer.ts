@@ -1,6 +1,6 @@
 import { uniq } from "lodash-es"
-import type { ComputedRef, Slot } from "vue"
-import { computed } from "vue"
+import type { ComputedRef, MaybeRefOrGetter, Slot } from "vue"
+import { computed, toValue } from "vue"
 import { Configs } from "@/common/configs"
 import { LayerName, LayerPosition, LayerPositions, Layers } from "@/common/types"
 import { insertAfter, removeItem } from "@/modules/collection/array"
@@ -31,7 +31,7 @@ export const GRAPH_SYSTEM_SLOTS = [
 
 export function useBuiltInLayerOrder<T extends Configs>(
   configs: T,
-  slots: Readonly<LayerSlots>,
+  slotNames: MaybeRefOrGetter<readonly string[]>,
   builtInLayers: Readonly<LayerName[]> = BUILT_IN_LAYERS
 ): ComputedRef<LayerName[]> {
   return computed<LayerName[]>(() => {
@@ -51,7 +51,8 @@ export function useBuiltInLayerOrder<T extends Configs>(
     })
 
     // Remove unused layers
-    if (!("edge-label" in slots || "edges-label" in slots)) {
+    const names = toValue(slotNames)
+    if (!(names.includes("edge-label") || names.includes("edges-label"))) {
       removeItem(order, "edge-labels")
     }
     if (!configs.node.focusring.visible) {
@@ -71,7 +72,7 @@ export function useBuiltInLayerOrder<T extends Configs>(
 /**
  * Sort the user's layers into the positions they are drawn at.
  * @param configs the configs of the graph
- * @param slots the slots of the graph
+ * @param slotNames the names of the slots given to the graph
  * @param layers the layers given in the props
  * @param systemSlots the slots of the graph that are not layers
  * @returns the names of the layers at each position, and whether the grid and the background are
@@ -79,12 +80,12 @@ export function useBuiltInLayerOrder<T extends Configs>(
  */
 export function useLayerDefs(
   configs: Configs,
-  slots: Readonly<LayerSlots>,
+  slotNames: MaybeRefOrGetter<readonly string[]>,
   layers: () => Layers,
   systemSlots: Readonly<string[]>
 ) {
   const layerDefs = computed(() => {
-    const definedSlots = new Set(Object.keys(slots))
+    const definedSlots = new Set(toValue(slotNames))
     systemSlots.forEach(s => definedSlots.delete(s))
 
     const layerNames = Object.fromEntries(LayerPositions.map(n => [n, [] as string[]]))

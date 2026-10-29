@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { getFullConfigs } from "../common/config-defaults"
 import { LayerName } from "../common/types"
-import { LayerSlots, useBuiltInLayerOrder } from "./layer"
+import { useBuiltInLayerOrder } from "./layer"
 
 function getConfigs() {
   const configs = getFullConfigs({
@@ -18,17 +18,14 @@ function getConfigs() {
 }
 
 describe("useBuiltInLayerOrder", () => {
-  const slots = {
-    "edge-label": {},
-    "edges-label": {},
-  } as unknown as LayerSlots
+  const slotNames = ["edge-label", "edges-label"]
 
   describe("Empty is specified", () => {
     it("should be returned the default order", () => {
       const configs = getConfigs()
       configs.view.builtInLayerOrder = [] // empty
 
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
 
       const defaultOrder = ["edges", "edge-labels", "focusring", "nodes", "node-labels", "paths"]
       expect(defaultOrder).to.be.eql(layers.value)
@@ -48,7 +45,7 @@ describe("useBuiltInLayerOrder", () => {
       ]
       configs.view.builtInLayerOrder = input
 
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
 
       const reversed = [...input].reverse()
       expect(reversed).to.be.eql(layers.value)
@@ -60,7 +57,7 @@ describe("useBuiltInLayerOrder", () => {
       const configs = getConfigs()
       configs.view.builtInLayerOrder = ["node-labels", "paths"]
 
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
 
       const order = ["edges", "edge-labels", "focusring", "nodes", "paths", "node-labels"]
       expect(order).to.be.eql(layers.value)
@@ -69,29 +66,23 @@ describe("useBuiltInLayerOrder", () => {
 
   describe("Not specified edge-label/edges-label slot", () => {
     it("should contain edge-labels layer", () => {
-      const slots = {
-        // "edge-label": {},
-        "edges-label": {},
-      } as unknown as LayerSlots
+      const slotNames = ["edges-label"]
       const configs = getConfigs()
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
       expect(layers.value.includes("edge-labels")).toBe(true)
     })
 
     it("should contain edge-labels layer", () => {
-      const slots = {
-        "edge-label": {},
-        // "edges-label": {},
-      } as unknown as LayerSlots
+      const slotNames = ["edge-label"]
       const configs = getConfigs()
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
       expect(layers.value.includes("edge-labels")).toBe(true)
     })
 
     it("should not contain edge-labels layer", () => {
-      const slots = {} as unknown as LayerSlots
+      const slotNames: string[] = []
       const configs = getConfigs()
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
       expect(layers.value.includes("edge-labels")).toBe(false)
     })
   })
@@ -100,7 +91,7 @@ describe("useBuiltInLayerOrder", () => {
     it("should not contain focusring layer", () => {
       const configs = getConfigs()
       configs.node.focusring.visible = false
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
       expect(layers.value.includes("focusring")).toBe(false)
     })
   })
@@ -109,7 +100,7 @@ describe("useBuiltInLayerOrder", () => {
     it("should not contain node-labels layer", () => {
       const configs = getConfigs()
       configs.node.label.visible = false
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
       expect(layers.value.includes("node-labels")).toBe(false)
     })
   })
@@ -118,7 +109,7 @@ describe("useBuiltInLayerOrder", () => {
     it("should not contain paths layer", () => {
       const configs = getConfigs()
       configs.path.visible = false
-      const layers = useBuiltInLayerOrder(configs, slots)
+      const layers = useBuiltInLayerOrder(configs, slotNames)
       expect(layers.value.includes("paths")).toBe(false)
     })
   })

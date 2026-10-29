@@ -40,6 +40,27 @@ describe("slots", () => {
     expect(graph().querySelectorAll(".v-ng-layer-nodes circle")).toHaveLength(2)
   })
 
+  test("label and layer slots given or taken away later are drawn or removed", async () => {
+    const screen = await renderSlotGraph()
+    const graph = () => screen.container.querySelector(".labels")!
+    const custom = () => ({
+      edgeLabel: graph().querySelectorAll(".v-ng-layer-edge-labels .custom-edge-label").length,
+      edgesLabel: graph().querySelectorAll(".v-ng-layer-edge-labels .custom-edges-label").length,
+      layer: graph().querySelectorAll(".custom-layer").length,
+      root: graph().querySelectorAll("svg.v-ng-canvas > .custom-root").length,
+    })
+    const none = { edgeLabel: 0, edgesLabel: 0, layer: 0, root: 0 }
+    expect(custom()).toEqual(none)
+
+    await screen.rerender({ withSlots: true })
+    await nextTick()
+    expect(custom()).toEqual({ edgeLabel: 1, edgesLabel: 1, layer: 1, root: 1 })
+
+    await screen.rerender({ withSlots: false })
+    await nextTick()
+    expect(custom()).toEqual(none)
+  })
+
   test("a node whose slot renders nothing gets the default shape and label", async () => {
     const screen = await render(SlotGraph, { props: { color: "#ff0000", withSlots: true } })
     const graph = screen.container.querySelector(".dynamic")!
