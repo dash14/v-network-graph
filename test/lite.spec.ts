@@ -254,6 +254,16 @@ describe("force layout", () => {
     )
   })
 
+  test("draws the ticks ahead of the layouts by default", async () => {
+    const { screen, state } = await mountLite({
+      configs: { view: { layoutHandler: layoutHandler() } },
+    })
+    await vi.waitUntil(
+      () => !isNear(state.layouts.nodes.node1, drawnPosition(screen.container, "node1")),
+      { timeout: 5000, interval: POLL_INTERVAL }
+    )
+  })
+
   test("getLayouts() returns the positions drawn, while the layouts lag behind", async () => {
     const { screen, state, graph } = await mountLite({
       configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },

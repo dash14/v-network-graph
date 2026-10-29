@@ -340,17 +340,12 @@ export type LiteGraphConfigs = Configs & {
 }
 
 /**
- * Get all default configs of a lite graph: those of VNetworkGraph, with the edges as it draws
- * them and the settings of its own.
+ * Get all default configs of a lite graph: those of VNetworkGraph, and the settings of its own.
  * @returns configs
  */
 export function getLiteConfigDefaults(): LiteGraphConfigs {
   const configs = getConfigDefaults()
-  return {
-    ...configs,
-    view: { ...configs.view, layoutsUpdateInterval: 300 },
-    edge: { ...configs.edge, type: "straight", summarize: false },
-  }
+  return { ...configs, view: { ...configs.view, layoutsUpdateInterval: 300 } }
 }
 
 export function getFullConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(
