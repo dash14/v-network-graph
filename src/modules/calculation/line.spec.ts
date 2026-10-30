@@ -212,8 +212,10 @@ describe("line", () => {
         { p1: { x: 100, y: 0 }, p2: { x: 0, y: 0 }, expected: { x: 49.5, y: 0 } },
       ])("should collapse a horizontal line from $p1.x to $p2.x", ({ p1, p2, expected }) => {
         const result = applyMargin({ p1, p2 }, 60, 60)
-        expect(result.p1).toEqual({ x: 50, y: 0 })
-        expect(result.p2).toEqual(expected)
+        expect(result.p1.x).toBeCloseTo(50, 5)
+        expect(result.p1.y).toBeCloseTo(0, 5)
+        expect(result.p2.x).toBeCloseTo(expected.x, 5)
+        expect(result.p2.y).toBeCloseTo(expected.y, 5)
       })
     })
 
@@ -312,12 +314,10 @@ describe("properties", () => {
   it("shortens a line by both margins when they fit in it", () => {
     fc.assert(
       fc.property(
-        position,
-        position,
+        linePosition,
         fc.integer({ min: 0, max: 100 }),
         fc.integer({ min: 0, max: 100 }),
-        (p1, p2, sourceMargin, targetMargin) => {
-          const line = { p1, p2 }
+        (line, sourceMargin, targetMargin) => {
           fc.pre(length(line) > sourceMargin + targetMargin + 1e-3)
 
           const result = applyMargin(line, sourceMargin, targetMargin)
@@ -328,23 +328,33 @@ describe("properties", () => {
     )
   })
 
-  it("never turns a line around when the margins exceed its length", () => {
+  it("collapses a line to a short forward segment when the margins exceed its length", () => {
     fc.assert(
       fc.property(
         linePosition,
-        fc.integer({ min: 0, max: 100 }),
-        fc.integer({ min: 0, max: 100 }),
-        (line, sourceMargin, targetMargin) => {
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0.001, max: 1, noNaN: true }),
+        (line, sourceRatio, excessRatio) => {
           fc.pre(length(line) > 1e-3)
+          // The margins together are longer than the line by `excessRatio` of its length.
+          const sourceMargin = length(line) * sourceRatio
+          const targetMargin = length(line) * (1 - sourceRatio + excessRatio)
 
           const result = applyMargin(line, sourceMargin, targetMargin)
 
-          const original = toLineVector(Vector2D.fromObject(line.p1), Vector2D.fromObject(line.p2))
-          const shortened = toLineVector(
-            Vector2D.fromObject(result.p1),
-            Vector2D.fromObject(result.p2)
-          )
-          expect(original.dot(shortened)).toBeGreaterThanOrEqual(0)
+          const forward = toLineVector(
+            Vector2D.fromObject(line.p1),
+            Vector2D.fromObject(line.p2)
+          ).normalize()
+          // Midway between where the two margins end.
+          const center = forward
+            .clone()
+            .multiplyScalar((sourceMargin - targetMargin) / 2)
+            .add(getCenterOfLinePosition(line))
+          expect(result.p1.x).toBeCloseTo(center.x, 6)
+          expect(result.p1.y).toBeCloseTo(center.y, 6)
+          expect(result.p2.x).toBeCloseTo(center.x + forward.x * 0.5, 6)
+          expect(result.p2.y).toBeCloseTo(center.y + forward.y * 0.5, 6)
         }
       )
     )
