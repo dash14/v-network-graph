@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from "vitest"
+import { afterEach, describe, expect, onTestFinished, test, vi } from "vitest"
 import { nextTick } from "vue"
 import { mountGraph } from "./helpers/graph"
 
@@ -148,5 +148,73 @@ describe("transitionWhile", () => {
     expect(viewport.classList.contains("v-ng-transition")).toBe(true)
     await expect.poll(() => viewport.getAttribute("class")).toBe(before)
     expect(viewport.classList).not.toContain("svg-pan-zoom_viewport")
+  })
+
+  test.each([
+    {
+      failure: "throws",
+      func: () => {
+        throw new Error("failed")
+      },
+    },
+    { failure: "rejects", func: () => Promise.reject(new Error("failed")) },
+  ])("the transition ends even if the function $failure", async ({ func }) => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const errors: unknown[] = []
+    const onRejection = (event: PromiseRejectionEvent) => {
+      event.preventDefault()
+      errors.push(event.reason)
+    }
+    window.addEventListener("unhandledrejection", onRejection)
+    onTestFinished(() => window.removeEventListener("unhandledrejection", onRejection))
+
+    graph.transitionWhile(func, 50)
+    await nextTick()
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+    // The error still reaches the page as an unhandled rejection.
+    await expect.poll(() => errors).toEqual([new Error("failed")])
+  })
+
+  test("an earlier call finishing later does not cut a later call short", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const earlier = Promise.withResolvers<void>()
+
+    graph.transitionWhile(() => earlier.promise, 50)
+    graph.transitionWhile(() => {}, 500)
+    await nextTick()
+    earlier.resolve()
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+  })
+
+  test("a shorter later call does not cut an earlier call's animation short", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const earlier = Promise.withResolvers<void>()
+
+    graph.transitionWhile(() => earlier.promise, 500)
+    graph.transitionWhile(() => {}, 50)
+    await nextTick()
+    earlier.resolve()
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+  })
+
+  test("the transition lasts until a later call that takes longer finishes", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const later = Promise.withResolvers<void>()
+
+    graph.transitionWhile(() => {}, 50)
+    graph.transitionWhile(() => later.promise, 50)
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    later.resolve()
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
   })
 })

@@ -27,6 +27,8 @@ function isPromise(obj: any): boolean {
 
 export function useTransitionWhile(): UseTransitionWhileReturn {
   let timerId: number | null = null
+  let running = 0
+  let longestDuration = 0
   const transitionOption = ref<TransitionParameters>({
     enabled: false,
     duration: 300,
@@ -48,19 +50,26 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
       timingFunction,
     }
 
+    running++
+    longestDuration = Math.max(longestDuration, duration)
     nextTick(async () => {
-      const promise = func()
-      if (isPromise(promise)) {
-        await promise
+      try {
+        const promise = func()
+        if (isPromise(promise)) {
+          await promise
+        }
+      } finally {
+        // Overlapping calls end together, after the last one finishes and
+        // the longest of their animations is done.
+        running--
+        if (running === 0) {
+          timerId = window?.setTimeout(() => {
+            transitionOption.value.enabled = false
+            timerId = null
+            longestDuration = 0
+          }, longestDuration)
+        }
       }
-
-      if (timerId) {
-        clearTimeout(timerId)
-      }
-      timerId = window?.setTimeout(() => {
-        transitionOption.value.enabled = false
-        timerId = null
-      }, duration)
     })
   }
 
