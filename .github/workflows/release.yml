@@ -148,8 +148,6 @@ jobs:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Set first so that a draft created before a failed upload still gets deleted.
-          echo "started=true" >> "$GITHUB_OUTPUT"
           PRERELEASE_FLAG=""
           case "$TAG" in
             *-*) PRERELEASE_FLAG="--prerelease" ;;
@@ -163,13 +161,14 @@ jobs:
           if [ -n "$PREV_TAG" ]; then
             NOTES_ARGS=(--notes-start-tag "$PREV_TAG")
           fi
-          gh release create "$TAG" "$RUNNER_TEMP"/package/*.tgz \
+          gh release create "$TAG" \
             --draft \
             --target "$GITHUB_SHA" \
             --title "$TAG" \
             --generate-notes \
             $PRERELEASE_FLAG \
             "${NOTES_ARGS[@]}"
+          echo "started=true" >> "$GITHUB_OUTPUT"
 
       # The version goes live only once a maintainer approves it on npm with 2FA. A prerelease goes
       # to the next dist-tag so that it never becomes latest. Runs outside the checkout because npm
@@ -209,8 +208,7 @@ jobs:
           echo "::error::${TAG#v} was not approved on npm within 30 minutes; see RELEASING.md for the draft release"
           exit 1
 
-      # Creates the tag. With immutable releases, the tag and the attached package are locked from
-      # here on.
+      # Creates the tag. With immutable releases, the tag is locked from here on.
       - name: Publish release
         env:
           TAG: ${{ inputs.tag }}
