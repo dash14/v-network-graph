@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Config, StrokeStyle } from "@/common/configs"
-import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
+import { Edge, EdgePosition, Edges, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
 import { useSummarizedEdgesState } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
@@ -55,35 +55,29 @@ const { hovered: summarizedHovered, selected: summarizedSelected } = useSummariz
   () => props.edges
 )
 
-function getStrokeConfig() {
-  if (props.isSummarized) {
-    return Config.values(edgeConfig.summarized.stroke, props.edges)
-  } else {
-    return props.state.line.stroke
-  }
-}
+const stroke = computed(() =>
+  props.isSummarized
+    ? Config.values(edgeConfig.summarized.stroke, props.edges)
+    : props.state.line.stroke
+)
 
-function toEdgePosition(line: LinePosition): EdgePosition {
-  return { source: line.p1, target: line.p2 }
-}
+const position = computed<EdgePosition>(() => ({
+  source: props.state.origin.p1,
+  target: props.state.origin.p2,
+}))
 
-function calculateCenterPoint(state: EdgeState): Point {
-  if (state.curve) {
-    return state.curve.center
-  } else {
-    const p1 = state.origin.p1
-    const p2 = state.origin.p2
-    return {
-      x: (p1.x + p2.x) / 2,
-      y: (p1.y + p2.y) / 2,
-    }
-  }
-}
+const center = computed<Point>(() => {
+  if (props.state.curve) return props.state.curve.center
+  const { p1, p2 } = props.state.origin
+  return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }
+})
 
 // Summarized edges are drawn as a straight line, even between the ends of a self-loop.
 const drawnEdge = computed(() =>
   props.isSummarized ? { position: props.state.position } : props.state
 )
+
+const length = computed(() => edgeLengthOf(drawnEdge.value))
 
 function calculatePointAtLength(distance: number): Point {
   if (Number.isNaN(distance)) return props.state.position.p1
@@ -97,13 +91,13 @@ function calculatePointAtLength(distance: number): Point {
       v-if="isSummarized"
       :edges="edges"
       :is-summarized="isSummarized"
-      :stroke="getStrokeConfig()"
-      :position="toEdgePosition(state.origin)"
-      :center="calculateCenterPoint(state)"
+      :stroke="stroke"
+      :position="position"
+      :center="center"
       :hovered="summarizedHovered"
       :selected="summarizedSelected"
       :scale="scale"
-      :length="edgeLengthOf(drawnEdge)"
+      :length="length"
       :point-at-length="calculatePointAtLength"
     />
     <slot
@@ -112,13 +106,13 @@ function calculatePointAtLength(distance: number): Point {
       :edge="edge!"
       :edges="{ [edgeId!]: edge! }"
       :is-summarized="isSummarized"
-      :stroke="getStrokeConfig()"
-      :position="toEdgePosition(state.origin)"
-      :center="calculateCenterPoint(state)"
+      :stroke="stroke"
+      :position="position"
+      :center="center"
       :hovered="state.hovered"
       :selected="state.selected"
       :scale="scale"
-      :length="edgeLengthOf(drawnEdge)"
+      :length="length"
       :point-at-length="calculatePointAtLength"
     />
   </g>

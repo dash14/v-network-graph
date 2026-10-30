@@ -1,7 +1,8 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
+import { userEvent } from "vitest/browser"
 import { h } from "vue"
 import type { Edges, UserConfigs } from "@/index"
-import { mountGraph } from "./helpers/graph"
+import { at, mountGraph } from "./helpers/graph"
 
 const nodes = {
   node1: { name: "Node 1" },
@@ -97,4 +98,30 @@ describe("edge overlay", () => {
       })
     }
   )
+
+  test("keeps the summarized stroke when only the hover changes", async () => {
+    const width = vi.fn(() => 4)
+    const { screen, canvas } = await mountGraph(
+      {
+        nodes,
+        edges: {
+          edge1: { source: "node1", target: "node2" },
+          edge2: { source: "node1", target: "node2" },
+        },
+        layouts,
+        configs: { edge: { summarize: () => true, summarized: { stroke: { width } } } },
+      },
+      { slots: { "edge-overlay": ({ hovered }) => h("g", { class: "overlay", hovered }) } }
+    )
+    const hovered = () => screen.container.querySelector(".overlay")?.getAttribute("hovered")
+    // Counts once the graph has settled, so that no call left from mounting is put on the hover.
+    await expect.poll(hovered).toBe("false")
+    await new Promise(resolve => requestAnimationFrame(resolve))
+    const calls = width.mock.calls.length
+
+    // Hovering redraws the overlay with the new state.
+    await userEvent.hover(canvas, { position: at(-50, 10) })
+    await expect.poll(hovered).toBe("true")
+    expect(width).toHaveBeenCalledTimes(calls)
+  })
 })
