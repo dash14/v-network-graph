@@ -1,7 +1,7 @@
 import * as fc from "fast-check"
 import { describe, expect, it } from "vitest"
 import { LinePosition } from "@/common/types"
-import { Vector2D } from "@/modules/vector2d"
+import { Vector2D, distance } from "@/modules/vector2d"
 import {
   VectorLine,
   toLineVector,
@@ -294,7 +294,7 @@ describe("line", () => {
 describe("properties", () => {
   const coordinate = fc.double({ min: -1e4, max: 1e4, noNaN: true })
   const position = fc.record({ x: coordinate, y: coordinate })
-  const length = (line: LinePosition) => Math.hypot(line.p2.x - line.p1.x, line.p2.y - line.p1.y)
+  const length = (line: LinePosition) => distance(line.p1, line.p2)
 
   it("shortens a line by both margins when they fit in it", () => {
     fc.assert(

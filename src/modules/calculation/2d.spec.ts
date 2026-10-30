@@ -2,7 +2,7 @@ import * as fc from "fast-check"
 import { describe, expect, it } from "vitest"
 import { CircleShapeStyle, RectangleShapeStyle, StrokeStyle } from "../../common/configs"
 import { Position } from "../../common/types"
-import { Vector2D } from "../vector2d"
+import { Vector2D, distance } from "../vector2d"
 import * as v2d from "./2d"
 import { VectorLine } from "./line"
 
@@ -427,54 +427,75 @@ describe("calculateBezierCurveControlPoint", () => {
 describe("properties", () => {
   const coordinate = fc.double({ min: -1e4, max: 1e4, noNaN: true })
   const position = fc.record({ x: coordinate, y: coordinate })
-  const distance = (p1: Position, p2: Position) => Math.hypot(p2.x - p1.x, p2.y - p1.y)
+  const rectShape = fc
+    .record({
+      width: fc.integer({ min: 1, max: 200 }),
+      height: fc.integer({ min: 1, max: 200 }),
+      strokeWidth: fc.integer({ min: 0, max: 10 }),
+      roundness: fc.double({ min: 0, max: 1, noNaN: true }),
+    })
+    .map(({ width, height, strokeWidth, roundness }): RectangleShapeStyle => ({
+      type: "rect",
+      width,
+      height,
+      borderRadius: (Math.min(width, height) / 2) * roundness,
+      strokeWidth,
+      color: "#fff",
+    }))
 
-  it("puts the end of a rect node between its inscribed and circumscribed circles", () => {
+  // Signed distance from `p` to the outline of a rect node centered at the origin.
+  function distanceToOutline(p: Position, shape: RectangleShapeStyle) {
+    const radius = shape.borderRadius > 0 ? shape.borderRadius + shape.strokeWidth / 2 : 0
+    const qx = Math.abs(p.x) - ((shape.width + shape.strokeWidth) / 2 - radius)
+    const qy = Math.abs(p.y) - ((shape.height + shape.strokeWidth) / 2 - radius)
+    return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - radius
+  }
+
+  function circumradius(shape: RectangleShapeStyle) {
+    return Math.hypot(shape.width + shape.strokeWidth, shape.height + shape.strokeWidth) / 2
+  }
+
+  it("puts both ends of an edge between rect nodes on their outlines", () => {
     fc.assert(
       fc.property(
         position,
         position,
-        fc.integer({ min: 1, max: 200 }),
-        fc.integer({ min: 1, max: 200 }),
-        fc.integer({ min: 0, max: 10 }),
-        fc.double({ min: 0, max: 1, noNaN: true }),
-        (nodePos, otherPos, width, height, strokeWidth, roundness) => {
-          const halfWidth = (width + strokeWidth) / 2
-          const halfHeight = (height + strokeWidth) / 2
-          // The other node's center must lie outside this node.
-          fc.pre(distance(nodePos, otherPos) > Math.hypot(halfWidth, halfHeight))
-          const shape: RectangleShapeStyle = {
-            type: "rect",
-            width,
-            height,
-            borderRadius: (Math.min(width, height) / 2) * roundness,
-            strokeWidth,
-            color: "#fff",
-          }
+        rectShape,
+        rectShape,
+        (sourcePos, targetPos, sourceShape, targetShape) => {
+          // Each node's center must lie outside the other node.
+          fc.pre(
+            distance(sourcePos, targetPos) >
+              Math.max(circumradius(sourceShape), circumradius(targetShape))
+          )
+          const direction = Vector2D.fromObject(targetPos).subtract(sourcePos).normalize()
 
-          const [d] = v2d.calculateDistancesFromCenterOfNodeToEndOfNode(
-            nodePos,
-            otherPos,
-            shape,
-            shape
+          const [sourceEnd, targetEnd] = v2d.calculateDistancesFromCenterOfNodeToEndOfNode(
+            sourcePos,
+            targetPos,
+            sourceShape,
+            targetShape
           )
 
-          expect(d).toBeGreaterThanOrEqual(Math.min(halfWidth, halfHeight) - 1e-6)
-          expect(d).toBeLessThanOrEqual(Math.hypot(halfWidth, halfHeight) + 1e-6)
+          const sourceOffset = direction.clone().multiplyScalar(sourceEnd)
+          const targetOffset = direction.clone().multiplyScalar(-targetEnd)
+          expect(distanceToOutline(sourceOffset, sourceShape)).toBeCloseTo(0, 6)
+          expect(distanceToOutline(targetOffset, targetShape)).toBeCloseTo(0, 6)
         }
       )
     )
   })
 
-  it("keeps the edge label area as wide as the stroke plus both margins", () => {
+  it("places the edge label area along the edge with its top facing up", () => {
     fc.assert(
       fc.property(
         position,
         position,
         fc.integer({ min: 0, max: 10 }),
         fc.integer({ min: 0, max: 10 }),
+        fc.integer({ min: 0, max: 20 }),
         fc.double({ min: 0.1, max: 10, noNaN: true }),
-        (p1, p2, width, margin, scale) => {
+        (p1, p2, width, margin, padding, scale) => {
           fc.pre(distance(p1, p2) > 1e-3)
           const edgeStyle: StrokeStyle = {
             width,
@@ -483,11 +504,35 @@ describe("properties", () => {
             animationSpeed: 50,
           }
 
-          const area = v2d.calculateEdgeLabelArea({ p1, p2 }, edgeStyle, margin, 0, scale)
+          const area = v2d.calculateEdgeLabelArea({ p1, p2 }, edgeStyle, margin, padding, scale)
 
-          const expected = (width + 2 * margin) * scale
-          expect(distance(area.source.above, area.source.below)).toBeCloseTo(expected, 6)
-          expect(distance(area.target.above, area.target.below)).toBeCloseTo(expected, 6)
+          const forward = Vector2D.fromObject(p2).subtract(p1).normalize()
+          // On a nearly vertical edge, which way the label reads depends on rounding.
+          fc.pre(forward.x === 0 || Math.abs(forward.x) > 1e-9)
+          // The text reads left to right, or upward on a vertical edge.
+          const reading =
+            forward.x > 0 || (forward.x === 0 && forward.y < 0)
+              ? forward
+              : forward.clone().multiplyScalar(-1)
+          const up = new Vector2D(reading.y, -reading.x)
+          const sourceCenter = forward
+            .clone()
+            .multiplyScalar(padding * scale)
+            .add(p1)
+          const targetCenter = forward
+            .clone()
+            .multiplyScalar(-padding * scale)
+            .add(p2)
+          const offset = up.multiplyScalar(((width + 2 * margin) * scale) / 2)
+          for (const [end, center] of [
+            [area.source, sourceCenter],
+            [area.target, targetCenter],
+          ] as const) {
+            expect(end.above.x).toBeCloseTo(center.x + offset.x, 6)
+            expect(end.above.y).toBeCloseTo(center.y + offset.y, 6)
+            expect(end.below.x).toBeCloseTo(center.x - offset.x, 6)
+            expect(end.below.y).toBeCloseTo(center.y - offset.y, 6)
+          }
         }
       )
     )
@@ -511,9 +556,12 @@ describe("properties", () => {
   it("finds a circle that passes through all three points", () => {
     fc.assert(
       fc.property(position, position, position, (p1, p2, p3) => {
-        // Collinear points have no circle.
+        fc.pre(Math.min(distance(p1, p2), distance(p2, p3), distance(p3, p1)) > 1e-3)
+        // Nearly collinear points have a huge circle that floating point cannot pin down.
         const cross = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)
-        fc.pre(Math.abs(cross) > 1)
+        const expectedRadius =
+          (distance(p1, p2) * distance(p2, p3) * distance(p3, p1)) / (2 * Math.abs(cross))
+        fc.pre(expectedRadius < 1e6)
         const points = [p1, p2, p3].map(p => Vector2D.fromObject(p))
 
         const [center, radius] = v2d.calculateCircleCenterAndRadiusBy3Points(
@@ -522,10 +570,10 @@ describe("properties", () => {
           points[2]
         )
 
+        const tolerance = 1e-6 * expectedRadius
+        expect(Math.abs(radius - expectedRadius)).toBeLessThanOrEqual(tolerance)
         for (const p of points) {
-          expect(Math.abs(distance(center, p) - radius)).toBeLessThanOrEqual(
-            1e-6 * Math.max(1, radius)
-          )
+          expect(Math.abs(distance(center, p) - radius)).toBeLessThanOrEqual(tolerance)
         }
       })
     )
