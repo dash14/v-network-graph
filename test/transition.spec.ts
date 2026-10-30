@@ -137,4 +137,16 @@ describe("transitionWhile", () => {
     await wait(800)
     measure().forEach((value, i) => expect(value - start[i]).toBeCloseTo(100, 0))
   })
+
+  test("leaves the class of the viewport as it was once done", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const before = viewport.getAttribute("class")
+
+    graph.transitionWhile(() => {}, 50)
+    await nextTick()
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.getAttribute("class")).toBe(before)
+    expect(viewport.classList).not.toContain("svg-pan-zoom_viewport")
+  })
 })

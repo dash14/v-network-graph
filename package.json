@@ -46,7 +46,7 @@
     "test:docker": "scripts/test-docker.sh"
   },
   "dependencies": {
-    "@dash14/svg-pan-zoom": "^4.0.0",
+    "@dash14/svg-pan-zoom": "^4.1.0",
     "lodash-es": "^4.18.1",
     "mitt": "^3.0.1"
   },

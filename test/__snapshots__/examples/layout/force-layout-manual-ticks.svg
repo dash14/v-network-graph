@@ -1,5 +1,5 @@
 <svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
-  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(0.7819235920906067 0 0 0.7819235920906067 0 0)">
+  <g class="v-ng-viewport" transform="matrix(0.7819235920906067 0 0 0.7819235920906067 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" stroke="transparent" stroke-width="15.34676722235512" fill="none" d="M 47.138354796634545 -61.9369213006874 L -58.50422441025683 -3.7610846020921693" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="15.34676722235512" fill="none" d="M 111.00441164977563 39.91181083482524 L 47.138354796634545 -61.9369213006874" />
