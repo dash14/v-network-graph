@@ -177,16 +177,10 @@ describe("transitionWhile", () => {
     await expect.poll(() => errors).toEqual([new Error("failed")])
   })
 
-  function deferred() {
-    let resolve!: () => void
-    const promise = new Promise<void>(r => (resolve = r))
-    return { promise, resolve }
-  }
-
   test("an earlier call finishing later does not cut a later call short", async () => {
     const { screen, graph } = await mountGraph({ nodes, layouts })
     const viewport = screen.container.querySelector(".v-ng-viewport")!
-    const earlier = deferred()
+    const earlier = Promise.withResolvers<void>()
 
     graph.transitionWhile(() => earlier.promise, 50)
     graph.transitionWhile(() => {}, 500)
@@ -200,7 +194,7 @@ describe("transitionWhile", () => {
   test("the transition lasts until a later call that takes longer finishes", async () => {
     const { screen, graph } = await mountGraph({ nodes, layouts })
     const viewport = screen.container.querySelector(".v-ng-viewport")!
-    const later = deferred()
+    const later = Promise.withResolvers<void>()
 
     graph.transitionWhile(() => {}, 50)
     graph.transitionWhile(() => later.promise, 50)
