@@ -194,8 +194,6 @@ describe("line", () => {
     })
 
     describe("boundary: margin sum exceeds line length (reversal)", () => {
-      // Use vertical line because reversal detection uses angle comparison
-      // which requires non-zero angles for proper detection
       const linePos = { p1: { x: 0, y: 0 }, p2: { x: 0, y: 100 } }
 
       it("should handle reversal when margins exceed line length", () => {
@@ -207,6 +205,15 @@ describe("line", () => {
         expect(result.p2.x).toBeCloseTo(0, 5)
         expect(result.p1.y).toBeCloseTo(centerY, 0)
         expect(result.p2.y).toBeCloseTo(centerY + 0.5, 0)
+      })
+
+      it.each([
+        { p1: { x: 0, y: 0 }, p2: { x: 100, y: 0 }, expected: { x: 50.5, y: 0 } },
+        { p1: { x: 100, y: 0 }, p2: { x: 0, y: 0 }, expected: { x: 49.5, y: 0 } },
+      ])("should collapse a horizontal line from $p1.x to $p2.x", ({ p1, p2, expected }) => {
+        const result = applyMargin({ p1, p2 }, 60, 60)
+        expect(result.p1).toEqual({ x: 50, y: 0 })
+        expect(result.p2).toEqual(expected)
       })
     })
 
@@ -294,6 +301,12 @@ describe("line", () => {
 describe("properties", () => {
   const coordinate = fc.double({ min: -1e4, max: 1e4, noNaN: true })
   const position = fc.record({ x: coordinate, y: coordinate })
+  // Horizontal and vertical lines are common in graphs, and random positions almost never make one.
+  const linePosition = fc.oneof(
+    fc.record({ p1: position, p2: position }),
+    fc.tuple(position, coordinate).map(([p1, x]) => ({ p1, p2: { x, y: p1.y } })),
+    fc.tuple(position, coordinate).map(([p1, y]) => ({ p1, p2: { x: p1.x, y } }))
+  )
   const length = (line: LinePosition) => distance(line.p1, line.p2)
 
   it("shortens a line by both margins when they fit in it", () => {
@@ -310,6 +323,28 @@ describe("properties", () => {
           const result = applyMargin(line, sourceMargin, targetMargin)
 
           expect(length(result)).toBeCloseTo(length(line) - sourceMargin - targetMargin, 6)
+        }
+      )
+    )
+  })
+
+  it("never turns a line around when the margins exceed its length", () => {
+    fc.assert(
+      fc.property(
+        linePosition,
+        fc.integer({ min: 0, max: 100 }),
+        fc.integer({ min: 0, max: 100 }),
+        (line, sourceMargin, targetMargin) => {
+          fc.pre(length(line) > 1e-3)
+
+          const result = applyMargin(line, sourceMargin, targetMargin)
+
+          const original = toLineVector(Vector2D.fromObject(line.p1), Vector2D.fromObject(line.p2))
+          const shortened = toLineVector(
+            Vector2D.fromObject(result.p1),
+            Vector2D.fromObject(result.p2)
+          )
+          expect(original.dot(shortened)).toBeGreaterThanOrEqual(0)
         }
       )
     )
