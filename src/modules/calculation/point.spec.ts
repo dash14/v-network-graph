@@ -543,18 +543,19 @@ describe("point", () => {
 })
 
 describe("properties", () => {
-  const coordinate = fc.double({ min: -1e4, max: 1e4, noNaN: true })
+  // Wide enough for a small circle far from the origin.
+  const coordinate = fc.double({ min: -1e7, max: 1e7, noNaN: true })
   const position = fc.record({ x: coordinate, y: coordinate })
 
-  it("treats a point on a large circle as inside it", () => {
+  it("treats a point on a circle as inside it, however slightly the arc bends", () => {
     fc.assert(
       fc.property(
         position,
         position,
-        fc.double({ min: 0.5, max: 50, noNaN: true }),
+        fc.double({ min: 1e-6, max: 50, noNaN: true }),
         (p1, p2, bend) => {
           fc.pre(distance(p1, p2) > 10)
-          // A slightly bent arc through both points, as a nearly straight curved edge makes.
+          // An arc through both points, bent as little as a nearly straight curved edge.
           const source = Vector2D.fromObject(p1)
           const target = Vector2D.fromObject(p2)
           const forward = target.clone().subtract(source).normalize()
@@ -563,9 +564,12 @@ describe("properties", () => {
             .add(source.clone().add(target).multiplyScalar(0.5))
           const [center, radius] = calculateCircleCenterAndRadiusBy3Points(source, middle, target)
 
-          const result = getIntersectionOfLineTargetAndCircle(middle, target, center, radius)
-
-          expect(result).not.toBeNull()
+          expect(
+            getIntersectionOfLineTargetAndCircle(middle, target, center, radius)
+          ).not.toBeNull()
+          expect(
+            getIntersectionOfLineTargetAndCircle2(middle, target, center, radius, target)
+          ).not.toBeNull()
         }
       )
     )

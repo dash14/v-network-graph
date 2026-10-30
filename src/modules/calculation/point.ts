@@ -1,18 +1,54 @@
 import V, { Vector2D } from "@/modules/vector2d"
 import { VectorLine } from "./line"
 
+// Rounding errors grow with the size of the circle and of its coordinates. A node center on the
+// arc of a nearly straight curve, whose radius can be in the millions, lands slightly off it.
+const RELATIVE_TOLERANCE = 1e-9
+
 /**
- * Whether a point is inside or on a circle.
- * @param p point
+ * Calculate where a line through a target inside a circle crosses the circle.
+ * @param source source position of the line
+ * @param target target position of the line
  * @param center center of the circle
  * @param radius radius of the circle
- * @returns whether the point is inside or on the circle
+ * @returns the point on the line nearest the center, and the vector along the line from there to
+ * a crossing, or null if the target is outside the circle
  */
-function isInsideCircle(p: Vector2D, center: Vector2D, radius: number): boolean {
-  // A point on a large circle, such as the arc of a nearly straight curve, can land outside it
-  // by a rounding error that grows with the radius.
-  const radiusSquared = radius * radius
-  return V.lengthSquared(V.subtract(p, center)) - radiusSquared <= radiusSquared * 1e-9
+function getChordOfLineTargetAndCircle(
+  source: Vector2D,
+  target: Vector2D,
+  center: Vector2D,
+  radius: number
+): [Vector2D, Vector2D] | null {
+  const tolerance = RELATIVE_TOLERANCE * (radius + Math.max(Math.abs(center.x), Math.abs(center.y)))
+
+  // Does the node contain a point?
+  if (V.distance(target, center) > radius + tolerance) return null // Not contained.
+
+  // If contained, calculate the intersection point.
+
+  // Find the nearest point `h` between `c` and the line
+  const line = VectorLine.fromVectors(source, target)
+  const h = getNearestPoint(center, line)
+
+  // Let `hp` be the vector from `c` to `h`.
+  const hpLen = V.length(V.subtract(h, center))
+
+  // If `hpLen` is larger than the radius of the circle,
+  // there is no intersection.
+  if (hpLen > radius + tolerance) return null
+
+  // Let `t` be the distance from `h` to the contact point, and
+  // derive t from the Three Square Theorem. When the line and the
+  // circle are tangent, `hpLen` is `r` and `t` is 0.
+  const t = Math.sqrt(Math.max(0, radius ** 2 - hpLen ** 2))
+
+  // Let `tv` be the vector of the normalized direction vector of
+  // the line multiplied by t
+  // - intersection point 1：p + tv
+  // - intersection point 2：p - tv
+  const tv = line.v.normalize().multiplyScalar(t)
+  return [h, tv]
 }
 
 /**
@@ -64,36 +100,9 @@ export function getIntersectionOfLineTargetAndCircle(
   center: Vector2D,
   radius: number
 ): Vector2D | null {
-  // Does the node contain a point?
-  if (!isInsideCircle(target, center, radius)) return null // Not contained.
-
-  // If contained, calculate the intersection point.
-
-  // Find the nearest point `h` between `c` and the line
-  const line = VectorLine.fromVectors(source, target)
-  const h = getNearestPoint(center, line)
-
-  // Let `hp` be the vector from `c` to `h`.
-  const hpLen = V.length(V.subtract(h, center))
-
-  // If `hpLen` is larger than the radius of the circle,
-  // there is no intersection.
-  if (radius < hpLen) return null
-
-  // When a straight line and a circle are tangent, `hpLen` is `r`.
-  // Then the point of contact is the nearest point between the
-  // center and the line.
-  if (radius === hpLen) return h
-
-  // Let `t` be the distance from `h` to the contact point, and
-  // derive t from the Three Square Theorem.
-  const t = Math.sqrt(radius ** 2 - hpLen ** 2)
-
-  // Let `tv` be the vector of the normalized direction vector of
-  // the line multiplied by t
-  // - intersection point 1：p + tv
-  // - intersection point 2：p - tv
-  const tv = line.v.normalize().multiplyScalar(t)
+  const chord = getChordOfLineTargetAndCircle(source, target, center, radius)
+  if (!chord) return null
+  const [h, tv] = chord
 
   // Calculate the addition or subtraction depending on which side
   // of the line to focus on.
@@ -107,36 +116,10 @@ export function getIntersectionOfLineTargetAndCircle2(
   radius: number,
   nearBy: Vector2D
 ): Vector2D | null {
-  // Does the node contain a point?
-  if (!isInsideCircle(target, center, radius)) return null // Not contained.
+  const chord = getChordOfLineTargetAndCircle(source, target, center, radius)
+  if (!chord) return null
+  const [h, tv] = chord
 
-  // If contained, calculate the intersection point.
-
-  // Find the nearest point `h` between `c` and the line
-  const line = VectorLine.fromVectors(source, target)
-  const h = getNearestPoint(center, line)
-
-  // Let `hp` be the vector from `c` to `h`.
-  const hpLen = V.length(V.subtract(h, center))
-
-  // If `hpLen` is larger than the radius of the circle,
-  // there is no intersection.
-  if (radius < hpLen) return null
-
-  // When a straight line and a circle are tangent, `hpLen` is `r`.
-  // Then the point of contact is the nearest point between the
-  // center and the line.
-  if (radius === hpLen) return h
-
-  // Let `t` be the distance from `h` to the contact point, and
-  // derive t from the Three Square Theorem.
-  const t = Math.sqrt(radius ** 2 - hpLen ** 2)
-
-  // Let `tv` be the vector of the normalized direction vector of
-  // the line multiplied by t
-  // - intersection point 1：p + tv
-  // - intersection point 2：p - tv
-  const tv = line.v.normalize().multiplyScalar(t)
   const ip1 = h.clone().add(tv)
   const ip2 = h.clone().subtract(tv)
 
