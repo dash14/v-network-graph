@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { useStates } from "@/composables/state"
+import { drawnStateOf, useStates } from "@/composables/state"
 import { EdgeGroup } from "@/models/edge"
 import VEdgeLabelPlace, { EdgeLabelSlotProps } from "./VEdgeLabelPlace.vue"
 import VEdgeLabelsPlace, { EdgeLabelsSlotProps } from "./VEdgeLabelsPlace.vue"
@@ -36,10 +36,6 @@ const edgeGroups = computed(() => {
   })
   return { individual, summarized }
 })
-
-function getRepresentativeEdgeKey(group: EdgeGroup) {
-  return Object.keys(group.edges)[0]
-}
 </script>
 
 <template>
@@ -58,8 +54,9 @@ function getRepresentativeEdgeKey(group: EdgeGroup) {
     <template v-if="enableEdgesLabel">
       <template v-for="(group, id) in edgeGroups.summarized" :key="id">
         <v-edge-labels-place
+          v-if="drawnStateOf(edgeStates, group.edges)"
           :edges="group.edges"
-          :state="edgeStates[getRepresentativeEdgeKey(group)]"
+          :state="drawnStateOf(edgeStates, group.edges)!"
         >
           <template #default="slotProps">
             <slot name="edges-label" v-bind="slotProps" />

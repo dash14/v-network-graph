@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Edges } from "@/common/types"
-import { useStates, isSummarizedEdges } from "@/composables/state"
+import { drawnStateOf, useStates, isSummarizedEdges } from "@/composables/state"
 import VEdge from "./VEdge.vue"
 import VEdgeOverlay, { EdgeOverlaySlotProps } from "./VEdgeOverlay.vue"
 import VEdgeSummarized from "./VEdgeSummarized.vue"
@@ -10,12 +9,6 @@ defineProps<{ hasEdgeOverlaySlot: boolean }>()
 defineSlots<{ default: (props: EdgeOverlaySlotProps) => any }>()
 
 const { edgeStates, edgeZOrderedList, layouts } = useStates()
-
-// The edge that a summarized group is drawn with, which the overlay measures too.
-function drawnStateOf(edges: Edges) {
-  const edgeId = Object.keys(edges).find(edgeId => edgeId in edgeStates)
-  return edgeId ? edgeStates[edgeId] : undefined
-}
 
 // type FlattenEdge = {
 //     key: string
@@ -49,10 +42,10 @@ function drawnStateOf(edges: Edges) {
     <template v-if="isSummarizedEdges(entry)">
       <v-edge-summarized :key="entry.key" :edges="entry.group.edges" :layouts="layouts.nodes" />
       <v-edge-overlay
-        v-if="hasEdgeOverlaySlot && drawnStateOf(entry.group.edges)"
+        v-if="hasEdgeOverlaySlot && drawnStateOf(edgeStates, entry.group.edges)"
         :key="entry.key"
         :edges="entry.group.edges"
-        :state="drawnStateOf(entry.group.edges)!"
+        :state="drawnStateOf(edgeStates, entry.group.edges)!"
         :is-summarized="true"
       >
         <template #default="slotProps">

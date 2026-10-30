@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
+import { userEvent } from "vitest/browser"
 import { h } from "vue"
-import { mountGraph } from "./helpers/graph"
+import { at, mountGraph } from "./helpers/graph"
 
 const props = () => ({
   nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
@@ -34,6 +35,19 @@ describe("the slots of summarized edges", () => {
       state.selectedEdges = ["edge2"]
       await expect.poll(() => slot()?.getAttribute("data-selected")).toBe("true")
       expect(screen.container.querySelector(".v-ng-line-summarized.selected")).not.toBeNull()
+    }
+  )
+
+  test.each(["overlay", "label"])(
+    "the %s slot gets hovered with the summarized line",
+    async name => {
+      const { screen, canvas } = await mountGraph(props(), { slots })
+      const slot = () => screen.container.querySelector(`g.${name}`)
+      expect(slot()?.getAttribute("data-hovered")).toBe("false")
+
+      await userEvent.hover(canvas, { position: at(-50, 0) })
+      await expect.poll(() => slot()?.getAttribute("data-hovered")).toBe("true")
+      expect(screen.container.querySelector(".v-ng-line-summarized.hovered")).not.toBeNull()
     }
   )
 })

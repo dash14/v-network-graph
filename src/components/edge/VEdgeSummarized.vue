@@ -7,7 +7,7 @@ import VLine from "@/components/base/VLine.vue"
 import VShape from "@/components/base/VShape.vue"
 import { useEdgeConfig } from "@/composables/config"
 import { useMouseOperation } from "@/composables/mouse"
-import { useStates } from "@/composables/state"
+import { drawnStateOf, useStates, useSummarizedEdgesState } from "@/composables/state"
 
 const props = defineProps<{
   edges: Edges
@@ -32,9 +32,9 @@ const pos = ref<LinePosition>({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } })
 const centerPos = ref<Position>({ x: 0, y: 0 })
 
 watchEffect(() => {
-  const edgeId = Object.keys(props.edges).find(edgeId => edgeId in edgeStates)
-  if (edgeId) {
-    pos.value = edgeStates[edgeId].position
+  const state = drawnStateOf(edgeStates, props.edges)
+  if (state) {
+    pos.value = state.position
     centerPos.value = {
       x: (pos.value.p1.x + pos.value.p2.x) / 2,
       y: (pos.value.p1.y + pos.value.p2.y) / 2,
@@ -47,9 +47,7 @@ const labelConfig = computed(() => Config.values(config.summarized.label, props.
 const shapeConfig = computed(() => Config.values(config.summarized.shape, props.edges))
 const strokeConfig = computed(() => Config.values(config.summarized.stroke, props.edges))
 
-const hovered = computed(() => edgeIds.value.some(edge => edgeStates[edge].hovered))
-const selectable = computed(() => edgeIds.value.some(edge => edgeStates[edge].selectable))
-const selected = computed(() => edgeIds.value.some(edge => edgeStates[edge].selected))
+const { hovered, selectable, selected } = useSummarizedEdgesState(() => props.edges)
 </script>
 
 <template>

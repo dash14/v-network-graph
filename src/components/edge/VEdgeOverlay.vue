@@ -3,7 +3,7 @@ import { computed } from "vue"
 import { Config, StrokeStyle } from "@/common/configs"
 import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
-import { useStates } from "@/composables/state"
+import { useSummarizedEdgesState } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { EdgeState } from "@/models/edge"
 import { edgeLengthOf, pointAlongEdge } from "@/modules/edge/geometry"
@@ -51,14 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { scale } = useZoomLevel()
 const edgeConfig = useEdgeConfig()
-const { edgeStates } = useStates()
-
-// As the summarized line is, when any of the edges is.
-const summarizedHovered = computed(() =>
-  Object.keys(props.edges).some(id => edgeStates[id]?.hovered)
-)
-const summarizedSelected = computed(() =>
-  Object.keys(props.edges).some(id => edgeStates[id]?.selected)
+const { hovered: summarizedHovered, selected: summarizedSelected } = useSummarizedEdgesState(
+  () => props.edges
 )
 
 function getStrokeConfig() {

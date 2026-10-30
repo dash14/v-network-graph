@@ -1,7 +1,7 @@
 // Wires the states of nodes, edges and paths together
 
 import type { ComputedRef, InjectionKey, Ref } from "vue"
-import { ref, shallowRef, toRaw, triggerRef, watchEffect, inject, provide } from "vue"
+import { computed, ref, shallowRef, toRaw, triggerRef, watchEffect, inject, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
@@ -240,4 +240,18 @@ export function isSummarizedEdges(item: EdgeModel.EdgeItem): item is EdgeModel.S
 
 export function useStates() {
   return nonNull(inject(statesKey), "states") as ReadonlyStates
+}
+
+/** The state of the edge that a summarized group is drawn with: the first one that has a state. */
+export function drawnStateOf(edgeStates: EdgeModel.EdgeStates, edges: Edges) {
+  const edgeId = Object.keys(edges).find(edgeId => edgeId in edgeStates)
+  return edgeId ? edgeStates[edgeId] : undefined
+}
+
+/** Whether a summarized group is hovered, selectable or selected: whether any of its edges is. */
+export function useSummarizedEdgesState(edges: () => Edges) {
+  const { edgeStates } = useStates()
+  const some = (key: "hovered" | "selectable" | "selected") =>
+    computed(() => Object.keys(edges()).some(id => edgeStates[id]?.[key]))
+  return { hovered: some("hovered"), selectable: some("selectable"), selected: some("selected") }
 }
