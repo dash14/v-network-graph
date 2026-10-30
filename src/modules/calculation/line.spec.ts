@@ -194,8 +194,6 @@ describe("line", () => {
     })
 
     describe("boundary: margin sum exceeds line length (reversal)", () => {
-      // Use vertical line because reversal detection uses angle comparison
-      // which requires non-zero angles for proper detection
       const linePos = { p1: { x: 0, y: 0 }, p2: { x: 0, y: 100 } }
 
       it("should handle reversal when margins exceed line length", () => {
@@ -207,6 +205,17 @@ describe("line", () => {
         expect(result.p2.x).toBeCloseTo(0, 5)
         expect(result.p1.y).toBeCloseTo(centerY, 0)
         expect(result.p2.y).toBeCloseTo(centerY + 0.5, 0)
+      })
+
+      it.each([
+        { p1: { x: 0, y: 0 }, p2: { x: 100, y: 0 }, expected: { x: 50.5, y: 0 } },
+        { p1: { x: 100, y: 0 }, p2: { x: 0, y: 0 }, expected: { x: 49.5, y: 0 } },
+      ])("should collapse a horizontal line from $p1.x to $p2.x", ({ p1, p2, expected }) => {
+        const result = applyMargin({ p1, p2 }, 60, 60)
+        expect(result.p1.x).toBeCloseTo(50, 5)
+        expect(result.p1.y).toBeCloseTo(0, 5)
+        expect(result.p2.x).toBeCloseTo(expected.x, 5)
+        expect(result.p2.y).toBeCloseTo(expected.y, 5)
       })
     })
 
@@ -294,22 +303,58 @@ describe("line", () => {
 describe("properties", () => {
   const coordinate = fc.double({ min: -1e4, max: 1e4, noNaN: true })
   const position = fc.record({ x: coordinate, y: coordinate })
+  // Horizontal and vertical lines are common in graphs, and random positions almost never make one.
+  const linePosition = fc.oneof(
+    fc.record({ p1: position, p2: position }),
+    fc.tuple(position, coordinate).map(([p1, x]) => ({ p1, p2: { x, y: p1.y } })),
+    fc.tuple(position, coordinate).map(([p1, y]) => ({ p1, p2: { x: p1.x, y } }))
+  )
   const length = (line: LinePosition) => distance(line.p1, line.p2)
 
   it("shortens a line by both margins when they fit in it", () => {
     fc.assert(
       fc.property(
-        position,
-        position,
+        linePosition,
         fc.integer({ min: 0, max: 100 }),
         fc.integer({ min: 0, max: 100 }),
-        (p1, p2, sourceMargin, targetMargin) => {
-          const line = { p1, p2 }
+        (line, sourceMargin, targetMargin) => {
           fc.pre(length(line) > sourceMargin + targetMargin + 1e-3)
 
           const result = applyMargin(line, sourceMargin, targetMargin)
 
           expect(length(result)).toBeCloseTo(length(line) - sourceMargin - targetMargin, 6)
+        }
+      )
+    )
+  })
+
+  it("collapses a line to a short forward segment when the margins exceed its length", () => {
+    fc.assert(
+      fc.property(
+        linePosition,
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0.001, max: 1, noNaN: true }),
+        (line, sourceRatio, excessRatio) => {
+          fc.pre(length(line) > 1e-3)
+          // The margins together are longer than the line by `excessRatio` of its length.
+          const sourceMargin = length(line) * sourceRatio
+          const targetMargin = length(line) * (1 - sourceRatio + excessRatio)
+
+          const result = applyMargin(line, sourceMargin, targetMargin)
+
+          const forward = toLineVector(
+            Vector2D.fromObject(line.p1),
+            Vector2D.fromObject(line.p2)
+          ).normalize()
+          // Midway between where the two margins end.
+          const center = forward
+            .clone()
+            .multiplyScalar((sourceMargin - targetMargin) / 2)
+            .add(getCenterOfLinePosition(line))
+          expect(result.p1.x).toBeCloseTo(center.x, 6)
+          expect(result.p1.y).toBeCloseTo(center.y, 6)
+          expect(result.p2.x).toBeCloseTo(center.x + forward.x * 0.5, 6)
+          expect(result.p2.y).toBeCloseTo(center.y + forward.y * 0.5, 6)
         }
       )
     )

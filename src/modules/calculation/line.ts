@@ -90,7 +90,7 @@ function applyMarginInner(
   let p2 = tv.toObject()
 
   const check = toLineVector(sv, tv)
-  if (line.v.angle() * check.angle() < 0) {
+  if (line.v.dot(check) < 0) {
     // reversed
     const c1 = new Vector2D((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
     const c2 = c1.clone().add(normalized.multiplyScalar(0.5))
