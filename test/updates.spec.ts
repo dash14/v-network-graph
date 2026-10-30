@@ -34,25 +34,24 @@ const graph = (): GraphProps => {
 }
 
 // The summarized stroke is as wide as the edges in the group added up.
-const graphWithSummarizedStroke = (): GraphProps => ({
-  ...graph(),
-  edges: {
+const graphWithSummarizedStroke = (): GraphProps => {
+  const props = graph()
+  props.edges = {
     edge1: { source: "node1", target: "node2", width: 10 },
     edge2: { source: "node2", target: "node3" },
     edge3: { source: "node2", target: "node1", width: 10 },
-  },
-  configs: {
-    ...graph().configs,
-    edge: {
-      normal: { width: 30 },
-      summarized: {
-        stroke: {
-          width: edges => Object.values(edges).reduce((sum, e) => sum + (e.width ?? 1), 0),
-        },
+  }
+  props.configs!.edge = {
+    ...props.configs!.edge,
+    normal: { width: 30 },
+    summarized: {
+      stroke: {
+        width: edges => Object.values(edges).reduce((sum, e) => sum + (e.width ?? 1), 0),
       },
     },
-  },
-})
+  }
+  return props
+}
 
 // Draws the area of the label, which is laid out by the width of the summarized stroke.
 const edgesLabelArea = ({ area }: { area: EdgeLabelArea }) =>
