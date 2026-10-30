@@ -10,6 +10,7 @@ import { computed } from "vue"
 import { Config, EdgeLabelStyle } from "@/common/configs"
 import { EdgeLabelArea, Edges } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
+import { useStates } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { EdgeState } from "@/models/edge"
 import * as v2d from "@/modules/calculation/2d"
@@ -33,8 +34,12 @@ defineSlots<{ default: (props: EdgeLabelsSlotProps) => any }>()
 const props = defineProps<Props>()
 const config = useEdgeConfig()
 const { scale } = useZoomLevel()
+const { edgeStates } = useStates()
 
 const stroke = computed(() => Config.values(config.summarized.stroke, props.edges))
+// As the summarized line is, when any of the edges is.
+const hovered = computed(() => Object.keys(props.edges).some(id => edgeStates[id]?.hovered))
+const selected = computed(() => Object.keys(props.edges).some(id => edgeStates[id]?.selected))
 
 const area = computed(() => {
   return v2d.calculateEdgeLabelArea(
@@ -52,8 +57,8 @@ const area = computed(() => {
     :edges="edges"
     :config="state.label"
     :area="area"
-    :hovered="state.hovered"
-    :selected="state.selected"
+    :hovered="hovered"
+    :selected="selected"
     :scale="scale"
   />
 </template>
