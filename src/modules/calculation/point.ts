@@ -2,6 +2,20 @@ import V, { Vector2D } from "@/modules/vector2d"
 import { VectorLine } from "./line"
 
 /**
+ * Whether a point is inside or on a circle.
+ * @param p point
+ * @param center center of the circle
+ * @param radius radius of the circle
+ * @returns whether the point is inside or on the circle
+ */
+function isInsideCircle(p: Vector2D, center: Vector2D, radius: number): boolean {
+  // A point on a large circle, such as the arc of a nearly straight curve, can land outside it
+  // by a rounding error that grows with the radius.
+  const radiusSquared = radius * radius
+  return V.lengthSquared(V.subtract(p, center)) - radiusSquared <= radiusSquared * 1e-9
+}
+
+/**
  * Calculate the nearest point from a point to a line.
  * @param p point
  * @param line line
@@ -51,10 +65,7 @@ export function getIntersectionOfLineTargetAndCircle(
   radius: number
 ): Vector2D | null {
   // Does the node contain a point?
-  const length = V.lengthSquared(V.subtract(target, center))
-  const contains = length - radius * radius <= Math.pow(1, -10)
-
-  if (!contains) return null // Not contained.
+  if (!isInsideCircle(target, center, radius)) return null // Not contained.
 
   // If contained, calculate the intersection point.
 
@@ -97,10 +108,7 @@ export function getIntersectionOfLineTargetAndCircle2(
   nearBy: Vector2D
 ): Vector2D | null {
   // Does the node contain a point?
-  const length = V.lengthSquared(V.subtract(target, center))
-  const contains = length - radius * radius <= Math.pow(1, -10)
-
-  if (!contains) return null // Not contained.
+  if (!isInsideCircle(target, center, radius)) return null // Not contained.
 
   // If contained, calculate the intersection point.
 
