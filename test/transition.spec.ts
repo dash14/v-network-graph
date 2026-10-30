@@ -174,6 +174,6 @@ describe("transitionWhile", () => {
     expect(viewport.classList.contains("v-ng-transition")).toBe(true)
     await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
     // The error still reaches the page as an unhandled rejection.
-    expect(errors).toEqual([new Error("failed")])
+    await expect.poll(() => errors).toEqual([new Error("failed")])
   })
 })
