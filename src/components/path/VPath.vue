@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { CSSProperties, computed } from "vue"
+import { computed } from "vue"
 import { Config } from "@/common/configs"
 import { PositionOrCurve } from "@/common/types"
 import { usePathConfig } from "@/composables/config"
 import { useStates } from "@/composables/state"
+import { useStrokeAttributes } from "@/composables/stroke"
 import { useZoomLevel } from "@/composables/zoom"
 import { PathState } from "@/models/path"
 import { calculatePathPoints, quadraticCurveCommands } from "@/modules/calculation/path"
-import { applyScaleToDasharray, getDasharrayUnit } from "@/utils/visual"
 
 const props = defineProps<{
   path: PathState
@@ -71,16 +71,7 @@ const config = computed(() => {
   }
 })
 
-const strokeDasharray = computed(() => {
-  return applyScaleToDasharray(config.value.dasharray, scale.value)
-})
-
-const animationSpeed = computed(() => {
-  const speed = config.value.animate
-    ? getDasharrayUnit(config.value.dasharray) * config.value.animationSpeed * scale.value
-    : false
-  return speed ? ({ "--animation-speed": speed } as CSSProperties) : undefined
-})
+const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(() => config.value)
 </script>
 
 <template>
@@ -94,7 +85,7 @@ const animationSpeed = computed(() => {
     :d="calcPathD(path)"
     fill="none"
     :stroke="config.color"
-    :stroke-width="config.width * scale"
+    :stroke-width="strokeWidth"
     :stroke-dasharray="strokeDasharray"
     :stroke-linecap="config.linecap"
     :stroke-linejoin="config.linejoin"
