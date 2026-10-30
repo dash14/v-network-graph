@@ -24,6 +24,11 @@
       "description": "TypeScript 7 ships no JS API yet, and vue-tsc, typescript-eslint and unplugin-dts all run on it.",
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<7"
+    },
+    {
+      "description": "lefthook 2.2.2 was published without the provenance its earlier releases carry, and pnpm's trustPolicy refuses it as a trust downgrade.",
+      "matchPackageNames": ["lefthook"],
+      "allowedVersions": "!/^2\\.2\\.2$/"
     }
   ]
 }
