@@ -191,6 +191,20 @@ describe("transitionWhile", () => {
     await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
   })
 
+  test("a shorter later call does not cut an earlier call's animation short", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const earlier = Promise.withResolvers<void>()
+
+    graph.transitionWhile(() => earlier.promise, 500)
+    graph.transitionWhile(() => {}, 50)
+    await nextTick()
+    earlier.resolve()
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+  })
+
   test("the transition lasts until a later call that takes longer finishes", async () => {
     const { screen, graph } = await mountGraph({ nodes, layouts })
     const viewport = screen.container.querySelector(".v-ng-viewport")!
