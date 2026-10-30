@@ -193,10 +193,10 @@ importers:
         version: 8.71.2(eslint@10.12.0)(typescript@6.0.3)
       '@vitejs/plugin-vue':
         specifier: ^6.0.9
-        version: 6.0.10(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vue@3.5.43(typescript@6.0.3))
+        version: 6.0.10(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vue@3.5.43(typescript@6.0.3))
       '@vitest/browser-playwright':
         specifier: ^5.0.3
-        version: 5.0.5(playwright@1.64.1)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vitest@5.0.5)
+        version: 5.0.5(playwright@1.64.1)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vitest@5.0.5)
       '@vue/compiler-sfc':
         specifier: ^3.5.43
         version: 3.5.44
@@ -247,19 +247,19 @@ importers:
         version: 7.1.1(rolldown@1.2.13)
       sass:
         specifier: ^1.105.1
-        version: 1.105.1
+        version: 1.105.2
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
       unplugin-dts:
         specifier: ^1.1.2
-        version: 1.1.2(@vue/language-core@3.3.13)(rolldown@1.2.13)(typescript@6.0.3)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+        version: 1.1.2(@vue/language-core@3.3.13)(rolldown@1.2.13)(typescript@6.0.3)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       vite:
         specifier: ^8.3.2
-        version: 8.3.4(@types/node@24.19.2)(sass@1.105.1)
+        version: 8.3.4(@types/node@24.19.2)(sass@1.105.2)
       vitest:
         specifier: ^5.0.3
-        version: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+        version: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       vitest-browser-vue:
         specifier: ^3.1.0
         version: 3.1.0(@vue/compiler-dom@3.5.44)(@vue/server-renderer@3.5.43)(vitest@5.0.5)(vue@3.5.43(typescript@6.0.3))
@@ -1867,8 +1867,8 @@ packages:
     resolution: {integrity: sha512-DPe5pVFaAsinSaV6QjQ6gdiedWDcRCbUuiQfQa2wmWV7+xC9bGulGI8+TdRmoFkAPaBXk8CrAbnlY2ISniJ47Q==}
     engines: {node: '>=18'}
 
-  sass@1.105.1:
-    resolution: {integrity: sha512-1CnAWPyrrnVQzXGB/DUep1vYCKCm1CIBr+YxjjiW6wk9qtzemnGP4qicH56T2F9S4Hjtv/Ne3jDz8JqfdDU4oA==}
+  sass@1.105.2:
+    resolution: {integrity: sha512-KxW6ZKZiBKWK3ziQ4YZ3cpqo8/1TlHXE8t9nBNvGDZFoBFbk2MD7RacxYFs8zy8hzeFwpFYkVyAhboi47uYPEQ==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -2581,36 +2581,36 @@ snapshots:
       '@typescript-eslint/types': 8.71.2
       eslint-visitor-keys: 5.0.1
 
-  '@vitejs/plugin-vue@6.0.10(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vue@3.5.43(typescript@6.0.3))':
+  '@vitejs/plugin-vue@6.0.10(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vue@3.5.43(typescript@6.0.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.1)
+      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.2)
       vue: 3.5.43(typescript@6.0.3)
 
-  '@vitest/browser-playwright@5.0.5(playwright@1.64.1)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vitest@5.0.5)':
+  '@vitest/browser-playwright@5.0.5(playwright@1.64.1)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vitest@5.0.5)':
     dependencies:
-      '@vitest/browser': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vitest@5.0.5)
-      '@vitest/mocker': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      '@vitest/browser': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vitest@5.0.5)
+      '@vitest/mocker': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       playwright: 1.64.1
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
     transitivePeerDependencies:
       - bufferutil
       - msw
       - utf-8-validate
       - vite
 
-  '@vitest/browser@5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vitest@5.0.5)':
+  '@vitest/browser@5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vitest@5.0.5)':
     dependencies:
       '@blazediff/core': 1.10.0
-      '@vitest/mocker': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      '@vitest/mocker': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       '@vitest/ui': 5.0.5(vitest@5.0.5)
       '@vitest/utils': 5.0.5
       magic-string: 1.4.3
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       ws: 8.22.0
     transitivePeerDependencies:
       - bufferutil
@@ -2618,14 +2618,14 @@ snapshots:
       - utf-8-validate
       - vite
 
-  '@vitest/mocker@5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))':
+  '@vitest/mocker@5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.5
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
-      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.1)
+      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.2)
 
   '@vitest/pretty-format@5.0.5':
     dependencies:
@@ -2641,7 +2641,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
 
   '@vitest/utils@5.0.5':
     dependencies:
@@ -3442,7 +3442,7 @@ snapshots:
 
   run-applescript@7.1.0: {}
 
-  sass@1.105.1:
+  sass@1.105.2:
     dependencies:
       chokidar: 5.0.0
       immutable: 5.1.9
@@ -3514,7 +3514,7 @@ snapshots:
 
   undici-types@7.24.6: {}
 
-  unplugin-dts@1.1.2(@vue/language-core@3.3.13)(rolldown@1.2.13)(typescript@6.0.3)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1)):
+  unplugin-dts@1.1.2(@vue/language-core@3.3.13)(rolldown@1.2.13)(typescript@6.0.3)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2)):
     dependencies:
       '@rollup/pluginutils': 5.4.0
       '@volar/typescript': 2.4.28(typescript@6.0.3)
@@ -3529,7 +3529,7 @@ snapshots:
     optionalDependencies:
       '@vue/language-core': 3.3.13
       rolldown: 1.2.13
-      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.1)
+      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -3546,7 +3546,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite@8.3.4(@types/node@24.19.2)(sass@1.105.1):
+  vite@8.3.4(@types/node@24.19.2)(sass@1.105.2):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -3556,21 +3556,21 @@ snapshots:
     optionalDependencies:
       '@types/node': 24.19.2
       fsevents: 2.3.3
-      sass: 1.105.1
+      sass: 1.105.2
 
   vitest-browser-vue@3.1.0(@vue/compiler-dom@3.5.44)(@vue/server-renderer@3.5.43)(vitest@5.0.5)(vue@3.5.43(typescript@6.0.3)):
     dependencies:
       '@vue/test-utils': 2.5.1(@vue/compiler-dom@3.5.44)(@vue/server-renderer@3.5.43)(vue@3.5.43(typescript@6.0.3))
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       vue: 3.5.43(typescript@6.0.3)
     transitivePeerDependencies:
       - '@vue/compiler-dom'
       - '@vue/server-renderer'
 
-  vitest@5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1)):
+  vitest@5.0.5(@types/node@24.19.2)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))
+      '@vitest/mocker': 5.0.5(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -3581,11 +3581,11 @@ snapshots:
       tinybench: 6.2.2
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.1)
+      vite: 8.3.4(@types/node@24.19.2)(sass@1.105.2)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 24.19.2
-      '@vitest/browser-playwright': 5.0.5(playwright@1.64.1)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.1))(vitest@5.0.5)
+      '@vitest/browser-playwright': 5.0.5(playwright@1.64.1)(vite@8.3.4(@types/node@24.19.2)(sass@1.105.2))(vitest@5.0.5)
       '@vitest/ui': 5.0.5(vitest@5.0.5)
     transitivePeerDependencies:
       - msw
