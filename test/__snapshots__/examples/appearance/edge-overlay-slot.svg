@@ -4,7 +4,7 @@
       .marker { fill: #5555dd; transition: fill 0.1s linear; pointer-events: none; } .marker.hovered { fill: #dd5555; } .marker.selected { fill: #dddd55; }
     </style>
   </defs>
-  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+  <g class="v-ng-viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 80 0 L 0 120" />
       <path class="v-ng-line-background selectable" stroke="transparent" stroke-width="12" fill="none" d="M 0 114 L 160 114" />

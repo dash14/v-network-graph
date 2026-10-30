@@ -4,7 +4,7 @@
       <polyline points="0.5 0.5, 9.5 5, 0.5 9.5" fill="none" stroke-width="1" stroke="#444444" stroke-linecap="round" stroke-linejoin="round" />
     </marker>
   </defs>
-  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+  <g class="v-ng-viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 11.667261889578032 11.667261889578032 L 68.33273811042197 68.33273811042197" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="11" fill="none" d="M 11.667261889578032 148.33273811042196 L 68.33273811042197 91.66726188957803" />

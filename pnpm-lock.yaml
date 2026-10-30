@@ -167,8 +167,8 @@ importers:
   .:
     dependencies:
       '@dash14/svg-pan-zoom':
-        specifier: ^4.0.0
-        version: 4.0.1
+        specifier: ^4.1.0
+        version: 4.1.0
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -295,8 +295,8 @@ packages:
   '@cacheable/utils@2.5.0':
     resolution: {integrity: sha512-buipgOVDkkPXNR5+xBpDw7Zk2n1EvU7qBJCNUcL7rhQ//kfpOXPAvQ511Os0vpLYJ1pZnvudNytkQt2hst3wqA==}
 
-  '@dash14/svg-pan-zoom@4.0.1':
-    resolution: {integrity: sha512-2xEURmdxr/ygYx11Y3J2u1+t6+aKet6xI2wyJH8EaJCvUTsAx/KG6WvUCez0Q7s2OfrP9cH7TA22ozHIlh0+kA==}
+  '@dash14/svg-pan-zoom@4.1.0':
+    resolution: {integrity: sha512-0ZzKDjkgcfNm1K9Kr6TjyUtzCAUzSXV+q85NpXhCqCmAbEJwJQiEOEgvRtifPX5v1HBDWtLmt4lPEag3IKuJYg==}
 
   '@eslint-community/eslint-utils@4.10.1':
     resolution: {integrity: sha512-cuadcxVFE8sDK6iWJbs8Sn0av2Nrh2QSGQhVlBW9AaAHqHwjWsZHT8LJ4hFGPh7ASBV2deFdM7H/DPjulmh8rg==}
@@ -2174,7 +2174,7 @@ snapshots:
       hashery: 1.5.1
       keyv: 5.6.0
 
-  '@dash14/svg-pan-zoom@4.0.1': {}
+  '@dash14/svg-pan-zoom@4.1.0': {}
 
   '@eslint-community/eslint-utils@4.10.1(eslint@10.12.0)':
     dependencies:

@@ -13,7 +13,7 @@
       <ellipse fill="#ff0000" cx="2.5" cy="2.5" rx="2.5" ry="2.5" />
     </marker>
   </defs>
-  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+  <g class="v-ng-viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 21.213203435596423 21.213203435596423 L 58.78679656440357 58.78679656440357" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 21.213203435596423 138.78679656440357 L 58.78679656440357 101.21320343559643" />

@@ -4,7 +4,7 @@
       <polygon points="0 0, 5 2.5, 0 5" fill="#4466cc" />
     </marker>
   </defs>
-  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+  <g class="v-ng-viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 20 0 L 92 0" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 140 0 L 212 0" />

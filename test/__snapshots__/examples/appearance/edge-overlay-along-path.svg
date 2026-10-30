@@ -4,7 +4,7 @@
       .edge-icon { pointer-events: none; }
     </style>
   </defs>
-  <g class="v-ng-viewport svg-pan-zoom_viewport" transform="matrix(1 0 0 1 0 0)">
+  <g class="v-ng-viewport" transform="matrix(1 0 0 1 0 0)">
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 0 0 L 150 100" />
       <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 150 100 Q 173.81591126388452 58.883866895829016 213.3512958792702 32.526943818905295 Q 252.88668049465525 6.170020741981972 300 0" />
