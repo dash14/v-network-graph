@@ -1,5 +1,7 @@
+import * as fc from "fast-check"
 import { describe, expect, it } from "vitest"
 import { Vector2D } from "@/modules/vector2d"
+import { calculateCircleCenterAndRadiusBy3Points } from "./2d"
 import { VectorLine } from "./line"
 import {
   getNearestPoint,
@@ -84,6 +86,16 @@ describe("point", () => {
         const target = new Vector2D(200, 0)
         const center = new Vector2D(100, 0)
         const radius = 30
+
+        const result = getIntersectionOfLineTargetAndCircle(source, target, center, radius)
+        expect(result).toBeNull()
+      })
+
+      it("should return null when target is just outside a small circle", () => {
+        const source = new Vector2D(0, 0)
+        const target = new Vector2D(116.01, 0)
+        const center = new Vector2D(100, 0)
+        const radius = 16
 
         const result = getIntersectionOfLineTargetAndCircle(source, target, center, radius)
         expect(result).toBeNull()
@@ -527,5 +539,39 @@ describe("point", () => {
         expect(resultPos.y).toBeCloseTo(expectedPos.y, 5)
       })
     })
+  })
+})
+
+describe("properties", () => {
+  // Wide enough for a small circle far from the origin.
+  const coordinate = fc.double({ min: -1e7, max: 1e7, noNaN: true })
+  const position = fc.record({ x: coordinate, y: coordinate })
+
+  it("treats a point on a circle as inside it, however slightly the arc bends", () => {
+    fc.assert(
+      fc.property(
+        position,
+        position,
+        fc.double({ min: 1e-6, max: 50, noNaN: true }),
+        (p1, p2, bend) => {
+          fc.pre(distance(p1, p2) > 10)
+          // An arc through both points, bent as little as a nearly straight curved edge.
+          const source = Vector2D.fromObject(p1)
+          const target = Vector2D.fromObject(p2)
+          const forward = target.clone().subtract(source).normalize()
+          const middle = new Vector2D(-forward.y, forward.x)
+            .multiplyScalar(bend)
+            .add(source.clone().add(target).multiplyScalar(0.5))
+          const [center, radius] = calculateCircleCenterAndRadiusBy3Points(source, middle, target)
+
+          expect(
+            getIntersectionOfLineTargetAndCircle(middle, target, center, radius)
+          ).not.toBeNull()
+          expect(
+            getIntersectionOfLineTargetAndCircle2(middle, target, center, radius, target)
+          ).not.toBeNull()
+        }
+      )
+    )
   })
 })
