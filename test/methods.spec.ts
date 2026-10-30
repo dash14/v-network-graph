@@ -250,8 +250,9 @@ describe("export", () => {
     onTestFinished(() => URL.revokeObjectURL(url))
     const unreachable = URL.createObjectURL(blob)
     URL.revokeObjectURL(unreachable)
+    const notFound = "/no-such-image.svg"
     const viewport = screen.container.querySelector(".v-ng-viewport")!
-    for (const href of [url, unreachable]) {
+    for (const href of [url, unreachable, notFound]) {
       const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
       image.setAttribute("href", href)
       viewport.appendChild(image)
@@ -264,11 +265,13 @@ describe("export", () => {
       return Array.from(svg.querySelectorAll("image"), image => image.getAttribute("href"))
     }
 
-    expect(await hrefs(false)).toEqual([url, unreachable])
+    expect(await hrefs(false)).toEqual([url, unreachable, notFound])
     expect(await hrefs(true)).toEqual([
       expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       unreachable,
+      notFound,
     ])
     expect(warn).toHaveBeenCalledWith("Image download failed.", unreachable)
+    expect(warn).toHaveBeenCalledWith("Image download failed.", notFound)
   })
 })
