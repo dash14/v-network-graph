@@ -147,5 +147,6 @@ describe("transitionWhile", () => {
     await nextTick()
     expect(viewport.classList.contains("v-ng-transition")).toBe(true)
     await expect.poll(() => viewport.getAttribute("class")).toBe(before)
+    expect(viewport.classList).not.toContain("svg-pan-zoom_viewport")
   })
 })
