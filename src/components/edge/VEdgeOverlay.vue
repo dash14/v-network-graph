@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Config, StrokeStyle } from "@/common/configs"
-import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
+import { Edge, EdgePosition, Edges, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
 import { useSummarizedEdgesState } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
@@ -61,30 +61,22 @@ const stroke = computed(() =>
     : props.state.line.stroke
 )
 
-function toEdgePosition(line: LinePosition): EdgePosition {
-  return { source: line.p1, target: line.p2 }
-}
+const position = computed<EdgePosition>(() => ({
+  source: props.state.origin.p1,
+  target: props.state.origin.p2,
+}))
 
-function calculateCenterPoint(state: EdgeState): Point {
-  if (state.curve) {
-    return state.curve.center
-  } else {
-    const p1 = state.origin.p1
-    const p2 = state.origin.p2
-    return {
-      x: (p1.x + p2.x) / 2,
-      y: (p1.y + p2.y) / 2,
-    }
-  }
-}
+const center = computed<Point>(() => {
+  if (props.state.curve) return props.state.curve.center
+  const { p1, p2 } = props.state.origin
+  return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }
+})
 
 // Summarized edges are drawn as a straight line, even between the ends of a self-loop.
 const drawnEdge = computed(() =>
   props.isSummarized ? { position: props.state.position } : props.state
 )
 
-const position = computed(() => toEdgePosition(props.state.origin))
-const center = computed(() => calculateCenterPoint(props.state))
 const length = computed(() => edgeLengthOf(drawnEdge.value))
 
 function calculatePointAtLength(distance: number): Point {

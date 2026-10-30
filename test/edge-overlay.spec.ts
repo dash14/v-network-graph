@@ -113,13 +113,15 @@ describe("edge overlay", () => {
       },
       { slots: { "edge-overlay": ({ hovered }) => h("g", { class: "overlay", hovered }) } }
     )
+    const hovered = () => screen.container.querySelector(".overlay")?.getAttribute("hovered")
+    // Counts once the graph has settled, so that no call left from mounting is put on the hover.
+    await expect.poll(hovered).toBe("false")
+    await new Promise(resolve => requestAnimationFrame(resolve))
     const calls = width.mock.calls.length
 
     // Hovering redraws the overlay with the new state.
     await userEvent.hover(canvas, { position: at(-50, 10) })
-    await expect
-      .poll(() => screen.container.querySelector(".overlay")?.getAttribute("hovered"))
-      .toBe("true")
+    await expect.poll(hovered).toBe("true")
     expect(width).toHaveBeenCalledTimes(calls)
   })
 })
