@@ -1,5 +1,7 @@
+import * as fc from "fast-check"
 import { describe, expect, it } from "vitest"
 import { CircleShapeStyle, RectangleShapeStyle, StrokeStyle } from "../../common/configs"
+import { Position } from "../../common/types"
 import { Vector2D } from "../vector2d"
 import * as v2d from "./2d"
 import { VectorLine } from "./line"
@@ -419,5 +421,113 @@ describe("calculateBezierCurveControlPoint", () => {
 
     expect(control.length).toBeGreaterThanOrEqual(2)
     control.forEach(cp => expect(cp).toBeInstanceOf(Vector2D))
+  })
+})
+
+describe("properties", () => {
+  const coordinate = fc.double({ min: -1e4, max: 1e4, noNaN: true })
+  const position = fc.record({ x: coordinate, y: coordinate })
+  const distance = (p1: Position, p2: Position) => Math.hypot(p2.x - p1.x, p2.y - p1.y)
+
+  it("puts the end of a rect node between its inscribed and circumscribed circles", () => {
+    fc.assert(
+      fc.property(
+        position,
+        position,
+        fc.integer({ min: 1, max: 200 }),
+        fc.integer({ min: 1, max: 200 }),
+        fc.integer({ min: 0, max: 10 }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (nodePos, otherPos, width, height, strokeWidth, roundness) => {
+          const halfWidth = (width + strokeWidth) / 2
+          const halfHeight = (height + strokeWidth) / 2
+          // The other node's center must lie outside this node.
+          fc.pre(distance(nodePos, otherPos) > Math.hypot(halfWidth, halfHeight))
+          const shape: RectangleShapeStyle = {
+            type: "rect",
+            width,
+            height,
+            borderRadius: (Math.min(width, height) / 2) * roundness,
+            strokeWidth,
+            color: "#fff",
+          }
+
+          const [d] = v2d.calculateDistancesFromCenterOfNodeToEndOfNode(
+            nodePos,
+            otherPos,
+            shape,
+            shape
+          )
+
+          expect(d).toBeGreaterThanOrEqual(Math.min(halfWidth, halfHeight) - 1e-6)
+          expect(d).toBeLessThanOrEqual(Math.hypot(halfWidth, halfHeight) + 1e-6)
+        }
+      )
+    )
+  })
+
+  it("keeps the edge label area as wide as the stroke plus both margins", () => {
+    fc.assert(
+      fc.property(
+        position,
+        position,
+        fc.integer({ min: 0, max: 10 }),
+        fc.integer({ min: 0, max: 10 }),
+        fc.double({ min: 0.1, max: 10, noNaN: true }),
+        (p1, p2, width, margin, scale) => {
+          fc.pre(distance(p1, p2) > 1e-3)
+          const edgeStyle: StrokeStyle = {
+            width,
+            color: "#000",
+            animate: false,
+            animationSpeed: 50,
+          }
+
+          const area = v2d.calculateEdgeLabelArea({ p1, p2 }, edgeStyle, margin, 0, scale)
+
+          const expected = (width + 2 * margin) * scale
+          expect(distance(area.source.above, area.source.below)).toBeCloseTo(expected, 6)
+          expect(distance(area.target.above, area.target.below)).toBeCloseTo(expected, 6)
+        }
+      )
+    )
+  })
+
+  it("keeps the distance from the center when moving on the circumference", () => {
+    fc.assert(
+      fc.property(
+        position,
+        position,
+        fc.double({ min: -10, max: 10, noNaN: true }),
+        (pos, center, radian) => {
+          const moved = v2d.moveOnCircumference(pos, center, radian)
+
+          expect(distance(center, moved)).toBeCloseTo(distance(center, pos), 6)
+        }
+      )
+    )
+  })
+
+  it("finds a circle that passes through all three points", () => {
+    fc.assert(
+      fc.property(position, position, position, (p1, p2, p3) => {
+        // Collinear points have no circle.
+        const cross = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)
+        fc.pre(Math.abs(cross) > 1)
+        const points = [p1, p2, p3].map(p => Vector2D.fromObject(p))
+
+        const [center, radius] = v2d.calculateCircleCenterAndRadiusBy3Points(
+          points[0],
+          points[1],
+          points[2]
+        )
+
+        for (const p of points) {
+          expect(Math.abs(distance(center, p) - radius)).toBeLessThanOrEqual(
+            1e-6 * Math.max(1, radius)
+          )
+        }
+      })
+    )
   })
 })
