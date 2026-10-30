@@ -65,6 +65,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-oxlint": "~1.87.0",
     "eslint-plugin-vue": "^10.11.1",
+    "fast-check": "^4.10.2",
     "lefthook": "^2.1.16",
     "oxfmt": "^0.72.0",
     "oxlint": "~1.87.0",
