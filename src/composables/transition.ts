@@ -27,6 +27,7 @@ function isPromise(obj: any): boolean {
 
 export function useTransitionWhile(): UseTransitionWhileReturn {
   let timerId: number | null = null
+  let running = 0
   const transitionOption = ref<TransitionParameters>({
     enabled: false,
     duration: 300,
@@ -48,6 +49,7 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
       timingFunction,
     }
 
+    running++
     nextTick(async () => {
       try {
         const promise = func()
@@ -55,13 +57,14 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
           await promise
         }
       } finally {
-        if (timerId) {
-          clearTimeout(timerId)
+        // Overlapping calls end together, after the last one finishes.
+        running--
+        if (running === 0) {
+          timerId = window?.setTimeout(() => {
+            transitionOption.value.enabled = false
+            timerId = null
+          }, transitionOption.value.duration)
         }
-        timerId = window?.setTimeout(() => {
-          transitionOption.value.enabled = false
-          timerId = null
-        }, duration)
       }
     })
   }

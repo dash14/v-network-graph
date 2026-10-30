@@ -176,4 +176,37 @@ describe("transitionWhile", () => {
     // The error still reaches the page as an unhandled rejection.
     await expect.poll(() => errors).toEqual([new Error("failed")])
   })
+
+  function deferred() {
+    let resolve!: () => void
+    const promise = new Promise<void>(r => (resolve = r))
+    return { promise, resolve }
+  }
+
+  test("an earlier call finishing later does not cut a later call short", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const earlier = deferred()
+
+    graph.transitionWhile(() => earlier.promise, 50)
+    graph.transitionWhile(() => {}, 500)
+    await nextTick()
+    earlier.resolve()
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+  })
+
+  test("the transition lasts until a later call that takes longer finishes", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const later = deferred()
+
+    graph.transitionWhile(() => {}, 50)
+    graph.transitionWhile(() => later.promise, 50)
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    later.resolve()
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+  })
 })
