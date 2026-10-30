@@ -3,6 +3,7 @@ import { computed } from "vue"
 import { Config, StrokeStyle } from "@/common/configs"
 import { Edge, EdgePosition, Edges, LinePosition, Point } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
+import { useSummarizedEdgesState } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { EdgeState } from "@/models/edge"
 import { edgeLengthOf, pointAlongEdge } from "@/modules/edge/geometry"
@@ -50,6 +51,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { scale } = useZoomLevel()
 const edgeConfig = useEdgeConfig()
+const { hovered: summarizedHovered, selected: summarizedSelected } = useSummarizedEdgesState(
+  () => props.edges
+)
 
 function getStrokeConfig() {
   if (props.isSummarized) {
@@ -96,8 +100,8 @@ function calculatePointAtLength(distance: number): Point {
       :stroke="getStrokeConfig()"
       :position="toEdgePosition(state.origin)"
       :center="calculateCenterPoint(state)"
-      :hovered="state.hovered"
-      :selected="state.selected"
+      :hovered="summarizedHovered"
+      :selected="summarizedSelected"
       :scale="scale"
       :length="edgeLengthOf(drawnEdge)"
       :point-at-length="calculatePointAtLength"

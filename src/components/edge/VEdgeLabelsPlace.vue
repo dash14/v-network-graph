@@ -10,6 +10,7 @@ import { computed } from "vue"
 import { Config, EdgeLabelStyle } from "@/common/configs"
 import { EdgeLabelArea, Edges } from "@/common/types"
 import { useEdgeConfig } from "@/composables/config"
+import { useSummarizedEdgesState } from "@/composables/state"
 import { useZoomLevel } from "@/composables/zoom"
 import { EdgeState } from "@/models/edge"
 import * as v2d from "@/modules/calculation/2d"
@@ -35,6 +36,7 @@ const config = useEdgeConfig()
 const { scale } = useZoomLevel()
 
 const stroke = computed(() => Config.values(config.summarized.stroke, props.edges))
+const { hovered, selected } = useSummarizedEdgesState(() => props.edges)
 
 const area = computed(() => {
   return v2d.calculateEdgeLabelArea(
@@ -52,8 +54,8 @@ const area = computed(() => {
     :edges="edges"
     :config="state.label"
     :area="area"
-    :hovered="state.hovered"
-    :selected="state.selected"
+    :hovered="hovered"
+    :selected="selected"
     :scale="scale"
   />
 </template>
