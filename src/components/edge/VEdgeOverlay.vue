@@ -55,13 +55,11 @@ const { hovered: summarizedHovered, selected: summarizedSelected } = useSummariz
   () => props.edges
 )
 
-function getStrokeConfig() {
-  if (props.isSummarized) {
-    return Config.values(edgeConfig.summarized.stroke, props.edges)
-  } else {
-    return props.state.line.stroke
-  }
-}
+const stroke = computed(() =>
+  props.isSummarized
+    ? Config.values(edgeConfig.summarized.stroke, props.edges)
+    : props.state.line.stroke
+)
 
 function toEdgePosition(line: LinePosition): EdgePosition {
   return { source: line.p1, target: line.p2 }
@@ -85,6 +83,10 @@ const drawnEdge = computed(() =>
   props.isSummarized ? { position: props.state.position } : props.state
 )
 
+const position = computed(() => toEdgePosition(props.state.origin))
+const center = computed(() => calculateCenterPoint(props.state))
+const length = computed(() => edgeLengthOf(drawnEdge.value))
+
 function calculatePointAtLength(distance: number): Point {
   if (Number.isNaN(distance)) return props.state.position.p1
   return pointAlongEdge(drawnEdge.value, distance)
@@ -97,13 +99,13 @@ function calculatePointAtLength(distance: number): Point {
       v-if="isSummarized"
       :edges="edges"
       :is-summarized="isSummarized"
-      :stroke="getStrokeConfig()"
-      :position="toEdgePosition(state.origin)"
-      :center="calculateCenterPoint(state)"
+      :stroke="stroke"
+      :position="position"
+      :center="center"
       :hovered="summarizedHovered"
       :selected="summarizedSelected"
       :scale="scale"
-      :length="edgeLengthOf(drawnEdge)"
+      :length="length"
       :point-at-length="calculatePointAtLength"
     />
     <slot
@@ -112,13 +114,13 @@ function calculatePointAtLength(distance: number): Point {
       :edge="edge!"
       :edges="{ [edgeId!]: edge! }"
       :is-summarized="isSummarized"
-      :stroke="getStrokeConfig()"
-      :position="toEdgePosition(state.origin)"
-      :center="calculateCenterPoint(state)"
+      :stroke="stroke"
+      :position="position"
+      :center="center"
       :hovered="state.hovered"
       :selected="state.selected"
       :scale="scale"
-      :length="edgeLengthOf(drawnEdge)"
+      :length="length"
       :point-at-length="calculatePointAtLength"
     />
   </g>
