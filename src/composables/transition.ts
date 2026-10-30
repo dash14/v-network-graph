@@ -49,18 +49,20 @@ export function useTransitionWhile(): UseTransitionWhileReturn {
     }
 
     nextTick(async () => {
-      const promise = func()
-      if (isPromise(promise)) {
-        await promise
+      try {
+        const promise = func()
+        if (isPromise(promise)) {
+          await promise
+        }
+      } finally {
+        if (timerId) {
+          clearTimeout(timerId)
+        }
+        timerId = window?.setTimeout(() => {
+          transitionOption.value.enabled = false
+          timerId = null
+        }, duration)
       }
-
-      if (timerId) {
-        clearTimeout(timerId)
-      }
-      timerId = window?.setTimeout(() => {
-        transitionOption.value.enabled = false
-        timerId = null
-      }, duration)
     })
   }
 
