@@ -148,8 +148,6 @@ jobs:
           TAG: ${{ inputs.tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Set first so that the draft gets deleted even if this step fails after creating it.
-          echo "started=true" >> "$GITHUB_OUTPUT"
           PRERELEASE_FLAG=""
           case "$TAG" in
             *-*) PRERELEASE_FLAG="--prerelease" ;;
@@ -170,6 +168,7 @@ jobs:
             --generate-notes \
             $PRERELEASE_FLAG \
             "${NOTES_ARGS[@]}"
+          echo "started=true" >> "$GITHUB_OUTPUT"
 
       # The version goes live only once a maintainer approves it on npm with 2FA. A prerelease goes
       # to the next dist-tag so that it never becomes latest. Runs outside the checkout because npm
