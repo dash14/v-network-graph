@@ -1,17 +1,7 @@
 // Wires the states of nodes, edges and paths together
 
 import type { ComputedRef, InjectionKey, Ref } from "vue"
-import {
-  reactive,
-  ref,
-  shallowRef,
-  toRaw,
-  triggerRef,
-  watch,
-  watchEffect,
-  inject,
-  provide,
-} from "vue"
+import { ref, shallowRef, toRaw, triggerRef, watchEffect, inject, provide } from "vue"
 import { nonNull, Reactive } from "@/common/common"
 import { Configs } from "@/common/configs"
 import { Edge, Edges, Layouts, Node, Nodes, Path, Paths } from "@/common/types"
@@ -23,7 +13,7 @@ import * as PathModel from "@/models/path"
 import * as EdgeGroup from "@/modules/edge/group"
 import type { UpdatableCurrentPositions } from "./currentPositions"
 import { makeEdgePlacement } from "./edgePlacement"
-import { createEdgeEntries, createNewEdgeState, createSummarizedEdgeStates } from "./edgeState"
+import { createEdgeEntries, createNewEdgeState } from "./edgeState"
 import { MarkerState } from "./marker"
 import { createNewNodeState, makeOpposingNodes } from "./nodeState"
 import { useObjectState } from "./objectState"
@@ -41,7 +31,6 @@ interface States {
   nodeStates: NodeModel.NodeStates
   edgeStates: EdgeModel.EdgeStates
   edgeGroupStates: EdgeModel.EdgeGroupStates
-  summarizedEdgeStates: EdgeModel.SummarizedEdgeStates
   pathStates: PathModel.PathStates
   nodeZOrderedList: ComputedRef<NodeModel.NodeState[]>
   edgeZOrderedList: ComputedRef<EdgeModel.EdgeEntry[]>
@@ -90,8 +79,6 @@ export function provideStates(
   scale: ComputedRef<number>,
   currentPositions: UpdatableCurrentPositions
 ) {
-  const summarizedEdgeStates = reactive<EdgeModel.SummarizedEdgeStates>({})
-
   // -----------------------------------------------------------------------
   // States for nodes
   // -----------------------------------------------------------------------
@@ -200,12 +187,6 @@ export function provideStates(
     edgeEntries.value = createEdgeEntries(edgeGroupStates.edgeGroups, edgeStates)
   })
 
-  watch(
-    edgeGroupStates.edgeGroups,
-    _ => createSummarizedEdgeStates(summarizedEdgeStates, edgeGroupStates, configs),
-    { immediate: true }
-  )
-
   // -----------------------------------------------------------------------
   // States for paths
   // -----------------------------------------------------------------------
@@ -237,7 +218,6 @@ export function provideStates(
     nodeStates,
     edgeStates,
     edgeGroupStates,
-    summarizedEdgeStates,
     pathStates,
     layouts,
     nodeZOrderedList,

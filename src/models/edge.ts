@@ -65,14 +65,8 @@ export interface EdgeStateDatum {
   stopWatchHandle: WatchStopHandle
 }
 
-interface SummarizedEdgeStateDatum {
-  stroke: Ref<StrokeStyle>
-}
-
 export type EdgeState = UnwrapRef<EdgeStateDatum>
 export type EdgeStates = Record<string, EdgeState>
-export type SummarizedEdgeState = UnwrapRef<SummarizedEdgeStateDatum>
-export type SummarizedEdgeStates = Record<string, SummarizedEdgeState>
 
 // Edge item for display (an edge or summarized edges)
 export interface EdgeItem {

@@ -7,16 +7,16 @@
 -->
 <script setup lang="ts">
 import { computed } from "vue"
-import { EdgeLabelStyle } from "@/common/configs"
+import { Config, EdgeLabelStyle } from "@/common/configs"
 import { EdgeLabelArea, Edges } from "@/common/types"
+import { useEdgeConfig } from "@/composables/config"
 import { useZoomLevel } from "@/composables/zoom"
-import { EdgeState, SummarizedEdgeState } from "@/models/edge"
+import { EdgeState } from "@/models/edge"
 import * as v2d from "@/modules/calculation/2d"
 
 interface Props {
   edges: Edges
   state: EdgeState
-  summarizeState?: SummarizedEdgeState
 }
 
 export interface EdgeLabelsSlotProps {
@@ -31,12 +31,15 @@ export interface EdgeLabelsSlotProps {
 defineSlots<{ default: (props: EdgeLabelsSlotProps) => any }>()
 
 const props = defineProps<Props>()
+const config = useEdgeConfig()
 const { scale } = useZoomLevel()
+
+const stroke = computed(() => Config.values(config.summarized.stroke, props.edges))
 
 const area = computed(() => {
   return v2d.calculateEdgeLabelArea(
     props.state.labelPosition,
-    props.summarizeState?.stroke ?? props.state.line.stroke,
+    stroke.value,
     props.state.label.margin,
     props.state.label.padding,
     scale.value

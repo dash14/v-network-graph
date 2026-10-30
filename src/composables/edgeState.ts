@@ -2,8 +2,7 @@
 
 import type { Ref } from "vue"
 import { computed, toRaw, unref, watchEffect } from "vue"
-import { Reactive } from "@/common/common"
-import { Config, Configs, EdgeConfig, MarkerStyle, StrokeStyle } from "@/common/configs"
+import { Config, EdgeConfig, MarkerStyle } from "@/common/configs"
 import { Edge, Edges } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import type { EdgeGeometryRefs, EdgePlacement } from "./edgePlacement"
@@ -134,28 +133,6 @@ export function createEdgeEntries(
       }
     })
     .flat()
-}
-
-export function createSummarizedEdgeStates(
-  summarizedEdgeStates: EdgeModel.SummarizedEdgeStates,
-  edgeGroupStates: Reactive<EdgeModel.EdgeGroupStates>,
-  configs: Configs
-) {
-  const groups = edgeGroupStates.edgeGroups
-  Object.entries(groups)
-    .filter(([id, group]) => group.summarize && !(id in summarizedEdgeStates))
-    .forEach(([id, group]) => {
-      const state = { stroke: undefined as any }
-      state.stroke = computed<StrokeStyle>(() =>
-        Config.values(configs.edge.summarized.stroke, group.edges)
-      )
-      summarizedEdgeStates[id] = state
-    })
-  Object.keys(summarizedEdgeStates).forEach(id => {
-    if (!edgeGroupStates.edgeGroups[id]?.summarize) {
-      delete summarizedEdgeStates[id]
-    }
-  })
 }
 
 function getEdgeStroke(edge: Edge, selected: boolean, hovered: boolean, config: EdgeConfig) {
