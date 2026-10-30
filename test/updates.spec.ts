@@ -1,12 +1,14 @@
 import { describe, expect, test } from "vitest"
-import type { Paths } from "@/index"
-import { GraphProps, mountGraph } from "./helpers/graph"
+import { h } from "vue"
+import type { EdgeLabelArea, Paths } from "@/index"
+import { GraphProps, GraphSlots, mountGraph } from "./helpers/graph"
 import { expectToRenderAs, markupOf } from "./helpers/markup"
 
 interface UpdateCase {
   name: string
   props: () => GraphProps
   update: (props: GraphProps) => void
+  slots?: GraphSlots
 }
 
 const graphWithPath = (): GraphProps => ({
@@ -30,6 +32,35 @@ const graph = (): GraphProps => {
   const { paths: _, ...props } = graphWithPath()
   return props
 }
+
+// The summarized stroke is as wide as the edges in the group added up.
+const graphWithSummarizedStroke = (): GraphProps => {
+  const props = graph()
+  props.edges = {
+    edge1: { source: "node1", target: "node2", width: 10 },
+    edge2: { source: "node2", target: "node3" },
+    edge3: { source: "node2", target: "node1", width: 10 },
+  }
+  props.configs!.edge = {
+    ...props.configs!.edge,
+    normal: { width: 30 },
+    summarized: {
+      stroke: {
+        width: edges => Object.values(edges).reduce((sum, e) => sum + (e.width ?? 1), 0),
+      },
+    },
+  }
+  return props
+}
+
+// Draws the area of the label, which is laid out by the width of the summarized stroke.
+const edgesLabelArea = ({ area }: { area: EdgeLabelArea }) =>
+  h("polygon", {
+    class: "edges-label-area",
+    points: [area.source.above, area.target.above, area.target.below, area.source.below]
+      .map(p => `${p.x},${p.y}`)
+      .join(" "),
+  })
 
 const cases: Record<string, UpdateCase[]> = {
   nodes: [
@@ -122,6 +153,12 @@ const cases: Record<string, UpdateCase[]> = {
           edge1: { source: "node1", target: "node2" },
           edge3: { source: "node2", target: "node1" },
         }),
+    },
+    {
+      name: "add an edge to a summarized group whose stroke depends on its edges",
+      props: graphWithSummarizedStroke,
+      update: props => (props.edges!.edge4 = { source: "node1", target: "node2", width: 10 }),
+      slots: { "edges-label": edgesLabelArea },
     },
     {
       name: "reorder the edges between the same nodes",
@@ -286,10 +323,10 @@ describe.each(Object.entries(cases))("updating %s after mount", (_, featureCases
   test.each(featureCases)("$name renders as mounting the result does", async c => {
     const after = c.props()
     c.update(after)
-    const fresh = await mountGraph(after)
+    const fresh = await mountGraph(after, { slots: c.slots })
     const expected = markupOf(fresh.screen.container)
 
-    const { screen, state } = await mountGraph(c.props())
+    const { screen, state } = await mountGraph(c.props(), { slots: c.slots })
     c.update(state)
     await expectToRenderAs(screen.container, expected)
   })

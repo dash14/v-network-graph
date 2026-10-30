@@ -20,7 +20,7 @@ defineSlots<{
   "edges-label": (props: EdgeLabelsSlotProps) => any
 }>()
 
-const { edgeStates, edgeGroupStates, summarizedEdgeStates } = useStates()
+const { edgeStates, edgeGroupStates } = useStates()
 
 const edgeGroups = computed(() => {
   const individual: Record<string, EdgeGroup> = {}
@@ -60,7 +60,6 @@ function getRepresentativeEdgeKey(group: EdgeGroup) {
         <v-edge-labels-place
           :edges="group.edges"
           :state="edgeStates[getRepresentativeEdgeKey(group)]"
-          :summarize-state="summarizedEdgeStates[getRepresentativeEdgeKey(group)]"
         >
           <template #default="slotProps">
             <slot name="edges-label" v-bind="slotProps" />
