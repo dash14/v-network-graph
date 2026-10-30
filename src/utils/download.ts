@@ -1,6 +1,6 @@
 export async function urlContentToDataUrl(url: string) {
   const response = await fetch(url)
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
   const blob = await response.blob()
   return new Promise<string>((onSuccess, onError) => {
     try {
@@ -8,6 +8,7 @@ export async function urlContentToDataUrl(url: string) {
       reader.onload = function () {
         onSuccess(this.result as string)
       }
+      reader.onerror = () => onError(reader.error)
       reader.readAsDataURL(blob)
     } catch (e) {
       onError(e)
