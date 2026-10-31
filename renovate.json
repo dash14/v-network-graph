@@ -26,6 +26,11 @@
       "allowedVersions": "<7"
     },
     {
+      "description": "Keep @types/node on the Node major that devEngines runs, so APIs it lacks fail the type check.",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25"
+    },
+    {
       "description": "lefthook 2.2.2 was published without the provenance its earlier releases carry, and pnpm's trustPolicy refuses it as a trust downgrade.",
       "matchPackageNames": ["lefthook"],
       "allowedVersions": "!/^2\\.2\\.2$/"
