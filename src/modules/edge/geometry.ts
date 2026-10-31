@@ -400,17 +400,11 @@ function calculateCurveGeometry(
       VectorLine.fromVectors(center, origin.source),
       VectorLine.fromVectors(center, origin.target)
     )
-    let theta2 = v2d.calculateRelativeAngleRadian(
-      VectorLine.fromPositions(center, position.p1),
-      VectorLine.fromPositions(center, position.p2)
-    )
     if (theta0 * theta1 < 0) {
       theta1 = v2d.reverseAngleRadian(theta1)
-      if (theta0 * theta2 < 0) {
-        theta2 = v2d.reverseAngleRadian(theta2)
-      }
     }
-    if (theta1 * theta2 < 0) {
+    // The margins swap the endpoints when they add up to more than the arc.
+    if (sourceMargin + targetMargin > Math.abs(theta1) * radius) {
       // reversed
       const c = shiftedCenter.clone().add(shifted.v.normalize().multiplyScalar(0.5))
       position = LineUtils.toLinePosition(shiftedCenter, c)
