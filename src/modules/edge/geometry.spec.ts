@@ -181,6 +181,18 @@ describe("calculateEdgeGeometry", () => {
       expect(distance(g.position.p1, g.position.p2)).toBeCloseTo(0.5)
     })
 
+    it("should draw a short line at the center when the margins pass each other by over half the circle", () => {
+      // The margins, 26 at each end, overshoot this arc of about 12.9 by more than half its circle.
+      const g = calculateEdgeGeometry(
+        input({ type: "curve", layoutPoint, target: { x: 12, y: 0 }, margin: 10 })
+      )
+
+      expect(g.curve).toBeUndefined()
+      expect(g.position.p1.x).toBeCloseTo(6)
+      expect(Math.abs(g.position.p1.y)).toBeCloseTo(2)
+      expect(distance(g.position.p1, g.position.p2)).toBeCloseTo(0.5)
+    })
+
     it("should draw straight between nodes at the same position", () => {
       const g = calculateEdgeGeometry(input({ type: "curve", layoutPoint, target: { x: 0, y: 0 } }))
 

@@ -379,6 +379,15 @@ function calculateCurveGeometry(
   if (sourceMargin === 0 && targetMargin === 0) {
     position = originPosition
   } else {
+    // If the margins leave none of the arc, allowing for rounding, a short line is shown at the
+    // center. The top is the middle of the arc, so the arc spans twice the angle up to it.
+    const arcLength = 2 * Math.abs(theta0) * radius
+    if (sourceMargin + targetMargin >= arcLength * (1 - 1e-9)) {
+      const c = shiftedCenter.clone().add(shifted.v.normalize().multiplyScalar(0.5))
+      position = LineUtils.toLinePosition(shiftedCenter, c)
+      return [position, curve]
+    }
+
     // The endpoints of the display line are the point on the circumference
     // moved by the margin from the origin end points.
     let sourceMoveRad = sourceMargin / radius
@@ -393,29 +402,6 @@ function calculateCurveGeometry(
       v2d.moveOnCircumference(origin.source, center, sourceMoveRad),
       v2d.moveOnCircumference(origin.target, center, -targetMoveRad)
     )
-
-    // If the endpoints are swapped by applying the margin,
-    // a short line is shown at the center.
-    let theta1 = v2d.calculateRelativeAngleRadian(
-      VectorLine.fromVectors(center, origin.source),
-      VectorLine.fromVectors(center, origin.target)
-    )
-    let theta2 = v2d.calculateRelativeAngleRadian(
-      VectorLine.fromPositions(center, position.p1),
-      VectorLine.fromPositions(center, position.p2)
-    )
-    if (theta0 * theta1 < 0) {
-      theta1 = v2d.reverseAngleRadian(theta1)
-      if (theta0 * theta2 < 0) {
-        theta2 = v2d.reverseAngleRadian(theta2)
-      }
-    }
-    if (theta1 * theta2 < 0) {
-      // reversed
-      const c = shiftedCenter.clone().add(shifted.v.normalize().multiplyScalar(0.5))
-      position = LineUtils.toLinePosition(shiftedCenter, c)
-      return [position, curve]
-    }
   }
 
   // Calculate the control/via points of a Bezier curve.
