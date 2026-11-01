@@ -109,7 +109,18 @@ jobs:
               find ~/playwright-packages -name '*.deb' -exec sudo cp -t /var/cache/apt/archives {} +
               pnpm exec playwright install --with-deps chromium
               find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/playwright-packages {} +
-              pnpm test
+              pnpm run test:coverage
+
+      - name: Publish the coverage summary
+        if: ${{ !cancelled() && hashFiles('coverage/summary.txt') != '' }}
+        run: |
+          {
+            echo '### Test coverage'
+            echo
+            echo '```'
+            cat coverage/summary.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Also when the tests fail, but not without the packages, which would be restored from then on.
       - name: Check for the Playwright system packages

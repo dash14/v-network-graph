@@ -46,6 +46,15 @@ export default defineConfig({
   },
   plugins: [vue()],
   test: {
+    coverage: {
+      provider: "v8",
+      // Without it, files that no test imports are left out of the report.
+      include: ["src/**/*.{ts,vue}"],
+      exclude: ["src/**/*.spec.ts", "src/**/*.d.ts"],
+      reporter: ["text", ["text-summary", { file: "summary.txt" }]],
+      // The current floor, raised as tests are added.
+      thresholds: { statements: 87, branches: 76, functions: 90, lines: 87 },
+    },
     projects: lib
       ? [
           {
