@@ -52,8 +52,15 @@ export default defineConfig({
       include: ["src/**/*.{ts,vue}"],
       exclude: ["src/**/*.spec.ts", "src/**/*.d.ts"],
       reporter: ["text", ["text-summary", { file: "summary.txt" }]],
-      // The current floor, raised as tests are added.
-      thresholds: { statements: 87, branches: 76, functions: 90, lines: 87 },
+      // The current floor, raised as tests are added. The directories listed are fully covered.
+      thresholds: {
+        statements: 87,
+        branches: 76,
+        functions: 90,
+        lines: 87,
+        "src/modules/node/**": { 100: true },
+        "src/utils/**": { 100: true },
+      },
     },
     projects: lib
       ? [

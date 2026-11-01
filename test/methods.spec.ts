@@ -274,4 +274,32 @@ describe("export", () => {
     expect(warn).toHaveBeenCalledWith("Image download failed.", unreachable)
     expect(warn).toHaveBeenCalledWith("Image download failed.", notFound)
   })
+
+  test("embedImages reads xlink:href and leaves data URLs and images without one as they are", async () => {
+    const { screen, graph } = await mountGraph({ nodes, edges, layouts, configs })
+    const blob = new Blob(['<svg xmlns="http://www.w3.org/2000/svg" />'], { type: "image/svg+xml" })
+    const url = URL.createObjectURL(blob)
+    onTestFinished(() => URL.revokeObjectURL(url))
+    const dataUrl = "data:image/svg+xml;base64,PHN2Zy8+"
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const addImage = (attribute?: string, href?: string) => {
+      const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
+      if (attribute && href) image.setAttribute(attribute, href)
+      viewport.appendChild(image)
+    }
+    addImage("xlink:href", url)
+    addImage("href", dataUrl)
+    addImage()
+
+    const svg = await graph.exportAsSvgElement({ embedImages: true })
+    const images = Array.from(svg.querySelectorAll("image"), image => [
+      image.getAttribute("href"),
+      image.getAttribute("xlink:href"),
+    ])
+    expect(images).toEqual([
+      [null, expect.stringMatching(/^data:image\/svg\+xml;base64,/)],
+      [dataUrl, null],
+      [null, null],
+    ])
+  })
 })

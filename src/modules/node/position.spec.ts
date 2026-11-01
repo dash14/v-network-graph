@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { isReactive, reactive, readonly } from "vue"
 import { NodePositions } from "@/common/types"
-import { positionOf, untrackedPositionOf } from "./position"
+import { drawnCoordinateOf, positionOf, untrackedPositionOf } from "./position"
 
 describe("positionOf", () => {
   it("should return a copy of a valid position", () => {
@@ -58,5 +58,18 @@ describe("untrackedPositionOf", () => {
     const positions = reactive<NodePositions>({})
     positions.node1 = readonly(given)
     expect(untrackedPositionOf(positions, "node1")).toBe(given)
+  })
+})
+
+describe("drawnCoordinateOf", () => {
+  it.each([
+    [12, 12],
+    ["12.5", 12.5],
+    [" ", 0],
+    [true, 0],
+    ["abc", 0],
+    ["Infinity", 0],
+  ])("should draw %j at %d", (given, expected) => {
+    expect(drawnCoordinateOf(given)).toBe(expected)
   })
 })

@@ -78,7 +78,7 @@ export function handleNodeLabelAutoAdjustment(
   if (azimuth === undefined) {
     return defaultDirection
   } else {
-    return indexToDirection(azimuth, defaultDirection)
+    return indexToDirection(azimuth)
   }
 }
 
@@ -97,6 +97,6 @@ function directionToIndex(direction: NodeLabelDirectionType) {
   return labelDirections[direction] ?? 0
 }
 
-function indexToDirection(index: number, defaultValue: NodeLabelDirectionType) {
-  return (Object.entries(labelDirections)[index]?.[0] ?? defaultValue) as NodeLabelDirectionType
+function indexToDirection(index: number) {
+  return Object.keys(labelDirections)[index] as NodeLabelDirectionType
 }

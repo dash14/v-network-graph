@@ -6,48 +6,29 @@ export function bindProp<T extends object, K extends keyof T>(
   props: T,
   name: K,
   emit: (event: `update:${NoInfer<K & string>}`, ...args: any[]) => void,
-  filter?: (arg: T[K]) => T[K]
+  filter: (arg: T[K]) => T[K]
 ): Ref<T[K]> {
   // Build two-way binding ties.
 
   // Since it is not always passed in props (emit does not
   // rewrite it), always keep a ref for self management.
-
-  if (filter) {
-    const prop = ref<T[K]>(filter(props[name])) as Ref<T[K]>
-    const update = (filtered: T[K]) => {
-      if (!isEqual(filtered, prop.value)) {
-        prop.value = filtered
-      }
-      if (!isEqual(filtered, props[name])) {
-        emit(`update:${name as string & K}`, filtered)
-      }
+  const prop = ref<T[K]>(filter(props[name])) as Ref<T[K]>
+  const update = (filtered: T[K]) => {
+    if (!isEqual(filtered, prop.value)) {
+      prop.value = filtered
     }
-    watch(() => filter(prop.value), update)
-    watch(
-      () => props[name],
-      v => update(filter(v))
-    )
-    if (prop.value !== props[name]) {
-      emit(`update:${name as string & K}`, prop.value)
+    if (!isEqual(filtered, props[name])) {
+      emit(`update:${name as string & K}`, filtered)
     }
-    return prop
   }
-
-  const prop = ref<T[K]>(props[name]) as Ref<T[K]>
+  watch(() => filter(prop.value), update)
   watch(
     () => props[name],
-    v => {
-      if (!isEqual(v, prop.value)) {
-        prop.value = v
-      }
-    }
+    v => update(filter(v))
   )
-  watch(prop, v => {
-    if (!isEqual(v, props[name])) {
-      emit(`update:${name as string & K}`, v)
-    }
-  })
+  if (prop.value !== props[name]) {
+    emit(`update:${name as string & K}`, prop.value)
+  }
   return prop
 }
 

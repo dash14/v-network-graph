@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+import { NodeLabelDirectionType } from "@/common/configs"
 import { handleNodeLabelAutoAdjustment } from "./label"
 
 describe("handleNodeLabelAutoAdjustment", () => {
@@ -302,5 +303,49 @@ describe("handleNodeLabelAutoAdjustment boundary cases", () => {
       )
       expect(direction).to.be.equal("north")
     })
+  })
+})
+
+describe("handleNodeLabelAutoAdjustment with a diagonal self-loop", () => {
+  it.each([
+    ["north-east", { x: 150, y: 50 }, "south-west"],
+    ["south-east", { x: 150, y: 150 }, "north-west"],
+  ] as const)("should avoid %s widely", (defaultDir, center, expected) => {
+    const direction = handleNodeLabelAutoAdjustment(
+      "node1",
+      { x: 100, y: 100 },
+      { edge1: { nodeId: "node1", pos: { x: 100, y: 100 } } },
+      () => center,
+      defaultDir
+    )
+    expect(direction).to.be.equal(expected)
+  })
+})
+
+describe("handleNodeLabelAutoAdjustment with unusual input", () => {
+  it("should take a self-loop without a center as an edge to its position", () => {
+    const direction = handleNodeLabelAutoAdjustment(
+      "node1",
+      { x: 100, y: 100 },
+      {
+        edge1: { nodeId: "node1", pos: { x: 100, y: 50 } }, // north
+      },
+      () => undefined,
+      "north"
+    )
+    expect(direction).to.be.equal("south")
+  })
+
+  it("should start from north for an unknown direction", () => {
+    const direction = handleNodeLabelAutoAdjustment(
+      "node1",
+      { x: 100, y: 100 },
+      {
+        edge1: { nodeId: "node2", pos: { x: 100, y: 50 } }, // north
+      },
+      () => undefined,
+      "unknown" as NodeLabelDirectionType
+    )
+    expect(direction).to.be.equal("south")
   })
 })
