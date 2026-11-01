@@ -1,5 +1,6 @@
 import type { Ref } from "vue"
 import { nextTick, ref } from "vue"
+import { isPromise } from "@/utils/object"
 
 type TimingFunction = "ease" | "linear" | "ease-in" | "ease-out" | "ease-in-out" | string
 
@@ -19,10 +20,6 @@ export interface UseTransitionWhileReturn {
     timingFunction?: TimingFunction
   ) => void
   transitionOption: Ref<TransitionParameters>
-}
-
-function isPromise(obj: any): boolean {
-  return obj instanceof Promise || (obj && typeof obj.then === "function")
 }
 
 export function useTransitionWhile(): UseTransitionWhileReturn {

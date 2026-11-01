@@ -1,9 +1,5 @@
 import { isEqual } from "lodash-es"
 
-export function keyOf<T extends object>(obj: T): (keyof T)[] {
-  return Object.keys(obj) as Array<keyof T>
-}
-
 export function entriesOf<T extends object, K extends keyof T>(obj: T): [K, T[K]][] {
   return Object.entries(obj) as [K, T[K]][]
 }
