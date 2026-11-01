@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { at, drag, mountGraph, payloadsOf } from "../helpers/graph"
 
@@ -51,6 +51,32 @@ describe("box selection", () => {
     await drag(canvas, at(-50, -50), at(150, 50))
     await userEvent.keyboard(`{/${modifier}}`)
     expect(state.selectedNodes).toEqual(["node2", "node3"])
+  })
+
+  // Plain events, since the selection follows the box only after a pause in the drag.
+  test("the append type deselects the nodes that leave the box during the drag", async () => {
+    const { canvas, graph, state } = await mountGraph({ nodes, layouts, configs })
+    const svg = canvas.element()
+    const rect = svg.getBoundingClientRect()
+    const pointer = (type: string, target: EventTarget, { x, y }: { x: number; y: number }) =>
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          pointerId: 1,
+          isPrimary: true,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+        })
+      )
+
+    graph.startBoxSelection()
+    pointer("pointerdown", svg, at(-150, -50))
+    pointer("pointermove", document, at(50, 50))
+    await vi.waitFor(() => expect(state.selectedNodes).toEqual(["node1", "node2"]))
+    pointer("pointermove", document, at(-50, 50))
+    await vi.waitFor(() => expect(state.selectedNodes).toEqual(["node1"]))
+    pointer("pointerup", document, at(-50, 50))
+    expect(state.selectedNodes).toEqual(["node1"])
   })
 
   test("dragging the background without box selection does not select", async () => {
