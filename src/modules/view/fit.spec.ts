@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash-es"
 import { describe, expect, it, vi } from "vitest"
 import { FitContentMargin } from "../../common/configs"
 import { Box, NodePositions, Size, ViewBox } from "../../common/types"
-import { exportedForTesting, parseFitContentMargin } from "./fit"
+import { calculateFit, exportedForTesting, parseFitContentMargin } from "./fit"
 
 const {
   calculateFitWithScalingObjects,
@@ -104,6 +104,27 @@ describe("fit", () => {
       const size: Size = { width: 200, height: 150 }
       const actual: Box = parseFitContentMargin(input as FitContentMargin, size)
       expect(actual).toStrictEqual(expected)
+    })
+
+    it.each(["top", "left", "right", "bottom"])(
+      "should keep the default and warn for an invalid %s value",
+      side => {
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+        const size: Size = { width: 200, height: 150 }
+        const actual: Box = parseFitContentMargin({ [side]: "wide" } as FitContentMargin, size)
+        expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
+        expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", "wide")
+        warnSpy.mockRestore()
+      }
+    )
+
+    it.each(["%", "px"])("should warn for the unit %s without a number", value => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin(value as FitContentMargin, size)
+      expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
+      expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", value)
+      warnSpy.mockRestore()
     })
 
     it("should handle partial object with only top", () => {
@@ -447,6 +468,39 @@ describe("fit", () => {
     })
   })
 
+  describe("calculateFitWithoutScalingObjects with large margins", () => {
+    it("should return undefined if the canvas is smaller than the margins", () => {
+      const params = cloneDeep(defaultParams1)
+      params.margins = { top: 400, left: 600, right: 600, bottom: 400 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt).toBeUndefined()
+    })
+  })
+
+  describe("calculateFitWithoutScalingObjects with the nodes outside the graph", () => {
+    it("should return undefined when the zoomed area turns inside out", () => {
+      // Nodes outside the graph objects make the fixed sizes negative, which a small zoom grows
+      // past the nodes themselves.
+      const box = { x: 40, y: 40, width: 20, height: 20 }
+      const zoomAt = calculateFitWithoutScalingObjects(
+        box,
+        box,
+        { width: 10, height: 10 },
+        { node1: { x: 0, y: 0 }, node2: { x: 100, y: 100 } },
+        1,
+        { top: 0, left: 0, right: 0, bottom: 0 }
+      )
+      expect(zoomAt).toBeUndefined()
+    })
+  })
+
   interface CalculateFitWithScalingObjectsParams {
     viewport: ViewBox
     container: Size
@@ -504,17 +558,70 @@ describe("fit", () => {
     })
 
     it("should return undefined if the canvas is smaller than the margins", () => {
-      const params = cloneDeep(defaultParams1)
+      const params = cloneDeep(defaultParams2)
       params.margins = { top: 400, left: 600, right: 600, bottom: 400 }
-      const zoomAt = calculateFitWithoutScalingObjects(
+      const zoomAt = calculateFitWithScalingObjects(
         params.viewport,
-        params.graphBox,
         params.container,
         params.nodesLayouts,
-        params.zoomLevel,
         params.margins
       )
       expect(zoomAt).toBeUndefined()
+    })
+  })
+
+  describe("calculateFit", () => {
+    const viewportOf = (box: ViewBox, layers: ViewBox[]) =>
+      ({
+        getBBox: () => box,
+        querySelectorAll: () =>
+          layers.map(layer => ({ firstElementChild: {}, getBBox: () => layer })),
+      }) as unknown as SVGGElement
+
+    it("should fit the whole viewport when scaling objects", () => {
+      const params = cloneDeep(defaultParams2)
+      const zoomAt = calculateFit(
+        viewportOf(params.viewport, []),
+        params.container,
+        params.nodesLayouts,
+        1,
+        params.margins,
+        true
+      )
+      expect(zoomAt).toEqual(
+        calculateFitWithScalingObjects(
+          params.viewport,
+          params.container,
+          params.nodesLayouts,
+          params.margins
+        )
+      )
+    })
+
+    it.each([
+      ["the layers", [{ x: 150, y: 250, width: 500, height: 300 }]],
+      ["the viewport without layers", []],
+    ])("should take the graph to be %s when not scaling objects", (_, layers) => {
+      const params = cloneDeep(defaultParams1)
+      const graphBox = layers[0] ?? params.viewport
+      const zoomAt = calculateFit(
+        viewportOf(params.viewport, layers),
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins,
+        false
+      )
+      expect(zoomAt).toEqual(
+        calculateFitWithoutScalingObjects(
+          params.viewport,
+          graphBox,
+          params.container,
+          params.nodesLayouts,
+          params.zoomLevel,
+          params.margins
+        )
+      )
     })
   })
 })

@@ -170,8 +170,8 @@ function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: E
       ? configs.edge.gap
       : (_e: Edges, _c: Configs) => configs.edge.gap as number
   for (const [key, edges] of Object.entries(map)) {
+    // Each group has the edge that made it.
     const edgeLen = Object.keys(edges).length
-    if (edgeLen == 0) continue
 
     const gap = calcGap(edges, configs)
     const [edgeId, edge] = Object.entries(edges)[0]
@@ -210,16 +210,8 @@ function calculateEdgeGroupAndPositions(configs: Configs, nodes: Nodes, edges: E
 }
 
 function defaultCheckSummarize(nodes: Nodes, edges: Edges, configs: Configs, width: number) {
-  // aggregate if the edge width and gap width exceed the size of the node
-  const edgeCount = Object.entries(edges).length
-  if (edgeCount === 1) return false
-
-  // const width =
-  //   Object.values(edges)
-  //     .map(e => Config.value(configs.edge.normal.width, e))
-  //     .reduce((sum, v) => sum + v, 0) +
-  //   configs.edge.gap * (edgeCount - 1)
-
+  // Aggregate if the edge width and gap width exceed the size of the node. Only a group of two or
+  // more edges has a width.
   const minWidth = Math.min(
     ...Object.values(edges)
       .flatMap(e => [nodes[e.source], nodes[e.target]])
@@ -297,7 +289,7 @@ function calculateLinePosition(
       if (radian < -perpendicular || radian >= perpendicular) {
         diff *= -1
       }
-    } else if (keepOrder === "horizontal") {
+    } else {
       // Keep the horizontal alignment of multiple edges.
       if (radian < 0) {
         diff *= -1

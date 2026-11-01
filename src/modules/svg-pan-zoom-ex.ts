@@ -33,7 +33,15 @@ export interface CustomEventHandler {
   destroy: (options: CustomEventOptions) => void
 }
 
-export interface SvgPanZoomOptions extends Omit<SvgPanZoom.Options, "customEventsHandler"> {
+// What the extension tracks itself is required, since svg-pan-zoom fills its own defaults only in
+// its copy of the options.
+export interface SvgPanZoomOptions extends Omit<
+  SvgPanZoom.Options,
+  "customEventsHandler" | "panEnabled" | "zoomEnabled" | "mouseWheelZoomEnabled"
+> {
+  panEnabled: boolean
+  zoomEnabled: boolean
+  mouseWheelZoomEnabled: boolean
   customEventsHandler?: CustomEventHandler // (default null)
 }
 
@@ -174,8 +182,8 @@ function constructor(
   options: SvgPanZoomOptions
 ): SvgPanZoomInternal {
   const instance = svgPanZoom as SvgPanZoomInternal
-  instance._isPanEnabled = options.panEnabled ?? true
-  instance._isZoomEnabled = options?.zoomEnabled ?? true
+  instance._isPanEnabled = options.panEnabled
+  instance._isZoomEnabled = options.zoomEnabled
   instance._internalIsPanEnabled = instance.isPanEnabled
   instance._internalEnablePan = instance.enablePan
   instance._internalDisablePan = instance.disablePan
@@ -188,15 +196,9 @@ function constructor(
 
 export function createSvgPanZoomEx(
   svg: SVGElement,
-  options: SvgPanZoomOptions
+  options: SvgPanZoomOptions & { customEventsHandler: CustomEventHandler }
 ): SvgPanZoomInstance {
-  const userInit = options.customEventsHandler?.init ?? ((_: any) => {})
-  const userDestroy = options.customEventsHandler?.destroy ?? ((_: any) => {})
-  const haltEventListeners = options.customEventsHandler?.haltEventListeners ?? []
-
-  if (options.mouseWheelZoomEnabled === undefined) {
-    options.mouseWheelZoomEnabled = options.zoomEnabled
-  }
+  const { init: userInit, destroy: userDestroy, haltEventListeners } = options.customEventsHandler
 
   options.customEventsHandler = {
     init: o => {
@@ -207,5 +209,5 @@ export function createSvgPanZoomEx(
     haltEventListeners,
   }
 
-  return svgPanZoom(svg, options as SvgPanZoom.Options) as SvgPanZoomInternal
+  return svgPanZoom(svg, options as SvgPanZoomOptions as SvgPanZoom.Options) as SvgPanZoomInternal
 }

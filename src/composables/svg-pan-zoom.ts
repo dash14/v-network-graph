@@ -1,7 +1,11 @@
 import type { Ref } from "vue"
 import { ref, onMounted, onUnmounted } from "vue"
 import { nonNull } from "@/common/common"
-import type { SvgPanZoomInstance, SvgPanZoomOptions } from "@/modules/svg-pan-zoom-ex"
+import type {
+  CustomEventOptions,
+  SvgPanZoomInstance,
+  SvgPanZoomOptions,
+} from "@/modules/svg-pan-zoom-ex"
 import { createSvgPanZoomEx } from "@/modules/svg-pan-zoom-ex"
 
 type Callback = () => void
@@ -46,17 +50,20 @@ export function useSvgPanZoom(
     const userDestroy = options.customEventsHandler?.destroy ?? ((_: any) => {})
     const haltEventListeners = options.customEventsHandler?.haltEventListeners ?? []
 
-    options.customEventsHandler = {
-      init: o => {
-        instance.value = o.instance
-        userInit(o)
-        instanceMounted()
+    const exOptions = {
+      ...options,
+      customEventsHandler: {
+        init: (o: CustomEventOptions) => {
+          instance.value = o.instance
+          userInit(o)
+          instanceMounted()
+        },
+        destroy: (o: CustomEventOptions) => {
+          instanceUnmounted()
+          userDestroy(o)
+        },
+        haltEventListeners,
       },
-      destroy: o => {
-        instanceUnmounted()
-        userDestroy(o)
-      },
-      haltEventListeners,
     }
 
     const initialize = () => {
@@ -68,7 +75,7 @@ export function useSvgPanZoom(
       // Note that even after onMounted, the area is not allocated at
       // the time of page switching with Nuxt.
       if (rect.width !== 0 && rect.height !== 0) {
-        createSvgPanZoomEx(element, options)
+        createSvgPanZoomEx(element, exOptions)
       } else {
         setTimeout(initialize, 200)
       }
