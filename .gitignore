@@ -6,3 +6,4 @@ dist-ssr
 /docs/.vitepress/dist
 /stats-*.html
 /.vitest
+/coverage
