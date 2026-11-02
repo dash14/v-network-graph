@@ -393,7 +393,8 @@ function _calculateEdgeOfNode(
       Vector2D.fromObject(positionOf(nodeLayouts, nodeId)),
       nodeRadius
     )
-    return p === null ? source : p
+    // A shifted line can miss the circle. Its end at the node is then nearest to the center.
+    return p ?? target
   }
 }
 

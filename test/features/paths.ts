@@ -152,4 +152,21 @@ export default [
     name: "margin",
     props: { ...graph, configs: { path: { visible: true, end: "edgeOfNode", margin: 6 } } },
   },
+  // The edges are shifted farther from the centers of the nodes than the margin.
+  {
+    name: "margin-within-edge-gap",
+    props: {
+      ...graph,
+      edges: {
+        ...graph.edges,
+        edge1b: { source: "node1", target: "node2" },
+        edge2b: { source: "node2", target: "node3" },
+      },
+      paths: { ...graph.paths, path2: { edges: ["edge1b", "edge2b"] } },
+      configs: {
+        edge: { gap: 12, summarize: false },
+        path: { visible: true, end: "centerOfNode", margin: 4 },
+      },
+    },
+  },
 ] satisfies GraphCase[]
