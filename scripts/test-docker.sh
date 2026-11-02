@@ -5,11 +5,19 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
+# Pinned by digest, as a tag can be pushed again with other contents.
+# Renovate updates it together with the playwright package.
+image="mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea"
+
+# The image's browsers are built for one version of playwright.
 version=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
-if [ -z "$version" ]; then
-  echo "playwright is not in pnpm-lock.yaml" >&2
-  exit 1
-fi
+case "$image" in
+  *":v$version-noble@"*) ;;
+  *)
+    echo "The image is not for playwright ${version:-?} in pnpm-lock.yaml: $image" >&2
+    exit 1
+    ;;
+esac
 
 # The host's node_modules holds native binaries for the host, so the
 # container keeps its own, one per checkout.
@@ -31,7 +39,7 @@ exec docker run --rm -i $tty \
   -v "$(pwd)":/src \
   -v "$volume":/work/node_modules \
   -v v-network-graph-pnpm-store:/pnpm-store \
-  "mcr.microsoft.com/playwright:v$version-noble" \
+  "$image" \
   sh -c 'set -e
     cd /src && tar cf - --exclude=./node_modules --exclude=./.git --exclude=./.vitest . | tar xf - -C /work
     cd /work
