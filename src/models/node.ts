@@ -1,5 +1,5 @@
 import { ComputedRef, UnwrapRef, Ref } from "vue"
-import { ShapeStyle, NodeLabelStyle, OppositeNode } from "@/common/configs"
+import { ShapeStyle, NodeLabelStyle } from "@/common/configs"
 
 export interface NodeStateDatum {
   id: string
@@ -13,7 +13,6 @@ export interface NodeStateDatum {
   selectable: ComputedRef<boolean | number>
   zIndex: ComputedRef<number>
   oppositeNodeIds: Ref<Record<string, string>>
-  oppositeNodes: ComputedRef<Record<string, OppositeNode>>
 }
 
 export type NodeState = UnwrapRef<NodeStateDatum>

@@ -182,7 +182,8 @@ export function provideStates(
     currentPositions.moved(moved)
   })
 
-  // Edge item for display (an edge or summarized edges)
+  // Edge item for display (an edge or summarized edges). Made after the states of the edges, so
+  // that in a flush every edge has its state by then.
   watchEffect(() => {
     edgeEntries.value = createEdgeEntries(edgeGroupStates.edgeGroups, edgeStates)
   })
@@ -245,6 +246,8 @@ export function useStates() {
 /** The state of the edge that a summarized group is drawn with: the first one that has a state. */
 export function drawnStateOf(edgeStates: EdgeModel.EdgeStates, edges: Edges) {
   const edgeId = Object.keys(edges).find(edgeId => edgeId in edgeStates)
+  // The states are made before the groups are drawn; a guard for a group drawn ahead of them.
+  /* v8 ignore next */
   return edgeId ? edgeStates[edgeId] : undefined
 }
 

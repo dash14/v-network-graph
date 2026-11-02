@@ -292,6 +292,31 @@ describe("force layout", () => {
     expect(drawer?.interval).toBe(300)
   })
 
+  test("draws only the nodes the layout gives a position for, and the others where the layouts have them", async () => {
+    let drawer: PositionDrawer | undefined
+    const layoutHandler: LayoutHandler = {
+      activate: ({ positionDrawer }) => (drawer = positionDrawer),
+      deactivate: () => {},
+    }
+    // An edge to a node that does not exist is not drawn, ahead of the layouts either.
+    const { screen } = await mountLite({
+      edges: { ...edges, edge3: { source: "node1", target: "missing" } },
+      configs: { view: { layoutHandler } },
+    })
+
+    drawer!.draw(id => (id === "node1" ? { x: -100, y: 50 } : undefined))
+    expect(drawnPosition(screen.container, "node1")).toEqual({ x: -100, y: 50 })
+    expect(drawnPosition(screen.container, "node2")).toEqual(layouts.nodes.node2)
+    const line = screen.container.querySelector('[data-edge-id="edge1"]')
+    expect(attributes(line, ["x1", "y1", "x2", "y2"])).toEqual({
+      x1: "-100",
+      y1: "50",
+      x2: "0",
+      y2: "0",
+    })
+    expect(screen.container.querySelector('[data-edge-id="edge3"]')).toBeNull()
+  })
+
   test("getLayouts() returns the positions drawn, while the layouts lag behind", async () => {
     const { screen, state, graph } = await mountLite({
       configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },

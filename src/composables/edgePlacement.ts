@@ -166,8 +166,7 @@ export function makeEdgePlacement(
     // change from one placing to the next.
     let input: (EdgePlacementStyle & EdgeGeometryInput) | undefined
     let betweenCenters = false
-    const currentGeometry = (): EdgeGeometry | undefined => {
-      if (!input) return undefined
+    const geometryOf = (input: EdgePlacementStyle & EdgeGeometryInput): EdgeGeometry => {
       input.source = positionOf(input.sourceId)
       input.target = positionOf(input.targetId)
       return calculateEdgeGeometry(input)
@@ -190,8 +189,8 @@ export function makeEdgePlacement(
         !s.margin &&
         s.line.source.type === "none" &&
         s.line.target.type === "none"
-      const placed = currentGeometry()
-      if (!placed) return
+      if (!input) return
+      const placed = geometryOf(input)
       geometries.set(id, placed)
       geometry.origin.value = placed.origin
       geometry.labelPosition.value = placed.labelPosition
@@ -214,8 +213,7 @@ export function makeEdgePlacement(
         draw(id, positionOf(input.sourceId), positionOf(input.targetId))
         return
       }
-      const placed = currentGeometry()
-      if (!placed) return
+      const placed = geometryOf(input)
       geometries.set(id, placed)
       draw(id, placed.position.p1, placed.position.p2)
     })

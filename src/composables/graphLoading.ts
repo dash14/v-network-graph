@@ -73,10 +73,9 @@ export function useGraphLoading(
         })
       } else if (autoPanAndZoom === "fit-content" || configs.view.fit) {
         await fitToContents()
-      } else if (autoPanAndZoom === "center-content") {
-        await panToCenter()
       } else {
-        await updateBorderBox()
+        // "center-content", as `false` comes here only with `fit`.
+        await panToCenter()
       }
 
       // If the pan position does not change, the onPan event of svg-pan-zoom

@@ -2,12 +2,13 @@
 
 import { isEqual } from "lodash-es"
 import type { Ref } from "vue"
-import { computed, watchEffect } from "vue"
+import { watchEffect } from "vue"
 import { Config, PathConfig } from "@/common/configs"
 import { Edges, Path, Paths } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import * as PathModel from "@/models/path"
 import { calculateDirectionsOfPathEdges } from "@/modules/calculation/path"
+import { computedOfObject } from "./objectState"
 
 export function createNewPathState(
   paths: Ref<Paths>,
@@ -17,14 +18,8 @@ export function createNewPathState(
   edges: Ref<Edges>,
   edgeGroupStates: EdgeModel.EdgeGroupStates
 ) {
-  state.clickable = computed(() => {
-    if (!paths.value[id]) return false
-    return Config.value(config.clickable, paths.value[id])
-  })
-  state.hoverable = computed(() => {
-    if (!paths.value[id]) return false
-    return Config.value(config.hoverable, paths.value[id])
-  })
+  state.clickable = computedOfObject(paths, id, path => Config.value(config.clickable, path))
+  state.hoverable = computedOfObject(paths, id, path => Config.value(config.hoverable, path))
 
   // Follows the edges of the path and their source and target.
   state.stopWatchHandle = watchEffect(() => {

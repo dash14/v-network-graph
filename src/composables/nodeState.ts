@@ -1,13 +1,13 @@
 // The states of nodes
 
 import type { Ref } from "vue"
-import { computed, toRef, unref, watchEffect } from "vue"
+import { toRef, unref, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
-import { Config, NodeConfig, OppositeNode } from "@/common/configs"
+import { Config, NodeConfig } from "@/common/configs"
 import { Edges, FixablePosition, Layouts, Node, Nodes, UserLayouts } from "@/common/types"
 import * as NodeModel from "@/models/node"
-import { positionOf } from "@/modules/node/position"
 import { updateObjectDiff } from "@/utils/object"
+import { computedOfObject } from "./objectState"
 
 /**
  * Make the opposite nodes of each node, by the edges between them.
@@ -52,48 +52,21 @@ export function createNewNodeState(
   }
   /* eslint-enable no-restricted-syntax */
 
-  state.shape = computed(() => {
-    if (!nodes.value[id]) return unref(state.shape) // Return the previous value
-    return getNodeShape(nodes.value[id], state.selected, state.hovered, config)
-  })
-
-  state.staticShape = computed(() => {
-    if (!nodes.value[id]) return unref(state.staticShape) // Return the previous value
-    return getNodeStaticShape(nodes.value[id], state.selected, config)
-  })
-
-  state.label = computed(() => {
-    if (!nodes.value[id]) return unref(state.label) // Return the previous value
-    return Config.values(config.label, nodes.value[id])
-  })
-
-  state.labelText = computed(() => {
-    if (config.label.text instanceof Function) {
-      return unref(state.label).text
-    } else {
-      if (!nodes.value[id]) return unref(state.labelText) // Return the previous value
-      return nodes.value[id]?.[unref(state.label).text] ?? ""
-    }
-  })
-
-  state.draggable = computed(() => {
-    if (!nodes.value[id]) return unref(state.draggable) // Return the previous value
-    return Config.value(config.draggable, nodes.value[id])
-  })
+  state.shape = computedOfObject(nodes, id, node =>
+    getNodeShape(node, state.selected, state.hovered, config)
+  )
+  state.staticShape = computedOfObject(nodes, id, node =>
+    getNodeStaticShape(node, state.selected, config)
+  )
+  state.label = computedOfObject(nodes, id, node => Config.values(config.label, node))
+  state.labelText = computedOfObject(nodes, id, node =>
+    config.label.text instanceof Function
+      ? unref(state.label).text
+      : (node[unref(state.label).text] ?? "")
+  )
+  state.draggable = computedOfObject(nodes, id, node => Config.value(config.draggable, node))
 
   state.oppositeNodeIds = toRef(oppositeNodeIds, id)
-
-  state.oppositeNodes = computed<Record<string, OppositeNode>>(() => {
-    return Object.entries(state.oppositeNodeIds).reduce(
-      (nodes, entry) => {
-        const [edgeId, nodeId] = entry as [string, string]
-        if (nodeId in layouts.nodes)
-          nodes[edgeId] = { nodeId, pos: positionOf(layouts.nodes, nodeId) }
-        return nodes
-      },
-      {} as Record<string, OppositeNode>
-    )
-  })
 }
 
 function getNodeShape(node: Node, selected: boolean, hovered: boolean, config: NodeConfig) {
