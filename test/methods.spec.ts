@@ -1,4 +1,8 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
+import { render } from "vitest-browser-vue"
+import { defineComponent, h, reactive, ref } from "vue"
+import { VNetworkGraph } from "@/index"
+import type { VNetworkGraphInstance } from "@/index"
 import type { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { HEIGHT, WIDTH } from "./helpers/container"
 import { at, drag, mountGraph, payloadsOf } from "./helpers/graph"
@@ -183,6 +187,37 @@ describe("view box", () => {
       .poll(() => [panZoom!.isPanEnabled(), panZoom!.isZoomEnabled()])
       .toEqual([true, true])
     expect(panZoom!.isDblClickZoomEnabled()).toBe(true)
+  })
+
+  test("panEnabled and zoomEnabled changed while the container has no size apply once it has", async () => {
+    let panZoom: SvgPanZoomInstance | undefined
+    const style = reactive({ width: "0px", height: "0px" })
+    const view = reactive({
+      onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => (panZoom = i),
+      panEnabled: true,
+      zoomEnabled: true,
+    })
+    const graph = ref<VNetworkGraphInstance>()
+    await render(
+      defineComponent(
+        () => () =>
+          h("div", { style }, [
+            h(VNetworkGraph, { ref: graph, nodes, edges, layouts, configs: { view } }),
+          ])
+      )
+    )
+    // svg-pan-zoom waits for the container to get a size.
+    expect(graph.value!.getViewBox()).toEqual({ top: 0, bottom: 0, left: 0, right: 0 })
+    view.panEnabled = false
+    view.zoomEnabled = false
+    await new Promise(resolve => setTimeout(resolve, 300))
+    expect(panZoom).toBeUndefined()
+
+    style.width = `${WIDTH}px`
+    style.height = `${HEIGHT}px`
+    await expect.poll(() => panZoom, { timeout: 5000 }).toBeDefined()
+    expect([panZoom!.isPanEnabled(), panZoom!.isZoomEnabled()]).toEqual([false, false])
+    expect(panZoom!.isDblClickZoomEnabled()).toBe(false)
   })
 
   test("coordinates translate between the DOM and the SVG both ways", async () => {

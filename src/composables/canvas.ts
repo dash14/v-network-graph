@@ -141,6 +141,15 @@ export function useGraphCanvas(
   const { scale } = provideZoomLevel(zoomLevel, configs.view)
 
   onSvgPanZoomMounted(() => {
+    // The configs may have changed while svg-pan-zoom waited for the container to get a size.
+    const instance = nonNull(svgPanZoom.value, "svg-pan-zoom instance")
+    instance.setPanEnabled(configs.view.panEnabled)
+    applyZoomEnabled(
+      instance,
+      configs.view.zoomEnabled,
+      configs.view.doubleClickZoomEnabled,
+      configs.view.mouseWheelZoomEnabled
+    )
     // apply initial zoom level
     applyAbsoluteZoomLevel(initialZoomLevel())
   })
