@@ -36,26 +36,20 @@
       "allowedVersions": "!/^2\\.2\\.2$/"
     },
     {
-      "description": "The image's browsers are built for one version of playwright, which is pinned for it. With no release timestamps to wait for, the image's update comes first, and its tests fail until the package's joins it.",
+      "description": "The image's browsers are built for one version of playwright, which is pinned for it.",
       "matchPackageNames": ["playwright", "mcr.microsoft.com/playwright"],
       "groupName": "playwright"
     },
     {
-      "description": "Microsoft's registry gives no release timestamps, which minimumReleaseAge would wait for forever.",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["mcr.microsoft.com/playwright"],
-      "minimumReleaseAgeBehaviour": "timestamp-optional"
-    }
-  ],
-  "customManagers": [
+      "description": "The pnpm in the image of the font-dependent tests is the one that devEngines names.",
+      "matchPackageNames": ["pnpm", "ghcr.io/pnpm/pnpm"],
+      "groupName": "pnpm"
+    },
     {
-      "description": "The Playwright image that scripts/test-docker.sh runs the font-dependent tests in.",
-      "customType": "regex",
-      "managerFilePatterns": ["/^scripts/test-docker\\.sh$/"],
-      "matchStrings": [
-        "image=\"(?<depName>mcr\\.microsoft\\.com/playwright):(?<currentValue>[^@\"]+)@(?<currentDigest>sha256:[0-9a-f]+)\""
-      ],
-      "datasourceTemplate": "docker"
+      "description": "These registries give no release timestamps, which minimumReleaseAge would wait for forever. scripts/test-docker.sh fails until the packages, which wait for it, join their updates.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mcr.microsoft.com/playwright", "ghcr.io/pnpm/pnpm"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
     }
   ]
 }

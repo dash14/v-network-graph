@@ -5,19 +5,25 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
-# Pinned by digest, as a tag can be pushed again with other contents.
-# Renovate updates it together with the playwright package.
-image="mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea"
+dockerfile=scripts/test-docker.Dockerfile
 
-# The image's browsers are built for one version of playwright.
-version=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
-case "$image" in
-  *":v$version-noble@"*) ;;
-  *)
-    echo "The image is not for playwright ${version:-?} in pnpm-lock.yaml: $image" >&2
-    exit 1
-    ;;
-esac
+# The image's browsers are built for one version of playwright, and its
+# pnpm is the one that devEngines names. Renovate updates the images without
+# waiting for minimumReleaseAge, so they wait here for the packages.
+playwright=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
+if ! grep -q "^FROM mcr\.microsoft\.com/playwright:v$playwright-noble@" "$dockerfile"; then
+  echo "$dockerfile is not for playwright ${playwright:-?} in pnpm-lock.yaml" >&2
+  exit 1
+fi
+pnpm=$(sed -n '/"packageManager": {/,/}/s/^ *"version": "\(.*\)",$/\1/p' package.json)
+if ! grep -q "^FROM ghcr\.io/pnpm/pnpm:$pnpm@" "$dockerfile"; then
+  echo "$dockerfile is not for pnpm ${pnpm:-?} in devEngines" >&2
+  exit 1
+fi
+
+# Built without a context, as the image takes no files from the checkout.
+image=v-network-graph-test-docker
+docker build -q -t "$image" - < "$dockerfile" >/dev/null
 
 # The host's node_modules holds native binaries for the host, so the
 # container keeps its own, one per checkout.
@@ -34,8 +40,6 @@ exec docker run --rm -i $tty \
   --ipc=host \
   -e CI \
   -e VNG_DOCKER=1 \
-  -e COREPACK_HOME=/pnpm-store/corepack \
-  -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
   -v "$(pwd)":/src \
   -v "$volume":/work/node_modules \
   -v v-network-graph-pnpm-store:/pnpm-store \
@@ -43,7 +47,6 @@ exec docker run --rm -i $tty \
   sh -c 'set -e
     cd /src && tar cf - --exclude=./node_modules --exclude=./.git --exclude=./.vitest . | tar xf - -C /work
     cd /work
-    corepack enable
     pnpm install --frozen-lockfile --ignore-scripts --store-dir /pnpm-store \
       --config.confirmModulesPurge=false >/dev/null
     status=0
