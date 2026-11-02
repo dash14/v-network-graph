@@ -200,6 +200,15 @@ describe("calculateEdgeGeometry", () => {
       expect(g.position).toBe(g.origin)
     })
 
+    it("should draw an edge whose layout point is gone as the middle of its group", () => {
+      const g = calculateEdgeGeometry(input({ type: "curve", layoutPoint: undefined }))
+      const middle = calculateEdgeGeometry(
+        input({ type: "curve", layoutPoint: { edge, pointInGroup: 20, groupWidth: 40 } })
+      )
+
+      expect(g.position).toEqual(middle.position)
+    })
+
     it("should draw summarized edges straight between the centers", () => {
       const g = calculateEdgeGeometry(input({ type: "curve", layoutPoint, summarized: true }))
 
@@ -259,6 +268,37 @@ describe("calculateEdgeGeometry", () => {
       expect(ccw.position.p1.y).toBeCloseTo(cw.position.p2.y)
       expect(ccw.position.p2.x).toBeCloseTo(cw.position.p1.x)
       expect(ccw.position.p2.y).toBeCloseTo(cw.position.p1.y)
+    })
+
+    it("should start a counter-clockwise loop with a marker from the other crossing", () => {
+      const marker: MarkerStyle = { ...arrow, units: "userSpaceOnUse", margin: -5 }
+      const line = { normalWidth: 2, source: marker, target: marker }
+      const loopWith = (isClockwise: boolean) =>
+        calculateEdgeGeometry(
+          loopInput({ selfLoop: { ...selfLoop, offset: 0, isClockwise }, line })
+        )
+      const cw = loopWith(true)
+      const ccw = loopWith(false)
+
+      expect(ccw.position.p1.x).toBeCloseTo(cw.position.p2.x)
+      expect(ccw.position.p1.y).toBeCloseTo(cw.position.p2.y)
+      expect(ccw.position.p2.x).toBeCloseTo(cw.position.p1.x)
+      expect(ccw.position.p2.y).toBeCloseTo(cw.position.p1.y)
+    })
+
+    it("should draw a loop clear of the node from the side nearest it, even with a marker", () => {
+      const marker: MarkerStyle = { ...arrow, units: "userSpaceOnUse", margin: -5 }
+      const line = { normalWidth: 2, source: marker, target: marker }
+      const g = calculateEdgeGeometry(loopInput({ selfLoop: { ...selfLoop, offset: 30 }, line }))
+      const plain = calculateEdgeGeometry(loopInput({ selfLoop: { ...selfLoop, offset: 30 } }))
+
+      expect(g.position).toEqual(plain.position)
+    })
+
+    it("should draw a loop whose layout point is gone as the first of its group", () => {
+      const g = calculateEdgeGeometry(loopInput({ layoutPoint: undefined }))
+
+      expect(g.loop!.radius).toEqual([12, 12])
     })
 
     it("should widen the loop for each edge in the group", () => {
@@ -336,6 +376,33 @@ describe("edgeLengthOf and pointAlongEdge", () => {
     expect(pointAlongEdge(arc, 0)).toEqual({ x: 5, y: 5 })
   })
 
+  it("should give the start of a line of no length", () => {
+    const point = { position: { p1: { x: 5, y: 5 }, p2: { x: 5, y: 5 } } }
+
+    expect(edgeLengthOf(point)).toBe(0)
+    expect(pointAlongEdge(point, 0)).toEqual({ x: 5, y: 5 })
+  })
+
+  it("should give the start of a curve of no length", () => {
+    const curve = { control: [{ x: 5, y: 5 }] } as unknown as Curve
+    const point = { position: { p1: { x: 5, y: 5 }, p2: { x: 5, y: 5 } }, curve }
+
+    expect(edgeLengthOf(point)).toBe(0)
+    expect(pointAlongEdge(point, 0)).toEqual({ x: 5, y: 5 })
+  })
+
+  it("should draw the small arc flag of a loop that is not large", () => {
+    const loop = {
+      center: new Vector2D(0, 0),
+      radius: [10, 10] as [number, number],
+      isLargeArc: false,
+      isClockwise: true,
+    }
+    const arc = { position: { p1: { x: 10, y: 0 }, p2: { x: 0, y: 10 } }, loop }
+
+    expect(edgePathOf(arc)).toBe("M 10 0 A 10 10 0 0 1 0 10")
+  })
+
   it("should measure the same position again when drawn as a loop", () => {
     const loop = {
       center: new Vector2D(15, 20),
@@ -360,6 +427,17 @@ describe("edgeLengthOf and pointAlongEdge", () => {
       expect(p.x).toBeCloseTo((p2.x * d) / 100, 6)
       expect(p.y).toBeCloseTo((p2.y * d) / 100, 6)
     }
+  })
+
+  it("should find points along a curve whose speed falls to 0 in its middle", () => {
+    // The curve goes out to x = 50 and back, and the search starts at the turn, half way along it.
+    const curve = { control: [{ x: 100, y: 0 }] } as unknown as Curve
+    const edge = { position: { p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } }, curve }
+
+    const p = pointAlongEdge(edge, edgeLengthOf(edge) / 2)
+    expect(p.x).toBeGreaterThan(45)
+    expect(p.x).toBeLessThanOrEqual(50)
+    expect(p.y).toBe(0)
   })
 
   it("should measure a curve as its path is drawn", () => {

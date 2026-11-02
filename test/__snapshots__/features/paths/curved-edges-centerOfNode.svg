@@ -1,0 +1,37 @@
+<svg class="v-ng-canvas show touches" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="overflow: hidden; ">
+  <g class="v-ng-viewport" transform="matrix(1 0 0 1 0 0)">
+    <g class="v-ng-layer-edges v-ng-graph-objects">
+      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -100 0 Q -73.93196601124959 10.238932022500421 -48.881966011250086 22.76393202250017 Q -23.83196601125077 35.28893202249983 0 50" />
+      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M -100 0 Q -76.16803398875116 14.71106797749909 -51.118033988749914 27.236067977499715 Q -26.068033988748848 39.76106797750025 0 50" />
+      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 100 0 Q 73.93196601124959 10.238932022500425 48.881966011250086 22.76393202250017 Q 23.83196601125077 35.28893202249983 0 50" />
+      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 100 0 Q 76.16803398875116 14.71106797749909 51.118033988749914 27.236067977499715 Q 26.068033988748848 39.76106797750025 0 50" />
+      <path class="v-ng-line-background" stroke="transparent" stroke-width="12" fill="none" d="M 100 0 L 100 -100" />
+      <path class="v-ng-line v-ng-edge" fill="none" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1" d="M -100 0 Q -73.93196601124959 10.238932022500421 -48.881966011250086 22.76393202250017 Q -23.83196601125077 35.28893202249983 0 50" />
+      <path class="v-ng-line v-ng-edge" fill="none" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge1b" d="M -100 0 Q -76.16803398875116 14.71106797749909 -51.118033988749914 27.236067977499715 Q -26.068033988748848 39.76106797750025 0 50" />
+      <path class="v-ng-line v-ng-edge" fill="none" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 100 0 Q 73.93196601124959 10.238932022500425 48.881966011250086 22.76393202250017 Q 23.83196601125077 35.28893202249983 0 50" />
+      <path class="v-ng-line v-ng-edge" fill="none" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2b" d="M 100 0 Q 76.16803398875116 14.71106797749909 51.118033988749914 27.236067977499715 Q 26.068033988748848 39.76106797750025 0 50" />
+      <path class="v-ng-line v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge3" d="M 100 0 L 100 -100" />
+    </g>
+    <g class="v-ng-layer-nodes-selections" />
+    <g class="v-ng-layer-nodes v-ng-graph-objects">
+      <g class="v-ng-node" transform="translate(-100 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(0 50)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(100 0)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+      <g class="v-ng-node" transform="translate(100 -100)">
+        <circle class="v-ng-shape-circle v-ng-node-default draggable" cx="0" cy="0" r="16" fill="#4466cc" stroke="#000000" stroke-width="0" />
+      </g>
+    </g>
+    <g class="v-ng-layer-node-labels v-ng-graph-objects" />
+    <g class="v-ng-paths v-ng-layer-paths v-ng-graph-objects">
+      <path class="v-ng-path" d="M -100 0 Q -73.93196601124959 10.238932022500421 -48.881966011250086 22.76393202250017 Q -23.83196601125077 35.28893202249983 0 50 Q 23.83196601124981 35.28893202250042 48.881966011250086 22.763932022500285 Q 73.93196601125064 10.238932022500006 100 0" fill="none" stroke="#00c85388" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      <path class="v-ng-path" d="M -100 0 Q -76.16803398875116 14.71106797749909 -51.118033988749914 27.236067977499715 Q -26.068033988748848 39.76106797750025 0 50 Q 26.068033988749647 39.761067977499934 51.11803398874986 27.23606797749983 Q 76.16803398875044 14.711067977499543 100 0 L 100 -100" fill="none" stroke="#dd2c0088" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      <path class="v-ng-path" d="M 100 -100 L 100 0 Q 73.93196601124959 10.238932022500425 48.881966011250086 22.76393202250017 Q 23.83196601125077 35.28893202249983 0 50" fill="none" stroke="#aeea0088" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

@@ -87,9 +87,16 @@ function calculateDistanceToAvoidOverlapsWithRect(
       centerOfNearestCircle,
       borderRadius
     )
-    return point
-      ? LineUtils.toLineVector(point, centerLine.target).length()
-      : LineUtils.toLineVector(centerOfNearestCircle, centerLine.target).length() + borderRadius
+    // The line leaves the box across the corner square, whose inner edges are radii of the corner
+    // circle, so it always crosses the circle. Kept for rounding errors.
+    /* v8 ignore else */
+    if (point) {
+      return LineUtils.toLineVector(point, centerLine.target).length()
+    } else {
+      return (
+        LineUtils.toLineVector(centerOfNearestCircle, centerLine.target).length() + borderRadius
+      )
+    }
   }
 }
 

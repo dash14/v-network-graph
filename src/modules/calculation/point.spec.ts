@@ -433,6 +433,34 @@ describe("point", () => {
         expect(distance(p1, c1)).toBeCloseTo(r1, 5)
         expect(distance(p1, c2)).toBeCloseTo(r2, 5)
       })
+
+      it("should return the internal tangent point when the first circle is the smaller", () => {
+        const c1 = new Vector2D(30, 0)
+        const c2 = new Vector2D(0, 0)
+
+        const result = getIntersectionOfCircles(c1, 20, c2, 50)
+
+        const [p1, p2] = result as [Vector2D, Vector2D]
+        expect(p1).toEqual(p2)
+        expect(p1.x).toBeCloseTo(50, 5)
+        expect(p1.y).toBeCloseTo(0, 5)
+      })
+
+      it.each([
+        ["externally", 30, new Vector2D(50, 0), 20, 30],
+        ["internally", 50, new Vector2D(30, 0), 20, 50],
+      ])(
+        "should return the single point when %s tangent and given a near point",
+        (_, r1, c2, r2, x) => {
+          const near = new Vector2D(0, 100)
+
+          const result = getIntersectionOfCircles(new Vector2D(0, 0), r1, c2, r2, near)
+
+          expect(result).toBeInstanceOf(Vector2D)
+          expect((result as Vector2D).x).toBeCloseTo(x, 5)
+          expect((result as Vector2D).y).toBeCloseTo(0, 5)
+        }
+      )
     })
 
     describe("two points", () => {

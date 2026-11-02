@@ -1,4 +1,5 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
+import type { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
 import { HEIGHT, WIDTH } from "./helpers/container"
 import { at, drag, mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -130,6 +131,58 @@ describe("view box", () => {
     expect(box.bottom).toBeCloseTo(50)
     expect(box.left).toBeCloseTo(-75)
     expect(box.right).toBeCloseTo(75)
+  })
+
+  test("setViewBox shows a wide box, heightened to the aspect ratio of the container", async () => {
+    const { graph } = await mountGraph({ nodes, edges, layouts, configs })
+
+    graph.setViewBox({ top: -50, bottom: 50, left: -200, right: 200 })
+    const box = graph.getViewBox()
+    expect(box.left).toBeCloseTo(-200)
+    expect(box.right).toBeCloseTo(200)
+    expect(box.top).toBeCloseTo(-400 / 3)
+    expect(box.bottom).toBeCloseTo(400 / 3)
+  })
+
+  test("setViewBox shows a tall box, widened to the aspect ratio of the container", async () => {
+    const { graph } = await mountGraph({ nodes, edges, layouts, configs })
+
+    graph.setViewBox({ top: -100, bottom: 100, left: -50, right: 50 })
+    const box = graph.getViewBox()
+    expect(box.top).toBeCloseTo(-100)
+    expect(box.bottom).toBeCloseTo(100)
+    expect(box.left).toBeCloseTo(-150)
+    expect(box.right).toBeCloseTo(150)
+  })
+
+  test("panEnabled and zoomEnabled switch svg-pan-zoom after mounting", async () => {
+    let panZoom: SvgPanZoomInstance | undefined
+    const { state } = await mountGraph({
+      nodes,
+      edges,
+      layouts,
+      configs: {
+        ...configs,
+        view: { onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => (panZoom = i) },
+      },
+    })
+    await expect.poll(() => panZoom).toBeDefined()
+    expect(panZoom!.isPanEnabled()).toBe(true)
+    expect(panZoom!.isZoomEnabled()).toBe(true)
+
+    state.configs.view.panEnabled = false
+    state.configs.view.zoomEnabled = false
+    await expect
+      .poll(() => [panZoom!.isPanEnabled(), panZoom!.isZoomEnabled()])
+      .toEqual([false, false])
+    expect(panZoom!.isDblClickZoomEnabled()).toBe(false)
+
+    state.configs.view.panEnabled = true
+    state.configs.view.zoomEnabled = true
+    await expect
+      .poll(() => [panZoom!.isPanEnabled(), panZoom!.isZoomEnabled()])
+      .toEqual([true, true])
+    expect(panZoom!.isDblClickZoomEnabled()).toBe(true)
   })
 
   test("coordinates translate between the DOM and the SVG both ways", async () => {

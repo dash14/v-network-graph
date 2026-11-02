@@ -31,12 +31,9 @@ function getChordOfLineTargetAndCircle(
   const line = VectorLine.fromVectors(source, target)
   const h = getNearestPoint(center, line)
 
-  // Let `hp` be the vector from `c` to `h`.
+  // Let `hp` be the vector from `c` to `h`. It is no longer than the distance from `c` to the
+  // target checked above, since `h` is the point on the line nearest `c`.
   const hpLen = V.length(V.subtract(h, center))
-
-  // If `hpLen` is larger than the radius of the circle,
-  // there is no intersection.
-  if (hpLen > radius + tolerance) return null
 
   // Let `t` be the distance from `h` to the contact point, and
   // derive t from the Three Square Theorem. When the line and the

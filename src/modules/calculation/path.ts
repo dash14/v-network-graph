@@ -92,7 +92,8 @@ export function calculatePathPoints(
     // ----------------------------------------------------
     // Calculate transit points in the node.
     // ----------------------------------------------------
-    let pos: Vector2D | Vector2D[]
+    // The transit point into the node, the control point, and the transit point out of it.
+    let pos: [Vector2D, Vector2D, Vector2D]
     if (crossPoint) {
       const d = V.distance(crossPoint, nodePos)
       if (d < nodeCoreRadius) {
@@ -118,6 +119,8 @@ export function calculatePathPoints(
         } else {
           // the prev line intersects only with [β]:
           // use [β]x[line] as the transit point.
+          // A line that misses the node passes it farther than [X], which is in it.
+          /* v8 ignore next */
           p1 = prevNodeIp || prev.line.target
         }
         if (nextNodeIp && nextCoreIp) {
@@ -130,6 +133,8 @@ export function calculatePathPoints(
         } else {
           // the next line intersects only with [β]:
           // use [β]x[line] as the transit point.
+          // A line that misses the node passes it farther than [X], which is in it.
+          /* v8 ignore next */
           p2 = nextNodeIp || next.line.source
         }
         pos = [p1, crossPoint, p2]
@@ -181,40 +186,32 @@ export function calculatePathPoints(
       // ----------------------------------------------------
       // The starting point has already been added to `points`.
       const lastPoints = points[points.length - 1]
-      if (lastPoints) {
-        const lastPoint =
-          lastPoints instanceof Array ? lastPoints[lastPoints.length - 1] : lastPoints
-        let nextPoint
-        if (pos instanceof Array) {
-          // Curved lines always end at the center of the node.
-          // To avoid smoothness, use only a transit point.
-          nextPoint = curveInNode ? pos[0] : pos[1]
-        } else {
-          nextPoint = pos
-        }
-        const control = v2d.calculateBezierCurveControlPoint(
-          lastPoint,
-          prev.curve.circle.center,
-          nextPoint,
-          prev.curve.theta
-        )
-        if (pos instanceof Array && curveInNode) {
-          points.push([...control, ...pos])
-        } else {
-          points.push([...control, nextPoint])
-        }
+      const lastPoint = lastPoints instanceof Array ? lastPoints[lastPoints.length - 1] : lastPoints
+      // Curved lines always end at the center of the node.
+      // To avoid smoothness, use only a transit point.
+      const nextPoint = curveInNode ? pos[0] : pos[1]
+      const control = v2d.calculateBezierCurveControlPoint(
+        lastPoint,
+        prev.curve.circle.center,
+        nextPoint,
+        prev.curve.theta
+      )
+      if (curveInNode) {
+        points.push([...control, ...pos])
+      } else {
+        points.push([...control, nextPoint])
       }
     } else if (prev.loop) {
       const [p1, p2, arc] = _makeArcString(nodePos, prev, nodeRadius)
       points.push(p1)
       points.push(arc)
-      if (pos instanceof Array && curveInNode) {
+      if (curveInNode) {
         points.push([p2, pos[1], pos[2]])
       } else {
         points.push(pos[2])
       }
     } else {
-      if (curveInNode || !(pos instanceof Array)) {
+      if (curveInNode) {
         points.push(pos)
       } else {
         if (next.curve) {
@@ -297,7 +294,9 @@ export function calculateDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
   for (let i = 0; i < length; i++) {
     const source = edges[i].edge.source
     const target = edges[i].edge.target
-    if (i === 0) {
+    if (source === target) {
+      isForward = true // loop edge direction is always true
+    } else if (i === 0) {
       if (length > 2) {
         // If the next edge is an edge between the same nodes,
         // check for more next edges.
@@ -310,8 +309,6 @@ export function calculateDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
       } else {
         isForward = [edges[1].edge.source, edges[1].edge.target].includes(target)
       }
-    } else if (source === target) {
-      isForward = true // loop edge direction is always true
     } else {
       isForward = lastNode === source
     }
@@ -328,11 +325,8 @@ function _getJointNode(edges: EdgeObject[], index: number): string | null {
   const currentEdge = [edgeObject0.edge.source, edgeObject0.edge.target].sort()
   const nextEdge = [edgeObject1.edge.source, edgeObject1.edge.target].sort()
 
-  if (currentEdge[0] === currentEdge[1]) {
-    // current edge is looped
-    return currentEdge[0]
-  }
-
+  // The caller takes a loop first itself, and the recursion goes on only from an edge between the
+  // same nodes as a non-loop one, so the current edge is never a loop.
   if (nextEdge[0] === nextEdge[1]) {
     // next edge is looped
     return nextEdge[0]
@@ -413,17 +407,8 @@ function _getIntersectionOfLines(
     crossPoint = null // not exist intersection point
   } else if (prev.curve) {
     if (next.curve) {
-      if (prev.line.target.isEqualTo(next.line.source)) {
-        return prev.line.target.clone()
-      }
-      // curve -- curve
-      crossPoint = PointUtils.getIntersectionOfCircles(
-        prev.curve.circle.center,
-        prev.curve.circle.radius,
-        next.curve.circle.center,
-        next.curve.circle.radius,
-        prev.curve.center
-      )
+      // curve -- curve: both run between the centers of the nodes, and meet at this one.
+      crossPoint = prev.line.target.clone()
     } else {
       // curve -- straight
       crossPoint = PointUtils.getIntersectionOfLineTargetAndCircle2(
@@ -543,7 +528,7 @@ function _makeArcString(
   const a1 = Vector2D.fromObject(p1).subtract(center).angleDegree()
   const a2 = Vector2D.fromObject(p2).subtract(center).angleDegree()
   const angle = (a2 + 360 - a1) % 360
-  let largeArc = angle >= 180 ? true : false
+  let largeArc = angle >= 180
   largeArc = isClockwise ? largeArc : !largeArc
   const f1 = largeArc ? 1 : 0
   const f2 = isClockwise ? 1 : 0
@@ -553,7 +538,8 @@ function _makeArcString(
 
 function _isForward(edge: EdgeLine) {
   if (edge.loop) {
-    return edge.direction ? edge.loop.isClockwise : !edge.loop.isClockwise
+    // A loop is always taken forward.
+    return edge.loop.isClockwise
   } else {
     return true
   }
