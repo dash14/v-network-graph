@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { mountGraph } from "./helpers/graph"
 
@@ -81,5 +81,28 @@ describe("styles derived from the normal style follow its changes", () => {
 
     state.configs.path!.normal = { linejoin: "bevel" }
     await expect.poll(linejoins).toEqual([{ "stroke-linejoin": "bevel" }])
+  })
+})
+
+describe("invalid styles", () => {
+  test("an edge with an invalid width or color is drawn 1 wide in black, with a warning", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    const { screen } = await mountGraph({
+      nodes,
+      edges,
+      layouts,
+      configs: {
+        edge: { normal: { width: "wide" as unknown as number, color: null as unknown as string } },
+      },
+    })
+
+    expect(attributes(screen.container, ".v-ng-edge", "stroke-width", "stroke")).toEqual([
+      { "stroke-width": "1", stroke: "#000000" },
+    ])
+    expect(warn.mock.calls.map(c => c[0])).toEqual([
+      expect.stringContaining("Edge width is invalid"),
+      expect.stringContaining("Edge color is invalid"),
+    ])
   })
 })

@@ -36,7 +36,8 @@ export function createNewEdgeState(
 
   const line = computed<EdgeModel.Line>(() => {
     const edge = edges.value[id]
-    const stroke = getEdgeStroke(edge, state.selected, state.hovered, config)
+    // A copy, as the style can be the config object itself.
+    const stroke = { ...getEdgeStroke(edge, state.selected, state.hovered, config) }
     // Minimum error checking required for drawing
     if (isNaN(+stroke.width)) {
       console.warn(
