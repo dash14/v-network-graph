@@ -240,7 +240,7 @@ importers:
         specifier: ~1.88.0
         version: 1.88.0
       playwright:
-        specifier: ^1.63.0
+        specifier: 1.64.1
         version: 1.64.1
       rimraf:
         specifier: ^6.1.3
