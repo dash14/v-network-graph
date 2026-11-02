@@ -5,25 +5,19 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
-dockerfile=scripts/test-docker.Dockerfile
+dockerfile=scripts/test-docker/Dockerfile
 
-# The image's browsers are built for one version of playwright, and its
-# pnpm is the one that devEngines names. Renovate updates the images without
-# waiting for minimumReleaseAge, so they wait here for the packages.
-playwright=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
-if ! grep -q "^FROM mcr\.microsoft\.com/playwright:v$playwright-noble@" "$dockerfile"; then
-  echo "$dockerfile is not for playwright ${playwright:-?} in pnpm-lock.yaml" >&2
-  exit 1
-fi
-pnpm=$(sed -n '/"packageManager": {/,/}/s/^ *"version": "\(.*\)",$/\1/p' package.json)
-if ! grep -q "^FROM ghcr\.io/pnpm/pnpm:$pnpm@" "$dockerfile"; then
-  echo "$dockerfile is not for pnpm ${pnpm:-?} in devEngines" >&2
+# The image's browsers are built for one version of playwright. Renovate
+# updates the image without waiting for minimumReleaseAge, so it waits here
+# for the package.
+version=$(sed -n 's/^  playwright@\([0-9.]*\):$/\1/p' pnpm-lock.yaml | head -n 1)
+if ! grep -q "^FROM mcr\.microsoft\.com/playwright:v$version-noble@" "$dockerfile"; then
+  echo "$dockerfile is not for playwright ${version:-?} in pnpm-lock.yaml" >&2
   exit 1
 fi
 
-# Built without a context, as the image takes no files from the checkout.
 image=v-network-graph-test-docker
-docker build -q -t "$image" - < "$dockerfile" >/dev/null
+docker build -q -t "$image" scripts/test-docker >/dev/null
 
 # The host's node_modules holds native binaries for the host, so the
 # container keeps its own, one per checkout.

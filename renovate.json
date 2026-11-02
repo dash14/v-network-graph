@@ -41,14 +41,14 @@
       "groupName": "playwright"
     },
     {
-      "description": "The pnpm in the image of the font-dependent tests is the one that devEngines names.",
-      "matchPackageNames": ["pnpm", "ghcr.io/pnpm/pnpm"],
+      "description": "The pnpm that the image of the font-dependent tests installs, with the one that devEngines names.",
+      "matchPackageNames": ["pnpm"],
       "groupName": "pnpm"
     },
     {
-      "description": "These registries give no release timestamps, which minimumReleaseAge would wait for forever. scripts/test-docker.sh fails until the packages, which wait for it, join their updates.",
+      "description": "Microsoft's registry gives no release timestamps, which minimumReleaseAge would wait for forever. scripts/test-docker.sh fails the image's update until the package, which waits for it, joins.",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["mcr.microsoft.com/playwright", "ghcr.io/pnpm/pnpm"],
+      "matchPackageNames": ["mcr.microsoft.com/playwright"],
       "minimumReleaseAgeBehaviour": "timestamp-optional"
     }
   ]
