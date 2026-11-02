@@ -54,10 +54,10 @@ export default defineConfig({
       reporter: ["text", ["text-summary", { file: "summary.txt" }]],
       // The current floor, raised as tests are added. The directories listed are fully covered.
       thresholds: {
-        statements: 88,
-        branches: 79,
+        statements: 90,
+        branches: 83,
         functions: 91,
-        lines: 88,
+        lines: 91,
         "src/modules/{collection,edge,node,vector2d,view,vue}/**": { 100: true },
         "src/modules/calculation/{2d,line,point}.ts": { 100: true },
         "src/modules/svg-pan-zoom-ex.ts": { 100: true },
