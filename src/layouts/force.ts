@@ -106,15 +106,15 @@ export class ForceLayout implements LayoutHandler {
       }
     }
 
+    // The nodes dragged and clicked are drawn, so the simulation has them.
     const onDrag: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         // At the pointer before the next tick, as it is read while the layouts lag behind.
-        const node = nodeLayoutMap[id]
-        if (node) Object.assign(node, { x: pos.x, y: pos.y })
+        Object.assign(nodeLayoutMap[id], { x: pos.x, y: pos.y })
       }
       if (this.options.noAutoRestartSimulation) {
         for (const [id, pos] of Object.entries(positions)) {
-          const nodePos = nodePositions.value?.[id]
+          const nodePos = nodePositions.value[id]
           nodePos.x = pos.x
           nodePos.y = pos.y
         }
@@ -131,7 +131,7 @@ export class ForceLayout implements LayoutHandler {
     const onDragEnd: OnDragHandler = positions => {
       for (const [id, pos] of Object.entries(positions)) {
         const layout = this.getNodeLayout(nodePositions, id)
-        const nodePos: d3.SimulationNodeDatum = nodeLayoutMap?.[id] ?? { x: 0, y: 0 }
+        const nodePos = nodeLayoutMap[id]
         if (layout.value.fixed || this.options.positionFixedByDrag) {
           nodePos.fx = pos.x
           nodePos.fy = pos.y
@@ -149,17 +149,13 @@ export class ForceLayout implements LayoutHandler {
     const onClick: OnClickHandler = ({ node, event }) => {
       if (this.options.positionFixedByClickWithAltKey && event.altKey) {
         const layout = this.getNodeLayout(nodePositions, node)
-        let nodePos: ForceNodeDatum | undefined = nodeLayoutMap?.[node]
-        if (!nodePos) {
-          nodePos = { id: node, x: 0, y: 0 }
-          nodeLayoutMap[node] = nodePos
-        }
+        const nodePos = nodeLayoutMap[node]
 
         if (layout.value.fixed) {
-          // unfix
+          // unfix. A fixed node has its fx and fy, which are set along with fixed.
           delete layout.value.fixed
-          nodePos.x = nodePos.fx || nodePos.x
-          nodePos.y = nodePos.fy || nodePos.y
+          nodePos.x = nodePos.fx!
+          nodePos.y = nodePos.fy!
           delete nodePos.fx
           delete nodePos.fy
         } else {
