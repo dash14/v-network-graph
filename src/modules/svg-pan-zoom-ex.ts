@@ -94,7 +94,8 @@ const methods: Partial<SvgPanZoomInternal> = {
     const currentRatio = sizeWidth / sizeHeight
     const newWidth = ratio < currentRatio ? height * currentRatio : width
     const newHeight = ratio > currentRatio ? width / currentRatio : height
-    const absoluteZoom = Math.min(sizeWidth / newWidth, sizeHeight / newHeight)
+    // Widened or heightened to the aspect ratio of the container, the box fits it either way.
+    const absoluteZoom = sizeWidth / newWidth
     const realZoom = this.getRealZoom()
     const relativeZoom = this.getZoom()
     const originalZoom = realZoom / relativeZoom
