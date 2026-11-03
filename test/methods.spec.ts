@@ -376,7 +376,8 @@ describe("export", () => {
     const blob = new Blob(['<svg xmlns="http://www.w3.org/2000/svg" />'], { type: "image/svg+xml" })
     const url = URL.createObjectURL(blob)
     onTestFinished(() => URL.revokeObjectURL(url))
-    const dataUrl = "data:image/svg+xml;base64,PHN2Zy8+"
+    // Not base64, so that reading it again would change it.
+    const dataUrl = "data:image/svg+xml,%3Csvg%2F%3E"
     const viewport = screen.container.querySelector(".v-ng-viewport")!
     const addImage = (attribute?: string, href?: string) => {
       const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
@@ -386,6 +387,8 @@ describe("export", () => {
     addImage("xlink:href", url)
     addImage("href", dataUrl)
     addImage()
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
 
     const svg = await graph.exportAsSvgElement({ embedImages: true })
     const images = Array.from(svg.querySelectorAll("image"), image => [
@@ -397,6 +400,7 @@ describe("export", () => {
       [dataUrl, null],
       [null, null],
     ])
+    expect(warn).not.toHaveBeenCalled()
   })
 })
 

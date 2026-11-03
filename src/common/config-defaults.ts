@@ -356,9 +356,5 @@ export function getLiteConfigDefaults(): LiteGraphConfigs {
 export function getFullConfigs<N extends Node = Node, E extends Edge = Edge, P extends Path = Path>(
   config?: UserConfigs<N, E, P>
 ): Configs {
-  const configs = getConfigDefaults()
-  if (config) {
-    merge(configs, config)
-  }
-  return configs
+  return merge(getConfigDefaults(), config)
 }

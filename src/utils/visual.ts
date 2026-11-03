@@ -49,10 +49,8 @@ export function applyScaleToDasharray(dasharray: number | string | undefined, sc
 }
 
 export function getDasharrayUnit(dasharray: number | string | undefined) {
-  let result: number | string = 0
-  if (dasharray === undefined || dasharray === "none") {
-    result = 0
-  } else if (typeof dasharray === "string") {
+  let result = 0
+  if (typeof dasharray === "string") {
     const array = dasharray
       .split(/\s+/)
       .map(v => parseInt(v))
@@ -64,7 +62,7 @@ export function getDasharrayUnit(dasharray: number | string | undefined) {
       // ex: 1 2 3 -> -  --- --   -  --- ...
       result = array.reduce((s, n) => s + n, 0) * 2
     }
-  } else {
+  } else if (dasharray !== undefined) {
     result = dasharray * 2 // 2 <- border and space
   }
   return result
