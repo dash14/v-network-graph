@@ -1,5 +1,5 @@
 import { Emitter } from "mitt"
-import { watch } from "vue"
+import { onUnmounted, watch } from "vue"
 import { Reactive, ReadonlyRef } from "@/common/common"
 import { Events, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
@@ -50,6 +50,13 @@ export function makeNodeInteractionHandlers(
     pointerup: handleNodePointerUpEvent,
     pointercancel: handleNodePointerCancelEvent,
   }
+
+  // A pointer still pressed when the graph unmounts is released after it is gone.
+  onUnmounted(() => {
+    entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
+      document.removeEventListener(ev, handler)
+    })
+  })
 
   function _updateFollowNodes(pointerState: NodePointerState) {
     const isFollowed = state.follow.followedPointerId === pointerState.pointerId

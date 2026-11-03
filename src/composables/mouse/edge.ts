@@ -1,5 +1,5 @@
 import { Emitter } from "mitt"
-import { watch } from "vue"
+import { onUnmounted, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, EdgeEvent } from "@/common/types"
 import { EdgeStates } from "@/models/edge"
@@ -30,6 +30,13 @@ export function makeEdgeInteractionHandlers(
     pointerup: handleEdgePointerUpEvent,
     pointercancel: handleEdgePointerCancelEvent,
   }
+
+  // A pointer still pressed when the graph unmounts is released after it is gone.
+  onUnmounted(() => {
+    entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
+      document.removeEventListener(ev, handler)
+    })
+  })
 
   watch(selectedEdges, selected => {
     if (selected.size > 0 && modes.selectionMode.value !== "edge") {
