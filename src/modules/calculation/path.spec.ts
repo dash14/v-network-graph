@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { EdgeObject } from "../../models/path"
-import { calculateDirectionsOfPathEdges, quadraticCurveCommands } from "./path"
+import { PathEndType, ShapeStyle } from "@/common/configs"
+import { Position } from "@/common/types"
+import { EdgeState, EdgeStates } from "@/models/edge"
+import { NodeStates } from "@/models/node"
+import { EdgeObject, PathState } from "@/models/path"
+import { calculateEdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
+import { calculateDirectionsOfPathEdges, calculatePathPoints, quadraticCurveCommands } from "./path"
 
 describe("quadraticCurveCommands", () => {
   it("should make one command for each pair of a control point and an end point", () => {
@@ -262,5 +267,189 @@ describe("calculateDirectionsOfPathEdges", () => {
       const result = calculateDirectionsOfPathEdges([e1, loop])
       expect(result).toStrictEqual([true, true])
     })
+  })
+})
+
+describe("calculateDirectionsOfPathEdges with different edges between the same nodes", () => {
+  it.each([
+    [
+      // (n2) <--[E1]--- (n1) ---[E2]--> (n2) ---[E3]--> (n3)
+      "the first one is taken in reverse",
+      [
+        ["E1", "n1", "n2"],
+        ["E2", "n1", "n2"],
+        ["E3", "n2", "n3"],
+      ],
+      [false, true, true],
+    ],
+    [
+      // (n1) <--[E1]--- (n3) <--[E2]--- (n2) ---[E3]--> (n3)
+      "the first two share only the node that sorts last",
+      [
+        ["E1", "n3", "n1"],
+        ["E2", "n2", "n3"],
+        ["E3", "n2", "n3"],
+      ],
+      [false, false, true],
+    ],
+    [
+      // (n1) <--[E1]--- (n2) <--[E2]--- (n1) ---[E3]--> (n3)
+      "the first one names the nodes the other way",
+      [
+        ["E1", "n2", "n1"],
+        ["E2", "n1", "n2"],
+        ["E3", "n1", "n3"],
+      ],
+      [false, false, true],
+    ],
+    [
+      // (n2) <--[E1]--- (n1) <--[E2]--- (n2) ---[E3]--> (n3)
+      "the second one names the nodes the other way",
+      [
+        ["E1", "n1", "n2"],
+        ["E2", "n2", "n1"],
+        ["E3", "n2", "n3"],
+      ],
+      [false, false, true],
+    ],
+  ])("should find the joint when %s", (_, edges, expected) => {
+    const param: EdgeObject[] = edges.map(([edgeId, source, target]) => ({
+      edgeId,
+      edge: { source, target },
+    }))
+    expect(calculateDirectionsOfPathEdges(param)).toStrictEqual(expected)
+  })
+})
+
+describe("calculatePathPoints", () => {
+  const circle = { type: "circle", radius: 16, strokeWidth: 0 } as ShapeStyle
+  const noMarker = {
+    type: "none",
+    width: 5,
+    height: 5,
+    margin: -1,
+    offset: 0,
+    units: "strokeWidth",
+    color: null,
+  } as const
+
+  type EdgeSpec = [id: string, source: string, target: string, extra?: Partial<EdgeGeometryInput>]
+
+  function pointsOf(
+    nodes: Record<string, Position>,
+    edges: EdgeSpec[],
+    options: { scale?: number; curveInNode?: boolean; end?: PathEndType; margin?: number } = {}
+  ) {
+    const scale = options.scale ?? 1
+    const nodeStates = Object.fromEntries(
+      Object.keys(nodes).map(id => [id, { shape: circle }])
+    ) as unknown as NodeStates
+    const edgeStates: Record<string, Partial<EdgeState>> = {}
+    for (const [id, source, target, extra] of edges) {
+      const edge = { source, target }
+      edgeStates[id] = calculateEdgeGeometry({
+        source: nodes[source],
+        target: nodes[target],
+        sourceShape: circle,
+        targetShape: circle,
+        layoutPoint: { edge, pointInGroup: 0, groupWidth: 0 },
+        summarized: false,
+        line: { normalWidth: 2, source: noMarker, target: noMarker },
+        type: "straight",
+        margin: null,
+        keepOrder: "clock",
+        selfLoop: undefined,
+        scale,
+        ...extra,
+      })
+    }
+    const pathEdges = edges.map(([edgeId, source, target]) => ({
+      edgeId,
+      edge: { source, target },
+    }))
+    const path = {
+      edges: pathEdges,
+      directions: calculateDirectionsOfPathEdges(pathEdges),
+    } as unknown as PathState
+    return calculatePathPoints(
+      path,
+      nodeStates,
+      nodes,
+      edgeStates as unknown as EdgeStates,
+      scale,
+      options.curveInNode ?? false,
+      options.end ?? "centerOfNode",
+      options.margin ?? 0
+    )
+  }
+
+  function flat(points: (Position | Position[] | string)[]) {
+    return points.flat().map(p => (typeof p === "string" ? p : { x: round(p.x), y: round(p.y) }))
+  }
+
+  function round(v: number) {
+    return Math.round(v * 1000) / 1000 + 0 // + 0 turns -0 into 0
+  }
+
+  const corner = { n1: { x: 0, y: 0 }, n2: { x: 100, y: 0 }, n3: { x: 100, y: 100 } }
+  const cornerEdges: EdgeSpec[] = [
+    ["E1", "n1", "n2"],
+    ["E2", "n2", "n3"],
+  ]
+
+  it("should scale the node radii at the ends and in the inner circle at the joint", () => {
+    // At scale 2 the nodes are 32 in radius, and the inner circle 24: 4 inside, scaled.
+    const points = pointsOf(corner, cornerEdges, { scale: 2, end: "edgeOfNode" })
+    expect(flat(points)).toEqual([
+      { x: 32, y: 0 },
+      { x: 76, y: 0 },
+      { x: 100, y: 24 },
+      { x: 100, y: 68 },
+    ])
+  })
+
+  it.each([
+    [
+      "start",
+      { n1: { x: 0, y: 0 }, n2: { x: 74, y: 0 }, n3: { x: 74, y: 100 } },
+      [
+        { x: 50, y: 0 },
+        { x: 74, y: 24 },
+        { x: 74, y: 58 },
+      ],
+    ],
+    [
+      "end",
+      { n1: { x: 0, y: -100 }, n2: { x: 0, y: 0 }, n3: { x: 74, y: 0 } },
+      [
+        { x: 0, y: -58 },
+        { x: 0, y: -24 },
+        { x: 24, y: 0 },
+      ],
+    ],
+  ])(
+    "should drop the %s when the margin reaches the node at the other end of the edge",
+    (_, nodes, expected) => {
+      // 10 + the radius 32 of the end node + the radius 32 of the other node = 74, the length.
+      const points = pointsOf(nodes, cornerEdges, { scale: 2, end: "edgeOfNode", margin: 10 })
+      expect(flat(points)).toEqual(expected)
+    }
+  )
+
+  it.each([
+    ["mostly outside the node, on the large arc", 12, 10, true, "1 1"],
+    ["mostly outside the node, counterclockwise", 12, 10, false, "1 0"],
+    ["mostly inside the node, on the small arc", 12, -4, true, "0 1"],
+    ["mostly inside the node, counterclockwise", 12, -4, false, "0 0"],
+  ])("should draw a self-loop %s", (_, radius, offset, isClockwise, flags) => {
+    const nodes = { n1: { x: 0, y: -100 }, n2: { x: 0, y: 0 }, n3: { x: 0, y: 100 } }
+    const selfLoop = { radius, offset, angle: 270, isClockwise }
+    const points = pointsOf(nodes, [
+      ["E1", "n1", "n2"],
+      ["L", "n2", "n2", { selfLoop }],
+      ["E2", "n2", "n3"],
+    ])
+    const arc = points.find(p => typeof p === "string")
+    expect(arc).toMatch(new RegExp(`^A ${radius} ${radius} 0 ${flags} `))
   })
 })
