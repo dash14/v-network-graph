@@ -129,6 +129,11 @@ describe("transitionWhile", () => {
     graph.transitionWhile(() => {
       state.layouts.nodes.node1.x = -100
     }, 1000)
+    await nextTick()
+    // Linear unless the call gives another timing function.
+    const viewport = screen.container.querySelector<SVGGElement>(".v-ng-transition")!
+    expect(viewport.style.getPropertyValue("--transition-function")).toBe("linear")
+    expect(viewport.style.getPropertyValue("--transition-duration")).toBe("1000ms")
     await wait(500)
     measure().forEach((value, i) => {
       expect(value - start[i]).toBeGreaterThan(10)

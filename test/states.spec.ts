@@ -111,6 +111,36 @@ describe("removal", () => {
   })
 })
 
+describe("removal and addition", () => {
+  test("a node added again after it was removed while hovered is not brought to the front", async () => {
+    const props = graph()
+    // node1 is the lowest by its z-index.
+    props.nodes = { node1: { r: 10, z: -1 }, node2: { r: 11, z: 0 }, node3: { r: 12, z: 0 } }
+    props.configs = {
+      node: {
+        normal: { radius: n => n.r },
+        hover: { radius: n => n.r },
+        zOrder: { enabled: true, zIndex: n => n.z, bringToFrontOnHover: true },
+      },
+    }
+    const { screen, state, canvas } = await mountGraph(props)
+    await userEvent.hover(canvas, { position: at(-100, 0) })
+    await expect.poll(() => screen.container.querySelectorAll(".v-ng-node.hover")).toHaveLength(1)
+
+    delete state.nodes.node1
+    await nextTick()
+    // Away from the pointer.
+    state.layouts.nodes.node1 = { x: -100, y: 100 }
+    state.nodes.node1 = { r: 10, z: -1 }
+    await nextTick()
+
+    const order = Array.from(screen.container.querySelectorAll(".v-ng-node circle"), c =>
+      c.getAttribute("r")
+    )
+    expect(order).toEqual(["10", "11", "12"])
+  })
+})
+
 describe("invalid styles", () => {
   test("a shape with no stroke color is drawn without a stroke", async () => {
     const props = graph()
@@ -169,9 +199,42 @@ describe("layers", () => {
     props.configs = { view: { builtInLayerOrder: ["unknown" as "nodes", "edges"] } }
     const { screen } = await mountGraph(props)
 
+    expect(warn).toHaveBeenCalledOnce()
     expect(warn).toHaveBeenCalledWith("Layer unknown is not a built-in layer.")
     expect(screen.container.querySelectorAll(".v-ng-node")).toHaveLength(3)
   })
+
+  test("takes a built-in layer order changed to a shorter one as it is", async () => {
+    const layerOrder = (container: Element) =>
+      Array.from(container.querySelectorAll("[class^='v-ng-layer-']"), e => e.getAttribute("class"))
+    const props = graph()
+    props.configs = { view: { builtInLayerOrder: ["nodes"] } }
+    const fresh = await mountGraph(props)
+    const expected = layerOrder(fresh.screen.container)
+    fresh.screen.unmount()
+
+    // Not merged into the previous one item by item.
+    props.configs = { view: { builtInLayerOrder: ["edges", "node-labels"] } }
+    const { screen, state } = await mountGraph(props)
+    state.configs.view!.builtInLayerOrder = ["nodes"]
+    await nextTick()
+
+    expect(layerOrder(screen.container)).toEqual(expected)
+  })
+
+  test.each(["background", "grid"] as const)(
+    "draws the background only when a slot is in the %s layer, without the grid shown",
+    async layer => {
+      const props = graph()
+      const { screen } = await mountGraph(props)
+      expect(screen.container.querySelector(".v-ng-background-viewport")).toBeNull()
+      screen.unmount()
+
+      props.layers = { behind: layer }
+      const mounted = await mountGraph(props, { slots: { behind: () => h("rect") } })
+      expect(mounted.screen.container.querySelector(".v-ng-background-viewport")).not.toBeNull()
+    }
+  )
 
   test("draws the slots of the same layer in their order", async () => {
     const props = graph()
@@ -191,24 +254,24 @@ describe("layers", () => {
 describe("labels", () => {
   // The first line moves up by the lines below it, by half of them, or not at all.
   test.each([
-    { direction: "north", lite: false, shift: -1 },
-    { direction: "center", lite: false, shift: -0.5 },
+    { direction: "north", lite: false, shift: -2 },
+    { direction: "center", lite: false, shift: -1 },
     { direction: "south", lite: false, shift: 0 },
-    { direction: "north", lite: true, shift: -1 },
-    { direction: "center", lite: true, shift: -0.5 },
+    { direction: "north", lite: true, shift: -2 },
+    { direction: "center", lite: true, shift: -1 },
     { direction: "south", lite: true, shift: 0 },
   ] as const)(
-    "a label of two lines to the $direction (lite: $lite) puts its first line by its baseline",
+    "a label of three lines to the $direction (lite: $lite) puts its first line by its baseline",
     async ({ direction, lite, shift }) => {
       const props = graph()
-      props.nodes.node1.name = "first\nsecond"
+      props.nodes.node1.name = "first\nsecond\nthird"
       props.configs = { node: { label: { text: "name", direction } } }
       const { screen } = await mountGraph(props, { lite })
 
       const lines = Array.from(screen.container.querySelectorAll("tspan"), t =>
         Number(t.getAttribute("dy"))
       )
-      expect(lines).toHaveLength(2)
+      expect(lines).toHaveLength(3)
       expect(lines[0]).toBeCloseTo(shift * lines[1])
     }
   )
