@@ -49,6 +49,22 @@ describe("box", () => {
       expect(areBoxesSame(box1, box2)).toBeFalsy()
     })
 
+    it.each([
+      ["x", { x: 1, y: 0, width: 100, height: 10000 }],
+      ["y", { x: 0, y: 1, width: 100, height: 10000 }],
+      ["width", { x: 0, y: 0, width: 101, height: 10000 }],
+      ["height", { x: 0, y: 0, width: 10000, height: 101 }],
+    ])("should return false when %s differs by exactly the error tolerance", (key, box2) => {
+      // error = 10000 / 10000 = 1
+      const box1: ViewBox = {
+        x: 0,
+        y: 0,
+        width: key === "height" ? 10000 : 100,
+        height: key === "height" ? 100 : 10000,
+      }
+      expect(areBoxesSame(box1, box2)).toBe(false)
+    })
+
     it("should return false for zero-size boxes (error = 0 means 0 < 0 is false)", () => {
       // error = max(0, 0, 0, 0) / 10000 = 0
       // With error = 0, comparison uses < (not <=), so even identical boxes return false
