@@ -51,3 +51,30 @@ describe("the slots of summarized edges", () => {
     }
   )
 })
+
+describe("the order of summarized edges", () => {
+  test("summarized edges are ordered by the highest z-index among them", async () => {
+    const p = props()
+    const { screen } = await mountGraph({
+      ...p,
+      nodes: { ...p.nodes, node3: { name: "Node 3" } },
+      edges: {
+        edge1: { ...p.edges.edge1, z: 0 },
+        edge2: { ...p.edges.edge2, z: 10 },
+        edge3: { source: "node2", target: "node3", z: 5 },
+      },
+      layouts: { nodes: { ...p.layouts.nodes, node3: { x: 100, y: 100 } } },
+      configs: {
+        edge: {
+          summarize: (edges: Record<string, unknown>) => Object.keys(edges).length > 1,
+          zOrder: { enabled: true, zIndex: e => e.z as number },
+        },
+      },
+    })
+    const summarized = screen.container.querySelector(".v-ng-line-summarized")!
+    const single = screen.container.querySelector('[data-edge-id="edge3"]')!
+    expect(
+      summarized.compareDocumentPosition(single) & Node.DOCUMENT_POSITION_PRECEDING
+    ).toBeTruthy()
+  })
+})

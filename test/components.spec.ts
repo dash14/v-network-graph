@@ -3,7 +3,7 @@ import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import { h, nextTick } from "vue"
 import { VEdgeLabel, VLabelText, VStyle } from "@/index"
-import type { UserConfigs } from "@/index"
+import type { NodeLabelDirectionAutoAdjustmentHandler, UserConfigs } from "@/index"
 import type { GraphProps } from "./helpers/graph"
 import { at, mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -211,6 +211,95 @@ describe("label text", () => {
     }
     expect(attrs("given")).toEqual(["serif", "#ff0000"])
     expect(attrs("default")).toEqual(["monospace", "#000000"])
+  })
+})
+
+describe("node labels", () => {
+  // A margin of 6 and a zoom level of 2, so that the shapes and the margin are drawn at half size.
+  const placed = async (shape: UserConfigs["node"], direction: string) => {
+    const props = graph({
+      node: { ...shape, label: { margin: 6, direction: direction as any } },
+    })
+    props.zoomLevel = 2
+    let position: { x: number; y: number } | undefined
+    await mountGraph(props, {
+      slots: {
+        "override-node-label": ({ nodeId, x, y }: { nodeId: string; x: number; y: number }) => {
+          if (nodeId === "node1") position = { x, y }
+          return h("text")
+        },
+      },
+    })
+    return position!
+  }
+  const rect = { normal: { type: "rect" as const, width: 40, height: 20, borderRadius: 4 } }
+  // The corner of a rect is rounded by 2, with the margin of 3 along the diagonal from it.
+  const diagonal = Math.sqrt((2 + 3) ** 2 / 2)
+
+  test.each([
+    ["east", { x: 13, y: 0 }],
+    ["south", { x: 0, y: 8 }],
+    ["north-east", { x: 10 - 2 + diagonal, y: -(5 - 2 + diagonal) }],
+    ["center", { x: 0, y: 0 }],
+  ])("a label to the %s of a rect node is placed off its side", async (direction, expected) => {
+    const { x, y } = await placed(rect, direction)
+    expect(x).toBeCloseTo(expected.x)
+    expect(y).toBeCloseTo(expected.y)
+  })
+
+  const labelOf = (container: Element, id: string) =>
+    container.querySelectorAll(".v-ng-node-label text")[Number(id.replace("node", "")) - 1]
+
+  test("a label takes the direction the user's function gives", async () => {
+    const north: NodeLabelDirectionAutoAdjustmentHandler = () => "north"
+    const { screen } = await mountGraph(
+      // Returned by a function, as a function given in the configs is called with the node.
+      graph({ node: { label: { directionAutoAdjustment: () => north } } })
+    )
+    expect(labelOf(screen.container, "node1").getAttribute("dominant-baseline")).toBe("text-top")
+  })
+
+  test("a label adjusts its direction as a node at the other end of an edge moves", async () => {
+    const props = graph({ node: { label: { directionAutoAdjustment: true } } })
+    props.nodes!.node3 = { name: "Node 3" }
+    props.edges!.edge2 = { source: "node1", target: "node3" }
+    props.layouts!.nodes.node3 = { x: -100, y: -100 }
+    const { screen, state } = await mountGraph(props)
+    const label = labelOf(screen.container, "node1")
+    expect(label.getAttribute("dominant-baseline")).toBe("hanging")
+
+    // Below node1, where its label is, while node3 stays above it.
+    state.layouts.nodes.node2 = { x: -100, y: 100 }
+
+    await expect.poll(() => label.getAttribute("dominant-baseline")).toBe("central")
+  })
+
+  test("a label to the north-west of a circle node is placed off it along the diagonal", async () => {
+    const { x, y } = await placed({ normal: { type: "circle", radius: 10 } }, "north-west")
+    const d = Math.sqrt((5 + 3) ** 2 / 2)
+    expect(x).toBeCloseTo(-d)
+    expect(y).toBeCloseTo(-d)
+  })
+})
+
+describe("node shapes at a zoom level", () => {
+  test("a rect node and its label are drawn at half size at a zoom level of 2", async () => {
+    const props = graph({
+      node: {
+        normal: { type: "rect", width: 40, height: 20, borderRadius: 4, strokeWidth: 2 },
+        label: { fontSize: 20 },
+      },
+    })
+    props.zoomLevel = 2
+    const { screen } = await mountGraph(props)
+    const rect = screen.container.querySelector(".v-ng-node rect")!
+    expect(
+      Object.fromEntries(
+        ["x", "width", "height", "rx", "stroke-width"].map(n => [n, Number(rect.getAttribute(n))])
+      )
+    ).toEqual({ x: -10, width: 20, height: 10, rx: 2, "stroke-width": 1 })
+    const text = screen.container.querySelector(".v-ng-node-label text")!
+    expect(Number(text.getAttribute("font-size"))).toBe(10)
   })
 })
 

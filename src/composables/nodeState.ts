@@ -22,8 +22,8 @@ export function makeOpposingNodes(nodes: Ref<Nodes>, edges: Ref<Edges>) {
       Object.keys(nodes.value).map(k => [k, {} as Record<string, string>])
     )
     Object.entries(edges.value).forEach(([id, e]) => {
-      if (!_nodes?.[e.source]) _nodes[e.source] = {}
-      if (!_nodes?.[e.target]) _nodes[e.target] = {}
+      if (!_nodes[e.source]) _nodes[e.source] = {}
+      if (!_nodes[e.target]) _nodes[e.target] = {}
       _nodes[e.source][id] = e.target
       _nodes[e.target][id] = e.source
     })

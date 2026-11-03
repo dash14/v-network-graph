@@ -317,6 +317,66 @@ describe("force layout", () => {
     expect(screen.container.querySelector('[data-edge-id="edge3"]')).toBeNull()
   })
 
+  describe("an edge drawn ahead of the layouts, other than between the node centers", () => {
+    const mountDrawn = async (configs: LiteUserConfigs, extraEdges: Edges = {}) => {
+      let drawer: PositionDrawer | undefined
+      const layoutHandler: LayoutHandler = {
+        activate: ({ positionDrawer }) => (drawer = positionDrawer),
+        deactivate: () => {},
+      }
+      const mounted = await mountLite({
+        edges: { ...edges, ...extraEdges },
+        configs: { ...configs, view: { layoutHandler } },
+      })
+      const edgeAttribute = (id: string, name: string) =>
+        mounted.screen.container.querySelector(`[data-edge-id="${id}"]`)?.getAttribute(name)
+      const draw = () => drawer!.draw(id => (id === "node1" ? { x: -100, y: 0 } : undefined))
+      return { edgeAttribute, draw }
+    }
+
+    test.each([
+      ["a margin", { edge: { margin: 4 } }],
+      ["a marker at the source", { edge: { marker: { source: { type: "arrow" as const } } } }],
+    ])("starts at the edge of the node with %s", async (_, configs) => {
+      const { edgeAttribute, draw } = await mountDrawn(configs)
+      draw()
+      expect(Number(edgeAttribute("edge1", "x1"))).toBeGreaterThan(-100)
+    })
+
+    test("ends at the edge of the node with a marker at the target", async () => {
+      const { edgeAttribute, draw } = await mountDrawn({
+        edge: { marker: { target: { type: "arrow" } } },
+      })
+      draw()
+      expect(Number(edgeAttribute("edge1", "x2"))).toBeLessThan(0)
+    })
+
+    test("is drawn apart from another edge between the same nodes", async () => {
+      const { edgeAttribute, draw } = await mountDrawn(
+        {},
+        { edge3: { source: "node1", target: "node2" } }
+      )
+      draw()
+      expect(edgeAttribute("edge1", "y1")).not.toBe(edgeAttribute("edge3", "y1"))
+    })
+  })
+
+  test("draws the nodes where the layouts have them once the layout stops drawing ahead", async () => {
+    let drawer: PositionDrawer | undefined
+    const layoutHandler: LayoutHandler = {
+      activate: ({ positionDrawer }) => (drawer = positionDrawer),
+      deactivate: () => {},
+    }
+    const { screen, state } = await mountLite({ configs: { view: { layoutHandler } } })
+    drawer!.draw(id => (id === "node1" ? { x: -100, y: 50 } : undefined))
+    drawer!.setFlush(undefined)
+
+    state.layouts.nodes.node1 = { x: 50, y: 60 }
+    await nextTick()
+
+    expect(drawnPosition(screen.container, "node1")).toEqual({ x: 50, y: 60 })
+  })
+
   test("getLayouts() returns the positions drawn, while the layouts lag behind", async () => {
     const { screen, state, graph } = await mountLite({
       configs: { view: { layoutHandler: layoutHandler(), layoutsUpdateInterval: 60000 } },
@@ -490,6 +550,22 @@ describe("force layout", () => {
 
       // A loop left at the old position would now be north of the node.
       moveTo("node1", -200, 300)
+      await nextTick()
+
+      expect(label.getAttribute("text-anchor")).toBe("start")
+    })
+
+    test("a label avoids a self-loop where it is drawn, from the loop's offset from its node", async () => {
+      const { screen, moveTo } = await mountStopped(
+        { node: { label: { direction: "west", directionAutoAdjustment: true } } },
+        false,
+        { loop: { source: "node3", target: "node3" } }
+      )
+      const label = screen.container.querySelectorAll("text.v-ng-node-label")[2]
+      expect(label.getAttribute("text-anchor")).toBe("start")
+
+      // Moved left, so that a loop placed from the old position of the node would be east of it.
+      moveTo("node3", 0, 300)
       await nextTick()
 
       expect(label.getAttribute("text-anchor")).toBe("start")

@@ -40,11 +40,9 @@ export function useTranslatePathsToObject(input: Ref<InputPaths>): UseTranslateP
           return [id, path]
         })
       )
-      if (isInCompatibilityModeForPath.value) {
-        for (const [path, id] of Array.from(idStore.entries())) {
-          if (!containKeys.has(id)) {
-            idStore.delete(path)
-          }
+      for (const [path, id] of Array.from(idStore.entries())) {
+        if (!containKeys.has(id)) {
+          idStore.delete(path)
         }
       }
     } else {

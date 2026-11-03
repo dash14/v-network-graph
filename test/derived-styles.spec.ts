@@ -105,4 +105,20 @@ describe("invalid styles", () => {
       expect.stringContaining("Edge color is invalid"),
     ])
   })
+
+  test("an edge whose color function gives undefined is drawn in black, with a warning", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    const { screen } = await mountGraph({
+      nodes,
+      edges,
+      layouts,
+      configs: { edge: { normal: { color: () => undefined as unknown as string } } },
+    })
+
+    expect(attributes(screen.container, ".v-ng-edge", "stroke")).toEqual([{ stroke: "#000000" }])
+    expect(warn.mock.calls.map(c => c[0])).toEqual([
+      expect.stringContaining("Edge color is invalid"),
+    ])
+  })
 })
