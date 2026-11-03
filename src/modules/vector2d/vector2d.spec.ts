@@ -234,6 +234,10 @@ describe("instance methods", () => {
       expect(result1).to.be.equal(true)
       expect(result2).to.be.equal(false)
     })
+
+    it("should compare y as well as x", () => {
+      expect(v.isEqualTo({ x: 10, y: -10 })).to.be.equal(false)
+    })
   })
 
   describe("#clone", () => {
