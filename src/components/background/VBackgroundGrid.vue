@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from "vue"
+import { onMounted, onUnmounted, ref, watchEffect } from "vue"
 import { nonNull } from "@/common/common"
 import { Point, Size } from "@/common/types"
 import { useViewConfig } from "@/composables/config"
@@ -36,18 +36,23 @@ onMounted(() => {
   }
 })
 
-emitter.on("view:resize", rect => {
+const onResize = (rect: Size) => {
   viewport.value = { width: rect.width, height: rect.height }
-})
-
-emitter.on("view:pan", pan => {
+}
+const onPan = (pan: Point) => {
   basePoint.value = { x: -pan.x, y: -pan.y }
-})
-
+}
 // Only svg-pan-zoom emits the zooms, so it is there.
-emitter.on("view:zoom", () => {
-  const pan = nonNull(svgPanZoom.value).getPan()
-  basePoint.value = { x: -pan.x, y: -pan.y }
+const onZoom = () => onPan(nonNull(svgPanZoom.value).getPan())
+
+emitter.on("view:resize", onResize)
+emitter.on("view:pan", onPan)
+emitter.on("view:zoom", onZoom)
+// The grid comes and goes with its visibility, while the emitter stays with the graph.
+onUnmounted(() => {
+  emitter.off("view:resize", onResize)
+  emitter.off("view:pan", onPan)
+  emitter.off("view:zoom", onZoom)
 })
 
 const thickVerticals = ref<LineDefinitions>([])
