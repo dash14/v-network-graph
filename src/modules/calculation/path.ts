@@ -290,25 +290,16 @@ export function calculateDirectionsOfPathEdges(edges: EdgeObject[]): boolean[] {
 
   const directions: boolean[] = [] // true: forward, false: reverse
   let lastNode: string | null = null
-  let isForward = true
+  let isForward: boolean
   for (let i = 0; i < length; i++) {
     const source = edges[i].edge.source
     const target = edges[i].edge.target
     if (source === target) {
       isForward = true // loop edge direction is always true
     } else if (i === 0) {
-      if (length > 2) {
-        // If the next edge is an edge between the same nodes,
-        // check for more next edges.
-        const joint = _getJointNode(edges, 0)
-        if (joint === null) {
-          isForward = true
-        } else {
-          isForward = joint === target
-        }
-      } else {
-        isForward = [edges[1].edge.source, edges[1].edge.target].includes(target)
-      }
+      // Edges between the same nodes leave the joint to the edges after them, and to none if all are.
+      const joint = _getJointNode(edges, 0)
+      isForward = joint === null || joint === target
     } else {
       isForward = lastNode === source
     }
@@ -325,17 +316,9 @@ function _getJointNode(edges: EdgeObject[], index: number): string | null {
   const currentEdge = [edgeObject0.edge.source, edgeObject0.edge.target].sort()
   const nextEdge = [edgeObject1.edge.source, edgeObject1.edge.target].sort()
 
-  // The caller takes a loop first itself, and the recursion goes on only from an edge between the
-  // same nodes as a non-loop one, so the current edge is never a loop.
-  if (nextEdge[0] === nextEdge[1]) {
-    // next edge is looped
-    return nextEdge[0]
-  }
-
-  if (
-    edgeObject0.edgeId === edgeObject1.edgeId ||
-    (currentEdge[0] === nextEdge[0] && currentEdge[1] === nextEdge[1])
-  ) {
+  // The current edge is never a loop: the caller takes a loop first itself, and the recursion goes
+  // on only to an edge between the same nodes as the current one. A next loop is found below too.
+  if (currentEdge[0] === nextEdge[0] && currentEdge[1] === nextEdge[1]) {
     // both edges are between same nodes
     if (index >= edges.length - 2) {
       // cannot be determined.
