@@ -38,21 +38,18 @@ import * as PointUtils from "./point"
  * @param sourcePos source position of the line
  * @param targetPos target position of the line
  * @param rect rectangle style
- * @param scale scale factor
  * @returns distance from target position
  */
 function calculateDistanceToAvoidOverlapsWithRect(
   sourcePos: Position,
   targetPos: Position, // position of the target rounded rectangle
-  rect: RectangleShapeStyle,
-  scale: number
+  rect: RectangleShapeStyle
 ) {
   const centerLine = VectorLine.fromPositions(sourcePos, targetPos)
-  const halfWidth = ((rect.width + rect.strokeWidth) / 2) * scale
-  const halfHeight = ((rect.height + rect.strokeWidth) / 2) * scale
+  const halfWidth = (rect.width + rect.strokeWidth) / 2
+  const halfHeight = (rect.height + rect.strokeWidth) / 2
 
-  const borderRadius =
-    rect.borderRadius > 0 ? (rect.borderRadius + rect.strokeWidth / 2) * scale : 0
+  const borderRadius = rect.borderRadius > 0 ? rect.borderRadius + rect.strokeWidth / 2 : 0
 
   // check whether it crosses over the vertical or horizontal boundary
   const angleVRad = (centerLine.v.angle() - Math.PI / 2) % Math.PI
@@ -122,16 +119,10 @@ export function calculateEdgeLabelArea(
   const normalized = line.v.clone().normalize()
 
   // source side
-  const sv =
-    padding === 0
-      ? line.source
-      : line.source.clone().add(normalized.clone().multiplyScalar(padding * scale))
+  const sv = line.source.clone().add(normalized.clone().multiplyScalar(padding * scale))
 
   // target side
-  const tv =
-    padding === 0
-      ? line.target
-      : line.target.clone().subtract(normalized.clone().multiplyScalar(padding * scale))
+  const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(padding * scale))
 
   // margin for edges
   const labelMargin = (edgeStyle.width / 2 + margin) * scale
@@ -175,8 +166,7 @@ export function calculateDistancesFromCenterOfNodeToEndOfNode(
     distance1 = calculateDistanceToAvoidOverlapsWithRect(
       targetNodePos,
       sourceNodePos,
-      sourceNodeShape,
-      1 // scale
+      sourceNodeShape
     )
   }
 
@@ -188,8 +178,7 @@ export function calculateDistancesFromCenterOfNodeToEndOfNode(
     distance2 = calculateDistanceToAvoidOverlapsWithRect(
       sourceNodePos,
       targetNodePos,
-      targetNodeShape,
-      1 // scale
+      targetNodeShape
     )
   }
 
