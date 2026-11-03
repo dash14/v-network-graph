@@ -48,20 +48,19 @@ export function makeEdgeGroupStates(
   watchEffect(() => {
     const summarizedEdges: Record<string, true> = {}
     for (const [id, { edges, groupWidth }] of Object.entries(state.edgeGroups)) {
+      // A group of a single edge has no width, and nothing to summarize.
       let summarize = false
-      if (groupWidth == 0) {
-        summarize = false
-      } else if (configs.edge.summarize instanceof Function) {
-        const s = configs.edge.summarize(edges, configs)
-        if (s === null) {
+      if (groupWidth !== 0) {
+        if (configs.edge.summarize instanceof Function) {
+          const s = configs.edge.summarize(edges, configs)
+          if (s === null) {
+            summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
+          } else {
+            summarize = s
+          }
+        } else if (configs.edge.summarize) {
           summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
-        } else {
-          summarize = s
         }
-      } else if (configs.edge.summarize) {
-        summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
-      } else {
-        summarize = false
       }
       state.edgeGroups[id].summarize = summarize
       if (summarize) {
