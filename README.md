@@ -17,15 +17,15 @@ An interactive SVG based network-graph visualization component for Vue 3.
 
 ## Features
 
-- Create a graph according your reactive data dynamically
-- Fully configurable appearance
+- Create a graph from your reactive data dynamically
+- Configurable appearance
 - SVG based
 - Pan and zoom viewport
 - Drag nodes
 - Multiple node selection
 - Multiple edge selection
 - Multi-touch support
-- Various events are provided
+- Events for user interactions
 - Export as SVG text
 
 ## Documentation
@@ -43,7 +43,7 @@ Install with npm
 npm install v-network-graph
 ```
 
-and setup in main.ts
+and set it up in main.ts
 
 ```ts
 // main.ts
@@ -64,15 +64,15 @@ Add css to `nuxt.config.ts`
 
 ```ts
 // nuxt.config.ts
-import { defineNuxtConfig } from "nuxt3"
+import { defineNuxtConfig } from "nuxt/config"
 
-// https://v3.nuxtjs.org/docs/directory-structure/nuxt.config
+// https://nuxt.com/docs/api/nuxt-config
 export default defineNuxtConfig({
   css: ["v-network-graph/lib/style.css"],
 })
 ```
 
-Make the plugin to `plugins/v-network-graph.ts`
+Create the plugin in `plugins/v-network-graph.ts`
 
 ```ts
 // plugins/v-network-graph.ts
@@ -152,7 +152,7 @@ v-network-graph was designed with the following policy:
   For visualizations, where the requirements vary widely from each
   application, it will be available a variety of customizations
   for ease of use. In addition to static specifications, it also
-  supports dynamic changes due to the values ​​of fields contained
+  supports dynamic changes due to the values of fields contained
   in node and edge data.
 
 - Extendable
@@ -193,7 +193,7 @@ These are planned to be released in phases, but since this is a
 personal project for dash14 and is ongoing on the side of other
 commercial work, I cannot give a detailed timeline.  
 Your support is especially encouraging!  
-I' d appreciate it if you could support this project with a GitHub
+I'd appreciate it if you could support this project with a GitHub
 starring, an issue/PR submission, a code contribution, a message of
 cheer, a sponsorship, or anything else!
 
@@ -201,7 +201,7 @@ cheer, a sponsorship, or anything else!
 
 If you find any bugs and/or want to contribute, feel free to submit issues or pull requests.
 
-`pnpm test` runs the tests, except those in `test/docker/`, whose results depend on the fonts.
+`pnpm test` runs the tests, except those in `test/docker/`, whose results depend on the installed fonts.
 `pnpm test:docker` runs all of them in the Playwright Docker image, and `pnpm test:docker -u`
 updates their snapshots and screenshots.
 `pnpm test:tc` type-checks the tests, which the build leaves out.
@@ -218,9 +218,9 @@ See [LICENSE](https://github.com/dash14/v-network-graph/blob/main/LICENSE) file 
 I love to hear from people using it, giving me the motivation to keep working on this project.  
 If you find this library helpful, please consider giving it a star ⭐ on GitHub!
 
-You may [GitHub Sponsors](https://github.com/sponsors/dash14) or
-[Buy Me a Coffee](https://www.buymeacoffee.com/dash14.ack) if you would like to show
-some support for this open-source project.
+If you would like to support this open-source project, you can do so through
+[GitHub Sponsors](https://github.com/sponsors/dash14) or
+[Buy Me a Coffee](https://www.buymeacoffee.com/dash14.ack).
 It will be greatly appreciated!
 
 [!["Github Sponsors"](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/dash14)
