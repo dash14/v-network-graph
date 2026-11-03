@@ -30,7 +30,7 @@ watchEffect(() => {
       type: "circle",
       radius:
         shapeStyle.radius +
-        (shapeStyle.strokeWidth ?? 0) / 2 +
+        shapeStyle.strokeWidth / 2 +
         config.focusring.padding +
         config.focusring.width / 2,
       color: "none",
@@ -44,12 +44,12 @@ watchEffect(() => {
       type: "rect",
       width:
         shapeStyle.width +
-        (shapeStyle.strokeWidth ?? 0) +
+        shapeStyle.strokeWidth +
         config.focusring.padding * 2 +
         config.focusring.width,
       height:
         shapeStyle.height +
-        (shapeStyle.strokeWidth ?? 0) +
+        shapeStyle.strokeWidth +
         config.focusring.padding * 2 +
         config.focusring.width,
       borderRadius:

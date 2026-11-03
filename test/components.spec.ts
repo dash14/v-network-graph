@@ -120,22 +120,23 @@ describe("label backgrounds", () => {
 
   test("shows and hides the background with its visibility", async () => {
     const { screen, state } = await mountGraph(background({ visible: false }))
+    const config = state.configs.node!.label!.background as { visible: boolean }
     expect(rectOf(screen.container)).toBeNull()
 
-    state.configs.node!.label!.background!.visible = true
+    config.visible = true
     await nextTick()
     await expect
       .poll(() => Number(rectOf(screen.container)?.getAttribute("width")))
       .toBeGreaterThan(0)
 
-    state.configs.node!.label!.background!.visible = false
+    config.visible = false
     await nextTick()
     expect(rectOf(screen.container)).toBeNull()
   })
 
   test("an edge label over its line gets a background, turned with the label", async () => {
     const { screen } = await mountGraph(graph(), {
-      slots: { "edge-label": (p: object) => h(VEdgeLabel, { ...p, text: "label" }) },
+      slots: { "edge-label": (p: any) => h(VEdgeLabel, { ...p, text: "label" }) },
     })
     const rect = rectOf(screen.container)!
     const text = screen.container.querySelector(".v-ng-edge-label")!
@@ -175,7 +176,7 @@ describe("label backgrounds", () => {
   test("an edge label keeps the background of its config", async () => {
     const { screen } = await mountGraph(graph(), {
       slots: {
-        "edge-label": (p: { config: object }) =>
+        "edge-label": (p: any) =>
           h(VEdgeLabel, {
             ...p,
             text: "label",
@@ -242,8 +243,7 @@ describe("edge labels", () => {
       for (const verticalAlign of ["above", "center", "below"] as const) {
         const { screen } = await mountGraph(props, {
           slots: {
-            "edge-label": (p: object) =>
-              h(VEdgeLabel, { ...p, text: "label", align, verticalAlign }),
+            "edge-label": (p: any) => h(VEdgeLabel, { ...p, text: "label", align, verticalAlign }),
           },
         })
         const text = screen.container.querySelector(".v-ng-edge-label")!
@@ -263,7 +263,7 @@ describe("edge labels", () => {
     const props = graph()
     props.layouts = { nodes: { node1: { x: x1, y: y1 }, node2: { x: x2, y: y2 } } }
     const { screen } = await mountGraph(props, {
-      slots: { "edge-label": (p: object) => h(VEdgeLabel, { ...p, text: "label" }) },
+      slots: { "edge-label": (p: any) => h(VEdgeLabel, { ...p, text: "label" }) },
     })
     const transform = screen.container.querySelector(".v-ng-edge-label")?.getAttribute("transform")
     expect(transform).toMatch(new RegExp(`^rotate\\(${angle} `))
@@ -322,10 +322,10 @@ describe("node labels", () => {
     }
   )
 
-  test.each([false, true])("are left out for a text that is not given (lite: %s)", async lite => {
-    const { screen } = await mountGraph(graph({ node: { label: { text: () => undefined } } }), {
-      lite,
-    })
+  test.each([false, true])("are left out for a node with no text (lite: %s)", async lite => {
+    const props = graph()
+    props.nodes = { node1: {}, node2: {} }
+    const { screen } = await mountGraph(props, { lite })
     expect(screen.container.querySelectorAll(".v-ng-node-label")).toHaveLength(0)
   })
 })
@@ -365,11 +365,8 @@ describe("lite objects", () => {
 
 describe("focus ring", () => {
   test.each([
-    {
-      name: "a circle with no stroke width",
-      normal: { type: "circle", strokeWidth: () => undefined },
-    },
-    { name: "a rect with no stroke width", normal: { type: "rect", strokeWidth: () => undefined } },
+    { name: "a circle", normal: { type: "circle" } },
+    { name: "a rect with round corners", normal: { type: "rect", borderRadius: 4 } },
     { name: "a rect with square corners", normal: { type: "rect", borderRadius: 0 } },
   ] as const)("is drawn around $name", async ({ normal }) => {
     const props = graph({ node: { selectable: true, normal } })

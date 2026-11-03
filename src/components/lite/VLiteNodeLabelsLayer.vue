@@ -6,7 +6,7 @@ import VLiteNodeLabel from "./VLiteNodeLabel.vue"
 const { nodeZOrderedList } = useStates()
 
 const labeled = computed(() =>
-  nodeZOrderedList.value.filter(state => state.label.visible && (state.labelText ?? false))
+  nodeZOrderedList.value.filter(state => state.label.visible && state.labelText)
 )
 </script>
 
