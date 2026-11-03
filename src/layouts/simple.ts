@@ -29,8 +29,8 @@ export class SimpleLayout implements LayoutHandler {
         const candidate = { ...area.center }
         for (;;) {
           let collision = false
+          // The new node has no position yet, so it is not among them.
           for (const [id, pos] of Object.entries(nodePositions.value)) {
-            if (nodeId === id) continue
             const targetNode = nodes.value[id]
             if (!targetNode) continue
             const targetNodeSize = getNodeSize(targetNode, configs.node, s)
