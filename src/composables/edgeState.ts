@@ -1,12 +1,13 @@
 // The states of edges
 
 import type { Ref } from "vue"
-import { computed, toRaw, unref, watchEffect } from "vue"
+import { computed, toRaw, watchEffect } from "vue"
 import { Config, EdgeConfig, MarkerStyle } from "@/common/configs"
 import { Edge, Edges } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import type { EdgeGeometryRefs, EdgePlacement } from "./edgePlacement"
 import { MarkerState, useMarker } from "./marker"
+import { computedOfObject } from "./objectState"
 
 const NONE_MARKER: MarkerStyle = {
   type: "none",
@@ -29,10 +30,7 @@ export function createNewEdgeState(
 ) {
   const { makeMarker, clearMarker } = useMarker(makerState)
 
-  state.label = computed(() => {
-    if (!edges.value[id]) return unref(state.label) // Return the previous value
-    return Config.values(config.label, edges.value[id])
-  })
+  state.label = computedOfObject(edges, id, edge => Config.values(config.label, edge))
 
   const line = computed<EdgeModel.Line>(() => {
     const edge = edges.value[id]
@@ -112,12 +110,12 @@ export function createEdgeEntries(
     .map(([key, group]) => {
       if (group.summarize) {
         return <EdgeModel.SummarizedEdgeItem>{
-          id: Object.keys(group.edges)[0] ?? key,
+          id: Object.keys(group.edges)[0],
           summarized: true,
           key,
           group,
           zIndex: Object.keys(group.edges)
-            .map(id => edgeStates[id]?.zIndex ?? 0)
+            .map(id => edgeStates[id].zIndex)
             .reduce((s, z) => Math.max(s, z)),
         }
       } else {
@@ -128,7 +126,7 @@ export function createEdgeEntries(
               summarized: false,
               key: id,
               edge,
-              zIndex: edgeStates[id]?.zIndex ?? 0,
+              zIndex: edgeStates[id].zIndex,
             }
         )
       }

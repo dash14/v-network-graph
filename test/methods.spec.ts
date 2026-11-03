@@ -90,6 +90,14 @@ describe("zoom", () => {
     await expect.poll(() => state.zoomLevel).toBeCloseTo(0.95, 5)
   })
 
+  test("the zoom level moves into a range changed to leave it out", async () => {
+    const { state } = await mountGraph({ nodes, edges, layouts, configs, zoomLevel: 1 })
+
+    state.configs.view.minZoomLevel = 1.5
+    state.configs.view.maxZoomLevel = 2
+    await expect.poll(() => state.zoomLevel).toBeCloseTo(1.5, 5)
+  })
+
   test("changing the zoomLevel prop zooms the view", async () => {
     const { graph, state } = await mountGraph({ nodes, edges, layouts, configs, zoomLevel: 1 })
 

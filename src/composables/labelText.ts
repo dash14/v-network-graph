@@ -14,7 +14,7 @@ export function useLabelTextLines(
 ) {
   const { scale } = useZoomLevel()
 
-  const texts = computed(() => props.text?.toString().split(/\r?\n/) ?? "")
+  const texts = computed(() => props.text.toString().split(/\r?\n/))
 
   const fontSize = computed(() => {
     return givenFontSize() ?? props.config.fontSize * scale.value

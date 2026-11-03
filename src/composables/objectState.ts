@@ -1,7 +1,7 @@
 // Management states of objects
 
 import type { ComputedRef, Ref, UnwrapRef } from "vue"
-import { computed, reactive, unref, watch } from "vue"
+import { computed, reactive, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, ObjectConfigs, ZOrderConfig } from "@/common/configs"
 
@@ -69,13 +69,11 @@ export function useObjectState<
     (objects, prev) => {
       const append = prev ? objects.filter(n => !prev.includes(n)) : objects
       const removed = prev ? prev.filter(n => !objects.includes(n)) : []
-      append.forEach(id => {
-        const state = states[id]
-        if (state && !state.selected) state.selected = true
-      })
+      // The selection holds only the objects that exist, so each one added has its state.
+      append.forEach(id => (states[id].selected = true))
       removed.forEach(id => {
         const state = states[id]
-        if (state && state.selected) state.selected = false
+        if (state) state.selected = false
       })
     },
     { immediate: true } // for specified from the beginning
@@ -87,13 +85,11 @@ export function useObjectState<
     (nodes, prev) => {
       const append = nodes.filter(n => !prev.includes(n))
       const removed = prev.filter(n => !nodes.includes(n))
-      append.forEach(id => {
-        const state = states[id]
-        if (state && !state.hovered) state.hovered = true
-      })
+      // An object is hovered only while it is drawn, so each one added has its state.
+      append.forEach(id => (states[id].hovered = true))
       removed.forEach(id => {
         const state = states[id]
-        if (state && state.hovered) state.hovered = false
+        if (state) state.hovered = false
       })
     }
   )
@@ -112,6 +108,28 @@ export function useObjectState<
   return { states, zOrderedList }
 }
 
+/**
+ * A value computed from an object, which keeps the last one once the object is removed.
+ * @param objects the objects
+ * @param id the ID of the object
+ * @param compute makes the value from the object
+ * @returns the computed value
+ */
+export function computedOfObject<T, R>(
+  objects: Ref<Objects<T>>,
+  id: string,
+  compute: (object: T) => R
+): ComputedRef<R> {
+  let last: R
+  return computed(() => {
+    const object = objects.value[id]
+    // The state is dropped with its object, before anything reads it again.
+    /* v8 ignore else */
+    if (object) last = compute(object)
+    return last
+  })
+}
+
 function createNewState<T, S extends ObjectStateDatumBase>(
   objects: Ref<Objects<T>>,
   states: Record<string, ObjectState<S>>,
@@ -124,14 +142,8 @@ function createNewState<T, S extends ObjectStateDatumBase>(
     id,
     selected,
     hovered: false,
-    selectable: computed(() => {
-      if (!objects.value[id]) return unref(stateObject.selectable) // Return the previous value
-      return Config.value(config.selectable, objects.value[id])
-    }),
-    zIndex: computed(() => {
-      if (!objects.value[id]) return unref(stateObject.zIndex) // Return the previous value
-      return Config.value(config.zOrder.zIndex, objects.value[id])
-    }),
+    selectable: computedOfObject(objects, id, o => Config.value(config.selectable, o)),
+    zIndex: computedOfObject(objects, id, o => Config.value(config.zOrder.zIndex, o)),
   }
   states[id] = stateObject as ObjectState<S>
   createState(objects, id, states[id] as NewStateDatum<S> /* get reactive object */)
@@ -143,41 +155,13 @@ function makeZOrderedList<S extends { id: string; zIndex: number }, T>(
   hovered: Reactive<Set<string>>,
   selected: Reactive<Set<string>>
 ) {
-  if (zOrder.bringToFrontOnHover && zOrder.bringToFrontOnSelected) {
-    return states.sort((a, b) => {
-      const hover1 = hovered.has(a.id)
-      const hover2 = hovered.has(b.id)
-      if (hover1 != hover2) {
-        return hover1 ? 1 : -1
-      }
-      const selected1 = selected.has(a.id)
-      const selected2 = selected.has(b.id)
-      if (selected1 != selected2) {
-        return selected1 ? 1 : -1
-      }
-      return a.zIndex - b.zIndex
-    })
-  } else if (zOrder.bringToFrontOnHover) {
-    return states.sort((a, b) => {
-      const hover1 = hovered.has(a.id)
-      const hover2 = hovered.has(b.id)
-      if (hover1 != hover2) {
-        return hover1 ? 1 : -1
-      }
-      return a.zIndex - b.zIndex
-    })
-  } else if (zOrder.bringToFrontOnSelected) {
-    return states.sort((a, b) => {
-      const selected1 = selected.has(a.id)
-      const selected2 = selected.has(b.id)
-      if (selected1 != selected2) {
-        return selected1 ? 1 : -1
-      }
-      return a.zIndex - b.zIndex
-    })
-  } else {
-    return states.sort((a, b) => {
-      return a.zIndex - b.zIndex
-    })
-  }
+  // The hovered in front of the rest, then the selected, and by the z-index within each.
+  const front = (set: Reactive<Set<string>>, a: S, b: S) =>
+    Number(set.has(a.id)) - Number(set.has(b.id))
+  return states.sort(
+    (a, b) =>
+      (zOrder.bringToFrontOnHover ? front(hovered, a, b) : 0) ||
+      (zOrder.bringToFrontOnSelected ? front(selected, a, b) : 0) ||
+      a.zIndex - b.zIndex
+  )
 }

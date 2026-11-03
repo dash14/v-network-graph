@@ -217,4 +217,16 @@ describe("transitionWhile", () => {
     later.resolve()
     await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
   })
+
+  test("a call made while an ended one's animation is still going restarts the wait", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+
+    graph.transitionWhile(() => {}, 300)
+    await wait(200)
+    graph.transitionWhile(() => {}, 300)
+    await wait(200)
+    expect(viewport.classList.contains("v-ng-transition")).toBe(true)
+    await expect.poll(() => viewport.classList.contains("v-ng-transition")).toBe(false)
+  })
 })

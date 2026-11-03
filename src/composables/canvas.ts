@@ -46,46 +46,41 @@ export function useGraphCanvas(
     center: configs.view.autoPanAndZoomOnLoad !== false,
     zoomEnabled: configs.view.zoomEnabled,
     preventMouseEventsDefault: false,
+    // Called back as svg-pan-zoom pans and zooms, never after it is destroyed.
     onZoom: _ => {
-      if (state.value === CanvasState.UNLOADED) return
-      const z = svgPanZoom.value?.getRealZoom() ?? 1
+      const z = nonNull(svgPanZoom.value, "svg-pan-zoom instance").getRealZoom()
       if (Math.abs(zoomLevel.value - z) >= 1.0e-6) {
         zoomLevel.value = z
         emitter.emit("view:zoom", z)
       }
     },
     panEnabled: configs.view.panEnabled,
-    onPan: p => {
-      if (state.value === CanvasState.UNLOADED) return
-      emitter.emit("view:pan", p)
-    },
+    onPan: p => emitter.emit("view:pan", p),
   })
 
   provideContainers({ container, svg, viewport, svgPanZoom })
 
   // Observe container resizing
   const rectSize = { width: 0, height: 0 }
-  const resizeObserver = globalThis.ResizeObserver
-    ? new ResizeObserver(() => {
-        svgPanZoom.value?.resize()
-        if (!configs.view.autoPanOnResize) return
-        // Pan to keep the view area centered
-        const r = container.value?.getBoundingClientRect()
-        if (r) {
-          const x = -(rectSize.width - r.width) / 2
-          const y = -(rectSize.height - r.height) / 2
-          svgPanZoom.value?.panBy({ x, y })
-          const { width, height } = r
-          if (rectSize.width !== width || rectSize.height !== height) {
-            Object.assign(rectSize, { width, height })
-            emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
-          }
-        }
-      })
-    : undefined
+  // Observes the container only while svg-pan-zoom exists.
+  const resizeObserver = new ResizeObserver(([entry]) => {
+    const instance = nonNull(svgPanZoom.value, "svg-pan-zoom instance")
+    instance.resize()
+    if (!configs.view.autoPanOnResize) return
+    // Pan to keep the view area centered
+    const r = entry.target.getBoundingClientRect()
+    const x = -(rectSize.width - r.width) / 2
+    const y = -(rectSize.height - r.height) / 2
+    instance.panBy({ x, y })
+    const { width, height } = r
+    if (rectSize.width !== width || rectSize.height !== height) {
+      Object.assign(rectSize, { width, height })
+      emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
+    }
+  })
   onSvgPanZoomMounted(() => {
     const c = nonNull(container.value, "svg-pan-zoom container")
-    resizeObserver?.observe(c)
+    resizeObserver.observe(c)
     configs.view.onSvgPanZoomInitialized?.(nonNull(svgPanZoom.value, "svg-pan-zoom instance"))
     const r = c.getBoundingClientRect()
     const { width, height } = r
@@ -93,7 +88,7 @@ export function useGraphCanvas(
     viewport.value?.addEventListener("touchstart", stopEventPropagation, { passive: false })
   })
   onSvgPanZoomUnmounted(() => {
-    resizeObserver?.disconnect()
+    resizeObserver.disconnect()
     viewport.value?.removeEventListener("touchstart", stopEventPropagation)
   })
 

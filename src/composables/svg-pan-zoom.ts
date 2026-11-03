@@ -16,29 +16,20 @@ export interface UseSvgPanZoomReturn {
   onSvgPanZoomUnmounted: (callback: Callback) => void
 }
 
-enum State {
-  INITIAL = 0,
-  MOUNTED = 1,
-  UNMOUNTED = 2,
-}
-
 export function useSvgPanZoom(
   svg: Ref<SVGSVGElement | undefined>,
   options: SvgPanZoomOptions
 ): UseSvgPanZoomReturn {
   const instance = ref<SvgPanZoomInstance>()
-  let state = State.INITIAL
   const mountedCallbacks: Callback[] = []
   const unmountedCallbacks: Callback[] = []
 
   const instanceMounted = () => {
-    state = State.MOUNTED
     mountedCallbacks.forEach(c => c())
     mountedCallbacks.length = 0 // clear
   }
 
   const instanceUnmounted = () => {
-    state = State.UNMOUNTED
     unmountedCallbacks.forEach(c => c())
     unmountedCallbacks.length = 0 // clear
   }
@@ -88,21 +79,9 @@ export function useSvgPanZoom(
     instance.value = undefined
   })
 
-  const onSvgPanZoomMounted = (callback: Callback) => {
-    if (state === State.INITIAL) {
-      mountedCallbacks.push(callback)
-    } else if (state === State.MOUNTED) {
-      callback()
-    }
-  }
-
-  const onSvgPanZoomUnmounted = (callback: Callback) => {
-    if (state === State.INITIAL || state === State.MOUNTED) {
-      unmountedCallbacks.push(callback)
-    } else {
-      callback()
-    }
-  }
+  // Called in setup, before svg-pan-zoom is made in onMounted.
+  const onSvgPanZoomMounted = (callback: Callback) => mountedCallbacks.push(callback)
+  const onSvgPanZoomUnmounted = (callback: Callback) => unmountedCallbacks.push(callback)
 
   return { svgPanZoom: instance, onSvgPanZoomMounted, onSvgPanZoomUnmounted }
 }
