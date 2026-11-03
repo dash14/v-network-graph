@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { userEvent } from "vitest/browser"
 import type { Edges, UserConfigs } from "@/index"
-import { at, elementAt, mountGraph, payloadsOf } from "../helpers/graph"
+import { at, drag, elementAt, mountGraph, payloadsOf } from "../helpers/graph"
 
 const nodes = {
   node1: { name: "Node 1" },
@@ -117,6 +117,18 @@ describe("edge events", () => {
 
     await userEvent.click(canvas, { position: edge2, button: "right" })
     expect(payloadsOf(events, "edge:contextmenu")).toMatchObject([{ edge: "edge2" }])
+  })
+
+  test("a cancelled pointer emits pointerup, and the nodes can still be dragged", async () => {
+    const { screen, canvas, events } = await mountGraph({ nodes, edges, layouts })
+    const pointer = { bubbles: true, pointerId: 2 }
+
+    elementAt(screen.container, edge1)!.dispatchEvent(new PointerEvent("pointerdown", pointer))
+    document.dispatchEvent(new PointerEvent("pointercancel", pointer))
+    expect(payloadsOf(events, "edge:pointerup")).toMatchObject([{ edge: "edge1" }])
+
+    await drag(canvas, at(0, 0), at(0, 50))
+    expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
   })
 })
 

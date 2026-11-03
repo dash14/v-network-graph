@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { userEvent } from "vitest/browser"
-import { at, mountGraph, payloadsOf } from "../helpers/graph"
+import { at, drag, elementAt, mountGraph, payloadsOf } from "../helpers/graph"
 
 const nodes = {
   node1: { name: "Node 1" },
@@ -71,5 +71,24 @@ describe("path", () => {
 
     await userEvent.hover(canvas, { position: at(0, 100) })
     expect(payloadsOf(events, "path:pointerout")).toMatchObject([{ path: "path1" }])
+  })
+
+  test("a cancelled pointer emits pointerup, and the nodes can still be dragged", async () => {
+    // node4 is off the path, which covers the nodes on it.
+    const { screen, canvas, events } = await mountGraph({
+      nodes: { ...nodes, node4: { name: "Node 4" } },
+      edges,
+      paths,
+      layouts: { nodes: { ...layouts.nodes, node4: { x: 0, y: 100 } } },
+      configs: { path: { visible: true, clickable: true } },
+    })
+    const pointer = { bubbles: true, pointerId: 2 }
+
+    elementAt(screen.container, onPath)!.dispatchEvent(new PointerEvent("pointerdown", pointer))
+    document.dispatchEvent(new PointerEvent("pointercancel", pointer))
+    expect(payloadsOf(events, "path:pointerup")).toMatchObject([{ path: "path1" }])
+
+    await drag(canvas, at(0, 100), at(0, 150))
+    expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
   })
 })

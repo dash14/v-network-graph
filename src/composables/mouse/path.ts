@@ -145,7 +145,7 @@ export function makePathInteractionHandlers(
     entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
-    emitter.emit("view:mode", "default")
+    modes.viewMode.value = "default"
   }
 
   function handlePathPointerOverEvent(path: string, event: PointerEvent) {

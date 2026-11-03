@@ -132,7 +132,7 @@ export function makeEdgeInteractionHandlers(
     entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
-    emitter.emit("view:mode", "default")
+    modes.viewMode.value = "default"
   }
 
   function handleEdgeClickEvent(edge: string | string[], event: MouseEvent) {
