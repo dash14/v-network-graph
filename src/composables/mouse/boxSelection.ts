@@ -425,13 +425,14 @@ class PointerEventRegistrar {
   unregister() {
     this.deactivate()
     const options = { capture: true }
+    // The document outlives the container, which is already gone when the graph unmounts.
+    document.removeEventListener("keydown", this._handleKeyDownEvent, options)
     if (this._container.value) {
       const container = this._container.value
       container.removeEventListener("pointerdown", this._handlePointerDownEvent, options)
       container.removeEventListener("click", this._handleClickEvent, options)
       container.removeEventListener("pointerenter", this._ignoreEvent, options)
       container.removeEventListener("pointerleave", this._ignoreEvent, options)
-      document.removeEventListener("keydown", this._handleKeyDownEvent, options)
     }
   }
 }

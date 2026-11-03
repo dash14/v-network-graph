@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest"
+import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { at, drag, mountGraph, payloadsOf } from "../helpers/graph"
 
@@ -84,5 +84,20 @@ describe("box selection", () => {
 
     await drag(canvas, at(-150, -50), at(50, 50))
     expect(state.selectedNodes).toEqual([])
+  })
+
+  test("the Escape key reaches the page after the graph unmounts in box selection", async () => {
+    const { screen, graph } = await mountGraph({ nodes, layouts, configs })
+    graph.startBoxSelection()
+    screen.unmount()
+
+    const input = document.createElement("input")
+    document.body.appendChild(input)
+    onTestFinished(() => input.remove())
+    const keydown = vi.fn()
+    input.addEventListener("keydown", keydown)
+    input.focus()
+    await userEvent.keyboard("{Escape}")
+    expect(keydown).toHaveBeenCalledOnce()
   })
 })
