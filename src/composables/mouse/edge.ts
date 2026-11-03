@@ -22,7 +22,6 @@ export function makeEdgeInteractionHandlers(
 ) {
   const state = {
     pointers: new Map<number, EdgePointerState>(), // <PointerId, ...>
-    pointerPeekCount: 0,
     clicks: new Map<number, ClickState>(),
   }
 
@@ -52,7 +51,7 @@ export function makeEdgeInteractionHandlers(
     }
   })
 
-  function handleEdgePointerDownEvent(edge: string, event: PointerEvent) {
+  function handleEdgePointerDownEvent(edge: string | string[], event: PointerEvent) {
     if (event.button == 2 /* right button */) {
       return
     }
@@ -68,10 +67,7 @@ export function makeEdgeInteractionHandlers(
       entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
         document.addEventListener(ev, handler)
       })
-      state.pointerPeekCount = 0
     }
-
-    state.pointerPeekCount++
 
     // Create new pointer state
     const pointerState: EdgePointerState = {
@@ -111,7 +107,6 @@ export function makeEdgeInteractionHandlers(
 
     if (state.pointers.size === 0) {
       // reset state
-      state.pointerPeekCount = 0
       entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
@@ -135,7 +130,6 @@ export function makeEdgeInteractionHandlers(
 
     // reset state
     state.pointers.clear()
-    state.pointerPeekCount = 0
     entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
@@ -216,40 +210,9 @@ export function makeEdgeInteractionHandlers(
     emitter.emit("edge:pointerout", _makeEdgeEventObject(edge, event))
   }
 
-  function handleEdgeContextMenu(edge: string, event: MouseEvent) {
+  function handleEdgeContextMenu(edge: string | string[], event: MouseEvent) {
     event.stopPropagation()
     emitter.emit("edge:contextmenu", _makeEdgeEventObject(edge, event))
-  }
-
-  function handleEdgesPointerDownEvent(edges: string[], event: PointerEvent) {
-    if (event.button == 2 /* right button */) {
-      return
-    }
-    event.stopPropagation()
-
-    if (!["default", "edge"].includes(modes.viewMode.value)) {
-      return
-    }
-
-    if (state.pointers.size == 0) {
-      // Add event listeners
-      modes.viewMode.value = "edge"
-      entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
-        document.addEventListener(ev, handler)
-      })
-      state.pointerPeekCount = 0
-    }
-
-    state.pointerPeekCount++
-
-    // Create new pointer state
-    const pointerState: EdgePointerState = {
-      pointerId: event.pointerId,
-      id: edges,
-      eventTarget: event.currentTarget,
-    }
-    state.pointers.set(event.pointerId, pointerState)
-    emitter.emit("edge:pointerdown", _makeEdgeEventObject(edges, event))
   }
 
   function handleEdgesPointerOverEvent(edges: string[], event: PointerEvent) {
@@ -262,19 +225,6 @@ export function makeEdgeInteractionHandlers(
     emitter.emit("edge:pointerout", _makeEdgeEventObject(edges, event))
   }
 
-  function handleEdgesClickEvent(edges: string[], event: MouseEvent) {
-    handleEdgeClickEvent(edges, event)
-  }
-
-  function handleEdgesDoubleClickEvent(edges: string[], event: MouseEvent) {
-    handleEdgeDoubleClickEvent(edges, event)
-  }
-
-  function handleEdgesContextMenu(edges: string[], event: MouseEvent) {
-    event.stopPropagation()
-    emitter.emit("edge:contextmenu", _makeEdgeEventObject(edges, event))
-  }
-
   return {
     handleEdgePointerDownEvent,
     handleEdgePointerOverEvent,
@@ -282,12 +232,12 @@ export function makeEdgeInteractionHandlers(
     handleEdgeClickEvent,
     handleEdgeDoubleClickEvent,
     handleEdgeContextMenu,
-    handleEdgesPointerDownEvent,
+    handleEdgesPointerDownEvent: handleEdgePointerDownEvent,
     handleEdgesPointerOverEvent,
     handleEdgesPointerOutEvent,
-    handleEdgesClickEvent,
-    handleEdgesDoubleClickEvent,
-    handleEdgesContextMenu,
+    handleEdgesClickEvent: handleEdgeClickEvent,
+    handleEdgesDoubleClickEvent: handleEdgeDoubleClickEvent,
+    handleEdgesContextMenu: handleEdgeContextMenu,
   }
 }
 

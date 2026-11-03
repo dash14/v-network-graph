@@ -23,7 +23,6 @@ export function makePathInteractionHandlers(
 ) {
   const state = {
     pointers: new Map<number, PathPointerState>(), // <PointerId, ...>
-    pointerPeekCount: 0,
     clicks: new Map<number, ClickState>(),
   }
 
@@ -81,10 +80,7 @@ export function makePathInteractionHandlers(
       entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
         document.addEventListener(ev, handler)
       })
-      state.pointerPeekCount = 0
     }
-
-    state.pointerPeekCount++
 
     // Create new pointer state
     const pointerState: PathPointerState = {
@@ -124,7 +120,6 @@ export function makePathInteractionHandlers(
 
     if (state.pointers.size === 0) {
       // reset state
-      state.pointerPeekCount = 0
       entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
         document.removeEventListener(ev, handler)
       })
@@ -148,7 +143,6 @@ export function makePathInteractionHandlers(
 
     // reset state
     state.pointers.clear()
-    state.pointerPeekCount = 0
     entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
@@ -186,7 +180,7 @@ export function makePathInteractionHandlers(
     }
     modes.selectionMode.value = "path"
 
-    const selectable = pathStates[path]?.selectable ?? false
+    const selectable = pathStates[path].selectable
     if (selectable) {
       const isTouchAnySelectedPath =
         MapUtil.valueOf(state.pointers).filter(p => selectedPaths.has(p.id)).length > 0
