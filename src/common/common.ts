@@ -1,4 +1,4 @@
-import { isReactive, reactive } from "vue"
+import { reactive } from "vue"
 
 /* ------------------------------------------ *
  * Utility
@@ -23,11 +23,8 @@ declare class Id<T extends string> {
 export type Reactive<T> = Id<"Reactive"> & T
 
 export function Reactive<T extends object>(value: T): Reactive<T> {
-  if (isReactive(value)) {
-    return value as Reactive<T>
-  } else {
-    return reactive(value) as unknown as Reactive<T>
-  }
+  // An object that is already reactive comes back as it is.
+  return reactive(value) as unknown as Reactive<T>
 }
 
 export interface ReadonlyRef<T> {

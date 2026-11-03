@@ -59,19 +59,15 @@ export class ForceLayout implements LayoutHandler {
       updateTimer = undefined
       lastUpdate = performance.now()
       for (const node of nodeLayouts) {
-        const layout = nodePositions.value?.[node.id]
+        const layout = nodePositions.value[node.id]
         const x = node.x ?? 0
         const y = node.y ?? 0
         if (layout) {
-          if (layout.x !== x || layout.y !== y) {
-            Object.assign(layout, { x, y })
-          }
+          Object.assign(layout, { x, y })
         } else {
           nodePositions.value[node.id] = { x, y }
         }
-        const last = written.get(node.id)
-        if (last) Object.assign(last, { x, y })
-        else written.set(node.id, { x, y })
+        written.set(node.id, { x, y })
       }
     }
     // Only while the layouts lag behind: they have the positions otherwise.
