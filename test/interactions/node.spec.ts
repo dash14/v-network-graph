@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest"
 import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
 import { GridLayout } from "@/index"
+import type { Position } from "@/index"
 import { at, drag, elementAt, mountGraph, payloadsOf } from "../helpers/graph"
 
 const nodes = {
@@ -168,6 +169,40 @@ describe("node drag", () => {
     expect(state.layouts.nodes).toEqual({
       node1: { x: -100, y: 50 },
       node2: { x: 0, y: 0 },
+      node3: { x: 100, y: 50 },
+    })
+  })
+
+  test("a change of the selection during a multi-touch drag keeps the selected nodes following", async () => {
+    const { screen, state } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { node: { selectable: true } },
+      selectedNodes: ["node2", "node3"],
+    })
+    const rect = screen.container.querySelector("svg")!.getBoundingClientRect()
+    const pointer = (type: string, target: EventTarget, pointerId: number, { x, y }: Position) =>
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          pointerId,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+        })
+      )
+
+    // One finger holds node1, and another drags node2, which node3 follows.
+    pointer("pointerdown", elementAt(screen.container, at(-100, 0))!, 1, at(-100, 0))
+    pointer("pointerdown", elementAt(screen.container, at(0, 0))!, 2, at(0, 0))
+    state.selectedNodes = ["node2", "node3", "node1"]
+    await nextTick()
+    for (let y = 10; y <= 50; y += 10) pointer("pointermove", document, 2, at(0, y))
+    pointer("pointerup", document, 2, at(0, 50))
+    pointer("pointerup", document, 1, at(-100, 0))
+
+    expect(state.layouts.nodes).toEqual({
+      node1: { x: -100, y: 0 },
+      node2: { x: 0, y: 50 },
       node3: { x: 100, y: 50 },
     })
   })
