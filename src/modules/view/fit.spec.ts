@@ -127,16 +127,31 @@ describe("fit", () => {
       warnSpy.mockRestore()
     })
 
+    it.each(["12em", "-12"])("should warn for the string %s", value => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin(value as FitContentMargin, size)
+      expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
+      expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", value)
+      warnSpy.mockRestore()
+    })
+
     it("should handle partial object with only top", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       const size: Size = { width: 200, height: 150 }
       const actual: Box = parseFitContentMargin({ top: 10 }, size)
       expect(actual).toStrictEqual({ top: 10, left: 0, right: 0, bottom: 0 })
+      expect(warnSpy).not.toHaveBeenCalled()
+      warnSpy.mockRestore()
     })
 
     it("should handle partial object with only left and right", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       const size: Size = { width: 200, height: 150 }
       const actual: Box = parseFitContentMargin({ left: 20, right: 30 }, size)
       expect(actual).toStrictEqual({ top: 0, left: 20, right: 30, bottom: 0 })
+      expect(warnSpy).not.toHaveBeenCalled()
+      warnSpy.mockRestore()
     })
   })
 
@@ -319,6 +334,15 @@ describe("fit", () => {
       expect(zoom).toBe(0)
     })
 
+    it.each([
+      ["width", { top: 0, left: 50, right: 50, bottom: 0 }],
+      ["height", { top: 50, left: 0, right: 0, bottom: 50 }],
+    ])("should return 0 if the margins take the whole %s", (_, margins) => {
+      const viewBox: ViewBox = { x: 0, y: 0, width: 100, height: 100 }
+      const size: Size = { width: 100, height: 100 }
+      expect(calculateZoomLevelForFixedBox(viewBox, size, margins)).toBe(0)
+    })
+
     it("should return 0 if both width and height of the viewBox are 0", () => {
       const viewBox: ViewBox = { x: 0, y: 0, width: 0, height: 0 }
       const size: Size = { width: 100, height: 100 }
@@ -446,6 +470,41 @@ describe("fit", () => {
         params.viewport,
         params.graphBox,
         params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )
+      expect(zoomAt).toBeUndefined()
+    })
+
+    it("should leave room for the fixed sizes at the zoom level", () => {
+      // At zoom level 2, the 100 around the nodes on each side takes 200 pixels.
+      const params = cloneDeep(defaultParams1)
+      params.graphBox = params.viewport
+      params.zoomLevel = 2
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        params.container,
+        params.nodesLayouts,
+        params.zoomLevel,
+        params.margins
+      )!
+      expect(zoomAt.zoom).toBeCloseTo(2, 3)
+      expect(zoomAt.pos.x).toBeCloseTo(-200, 1)
+      expect(zoomAt.pos.y).toBeCloseTo(-400, 1)
+    })
+
+    it.each([
+      ["width", { width: 200, height: 800 }],
+      ["height", { width: 1200, height: 200 }],
+    ])("should return undefined if the fixed sizes take the whole %s", (_, container) => {
+      const params = cloneDeep(defaultParams1)
+      params.graphBox = params.viewport
+      const zoomAt = calculateFitWithoutScalingObjects(
+        params.viewport,
+        params.graphBox,
+        container,
         params.nodesLayouts,
         params.zoomLevel,
         params.margins
