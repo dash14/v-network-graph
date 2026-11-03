@@ -27,7 +27,7 @@ export function untrackedPositionOf(positions: Readonly<NodePositions>, id: stri
 }
 
 function isCoordinate(v: unknown): v is number {
-  return typeof v === "number" && Number.isFinite(v)
+  return Number.isFinite(v)
 }
 
 /**
@@ -37,8 +37,8 @@ function isCoordinate(v: unknown): v is number {
  */
 export function drawnCoordinateOf(v: unknown): number {
   if (isCoordinate(v)) return v
-  // Number() also turns booleans, arrays and blank strings into numbers.
-  if (typeof v !== "string" || v.trim() === "") return 0
+  // Number() also turns booleans and arrays into numbers.
+  if (typeof v !== "string") return 0
   const n = Number(v)
   return Number.isFinite(n) ? n : 0
 }
