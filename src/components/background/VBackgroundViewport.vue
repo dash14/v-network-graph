@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue"
+import { nonNull } from "@/common/common"
 import { useContainers } from "@/composables/container"
 
 // By detecting and copying changes in the `transform` and `style`
@@ -15,10 +16,10 @@ const updateAttributes = (attrs: string[], bgLayer: SVGGElement, vpLayer: SVGGEl
   attrs.forEach(attr => bgLayer.setAttribute(attr, vpLayer.getAttribute(attr) ?? ""))
 }
 
+// It observes only while mounted, and only attributes, so every record names one.
 const observer = new MutationObserver(records => {
-  if (!background.value) return
-  const attrs = records.map(r => r.attributeName ?? "").filter(Boolean)
-  updateAttributes(attrs, background.value, viewport.value)
+  const attrs = records.map(r => nonNull(r.attributeName))
+  updateAttributes(attrs, nonNull(background.value), viewport.value)
 })
 
 onMounted(() => {
@@ -27,8 +28,7 @@ onMounted(() => {
     attributes: true,
     attributeFilter: attrs,
   })
-  if (!background.value) return
-  updateAttributes(attrs, background.value, viewport.value)
+  updateAttributes(attrs, nonNull(background.value), viewport.value)
 })
 
 onUnmounted(() => {

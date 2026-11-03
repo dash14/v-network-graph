@@ -33,6 +33,8 @@ const centerPos = ref<Position>({ x: 0, y: 0 })
 
 watchEffect(() => {
   const state = drawnStateOf(edgeStates, props.edges)
+  // drawnStateOf finds none only for a group drawn ahead of the states, which are made before it.
+  /* v8 ignore else */
   if (state) {
     pos.value = state.position
     centerPos.value = {

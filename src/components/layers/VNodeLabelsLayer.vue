@@ -16,7 +16,7 @@ const nodeStates = computed(() => onlyHasDisplayLabel(nodeZOrderedList.value))
 
 function onlyHasDisplayLabel(nodeZOrderedList: NodeState[]): NodeState[] {
   return nodeZOrderedList.filter(state => {
-    return state.label.visible && (state.labelText ?? false)
+    return state.label.visible && state.labelText
   })
 }
 </script>

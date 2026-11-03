@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Config } from "@/common/configs"
-import { PositionOrCurve } from "@/common/types"
 import { usePathConfig } from "@/composables/config"
 import { useStates } from "@/composables/state"
 import { useStrokeAttributes } from "@/composables/stroke"
@@ -17,7 +16,7 @@ const { nodeStates, edgeStates, layouts } = useStates()
 const { scale } = useZoomLevel()
 const pathConfig = usePathConfig()
 
-function calcPathPoints(path: PathState): PositionOrCurve[] {
+function calcPathPoints(path: PathState): ReturnType<typeof calculatePathPoints> {
   if (path.edges.length === 0) return []
   const margin = Config.value(pathConfig.margin, path.path) * scale.value
   return calculatePathPoints(
@@ -37,9 +36,7 @@ function calcPathD(path: PathState) {
   let move = true
   return points
     .map(p => {
-      if (p === null) {
-        move = true
-      } else if (typeof p === "string") {
+      if (typeof p === "string") {
         return p
       } else if (p instanceof Array) {
         p = [...p]

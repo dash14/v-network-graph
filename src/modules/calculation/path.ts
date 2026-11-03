@@ -1,7 +1,7 @@
 import { chunk } from "lodash-es"
 import { nonNull } from "@/common/common"
 import { PathEndType } from "@/common/configs"
-import { NodePositions, Position, PositionOrCurve } from "@/common/types"
+import { NodePositions, Position } from "@/common/types"
 import { EdgeStates, EdgeState } from "@/models/edge"
 import { NodeStates } from "@/models/node"
 import { EdgeLine, EdgeObject, PathState } from "@/models/path"
@@ -25,7 +25,7 @@ export function calculatePathPoints(
   curveInNode: boolean,
   pathEndType: PathEndType,
   margin: number
-): PositionOrCurve[] {
+): (Position | Position[] | string)[] {
   // The relationship between the source/target of a link and the connection
   // by path can be different.
   // Detect node at connection point and determine source/target for the path.
