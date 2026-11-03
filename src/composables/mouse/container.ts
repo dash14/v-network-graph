@@ -120,6 +120,10 @@ export function setupContainerInteractionHandlers(
   })
 
   onUnmounted(() => {
+    // A pointer still pressed when the graph unmounts is released after it is gone.
+    entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
+      document.removeEventListener(ev, handler)
+    })
     const c = container.value
     if (!c) return
     c.removeEventListener("pointerdown", handleContainerPointerDownEvent)

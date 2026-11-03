@@ -1,5 +1,5 @@
 import { Emitter } from "mitt"
-import { Ref, watch } from "vue"
+import { onUnmounted, Ref, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
@@ -39,6 +39,13 @@ export function makePathInteractionHandlers(
     pointerup: handlePathPointerUpEvent,
     pointercancel: handlePathPointerCancelEvent,
   }
+
+  // A pointer still pressed when the graph unmounts is released after it is gone.
+  onUnmounted(() => {
+    entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
+      document.removeEventListener(ev, handler)
+    })
+  })
 
   watch(selectedPaths, selected => {
     if (selected.size > 0 && modes.selectionMode.value !== "path") {
