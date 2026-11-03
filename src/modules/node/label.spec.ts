@@ -349,3 +349,64 @@ describe("handleNodeLabelAutoAdjustment with unusual input", () => {
     expect(direction).to.be.equal("south")
   })
 })
+
+describe("handleNodeLabelAutoAdjustment fallback order", () => {
+  // Clockwise from north, as the label directions are.
+  function edgesToward(...degrees: number[]) {
+    return Object.fromEntries(
+      degrees.map((d, i) => {
+        const rad = (d * Math.PI) / 180
+        const pos = { x: 100 + 100 * Math.sin(rad), y: 100 - 100 * Math.cos(rad) }
+        return [`edge${i}`, { nodeId: `node${i + 2}`, pos }]
+      })
+    )
+  }
+
+  it("should take the side to the left after the opposite and the right", () => {
+    const direction = handleNodeLabelAutoAdjustment(
+      "node1",
+      { x: 100, y: 100 },
+      edgesToward(0, 90, 180),
+      () => undefined,
+      "north"
+    )
+    expect(direction).to.be.equal("west")
+  })
+
+  it("should take the diagonal to the left after the one to the right", () => {
+    const direction = handleNodeLabelAutoAdjustment(
+      "node1",
+      { x: 100, y: 100 },
+      edgesToward(10, 45, 100, 180, 260),
+      () => undefined,
+      "north"
+    )
+    expect(direction).to.be.equal("north-west")
+  })
+
+  it("should keep a direction whose range an edge only touches", () => {
+    const touch = (pos: { x: number; y: number }) =>
+      handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        { edge1: { nodeId: "node2", pos } },
+        () => undefined,
+        "north-west"
+      )
+    expect(touch({ x: 100, y: 50 })).to.be.equal("north-west") // north
+    expect(touch({ x: 50, y: 100 })).to.be.equal("north-west") // west
+  })
+
+  it("should avoid a self-loop more widely than an edge in the same direction", () => {
+    const avoid = (nodeId: string) =>
+      handleNodeLabelAutoAdjustment(
+        "node1",
+        { x: 100, y: 100 },
+        { edge1: { nodeId, pos: { x: 200, y: 200 } } }, // south-east
+        () => ({ x: 200, y: 200 }),
+        "east"
+      )
+    expect(avoid("node2")).to.be.equal("east")
+    expect(avoid("node1")).to.be.equal("west")
+  })
+})

@@ -255,6 +255,12 @@ describe("methods", () => {
       ["180°", Math.PI, { x: 10, y: 0 }, { x: -10, y: 0 }],
       ["270°", (3 * Math.PI) / 2, { x: 10, y: 0 }, { x: 0, y: -10 }],
       ["360°", 2 * Math.PI, { x: 10, y: 0 }, { x: 10, y: 0 }],
+      [
+        "45° for a vector off the axes",
+        Math.PI / 4,
+        { x: 10, y: 10 },
+        { x: 0, y: 10 * Math.SQRT2 },
+      ],
     ])("should rotate correctly at %s", (_, rotAngle, input, expected) => {
       const result = Methods.rotate(input, rotAngle)
       expect(result.x).to.be.closeTo(expected.x, 1e-10)
