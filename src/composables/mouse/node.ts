@@ -55,7 +55,7 @@ export function makeNodeInteractionHandlers(
     const isFollowed = state.follow.followedPointerId === pointerState.pointerId
     const isSelectedNode = selectedNodes.has(pointerState.nodeId)
 
-    const removed = !(pointerState.pointerId in state.pointers)
+    const removed = !state.pointers.has(pointerState.pointerId)
     if ((isFollowed && removed) || (isFollowed && !isSelectedNode)) {
       // selected => unselected
       const candidate = MapUtil.valueOf(state.pointers).find(p => selectedNodes.has(p.nodeId))
