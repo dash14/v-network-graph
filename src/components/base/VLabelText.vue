@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive, Ref, ref, useAttrs, watch, onMounted, onUnmounted } from "vue"
-import { LabelStyle } from "@/common/configs"
+import { reactive, Ref, ref, useAttrs, watch, onMounted, onUnmounted } from "vue"
+import { nonNull } from "@/common/common"
+import { LabelBackgroundStyle, LabelStyle } from "@/common/configs"
 import { useLabelTextLines } from "@/composables/labelText"
 import { useZoomLevel } from "@/composables/zoom"
 
@@ -32,17 +33,10 @@ const { texts, fontSize, lineHeight, topDeltaY } = useLabelTextLines(
 const element = ref<SVGTextElement>()
 const transform = ref("") // copy from <text>
 const pos = reactive<Rect>({ x: 0, y: 0, width: 0, height: 0 })
-const backgroundRectPos = computed(() => {
-  const config = props.config.background
-  if (!config) return pos
-  let paddingVertical, paddingHorizontal
-  if (config.padding instanceof Object) {
-    paddingVertical = config.padding.vertical
-    paddingHorizontal = config.padding.horizontal
-  } else {
-    paddingVertical = config.padding ?? 0
-    paddingHorizontal = config.padding ?? 0
-  }
+function backgroundRect(background: LabelBackgroundStyle) {
+  const padding = background.padding ?? 0
+  const { vertical: paddingVertical, horizontal: paddingHorizontal } =
+    padding instanceof Object ? padding : { vertical: padding, horizontal: padding }
   const lineMargin = lineHeight.value - fontSize.value
   return {
     x: pos.x - paddingHorizontal * scale.value,
@@ -50,14 +44,15 @@ const backgroundRectPos = computed(() => {
     width: pos.width + paddingHorizontal * 2 * scale.value,
     height: pos.height + paddingVertical * 2 * scale.value + lineMargin,
   }
-})
+}
 
+const isBackgroundVisible = () => !!props.config.background?.visible
+
+// Called on the mount and when the visibility changes, neither of which has an observer to keep.
 let observer: MutationObserver | undefined
 const updateObserver = () => {
-  if (props.config.background && props.config.background.visible) {
-    if (!observer && element.value) {
-      observer = enableMutationObserver(element.value, pos, transform)
-    }
+  if (isBackgroundVisible()) {
+    observer = enableMutationObserver(nonNull(element.value), pos, transform)
   } else {
     observer?.disconnect()
     observer = undefined
@@ -65,13 +60,7 @@ const updateObserver = () => {
 }
 
 onMounted(() => updateObserver())
-watch(
-  () => props.config.background && props.config.background.visible,
-  (v, prev) => {
-    if (v == prev) return
-    updateObserver()
-  }
-)
+watch(isBackgroundVisible, () => updateObserver())
 onUnmounted(() => {
   observer?.disconnect()
   observer = undefined
@@ -111,10 +100,10 @@ function enableMutationObserver(
   <rect
     v-if="config.background && config.background.visible"
     class="v-ng-text-background"
-    v-bind="backgroundRectPos"
-    :rx="(config.background?.borderRadius ?? 0) * scale"
-    :ry="(config.background?.borderRadius ?? 0) * scale"
-    :fill="config.background?.color ?? '#ffffff'"
+    v-bind="backgroundRect(config.background)"
+    :rx="(config.background.borderRadius ?? 0) * scale"
+    :ry="(config.background.borderRadius ?? 0) * scale"
+    :fill="config.background.color ?? '#ffffff'"
     :transform="transform"
   />
   <text

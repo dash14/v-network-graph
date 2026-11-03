@@ -138,6 +138,19 @@ describe("resizing", () => {
     expect(graph().getPan()).toEqual({ x: pan.x + 50, y: pan.y })
   })
 
+  test("draws the grid over the new size", async () => {
+    const { screen, style, events, loaded } = await renderGraph({
+      view: { grid: { visible: true } },
+    })
+    await loaded()
+    const lines = () => screen.container.querySelectorAll(".v-ng-background-grid path").length
+    const before = lines()
+
+    style.width = `${WIDTH + 200}px`
+    await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(1)
+    await expect.poll(lines).toBeGreaterThan(before)
+  })
+
   test("leaves the view as it is with autoPanOnResize false", async () => {
     const { graph, style, events, loaded } = await renderGraph({
       view: { autoPanOnResize: false },

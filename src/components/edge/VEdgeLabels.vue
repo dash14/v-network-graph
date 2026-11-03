@@ -25,13 +25,12 @@ const { edgeStates, edgeGroupStates } = useStates()
 const edgeGroups = computed(() => {
   const individual: Record<string, EdgeGroup> = {}
   const summarized: Record<string, EdgeGroup> = {}
+  // A group is made with the edges it has, so it has at least one.
   Object.entries(edgeGroupStates.edgeGroups).forEach(([id, group]) => {
-    if (Object.keys(group.edges).length > 0) {
-      if (group.summarize) {
-        summarized[id] = group
-      } else {
-        individual[id] = group
-      }
+    if (group.summarize) {
+      summarized[id] = group
+    } else {
+      individual[id] = group
     }
   })
   return { individual, summarized }
