@@ -54,11 +54,11 @@ export default defineConfig({
       reporter: ["text", ["text-summary", { file: "summary.txt" }]],
       // The current floor, raised as tests are added. The directories listed are fully covered.
       thresholds: {
-        statements: 92,
-        branches: 87,
-        functions: 92,
-        lines: 93,
-        "src/composables/*.ts": { 100: true },
+        statements: 96,
+        branches: 94,
+        functions: 95,
+        lines: 96,
+        "src/composables/**": { 100: true },
         "src/modules/**": { 100: true },
         "src/utils/**": { 100: true },
       },

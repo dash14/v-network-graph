@@ -67,7 +67,8 @@ export function makeBoxSelectionMethods(
       _updateNodesSelection(
         nonNull(container.value, "container") as SVGSVGElement,
         nonNull(viewport.value, "viewport"),
-        selectionBox,
+        // Each update is made while a pointer is pressed, which keeps the box.
+        nonNull(selectionBox.value, "selection box"),
         positionOf,
         nodeStates,
         selectedNodes,
@@ -121,9 +122,7 @@ export function makeBoxSelectionMethods(
           : states.options.selectionType
       }
     }
-    if (!states.pointers.has(event.pointerId)) {
-      states.pointers.add(event.pointerId)
-    }
+    states.pointers.add(event.pointerId)
     states.points.set(event.pointerId, point)
     updateRectangle()
   }
@@ -204,7 +203,7 @@ export function makeBoxSelectionMethods(
       if (selectionBox.value.size.height === 0) {
         selectionBox.value.size.height = 1
       }
-    } else if (selectionBox.value) {
+    } else {
       selectionBox.value = undefined
     }
   }
@@ -212,11 +211,11 @@ export function makeBoxSelectionMethods(
   // ------------------------------------------------------------------
   // Ctrl/Cmd key box selection
   // ------------------------------------------------------------------
+  // The key listeners are there only while box selection is enabled.
   const keyEventRegistrar = new KeyEventRegistrar(
     container,
     // key down
     (event: KeyboardEvent) => {
-      if (!isBoxSelectionEnabled.value) return
       if (configs.view.selection.detector(event)) {
         startBoxSelection({
           stop: "manual",
@@ -228,7 +227,6 @@ export function makeBoxSelectionMethods(
     },
     // key up
     (event: KeyboardEvent) => {
-      if (!isBoxSelectionEnabled.value) return
       if (configs.view.selection.detector(event)) {
         if (states.pointers.size === 0) {
           stopBoxSelection()
@@ -303,15 +301,13 @@ export function makeBoxSelectionMethods(
 function _updateNodesSelection(
   svg: SVGSVGElement,
   viewport: SVGGElement,
-  selectionBox: Ref<Rectangle | undefined>,
+  box: Rectangle,
   positionOf: (node: string) => Position,
   nodeStates: Readonly<NodeStates>,
   selectedNodes: Reactive<Set<string>>,
   selectedNodesAtSelectStarted: Set<string>,
   selectionType: SelectionType
 ) {
-  if (!selectionBox.value) return
-  const box = selectionBox.value
   const pos1 = translateFromDomToSvgCoordinates(svg, viewport, box.pos)
   const pos2 = translateFromDomToSvgCoordinates(svg, viewport, {
     x: box.pos.x + box.size.width,
@@ -333,7 +329,7 @@ function _updateNodesSelection(
       }
     })
     enclosedNodes.forEach(nodeId => {
-      const selectable = nodeStates[nodeId]?.selectable ?? false
+      const selectable = nodeStates[nodeId].selectable
       if (
         selectable === true ||
         (typeof selectable === "number" && selectedNodes.size < selectable)
@@ -351,7 +347,7 @@ function _updateNodesSelection(
     })
     enclosedNodes.forEach(nodeId => {
       if (!selectedNodesAtSelectStarted.has(nodeId)) {
-        const selectable = nodeStates[nodeId]?.selectable ?? false
+        const selectable = nodeStates[nodeId].selectable
         if (
           selectable === true ||
           (typeof selectable === "number" && temporary.size < selectable)

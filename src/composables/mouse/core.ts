@@ -49,8 +49,8 @@ export function detectClicks(
   clickStates: Map<number, ClickState>,
   pointerId: number,
   id: string,
-  event: MouseEvent
-): [MouseEvent, MouseEvent | undefined] {
+  event: PointerEvent
+): [PointerEvent, PointerEvent | undefined] {
   // search click states
   let clickState = clickStates.get(pointerId)
   if (clickState) {
@@ -67,7 +67,7 @@ export function detectClicks(
     }
   }
 
-  let clickEvent: MouseEvent, doubleClickEvent: MouseEvent | undefined
+  let clickEvent: PointerEvent, doubleClickEvent: PointerEvent | undefined
   ;[clickState, clickEvent, doubleClickEvent] = createClickEvents(clickState, event, id)
 
   // update
@@ -78,9 +78,9 @@ export function detectClicks(
 
 export function createClickEvents(
   clickState: ClickState | undefined,
-  event: MouseEvent,
+  event: PointerEvent,
   id: string
-): [ClickState, MouseEvent, MouseEvent | undefined] {
+): [ClickState, PointerEvent, PointerEvent | undefined] {
   const now = Date.now()
   if (clickState && now - clickState.lastTime <= DOUBLE_CLICK_THRESHOLD) {
     // continuous clicked
@@ -91,7 +91,7 @@ export function createClickEvents(
     clickState = { count: 1, lastTime: now, id }
   }
 
-  const initDict = {
+  const initDict: PointerEventInit = {
     view: window,
     screenX: event.screenX,
     screenY: event.screenY,
@@ -104,33 +104,20 @@ export function createClickEvents(
     button: event.button,
     buttons: event.buttons,
     detail: clickState.count,
+    pointerId: event.pointerId,
+    width: event.width,
+    height: event.height,
+    pressure: event.pressure,
+    tangentialPressure: event.tangentialPressure,
+    tiltX: event.tiltX,
+    tiltY: event.tiltY,
+    twist: event.twist,
+    pointerType: event.pointerType,
+    isPrimary: event.isPrimary,
   }
-
-  let clickEvent: MouseEvent
-  let doubleClickEvent: MouseEvent | undefined = undefined
-  if (event instanceof PointerEvent) {
-    Object.assign(initDict, {
-      pointerId: event.pointerId,
-      width: event.width,
-      height: event.height,
-      pressure: event.pressure,
-      tangentialPressure: event.tangentialPressure,
-      tiltX: event.tiltX,
-      tiltY: event.tiltY,
-      twist: event.twist,
-      pointerType: event.pointerType,
-      isPrimary: event.isPrimary,
-    })
-    clickEvent = new PointerEvent("click", initDict)
-    if (clickState.count === 2) {
-      doubleClickEvent = new PointerEvent("dblclick", initDict)
-    }
-  } else {
-    clickEvent = new MouseEvent("click", initDict)
-    if (clickState.count === 2) {
-      doubleClickEvent = new MouseEvent("dblclick", initDict)
-    }
-  }
+  const clickEvent = new PointerEvent("click", initDict)
+  const doubleClickEvent =
+    clickState.count === 2 ? new PointerEvent("dblclick", initDict) : undefined
 
   return [clickState, clickEvent, doubleClickEvent]
 }

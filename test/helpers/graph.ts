@@ -181,3 +181,37 @@ export async function drag(element: Locator, from: Position, to: Position) {
     steps: 5,
   })
 }
+
+/**
+ * Makes pointer events at positions in the container, for what the user events cannot do,
+ * such as several pointers at once. A press goes to the element at its position, the rest to
+ * the document, as the graph follows a pressed pointer there.
+ */
+export function pointersOn(container: Element) {
+  const rect = container.querySelector("svg.v-ng-canvas")!.getBoundingClientRect()
+  const dispatch = (
+    type: string,
+    target: EventTarget,
+    { x, y }: Position,
+    init: PointerEventInit
+  ) =>
+    target.dispatchEvent(
+      new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: rect.left + x,
+        clientY: rect.top + y,
+        ...init,
+      })
+    )
+  return {
+    down: (pointerId: number, position: Position, init: PointerEventInit = {}) =>
+      dispatch("pointerdown", elementAt(container, position)!, position, { pointerId, ...init }),
+    move: (pointerId: number, position: Position, init: PointerEventInit = {}) =>
+      dispatch("pointermove", document, position, { pointerId, ...init }),
+    up: (pointerId: number, position: Position, init: PointerEventInit = {}) =>
+      dispatch("pointerup", document, position, { pointerId, ...init }),
+    cancel: (pointerId: number, position: Position = { x: 0, y: 0 }) =>
+      dispatch("pointercancel", document, position, { pointerId }),
+  }
+}

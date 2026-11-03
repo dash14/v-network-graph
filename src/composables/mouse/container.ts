@@ -1,5 +1,6 @@
 import { Emitter } from "mitt"
 import { onMounted, onUnmounted, Ref, watch } from "vue"
+import { nonNull } from "@/common/common"
 import { Events } from "@/common/types"
 import { entriesOf } from "@/utils/object"
 import {
@@ -29,6 +30,12 @@ export function setupContainerInteractionHandlers(
     pointercancel: handleContainerPointerUpEvent,
   }
 
+  function removePointerHandlers() {
+    entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
+      document.removeEventListener(ev, handler)
+    })
+  }
+
   function handleContainerPointerDownEvent(_: PointerEvent) {
     state.moveCounter = 0
     if (state.pointerCounter === 0) {
@@ -48,10 +55,7 @@ export function setupContainerInteractionHandlers(
     state.pointerCounter--
     if (state.pointerCounter <= 0) {
       state.pointerCounter = 0
-      // Remove from event listener
-      entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        document.removeEventListener(ev, handler)
-      })
+      removePointerHandlers()
       const threshold = getPointerMoveDetectionThreshold(event.pointerType)
       if (state.moveCounter <= threshold) {
         // Click container (without mouse move)
@@ -96,10 +100,7 @@ export function setupContainerInteractionHandlers(
     if (state.pointerCounter > 0) {
       // reset pointer down state
       state.pointerCounter = 0
-      // Remove from event listener
-      entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        document.removeEventListener(ev, handler)
-      })
+      removePointerHandlers()
     }
   }
 
@@ -108,8 +109,7 @@ export function setupContainerInteractionHandlers(
   }
 
   onMounted(() => {
-    const c = container.value
-    if (!c) return
+    const c = nonNull(container.value, "container")
     c.addEventListener("pointerdown", handleContainerPointerDownEvent, { passive: true })
     c.addEventListener("click", handleContainerClickEvent, { passive: false })
     c.addEventListener("dblclick", handleContainerDoubleClickEvent, { passive: false })
@@ -119,26 +119,11 @@ export function setupContainerInteractionHandlers(
     }
   })
 
-  onUnmounted(() => {
-    // A pointer still pressed when the graph unmounts is released after it is gone.
-    entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-    const c = container.value
-    if (!c) return
-    c.removeEventListener("pointerdown", handleContainerPointerDownEvent)
-    c.removeEventListener("click", handleContainerClickEvent)
-    c.removeEventListener("dblclick", handleContainerDoubleClickEvent)
-    c.removeEventListener("contextmenu", handleContainerContextMenuEvent)
-    if (isSvgWheelZoomEnabled.value) {
-      c.removeEventListener("wheel", preventDefault)
-    }
-  })
+  // The <svg> and its listeners are gone by now, but not those on the document for a pressed pointer.
+  onUnmounted(removePointerHandlers)
 
-  watch(isSvgWheelZoomEnabled, (enabled, old) => {
-    const c = container.value
-    if (!c || enabled === old) return
-
+  watch(isSvgWheelZoomEnabled, enabled => {
+    const c = nonNull(container.value, "container")
     if (enabled) {
       c.addEventListener("wheel", preventDefault, { passive: false })
     } else {
