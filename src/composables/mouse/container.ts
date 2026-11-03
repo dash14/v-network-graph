@@ -98,7 +98,7 @@ export function setupContainerInteractionHandlers(
       state.pointerCounter = 0
       // Remove from event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        container.value?.removeEventListener(ev, handler)
+        document.removeEventListener(ev, handler)
       })
     }
   }
