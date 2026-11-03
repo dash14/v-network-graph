@@ -399,3 +399,135 @@ describe("export", () => {
     ])
   })
 })
+
+describe("svg-pan-zoom instance", () => {
+  async function mountWithInstance() {
+    let panZoom: SvgPanZoomInstance | undefined
+    const mounted = await mountGraph({
+      nodes,
+      edges,
+      layouts,
+      configs: {
+        ...configs,
+        view: { onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => (panZoom = i) },
+      },
+    })
+    await expect.poll(() => panZoom).toBeDefined()
+    return { ...mounted, panZoom: panZoom! }
+  }
+
+  test("disablePan stops a drag on the background from panning, and enablePan lets it", async () => {
+    const { graph, canvas, panZoom } = await mountWithInstance()
+    const svg = canvas.element()
+    const rect = svg.getBoundingClientRect()
+    const drag = () => {
+      const pointer = (type: string, x: number, y: number) =>
+        svg.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            pointerType: "mouse",
+            clientX: rect.left + x,
+            clientY: rect.top + y,
+          })
+        )
+      pointer("pointerdown", 300, 300)
+      pointer("pointermove", 350, 350)
+      pointer("pointerup", 350, 350)
+    }
+    // Two presses in a row at one place would zoom as a double click.
+    panZoom.disableDblClickZoom()
+    const start = graph.getPan()
+
+    panZoom.disablePan()
+    drag()
+    expect(graph.getPan()).toEqual(start)
+
+    panZoom.enablePan()
+    drag()
+    expect(graph.getPan()).toEqual({ x: start.x + 50, y: start.y + 50 })
+  })
+
+  test("disableZoom stops the wheel from zooming, and enableZoom lets it", async () => {
+    const { canvas, panZoom } = await mountWithInstance()
+    const wheel = () =>
+      canvas
+        .element()
+        .dispatchEvent(new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: 1 }))
+    const start = panZoom.getZoom()
+
+    panZoom.disableZoom()
+    wheel()
+    expect(panZoom.getZoom()).toBe(start)
+
+    panZoom.enableZoom()
+    wheel()
+    expect(panZoom.getZoom()).not.toBe(start)
+  })
+
+  test("setZoomEnabled switches the double click zoom with the zoom", async () => {
+    const { panZoom } = await mountWithInstance()
+
+    panZoom.setZoomEnabled(false)
+    expect(panZoom.isDblClickZoomEnabled()).toBe(false)
+    panZoom.setZoomEnabled(true)
+    expect(panZoom.isDblClickZoomEnabled()).toBe(true)
+  })
+})
+
+describe("a view fitted to the contents on load", () => {
+  // svg-pan-zoom then zooms relative to the fitted zoom, not to 1.
+  async function mountFitted(view: { minZoomLevel?: number; maxZoomLevel?: number } = {}) {
+    let panZoom: SvgPanZoomInstance | undefined
+    const graph = ref<VNetworkGraphInstance>()
+    const zoomLevel = ref(1)
+    const screen = await render(
+      defineComponent(
+        () => () =>
+          h("div", { style: { width: `${WIDTH}px`, height: `${HEIGHT}px` } }, [
+            h(VNetworkGraph, {
+              ref: graph,
+              nodes,
+              edges,
+              layouts: offsetLayouts,
+              zoomLevel: zoomLevel.value,
+              "onUpdate:zoomLevel": (v: number) => (zoomLevel.value = v),
+              configs: {
+                ...configs,
+                view: {
+                  ...view,
+                  autoPanAndZoomOnLoad: "fit-content",
+                  onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => (panZoom = i),
+                },
+              },
+            }),
+          ])
+      )
+    )
+    onTestFinished(() => screen.unmount())
+    await expect.poll(() => panZoom).toBeDefined()
+    await expect.poll(() => panZoom!.getRealZoom() / panZoom!.getZoom()).not.toBeCloseTo(1)
+    return { graph: graph.value!, panZoom: panZoom! }
+  }
+
+  test("setViewBox shows a box off the origin", async () => {
+    const { graph } = await mountFitted()
+
+    graph.setViewBox({ top: 0, bottom: 100, left: 100, right: 300 })
+    const box = graph.getViewBox()
+    expect(box.left).toBeCloseTo(100)
+    expect(box.right).toBeCloseTo(300)
+    expect(box.top).toBeCloseTo(50 - 200 / 3)
+    expect(box.bottom).toBeCloseTo(50 + 200 / 3)
+  })
+
+  test("the view zooms only within the configured range", async () => {
+    const { graph, panZoom } = await mountFitted({ minZoomLevel: 0.5, maxZoomLevel: 4 })
+
+    // The zoomLevel prop is clamped on its own, so the zoom of the view itself is checked.
+    for (let i = 0; i < 30; i++) graph.zoomIn()
+    await expect.poll(() => panZoom.getRealZoom()).toBeCloseTo(4, 5)
+    for (let i = 0; i < 60; i++) graph.zoomOut()
+    await expect.poll(() => panZoom.getRealZoom()).toBeCloseTo(0.5, 5)
+  })
+})

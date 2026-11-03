@@ -160,6 +160,16 @@ describe("simple layout", () => {
     await expect.poll(() => state.layouts.nodes.node3).toBeDefined()
   })
 
+  test("places a node added later at the center of the panned view", async () => {
+    const { graph: instance, state } = await mountGraph(graph(new SimpleLayout()))
+
+    instance.panTo({ x: 100, y: 50 })
+    state.nodes.node3 = { name: "Node 3" }
+    await nextTick()
+    // The container is 600 by 400, so the center of the view is at (300 - 100, 200 - 50).
+    await expect.poll(() => state.layouts.nodes.node3).toEqual({ x: 200, y: 150 })
+  })
+
   test("deactivating it before it is activated does nothing", () => {
     expect(() => new SimpleLayout().deactivate()).not.toThrow()
   })
