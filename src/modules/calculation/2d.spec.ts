@@ -149,6 +149,26 @@ describe("calculateDistancesFromCenterOfNodeToEndOfNode", () => {
       expect(targetMargin).toBeCloseTo(22)
     })
   })
+
+  it("should keep the corner of a rect without a border radius sharp under its stroke", () => {
+    const circle: CircleShapeStyle = { type: "circle", radius: 10, strokeWidth: 0, color: "#fff" }
+    const rect: RectangleShapeStyle = {
+      type: "rect",
+      width: 20,
+      height: 20,
+      borderRadius: 0,
+      strokeWidth: 4,
+      color: "#fff",
+    }
+    // The line leaves the 24x24 outline across its top side, near the corner.
+    const [, targetMargin] = v2d.calculateDistancesFromCenterOfNodeToEndOfNode(
+      { x: 0, y: 0 },
+      { x: 100, y: 110 },
+      circle,
+      rect
+    )
+    expect(targetMargin).toBeCloseTo(Math.hypot(12 / 1.1, 12))
+  })
 })
 
 describe("moveOnCircumference", () => {
@@ -269,6 +289,16 @@ describe("calculateCircleCenterAndRadiusBy3Points", () => {
       expect(center).toBe(p1)
       expect(radius).toBe(0)
     })
+  })
+
+  it.each([
+    ["p1 and p2", new Vector2D(0, 0), new Vector2D(10, 0), new Vector2D(10, 10)],
+    ["p2 and p3", new Vector2D(10, 10), new Vector2D(10, 0), new Vector2D(0, 0)],
+  ])("should find the circle when %s share a coordinate", (_, p1, p2, p3) => {
+    const [center, radius] = v2d.calculateCircleCenterAndRadiusBy3Points(p1, p2, p3)
+    expect(center.x).toBeCloseTo(5)
+    expect(center.y).toBeCloseTo(5)
+    expect(radius).toBeCloseTo(Math.SQRT2 * 5)
   })
 
   // Boundary: collinear points (denominator becomes 0)
@@ -421,6 +451,41 @@ describe("calculateBezierCurveControlPoint", () => {
 
     expect(control.length).toBeGreaterThanOrEqual(2)
     control.forEach(cp => expect(cp).toBeInstanceOf(Vector2D))
+  })
+
+  describe("a quarter circle", () => {
+    const p1 = new Vector2D(10, 0)
+    const p2 = new Vector2D(0, 10)
+    const center = new Vector2D(0, 0)
+    const onCircle = (degree: number) => {
+      const rad = (degree * Math.PI) / 180
+      return { x: 10 * Math.cos(rad), y: 10 * Math.sin(rad) }
+    }
+    const expectPoints = (actual: Vector2D[], expected: { x: number; y: number }[]) => {
+      expect(actual.length).toBe(expected.length)
+      actual.forEach((p, i) => {
+        expect(p.x).toBeCloseTo(expected[i].x, 3)
+        expect(p.y).toBeCloseTo(expected[i].y, 3)
+      })
+    }
+
+    it("should take the short way when theta0 has the sign of the angle", () => {
+      const control = v2d.calculateBezierCurveControlPoint(p1, center, p2, -Math.PI / 2)
+      expectPoints(control, [{ x: 10, y: 4.1421 }, onCircle(45), { x: 4.1421, y: 10 }])
+    })
+
+    it("should take the long way through the midpoints when theta0 has the other sign", () => {
+      const control = v2d.calculateBezierCurveControlPoint(p1, center, p2, Math.PI / 2)
+      expectPoints(control, [
+        { x: 10, y: -6.6818 },
+        onCircle(-67.5),
+        { x: -2.3463, y: -11.7958 },
+        onCircle(-135),
+        { x: -11.7958, y: -2.3463 },
+        onCircle(157.5),
+        { x: -6.6818, y: 10 },
+      ])
+    })
   })
 })
 

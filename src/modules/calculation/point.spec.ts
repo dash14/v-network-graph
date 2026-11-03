@@ -100,6 +100,16 @@ describe("point", () => {
         const result = getIntersectionOfLineTargetAndCircle(source, target, center, radius)
         expect(result).toBeNull()
       })
+
+      it("should scale the tolerance with the larger coordinate of the center", () => {
+        // 0.005 outside, within the tolerance for a center 1e7 from the origin on one axis.
+        const source = new Vector2D(0, 1e7)
+        const target = new Vector2D(10.005, 1e7)
+        const center = new Vector2D(0, 1e7)
+
+        const result = getIntersectionOfLineTargetAndCircle(source, target, center, 10)
+        expect(result).not.toBeNull()
+      })
     })
 
     describe("when target is inside circle", () => {
@@ -260,6 +270,28 @@ describe("point", () => {
         // When equidistant (diff < 2), returns ip2 which is h - tv = (20, 0)
         expect(result!.x).toBeCloseTo(20, 5)
         expect(result!.y).toBeCloseTo(0, 5)
+      })
+
+      it("should return ip2 when nearBy is less than 2 closer to ip1", () => {
+        const result = getIntersectionOfLineTargetAndCircle2(
+          new Vector2D(0, 0),
+          new Vector2D(50, 0),
+          new Vector2D(50, 0),
+          30,
+          new Vector2D(50.5, 0)
+        )
+        expect(result!.x).toBeCloseTo(20, 5)
+      })
+
+      it("should return ip2 when nearBy is clearly closer to it", () => {
+        const result = getIntersectionOfLineTargetAndCircle2(
+          new Vector2D(0, 0),
+          new Vector2D(50, 0),
+          new Vector2D(50, 0),
+          30,
+          new Vector2D(0, 0)
+        )
+        expect(result!.x).toBeCloseTo(20, 5)
       })
     })
 
