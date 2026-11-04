@@ -3,7 +3,11 @@ import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import { h, nextTick, reactive } from "vue"
 import { VEdgeLabel, VLabelText, VStyle } from "@/index"
-import type { NodeLabelDirectionAutoAdjustmentHandler, UserConfigs } from "@/index"
+import type {
+  NodeLabelDirectionAutoAdjustmentHandler,
+  UserConfigs,
+  VNetworkGraphInstance,
+} from "@/index"
 import type { GraphProps } from "./helpers/graph"
 import { at, mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -73,6 +77,11 @@ describe("grid", () => {
     state.configs.view.grid = { visible: true }
     await nextTick()
     expect(visibleFrom()).not.toEqual(panned)
+    const background = screen.container.querySelector(".v-ng-background-viewport")!
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    for (const attr of ["transform", "style"]) {
+      expect(background.getAttribute(attr) ?? "").toBe(viewport.getAttribute(attr) ?? "")
+    }
   })
 
   test.each([
@@ -85,6 +94,76 @@ describe("grid", () => {
     const offsets = lines(screen.container).map(l => l.getAttribute("stroke-dashoffset") !== null)
     expect(offsets).toContain(true)
     expect(offsets).toContain(false)
+  })
+})
+
+describe("grid lines", () => {
+  const gridProps = () => {
+    const props = graph({
+      view: { grid: { visible: true, line: { dasharray: 2 }, thick: { dasharray: 4 } } },
+    })
+    props.zoomLevel = 2
+    return props
+  }
+  const linesOf = (container: Element) =>
+    Array.from(container.querySelectorAll(".v-ng-background-grid path")).map(l => ({
+      d: l.getAttribute("d"),
+      dasharray: l.getAttribute("stroke-dasharray"),
+      dashoffset: l.getAttribute("stroke-dashoffset"),
+    }))
+  const range = (from: number, to: number) =>
+    Array.from({ length: (to - from) / 10 + 1 }, (_, i) => from + i * 10)
+  const dasharray = (v: number) => (v % 50 === 0 ? "4" : "2")
+
+  test("cover the view at a zoom level, every fifth one thick, with the dashes offset to the view", async () => {
+    // The 600x400 view at a zoom level of 2 spans from (-150, -100) to (150, 100).
+    const { screen } = await mountGraph(gridProps())
+    const lines = linesOf(screen.container)
+    const horizontals = range(-100, 100).map(y => ({
+      d: `M -150 ${y} L 155 ${y}`,
+      dasharray: dasharray(y),
+      dashoffset: "-300",
+    }))
+    const verticals = range(-150, 150).map(x => ({
+      d: `M ${x} -100 L ${x} 105`,
+      dasharray: dasharray(x),
+      dashoffset: "-200",
+    }))
+    expect(lines).toHaveLength(horizontals.length + verticals.length)
+    expect(lines).toEqual(expect.arrayContaining([...horizontals, ...verticals]))
+  })
+
+  test.each([
+    {
+      name: "after a zoom that pans the view",
+      setUp: async (instance: VNetworkGraphInstance) => {
+        instance.panBy({ x: 30, y: 20 })
+        await expect.poll(() => instance.getPan().x).toBe(330)
+        instance.zoomIn()
+      },
+    },
+    {
+      name: "when made visible after a pan",
+      setUp: async (instance: VNetworkGraphInstance, showGrid: (visible: boolean) => void) => {
+        showGrid(false)
+        await nextTick()
+        instance.panBy({ x: 30, y: 20 })
+        await expect.poll(() => instance.getPan().x).toBe(330)
+        showGrid(true)
+      },
+    },
+  ])("start at the left top of the view $name", async ({ setUp }) => {
+    const { screen, state, graph: instance } = await mountGraph(gridProps())
+    await setUp(instance, visible => {
+      state.configs.view.grid = { ...state.configs.view.grid, visible }
+    })
+    await expect
+      .poll(() => {
+        const { left, top } = instance.getViewBox()
+        const starts = linesOf(screen.container).map(l => l.d!.split(" ").map(Number))
+        return starts.some(([, x, y]) => x === left && y === Math.floor(top / 10) * 10)
+      })
+      .toBe(true)
   })
 })
 
@@ -595,16 +674,101 @@ describe("lite objects", () => {
 })
 
 describe("focus ring", () => {
-  test.each([
-    { name: "a circle", normal: { type: "circle" } },
-    { name: "a rect with round corners", normal: { type: "rect", borderRadius: 4 } },
-    { name: "a rect with square corners", normal: { type: "rect", borderRadius: 0 } },
-  ] as const)("is drawn around $name", async ({ normal }) => {
-    const props = graph({ node: { selectable: true, normal } })
+  const ringOf = async (normal: NonNullable<UserConfigs["node"]>["normal"]) => {
+    const props = graph({ node: { selectable: true, normal, focusring: { width: 4, padding: 3 } } })
+    props.layouts.nodes.node1 = { x: -100, y: 30 }
     props.selectedNodes = ["node1"]
     const { screen } = await mountGraph(props)
-    const ring = screen.container.querySelector(".v-ng-node-focusring")
-    expect(ring).not.toBeNull()
+    return screen.container.querySelector(".v-ng-node-focusring")!
+  }
+  const attrs = (el: Element, names: string[]) =>
+    Object.fromEntries(names.map(n => [n, Number(el.getAttribute(n))]))
+
+  test("is drawn around a circle, past its stroke by the padding", async () => {
+    const ring = await ringOf({ type: "circle", radius: 10, strokeWidth: 2 })
+    expect(attrs(ring, ["cx", "cy", "r", "stroke-width"])).toEqual({
+      cx: -100,
+      cy: 30,
+      r: 16,
+      "stroke-width": 4,
+    })
+  })
+
+  test.each([
+    { name: "round corners", borderRadius: 4, rx: 7 },
+    { name: "square corners", borderRadius: 0, rx: 0 },
+  ])(
+    "is drawn around a rect with $name, past its stroke by the padding",
+    async ({ borderRadius, rx }) => {
+      const ring = await ringOf({
+        type: "rect",
+        width: 20,
+        height: 10,
+        borderRadius,
+        strokeWidth: 2,
+      })
+      expect(attrs(ring, ["width", "height", "rx"])).toEqual({ width: 32, height: 22, rx })
+    }
+  )
+})
+
+describe("paths", () => {
+  test("start off the edge of the node by the margin scaled to the zoom level", async () => {
+    const startOf = async (margin: number) => {
+      const props = graph({ path: { visible: true, end: "edgeOfNode", margin } })
+      props.paths = { path1: { edges: ["edge1"] } }
+      props.zoomLevel = 2
+      const { screen } = await mountGraph(props)
+      const d = screen.container.querySelector(".v-ng-path")!.getAttribute("d")!
+      return Number(d.match(/^M\s*(-?[\d.]+)/)![1])
+    }
+    expect((await startOf(6)) - (await startOf(0))).toBeCloseTo(3)
+  })
+
+  test("a path of no edges is drawn with no line", async () => {
+    const props = graph({ path: { visible: true } })
+    props.paths = { path1: { edges: [] } }
+    const { screen } = await mountGraph(props)
+    expect(screen.container.querySelector(".v-ng-path")?.getAttribute("d")).toBe("")
+  })
+})
+
+describe("edge markers", () => {
+  const markersAt = async (units: "strokeWidth" | "userSpaceOnUse") => {
+    const marker = { type: "arrow", units, width: 6, height: 4, margin: 2, offset: 3 } as const
+    const props = graph({ edge: { marker: { source: marker, target: marker } } })
+    props.zoomLevel = 2
+    const { screen } = await mountGraph(props)
+    const edge = screen.container.querySelector(".v-ng-edge")!
+    const markerOf = (attr: string) => {
+      const id = edge.getAttribute(attr)!.match(/^url\('#(.+)'\)$/)![1]
+      const el = screen.container.querySelector(`marker[id="${id}"]`)!
+      return ["markerWidth", "markerHeight", "refX", "refY"].map(n => Number(el.getAttribute(n)))
+    }
+    return { source: markerOf("marker-start"), target: markerOf("marker-end") }
+  }
+
+  test("in the user space are scaled to the zoom level", async () => {
+    expect(await markersAt("userSpaceOnUse")).toEqual({
+      source: [3, 2, 4, 2.5],
+      target: [3, 2, -1, -0.5],
+    })
+  })
+
+  test("an angle in the user space is stroked by a fifth of its shorter side", async () => {
+    const marker = { type: "angle", units: "userSpaceOnUse", width: 10, height: 5 } as const
+    const props = graph({ edge: { marker: { target: marker } } })
+    props.zoomLevel = 2
+    const { screen } = await mountGraph(props)
+    const polyline = screen.container.querySelector("marker polyline")!
+    expect(polyline.getAttribute("stroke-width")).toBe("0.5")
+  })
+
+  test("in stroke widths keep their size at a zoom level", async () => {
+    expect(await markersAt("strokeWidth")).toEqual({
+      source: [6, 4, 8, 5],
+      target: [6, 4, -2, -1],
+    })
   })
 })
 

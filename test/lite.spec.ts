@@ -62,7 +62,7 @@ describe("drawing", () => {
     })
     const c = screen.container
 
-    const shapes = [...c.querySelectorAll(".v-ng-layer-nodes > .v-ng-node")]
+    const shapes = [...c.querySelectorAll(".v-ng-layer-nodes > .v-ng-node.v-ng-lite-node")]
     expect(shapes.map(e => e.localName)).toEqual(["circle", "circle", "rect"])
     expect(shapes.map(e => e.getAttribute("transform"))).toEqual([
       "translate(-200 0)",
@@ -128,15 +128,17 @@ describe("drawing", () => {
   })
 
   test("draws edges between the same nodes apart, rather than summarizing them", async () => {
+    // Apart by more than the size of the nodes, so that the graph would summarize them.
     const { screen } = await mountLite({
       edges: { ...edges, edge3: { source: "node1", target: "node2" } },
+      configs: { edge: { gap: 40 } },
     })
     const ys = ["edge1", "edge3"].map(id =>
       screen.container.querySelector(`[data-edge-id="${id}"]`)?.getAttribute("y1")
     )
     expect(ys[0]).not.toBeNull()
     expect(ys[0]).not.toBe(ys[1])
-    expect(screen.container.querySelector(".v-ng-edge-summarized")).toBeNull()
+    expect(screen.container.querySelector(".v-ng-line-summarized")).toBeNull()
   })
 
   test("ends an edge with a marker at the edge of the node", async () => {
