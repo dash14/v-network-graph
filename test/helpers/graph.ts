@@ -1,4 +1,4 @@
-import { vi } from "vitest"
+import { onTestFinished, vi } from "vitest"
 import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
@@ -214,4 +214,16 @@ export function pointersOn(container: Element) {
     cancel: (pointerId: number, position: Position = { x: 0, y: 0 }) =>
       dispatch("pointercancel", document, position, { pointerId }),
   }
+}
+
+/** Errors thrown in listeners and timers, which would otherwise only be reported. */
+export function catchErrors() {
+  const errors: unknown[] = []
+  const onError = (event: ErrorEvent) => {
+    event.preventDefault()
+    errors.push(event.error)
+  }
+  window.addEventListener("error", onError)
+  onTestFinished(() => window.removeEventListener("error", onError))
+  return errors
 }

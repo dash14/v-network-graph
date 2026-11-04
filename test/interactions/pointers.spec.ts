@@ -3,7 +3,7 @@ import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
 import type { Paths, UserConfigs } from "@/index"
 import type { GraphProps } from "../helpers/graph"
-import { at, mountGraph, payloadsOf, pointersOn } from "../helpers/graph"
+import { at, catchErrors, mountGraph, payloadsOf, pointersOn } from "../helpers/graph"
 
 // Within the viewport, where the pointers can find what they press.
 const node1 = at(-100, 0)
@@ -397,6 +397,25 @@ describe("edges", () => {
       expect(state.selectedEdges).toEqual(["edge1", "edge3", "edge2"])
       pointers.cancel(1)
     })
+
+    test.each([false, true])(
+      "a click on edges one of which is removed while pressed selects the rest, shift key: %s",
+      async shiftKey => {
+        const errors = catchErrors()
+        const { screen, state, events } = await mountGraph(summarized({ edge: selectable }))
+        const pointers = pointersOn(screen.container)
+
+        pointers.down(1, edge1)
+        delete state.edges!.edge1
+        await nextTick()
+        pointers.up(1, edge1, { shiftKey })
+        await nextTick()
+
+        expect(errors).toEqual([])
+        expect(state.selectedEdges).toEqual(["edge3"])
+        expect(payloadsOf(events, "edge:click")).toMatchObject([{ edges: ["edge1", "edge3"] }])
+      }
+    )
 
     test("a double click and a right click emit all of the edges", async () => {
       const { canvas, events } = await mountGraph(summarized({}))
