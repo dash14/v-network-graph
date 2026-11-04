@@ -25,7 +25,6 @@ export function trackNodePositions(
 ): Ref<void> {
   const changed = shallowRef<void>()
   const tracked = new Map<string, TrackedPosition>()
-  let isFirstRun = true
 
   watchEffect(() => {
     const positions = layouts.nodes
@@ -77,8 +76,8 @@ export function trackNodePositions(
       })
     }
     if (moved.size > 0) onMove(moved)
-    if (isChanged && !isFirstRun) triggerRef(changed)
-    isFirstRun = false
+    // The first run is made before anything watches the ref, so it tells no one.
+    if (isChanged) triggerRef(changed)
   })
 
   return changed
