@@ -57,8 +57,8 @@ describe("path", () => {
     expect(payloadsOf(events, "path:click")).toEqual([])
   })
 
-  test("hovering a hoverable path emits pointerover and pointerout", async () => {
-    const { canvas, events } = await mountGraph({
+  test("hovering a hoverable path emits pointerover and pointerout, and applies the hover style", async () => {
+    const { screen, canvas, events } = await mountGraph({
       nodes,
       edges,
       paths,
@@ -66,11 +66,15 @@ describe("path", () => {
       configs: { path: { visible: true, hoverable: true } },
     })
 
+    const path = () => screen.container.querySelector(".v-ng-path")
+
     await userEvent.hover(canvas, { position: onPath })
     expect(payloadsOf(events, "path:pointerover")).toMatchObject([{ path: "path1" }])
+    await expect.poll(() => path()?.getAttribute("stroke-width")).toBe("8")
 
     await userEvent.hover(canvas, { position: at(0, 100) })
     expect(payloadsOf(events, "path:pointerout")).toMatchObject([{ path: "path1" }])
+    await expect.poll(() => path()?.getAttribute("stroke-width")).toBe("6")
   })
 
   test("a cancelled pointer emits pointerup, and the nodes can still be dragged", async () => {

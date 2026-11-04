@@ -113,6 +113,7 @@ describe("node events", () => {
 
     await userEvent.click(canvas, { position: at(100, 0), button: "right" })
     expect(payloadsOf(events, "node:contextmenu")).toMatchObject([{ node: "node3" }])
+    expect(payloadsOf(events, "view:contextmenu")).toEqual([])
   })
 })
 
@@ -125,6 +126,13 @@ describe("node drag", () => {
     expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
     expect(payloadsOf(events, "node:dragend")).toEqual([{ node1: { x: -50, y: 30 } }])
     expect(payloadsOf(events, "node:click")).toEqual([])
+  })
+
+  test("dragging a node at a zoom level of 2 moves it by half the distance", async () => {
+    const { canvas, state } = await mountGraph({ nodes, layouts, zoomLevel: 2 })
+
+    await drag(canvas, at(-200, 0), at(-140, 60))
+    expect(state.layouts.nodes.node1).toEqual({ x: -70, y: 30 })
   })
 
   test("dragging a node moves it without a v-model on the layouts", async () => {

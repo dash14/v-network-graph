@@ -3,7 +3,7 @@ import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
 import type { Paths, UserConfigs } from "@/index"
 import type { GraphProps } from "../helpers/graph"
-import { at, catchErrors, mountGraph, payloadsOf, pointersOn } from "../helpers/graph"
+import { at, catchErrors, elementAt, mountGraph, payloadsOf, pointersOn } from "../helpers/graph"
 
 // Within the viewport, where the pointers can find what they press.
 const node1 = at(-100, 0)
@@ -179,6 +179,176 @@ describe("nodes", () => {
     expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
   })
 
+  test("a press moved up to three times is a click, not a drag", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    for (let y = 1; y <= 3; y++) pointers.move(1, at(-100, y))
+    pointers.up(1, at(-100, 3))
+    expect(types(events)).toEqual(["node:pointerdown", "node:pointerup", "node:click"])
+    expect(payloadsOf(events, "node:pointerup")).toEqual([
+      { node: "node1", event: expect.any(PointerEvent) },
+    ])
+
+    events.splice(0)
+    pointers.down(2, node2)
+    for (let y = 1; y <= 3; y++) pointers.move(2, at(0, y))
+    pointers.cancel(2)
+    expect(types(events)).toEqual(["node:pointerdown", "node:pointerup"])
+  })
+
+  test("a drag starts on the fourth move, from where the node was", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    for (let y = 10; y <= 40; y += 10) pointers.move(1, at(-100, y))
+    pointers.up(1, at(-100, 40))
+    expect(payloadsOf(events, "node:dragstart")).toEqual([{ node1: { x: -100, y: 0 } }])
+    expect(payloadsOf(events, "node:pointermove")).toEqual([{ node1: { x: -100, y: 40 } }])
+    expect(payloadsOf(events, "node:pointerup")).toEqual([
+      { node: "node1", event: expect.any(PointerEvent) },
+    ])
+  })
+
+  test("a node removed during its drag is released without errors", async () => {
+    const errors = catchErrors()
+    const { screen, state, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    delete state.nodes.node1
+    await nextTick()
+    moveTo(pointers, 1, at(-100, 50), at(-100, 100))
+    pointers.up(1, at(-100, 100))
+
+    expect(errors).toEqual([])
+    expect(payloadsOf(events, "node:dragend")).toEqual([])
+  })
+
+  test("the selected nodes follow the drag after a cancelled one", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node3"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    pointers.cancel(1)
+    pointers.down(2, node1)
+    moveTo(pointers, 2, node1, at(-100, 50))
+    pointers.up(2, at(-100, 50))
+
+    expect(state.layouts.nodes.node3).toEqual({ x: 100, y: 50 })
+  })
+
+  test("the selected nodes do not follow a drag of a node that is not selected", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node3"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node2)
+    moveTo(pointers, 1, node2, at(0, 50))
+    pointers.up(1, at(0, 50))
+    expect(state.layouts.nodes.node3).toEqual({ x: 100, y: 0 })
+    await nextTick()
+
+    // Nor while another pointer holds a selected node.
+    pointers.down(2, node1)
+    pointers.down(3, at(0, 50))
+    moveTo(pointers, 3, at(0, 50), at(0, 100))
+    pointers.up(3, at(0, 100))
+    pointers.up(2, node1)
+    expect(state.layouts.nodes).toEqual({
+      node1: { x: -100, y: 0 },
+      node2: { x: 0, y: 100 },
+      node3: { x: 100, y: 0 },
+    })
+  })
+
+  test("a selected node that is not draggable does not follow", async () => {
+    const props = graph({ node: { selectable: true, draggable: node => node.name !== "Node 3" } })
+    props.selectedNodes = ["node1", "node2", "node3"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    pointers.up(1, at(-100, 50))
+
+    expect(state.layouts.nodes).toEqual({
+      node1: { x: -100, y: 50 },
+      node2: { x: 0, y: 50 },
+      node3: { x: 100, y: 0 },
+    })
+  })
+
+  test("the selected nodes follow a pointer with the id 0", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node2", "node3"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(0, node1)
+    pointers.down(1, node3)
+    moveTo(pointers, 0, node1, at(-100, 50))
+    pointers.up(0, at(-100, 50))
+    pointers.up(1, node3)
+
+    expect(state.layouts.nodes).toEqual({
+      node1: { x: -100, y: 50 },
+      node2: { x: 0, y: 50 },
+      node3: { x: 100, y: 0 },
+    })
+  })
+
+  test("when the followed node is released, the selected nodes follow another one held", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node2", "node3"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    pointers.down(2, node3)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    pointers.up(1, at(-100, 50))
+    moveTo(pointers, 2, node3, at(100, 50))
+    pointers.up(2, at(100, 50))
+
+    expect(state.layouts.nodes).toEqual({
+      node1: { x: -100, y: 100 },
+      node2: { x: 0, y: 100 },
+      node3: { x: 100, y: 50 },
+    })
+  })
+
+  test("the hover is held during a drag, and set to where the pointer is when it ends", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+    const nodeAt = (position: { x: number; y: number }) =>
+      elementAt(screen.container, position)!.closest(".v-ng-node")!
+    const [g1, g2, g3] = [node1, node2, node3].map(nodeAt)
+    const hovered = () => [g1, g2, g3].map(g => g.classList.contains("hover"))
+
+    g1.dispatchEvent(new PointerEvent("pointerenter"))
+    pointers.down(1, node1)
+    await nextTick()
+    events.splice(0)
+    g1.dispatchEvent(new PointerEvent("pointerleave"))
+    g2.dispatchEvent(new PointerEvent("pointerenter"))
+    g3.dispatchEvent(new PointerEvent("pointerenter"))
+    g3.dispatchEvent(new PointerEvent("pointerleave"))
+    await nextTick()
+    expect(events).toEqual([])
+    expect(hovered()).toEqual([true, false, false])
+
+    pointers.up(1, node1)
+    await nextTick()
+    expect(hovered()).toEqual([false, true, false])
+  })
+
   test("two taps on a node by different pointers make a double click", async () => {
     const { screen, events } = await mountGraph(graph())
     const pointers = pointersOn(screen.container)
@@ -189,6 +359,20 @@ describe("nodes", () => {
     pointers.up(2, node1)
 
     expect(payloadsOf(events, "node:dblclick")).toMatchObject([{ node: "node1" }])
+  })
+
+  test("a tap on a selected node while a finger holds one not selected keeps it selected", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node2)
+    pointers.down(2, node1)
+    pointers.up(2, node1)
+    await nextTick()
+    expect(state.selectedNodes).toEqual(["node1"])
+    pointers.cancel(1)
   })
 
   test("a click on another node right after a click makes no double click", async () => {
@@ -265,6 +449,26 @@ describe("nodes", () => {
     await nextTick()
 
     expect(state.selectedNodes).toEqual([])
+  })
+
+  test("an edge can be pressed after a node is released", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    pointers.up(1, node1)
+    pointers.down(2, edge1)
+    expect(payloadsOf(events, "edge:pointerdown")).toHaveLength(1)
+  })
+
+  test("a click with the shift key selects an edge once the nodes are deselected", async () => {
+    const { canvas, state } = await mountGraph(graph({ node: selectable, edge: selectable }))
+
+    await userEvent.click(canvas, { position: node1 })
+    state.selectedNodes = []
+    await nextTick()
+    await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+    expect(state.selectedEdges).toEqual(["edge1"])
   })
 
   test("a node is not pressed while a pointer is on an edge", async () => {
@@ -350,6 +554,65 @@ describe("edges", () => {
     expect(state.selectedEdges).toEqual(["edge1"])
   })
 
+  test("a click with the shift key selects a node once the edges are deselected", async () => {
+    const { canvas, state } = await mountGraph(graph({ node: selectable, edge: selectable }))
+
+    await userEvent.click(canvas, { position: edge1 })
+    state.selectedEdges = []
+    await nextTick()
+    await userEvent.click(canvas, { position: node1, modifiers: ["Shift"] })
+    expect(state.selectedNodes).toEqual(["node1"])
+  })
+
+  test("an edge pressed after a cancelled press is clicked", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1)
+    pointers.cancel(1)
+    pointers.down(2, edge2)
+    pointers.up(2, edge2)
+    expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "edge2" }])
+  })
+
+  test("a tap on a selected edge while a finger holds one not selected keeps it selected", async () => {
+    const props = graph({ edge: selectable })
+    props.selectedEdges = ["edge1"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge2)
+    pointers.down(2, edge1)
+    pointers.up(2, edge1)
+    await nextTick()
+    expect(state.selectedEdges).toEqual(["edge1"])
+    pointers.cancel(1)
+  })
+
+  test("an edge removed while pressed is released without errors", async () => {
+    const errors = catchErrors()
+    const { screen, state, events } = await mountGraph(graph({ edge: selectable }))
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge2)
+    delete state.edges!.edge2
+    await nextTick()
+    pointers.up(1, edge2)
+    await nextTick()
+
+    expect(errors).toEqual([])
+    expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "edge2" }])
+    expect(state.selectedEdges).toEqual([])
+  })
+
+  test("a number for selectable lets the edges be added with the shift key up to it", async () => {
+    const { canvas, state } = await mountGraph(graph({ edge: { selectable: 2 } }))
+
+    await userEvent.click(canvas, { position: edge1 })
+    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    expect(state.selectedEdges).toEqual(["edge1", "edge2"])
+  })
+
   describe("summarized", () => {
     const summarized = (configs: UserConfigs) => {
       const props = graph({ ...configs, edge: { ...configs.edge, summarize: () => true } })
@@ -417,6 +680,68 @@ describe("edges", () => {
       }
     )
 
+    test("a tap while a finger holds edges only some of which are selected selects only the tapped one", async () => {
+      const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge1"]
+      const { screen, state } = await mountGraph(props)
+      const pointers = pointersOn(screen.container)
+
+      pointers.down(1, edge1)
+      pointers.down(2, edge2)
+      pointers.up(2, edge2)
+      await nextTick()
+      expect(state.selectedEdges).toEqual(["edge2"])
+      pointers.cancel(1)
+    })
+
+    test("a click selects only the edges clicked", async () => {
+      const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge2"]
+      const { canvas, state } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1 })
+      expect(state.selectedEdges).toEqual(["edge1", "edge3"])
+    })
+
+    test("a click with the shift key removes all of the edges when some are selected", async () => {
+      const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge1"]
+      const { canvas, state } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+      expect(state.selectedEdges).toEqual([])
+    })
+
+    test("clicks on two sets of the edges make no double click", async () => {
+      const props = summarized({})
+      props.edges!.edge4 = { source: "node2", target: "node3" }
+      const { screen, events } = await mountGraph(props)
+      const pointers = pointersOn(screen.container)
+
+      pointers.down(1, edge1)
+      pointers.up(1, edge1)
+      pointers.down(1, edge2)
+      pointers.up(1, edge2)
+      expect(payloadsOf(events, "edge:click")).toHaveLength(2)
+      expect(payloadsOf(events, "edge:dblclick")).toEqual([])
+    })
+
+    test("hovering the edges emits them all and applies the hover state", async () => {
+      const { screen, events } = await mountGraph(summarized({}))
+      const g = screen.container.querySelector(".v-ng-line-summarized")!
+      const edges = { edges: ["edge1", "edge3"], summarized: true }
+
+      g.dispatchEvent(new PointerEvent("pointerenter"))
+      await nextTick()
+      expect(payloadsOf(events, "edge:pointerover")).toMatchObject([edges])
+      expect(g.classList.contains("hovered")).toBe(true)
+
+      g.dispatchEvent(new PointerEvent("pointerleave"))
+      await nextTick()
+      expect(payloadsOf(events, "edge:pointerout")).toMatchObject([edges])
+      expect(g.classList.contains("hovered")).toBe(false)
+    })
+
     test("a double click and a right click emit all of the edges", async () => {
       const { canvas, events } = await mountGraph(summarized({}))
 
@@ -473,6 +798,7 @@ describe("paths", () => {
     await userEvent.click(canvas, { position: edge1, button: "right" })
     expect(payloadsOf(events, "path:contextmenu")).toMatchObject([{ path: "path1" }])
     expect(payloadsOf(events, "path:pointerdown")).toEqual([])
+    expect(payloadsOf(events, "view:contextmenu")).toEqual([])
   })
 
   test("a double click emits two clicks and a double click", async () => {
@@ -510,6 +836,10 @@ describe("paths", () => {
     pointers.up(2, edge2)
     await nextTick()
     expect(state.selectedPaths).toEqual(["path2"])
+    expect(payloadsOf(events, "path:pointerdown")).toMatchObject([
+      { path: "path1" },
+      { path: "path2" },
+    ])
     expect(payloadsOf(events, "path:pointerup")).toHaveLength(2)
   })
 
@@ -542,6 +872,14 @@ describe("paths", () => {
     expect(state.selectedPaths).toEqual([])
   })
 
+  test("a number for selectable lets the paths be added with the shift key up to it", async () => {
+    const { canvas, state } = await mountGraph(graph({ path: { ...clickable, selectable: 2 } }))
+
+    await userEvent.click(canvas, { position: edge1 })
+    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    expect(state.selectedPaths).toEqual(["path1", "path2"])
+  })
+
   test("a click with the shift key on a path keeps the nodes selected", async () => {
     const props = graph({ node: selectable, path: clickable })
     props.selectedNodes = ["node1"]
@@ -550,6 +888,101 @@ describe("paths", () => {
     await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
     expect(state.selectedNodes).toEqual(["node1"])
     expect(payloadsOf(events, "path:click")).toEqual([])
+  })
+
+  test("a node can be pressed after a path is released", async () => {
+    const props = graph({ path: clickable })
+    props.paths = { path1: { edges: ["edge1"] } }
+    const { screen, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1)
+    pointers.up(1, edge1)
+    pointers.down(2, node3)
+    expect(payloadsOf(events, "node:pointerdown")).toMatchObject([{ node: "node3" }])
+  })
+
+  test("a path pressed after a cancelled press is clicked", async () => {
+    const { screen, events } = await mountGraph(graph({ path: clickable }))
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1)
+    pointers.cancel(1)
+    pointers.down(2, edge2)
+    pointers.up(2, edge2)
+    expect(payloadsOf(events, "path:click")).toMatchObject([{ path: "path2" }])
+  })
+
+  test("a tap on a selected path while a finger holds one not selected keeps it selected", async () => {
+    const props = graph({ path: clickable })
+    props.selectedPaths = ["path1"]
+    const { screen, state } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge2)
+    pointers.down(2, edge1)
+    pointers.up(2, edge1)
+    await nextTick()
+    expect(state.selectedPaths).toEqual(["path1"])
+    pointers.cancel(1)
+  })
+
+  test("a click with the shift key selects a node once the paths are deselected", async () => {
+    const props = graph({ node: selectable, path: clickable })
+    props.paths = { path1: { edges: ["edge1"] } }
+    const { canvas, state } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: edge1 })
+    state.selectedPaths = []
+    await nextTick()
+    await userEvent.click(canvas, { position: node3, modifiers: ["Shift"] })
+    expect(state.selectedNodes).toEqual(["node3"])
+  })
+
+  test("a click with the shift key selects a path once the nodes are deselected", async () => {
+    const props = graph({ node: selectable, path: clickable })
+    props.paths = { path1: { edges: ["edge1"] } }
+    const { canvas, state } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: node3 })
+    state.selectedNodes = []
+    await nextTick()
+    await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+    expect(state.selectedPaths).toEqual(["path1"])
+  })
+
+  test("clicking the background clears the selected paths", async () => {
+    const props = graph({ path: clickable })
+    props.selectedPaths = ["path1", "path2"]
+    const { canvas, state } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: at(0, 100) })
+    expect(state.selectedPaths).toEqual([])
+  })
+
+  test("a path removed while pressed makes no double click", async () => {
+    const errors = catchErrors()
+    const { screen, state, events } = await mountGraph(graph({ path: clickable }))
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1)
+    pointers.up(1, edge1)
+    pointers.down(1, edge1)
+    delete (state.paths as Paths).path1
+    await nextTick()
+    pointers.up(1, edge1)
+
+    expect(errors).toEqual([])
+    expect(payloadsOf(events, "path:dblclick")).toEqual([])
+  })
+
+  test("a path that is clickable but not hoverable emits no hover events", async () => {
+    const { canvas, events } = await mountGraph(graph({ path: clickable }))
+
+    await userEvent.hover(canvas, { position: edge1 })
+    await userEvent.hover(canvas, { position: at(0, 100) })
+    expect(payloadsOf(events, "path:pointerover")).toEqual([])
+    expect(payloadsOf(events, "path:pointerout")).toEqual([])
   })
 
   test("a path made unclickable while pressed is not clicked", async () => {
