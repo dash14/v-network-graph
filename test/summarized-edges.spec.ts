@@ -52,6 +52,24 @@ describe("the slots of summarized edges", () => {
   )
 })
 
+describe("summarized edges", () => {
+  test("put the shape and the count in the middle of the line", async () => {
+    const tilted = props()
+    tilted.layouts.nodes = { node1: { x: -100, y: -20 }, node2: { x: 100, y: 40 } }
+    const { screen } = await mountGraph(tilted)
+    const group = screen.container.querySelector(".v-ng-line-summarized")!
+    // A 12x12 rect by default.
+    const shape = group.querySelector("rect")!
+    const text = group.querySelector("text")!
+    expect([shape.getAttribute("x"), shape.getAttribute("y")]).toEqual(["-6", "4"])
+    expect([text.getAttribute("x"), text.getAttribute("y"), text.textContent]).toEqual([
+      "0",
+      "10",
+      "2",
+    ])
+  })
+})
+
 describe("the order of summarized edges", () => {
   test("summarized edges are ordered by the highest z-index among them", async () => {
     const p = props()

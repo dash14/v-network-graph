@@ -99,6 +99,53 @@ describe("edge overlay", () => {
     }
   )
 
+  test.each([
+    { name: "an edge", summarize: false, color: "#ff0000" },
+    { name: "summarized edges", summarize: true, color: "#00ff00" },
+  ])("gets the stroke of $name", async ({ summarize, color }) => {
+    const { screen } = await mountGraph(
+      {
+        nodes,
+        edges: {
+          edge1: { source: "node1", target: "node2" },
+          edge2: { source: "node1", target: "node2" },
+        },
+        layouts,
+        configs: {
+          edge: {
+            summarize: () => summarize,
+            normal: { color: "#ff0000" },
+            summarized: { stroke: { color: "#00ff00" } },
+          },
+        },
+      },
+      {
+        slots: {
+          "edge-overlay": ({ stroke }) => h("g", { class: "overlay", "data-color": stroke.color }),
+        },
+      }
+    )
+    const overlay = screen.container.querySelector(".overlay")
+    expect(overlay?.getAttribute("data-color")).toBe(color)
+  })
+
+  test("gets the center of a curved edge on its curve", async () => {
+    const { screen } = await mountGraph(
+      { nodes, edges: cases[1].edges, layouts, configs: cases[1].configs },
+      {
+        slots: {
+          "edge-overlay": ({ edgeId, center }) =>
+            h("circle", { class: `overlay-${edgeId}`, cx: center.x, cy: center.y, r: 1 }),
+        },
+      }
+    )
+    const drawn = screen.container.querySelector<SVGGeometryElement>(cases[1].line)!
+    const middle = drawn.getPointAtLength(drawn.getTotalLength() / 2)
+    const center = screen.container.querySelector(".overlay-edge1")!
+    expect(Number(center.getAttribute("cx"))).toBeCloseTo(middle.x, 0)
+    expect(Number(center.getAttribute("cy"))).toBeCloseTo(middle.y, 0)
+  })
+
   test("keeps the summarized stroke when only the hover changes", async () => {
     const width = vi.fn(() => 4)
     const { screen, canvas } = await mountGraph(
