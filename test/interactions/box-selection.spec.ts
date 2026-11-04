@@ -121,9 +121,28 @@ function pointersOnSvg(svg: Element) {
   return {
     down: (pointerId: number, position: Position) =>
       dispatch("pointerdown", svg, pointerId, position),
+    move: (pointerId: number, position: Position) =>
+      dispatch("pointermove", document, pointerId, position),
     up: (pointerId: number, position: Position) =>
       dispatch("pointerup", document, pointerId, position),
   }
+}
+
+/** Errors thrown in listeners and timers, which would otherwise only be reported. */
+function catchErrors() {
+  const errors: unknown[] = []
+  const onError = (event: ErrorEvent) => {
+    event.preventDefault()
+    errors.push(event.error)
+  }
+  window.addEventListener("error", onError)
+  onTestFinished(() => window.removeEventListener("error", onError))
+  return errors
+}
+
+const selectionBoxOf = (container: Element) => {
+  const box = container.querySelector(".v-ng-selection-box")
+  return box && ["x", "y", "width", "height"].map(a => Number(box.getAttribute(a)))
 }
 
 describe("box selection options", () => {
@@ -215,6 +234,18 @@ describe("box selection options", () => {
     expect(state.selectedNodes).toEqual(["node1"])
   })
 
+  test("a number for selectable limits the nodes added with the invert type", async () => {
+    const { canvas, graph, state } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { node: { selectable: 2 } },
+    })
+
+    graph.startBoxSelection({ type: "invert" })
+    await drag(canvas, at(-150, -50), at(150, 50))
+    expect(state.selectedNodes).toEqual(["node1", "node2"])
+  })
+
   test("a box leaves out the nodes that are not selectable", async () => {
     const { canvas, graph, state } = await mountGraph({
       nodes,
@@ -301,6 +332,254 @@ describe("box selection keys", () => {
     await nextTick()
     await userEvent.keyboard(`{${modifier}>}{/${modifier}}`)
     await nextTick()
+    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection", "default"])
+  })
+})
+
+describe("box selection pointers", () => {
+  test("a box of a pixel is drawn on the press, and removed on the release", async () => {
+    const { canvas, screen, graph } = await mountGraph({ nodes, layouts, configs })
+    const pointers = pointersOnSvg(canvas.element())
+
+    graph.startBoxSelection({ stop: "manual" })
+    pointers.down(1, at(0, 100))
+    await nextTick()
+    expect(selectionBoxOf(screen.container)).toEqual([...Object.values(at(0, 100)), 1, 1])
+
+    pointers.up(1, at(0, 100))
+    await nextTick()
+    expect(selectionBoxOf(screen.container)).toBeNull()
+  })
+
+  test("the canvas is marked during the selection", async () => {
+    const { canvas, graph } = await mountGraph({ nodes, layouts, configs })
+    const marked = () => canvas.element().classList.contains("box-selection-mode")
+
+    graph.startBoxSelection()
+    await nextTick()
+    expect(marked()).toBe(true)
+    graph.stopBoxSelection()
+    await nextTick()
+    expect(marked()).toBe(false)
+  })
+
+  test.each([
+    { edge: "top", from: at(-100, 0), to: at(100, 10) },
+    { edge: "bottom", from: at(-100, -10), to: at(100, 0) },
+  ])("a box takes the nodes on its sides and on its $edge", async ({ from, to }) => {
+    const { canvas, graph, state } = await mountGraph({ nodes, layouts, configs })
+
+    graph.startBoxSelection()
+    await drag(canvas, from, to)
+    expect(state.selectedNodes).toEqual(["node1", "node2", "node3"])
+  })
+
+  test("a box leaves out the nodes above and below it", async () => {
+    const { canvas, graph, state } = await mountGraph({
+      nodes: { ...nodes, above: {}, below: {} },
+      layouts: { nodes: { ...layouts.nodes, above: { x: 0, y: -80 }, below: { x: 0, y: 80 } } },
+      configs,
+    })
+
+    graph.startBoxSelection()
+    await drag(canvas, at(-150, -50), at(50, 50))
+    expect(state.selectedNodes).toEqual(["node1", "node2"])
+  })
+
+  test("a box follows the pointer in a graph away from the top of the page", async () => {
+    const { canvas, screen, graph, state } = await mountGraph({
+      nodes: { ...nodes, below: {} },
+      layouts: { nodes: { ...layouts.nodes, below: { x: 0, y: 80 } } },
+      configs,
+    })
+    ;(screen.container as HTMLElement).style.marginTop = "100px"
+    onTestFinished(() => void ((screen.container as HTMLElement).style.marginTop = ""))
+    const pointers = pointersOnSvg(canvas.element())
+
+    graph.startBoxSelection()
+    pointers.down(1, at(-150, -50))
+    pointers.move(1, at(50, 50))
+    await vi.waitFor(() => expect(state.selectedNodes).toEqual(["node1", "node2"]))
+    pointers.up(1, at(50, 50))
+    await nextTick()
+    expect(state.selectedNodes).toEqual(["node1", "node2"])
+  })
+
+  test("the shift key keeps the type of the selection by default", async () => {
+    const { canvas, graph, state } = await mountGraph({
+      nodes,
+      layouts,
+      configs,
+      selectedNodes: ["node2", "node3"],
+    })
+
+    graph.startBoxSelection()
+    await userEvent.keyboard("{Shift>}")
+    await drag(canvas, at(-150, -50), at(50, 50))
+    await userEvent.keyboard("{/Shift}")
+    expect(state.selectedNodes.toSorted()).toEqual(["node1", "node2"])
+  })
+
+  test("the append type keeps a selected node in the box that is not selectable", async () => {
+    const { canvas, graph, state } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { node: { selectable: node => node.name !== "Node 2" } },
+      selectedNodes: ["node2"],
+    })
+
+    graph.startBoxSelection()
+    await drag(canvas, at(-150, -50), at(50, 50))
+    expect(state.selectedNodes.toSorted()).toEqual(["node1", "node2"])
+  })
+
+  test("a selection ended during a drag selects nothing more", async () => {
+    const { canvas, graph, state } = await mountGraph({ nodes, layouts, configs })
+    const pointers = pointersOnSvg(canvas.element())
+
+    graph.startBoxSelection()
+    pointers.down(1, at(-150, -50))
+    pointers.move(1, at(50, 50))
+    graph.stopBoxSelection()
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(state.selectedNodes).toEqual([])
+  })
+
+  test("the pointer moved after a drag in a manual selection changes nothing", async () => {
+    const errors = catchErrors()
+    const { canvas, graph, state } = await mountGraph({ nodes, layouts, configs })
+    const pointers = pointersOnSvg(canvas.element())
+
+    graph.startBoxSelection({ stop: "manual" })
+    await drag(canvas, at(-150, -50), at(50, 50))
+    pointers.move(1, at(150, 50))
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(state.selectedNodes).toEqual(["node1", "node2"])
+    expect(errors).toEqual([])
+  })
+
+  test("the nodes are not hovered during the selection, and are again after it", async () => {
+    const { canvas, graph, events } = await mountGraph({ nodes, layouts, configs })
+
+    graph.startBoxSelection()
+    await userEvent.hover(canvas, { position: at(-100, 0) })
+    expect(payloadsOf(events, "node:pointerover")).toEqual([])
+    graph.stopBoxSelection()
+    await userEvent.hover(canvas, { position: at(0, 100) })
+    events.splice(0)
+
+    await userEvent.click(canvas, { position: at(-100, 0) })
+    await userEvent.hover(canvas, { position: at(0, 100) })
+    expect(payloadsOf(events, "node:pointerover")).toHaveLength(1)
+    expect(payloadsOf(events, "node:pointerout")).toHaveLength(1)
+    expect(payloadsOf(events, "node:pointerdown")).toHaveLength(1)
+  })
+
+  test("the type of a selection is set by the first pointer pressed", async () => {
+    const { canvas, graph, state } = await mountGraph({
+      nodes,
+      layouts,
+      configs,
+      selectedNodes: ["node2", "node3"],
+    })
+    const svg = canvas.element()
+    const rect = svg.getBoundingClientRect()
+    const down = (pointerId: number, { x, y }: Position, shiftKey: boolean) =>
+      svg.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          pointerId,
+          shiftKey,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+        })
+      )
+    const pointers = pointersOnSvg(svg)
+
+    graph.startBoxSelection({ withShiftKey: "invert" })
+    down(1, at(-150, -50), false)
+    down(2, at(50, 50), true)
+    pointers.up(2, at(50, 50))
+    await nextTick()
+    expect(state.selectedNodes.toSorted()).toEqual(["node1", "node2"])
+  })
+})
+
+describe("box selection stops", () => {
+  test("a manual selection is not ended by a click", async () => {
+    const { canvas, graph, events } = await mountGraph({ nodes, layouts, configs })
+
+    graph.startBoxSelection({ stop: "manual" })
+    await userEvent.click(canvas, { position: at(0, 100) })
+    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+  })
+
+  test("the click stop ends the selection with a click made without a press", async () => {
+    const errors = catchErrors()
+    const { canvas, graph, events } = await mountGraph({ nodes, layouts, configs })
+
+    graph.startBoxSelection({ stop: "click" })
+    await nextTick()
+    canvas.element().dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    await nextTick()
+    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection", "default"])
+    expect(errors).toEqual([])
+  })
+
+  test("the click stop ignores a click where a pointer is pressed", async () => {
+    const { canvas, graph, events } = await mountGraph({ nodes, layouts, configs })
+    const pointers = pointersOnSvg(canvas.element())
+    const rect = canvas.element().getBoundingClientRect()
+    const { x, y } = at(0, 100)
+
+    graph.startBoxSelection({ stop: "click" })
+    pointers.down(1, { x, y })
+    canvas
+      .element()
+      .dispatchEvent(
+        new MouseEvent("click", { bubbles: true, clientX: rect.left + x, clientY: rect.top + y })
+      )
+    await nextTick()
+    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+  })
+
+  test("keys other than the Escape key do not end the selection", async () => {
+    const { graph, events } = await mountGraph({ nodes, layouts, configs })
+
+    graph.startBoxSelection()
+    await userEvent.keyboard("a")
+    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+  })
+
+  test("the Escape key that ends the selection does not reach the page", async () => {
+    const { graph } = await mountGraph({ nodes, layouts, configs })
+    const input = document.createElement("input")
+    document.body.appendChild(input)
+    onTestFinished(() => input.remove())
+    const keydown = vi.fn()
+    input.addEventListener("keydown", keydown)
+    input.focus()
+
+    graph.startBoxSelection()
+    await userEvent.keyboard("{Escape}")
+    expect(keydown).not.toHaveBeenCalled()
+  })
+
+  test("the modifier key selects with the append type, and ends only when it is released", async () => {
+    const { canvas, state, events } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { ...configs, view: { boxSelectionEnabled: true } },
+      selectedNodes: ["node2", "node3"],
+    })
+
+    await userEvent.keyboard(`{${modifier}>}`)
+    await drag(canvas, at(-150, -50), at(50, 50))
+    await userEvent.keyboard("{Escape}")
+    expect(state.selectedNodes.toSorted()).toEqual(["node1", "node2"])
+    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection"])
+
+    await userEvent.keyboard(`{/${modifier}}`)
     expect(payloadsOf(events, "view:mode")).toEqual(["box-selection", "default"])
   })
 })

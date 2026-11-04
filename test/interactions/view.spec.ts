@@ -78,6 +78,56 @@ describe("background", () => {
   })
 })
 
+describe("background clicks", () => {
+  test("a click, a double click and a context menu carry their events", async () => {
+    const { canvas, events } = await mountGraph({ nodes, layouts })
+
+    await userEvent.dblClick(canvas, { position: at(0, 100) })
+    await userEvent.click(canvas, { position: at(0, 100), button: "right" })
+    const withEvent = { event: expect.any(MouseEvent) }
+    expect(payloadsOf(events, "view:click")).toEqual([withEvent, withEvent])
+    expect(payloadsOf(events, "view:dblclick")).toEqual([withEvent])
+    expect(payloadsOf(events, "view:contextmenu")).toEqual([withEvent])
+  })
+
+  test("a press moved more than 3 times is a drag, not a click", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const press = (moves: number) => {
+      pointers.down(1, at(0, 100))
+      for (let i = 1; i <= moves; i++) pointers.move(1, at(i, 100))
+      pointers.up(1, at(moves, 100))
+    }
+
+    press(3)
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+    press(4)
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a click with the shift key is a click when nothing is selected", async () => {
+    const { canvas, events } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { node: { selectable: true } },
+    })
+
+    await userEvent.click(canvas, { position: at(0, 100), modifiers: ["Shift"] })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("the wheel scrolls the page with the zoom disabled from the start", async () => {
+    const { canvas } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { view: { zoomEnabled: false } },
+    })
+    const event = new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: 1 })
+    canvas.element().dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+  })
+})
+
 describe("unmounting", () => {
   // Each kind takes the pointer on its own, as a press on one blocks the others.
   test.each([
