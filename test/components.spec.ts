@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
-import { h, nextTick } from "vue"
+import { h, nextTick, reactive } from "vue"
 import { VEdgeLabel, VLabelText, VStyle } from "@/index"
 import type { NodeLabelDirectionAutoAdjustmentHandler, UserConfigs } from "@/index"
 import type { GraphProps } from "./helpers/graph"
@@ -173,6 +173,52 @@ describe("label backgrounds", () => {
     expect(rect.hasAttribute("transform")).toBe(false)
   })
 
+  test("pads the background by the padding scaled to the zoom, and by the line height", async () => {
+    // At a zoom level of 2, the font of 10 is drawn at 5 with lines of 7.5.
+    const config = {
+      fontSize: 10,
+      color: "#000000",
+      lineHeight: 1.5,
+      background: { visible: true, padding: { vertical: 2, horizontal: 4 } },
+    }
+    const { screen } = await mountGraph(
+      { ...graph(), zoomLevel: 2 },
+      { slots: { back: () => h(VLabelText, { text: "a", config }) } }
+    )
+    const rect = rectOf(screen.container)!
+    const bbox = (screen.container.querySelector("text.v-ng-text") as SVGTextElement).getBBox()
+    const box = () => ["x", "y", "width", "height"].map(a => Number(rect.getAttribute(a)))
+
+    await expect
+      .poll(box)
+      .toEqual([bbox.x - 2, bbox.y - 1 - 1.25, bbox.width + 4, bbox.height + 2 + 2.5])
+  })
+
+  test("follows the position and the font size of its text", async () => {
+    const config = { fontSize: 10, color: "#000000", lineHeight: 1, background: { visible: true } }
+    const text = reactive({ x: 0, y: 0, fontSize: 10 })
+    const { screen } = await mountGraph(graph(), {
+      slots: {
+        back: () =>
+          h(VLabelText, { text: "a", config, x: text.x, y: text.y, "font-size": text.fontSize }),
+      },
+    })
+    const rect = rectOf(screen.container)!
+    const element = screen.container.querySelector("text.v-ng-text") as SVGTextElement
+    const box = () => ["x", "y", "width", "height"].map(a => Number(rect.getAttribute(a)))
+    const bboxOf = () => {
+      const b = element.getBBox()
+      return [b.x, b.y, b.width, b.height]
+    }
+
+    for (const change of [{ x: 30 }, { y: 20 }, { fontSize: 20 }]) {
+      const before = box()
+      Object.assign(text, change)
+      await expect.poll(box).not.toEqual(before)
+      expect(box()).toEqual(bboxOf())
+    }
+  })
+
   test("an edge label keeps the background of its config", async () => {
     const { screen } = await mountGraph(graph(), {
       slots: {
@@ -185,6 +231,67 @@ describe("label backgrounds", () => {
       },
     })
     expect(rectOf(screen.container)?.getAttribute("fill")).toBe("#00ff00")
+  })
+})
+
+describe("edge labels", () => {
+  const config = { fontSize: 10, color: "#000000", lineHeight: 1, margin: 0, padding: 0 }
+  // The label area of a line from (10, 0) to (110, 0), 30 high, with its middle 5 below the line.
+  const area = {
+    source: { above: { x: 10, y: -10 }, below: { x: 10, y: 20 } },
+    target: { above: { x: 110, y: -10 }, below: { x: 110, y: 20 } },
+  }
+  const label = async (props: object) => {
+    const { screen } = await mountGraph(graph(), {
+      slots: { back: () => h(VEdgeLabel, { area, config, text: "label", ...props }) },
+    })
+    const text = screen.container.querySelector("text.v-ng-edge-label")!
+    return (...names: string[]) => names.map(n => text.getAttribute(n))
+  }
+
+  test.each([
+    ["source", ["10", "5", "start"]],
+    ["target", ["110", "5", "end"]],
+    ["center", ["60", "5", "middle"]],
+  ])(
+    "a label aligned to the %s and centered vertically is placed halfway down the area",
+    async (align, attrs) => {
+      const attrsOf = await label({ align })
+      expect(attrsOf("x", "y", "text-anchor", "dominant-baseline")).toEqual([...attrs, "central"])
+    }
+  )
+
+  test.each(["source", "target"])(
+    "a label aligned to the %s of an edge of no length ends at the point",
+    async align => {
+      const point = { above: { x: 0, y: 0 }, below: { x: 0, y: 10 } }
+      const attrsOf = await label({ align, area: { source: point, target: point } })
+      expect(attrsOf("text-anchor")).toEqual(["end"])
+    }
+  )
+
+  test.each([
+    ["up", { x: 0, y: 100 }, { x: 0, y: 0 }],
+    ["down", { x: 0, y: 0 }, { x: 0, y: 100 }],
+  ])("the label of a vertical edge going %s is turned to read upward", async (_, s, t) => {
+    const attrsOf = await label({
+      area: { source: { above: s, below: s }, target: { above: t, below: t } },
+    })
+    expect(attrsOf("transform")).toEqual(["rotate(-90 0 50)"])
+  })
+
+  test("a label over its line gets a white background padded by 4 and 1", async () => {
+    const { screen } = await mountGraph(graph(), {
+      slots: { back: () => h(VEdgeLabel, { area, config, text: "label" }) },
+    })
+    const rect = screen.container.querySelector(".v-ng-text-background")!
+    const bbox = (
+      screen.container.querySelector("text.v-ng-edge-label") as SVGTextElement
+    ).getBBox()
+
+    await expect.poll(() => Number(rect.getAttribute("width"))).toBeCloseTo(bbox.width + 8)
+    expect(Number(rect.getAttribute("height"))).toBeCloseTo(bbox.height + 2)
+    expect([rect.getAttribute("fill"), rect.getAttribute("rx")]).toEqual(["#ffffff", "2"])
   })
 })
 
@@ -413,6 +520,38 @@ describe("node labels", () => {
       expect(state.selectedNodes).toEqual([])
     }
   )
+
+  test.each([false, true])(
+    "take the state of their nodes, only when they handle the events (lite: %s)",
+    async lite => {
+      const classesOf = async (handleNodeEvents: boolean) => {
+        const props = graph({ node: { selectable: true, label: { handleNodeEvents } } })
+        props.selectedNodes = ["node1"]
+        const { screen, canvas } = await mountGraph(props, { lite })
+        await userEvent.hover(canvas, { position: at(-100, 0) })
+        await nextTick()
+        const element = screen.container.querySelector(".v-ng-node-label")!
+        const text = element.querySelector("text")
+        return [...element.classList, ...(text?.classList ?? [])].filter(c =>
+          ["hover", "selected", "draggable", "selectable"].includes(c)
+        )
+      }
+
+      expect((await classesOf(true)).toSorted()).toEqual([
+        "draggable",
+        "hover",
+        "selectable",
+        "selected",
+      ])
+      expect(await classesOf(false)).toEqual([])
+    }
+  )
+
+  test("of the lite graph have the classes of a lite label and of a text", async () => {
+    const { screen } = await mountGraph(graph(), { lite: true })
+    const classes = screen.container.querySelector("text.v-ng-node-label")!.classList
+    expect([...classes]).toEqual(expect.arrayContaining(["v-ng-lite-node-label", "v-ng-text"]))
+  })
 
   test.each([false, true])("are left out for a node with no text (lite: %s)", async lite => {
     const props = graph()
