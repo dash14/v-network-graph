@@ -1,6 +1,6 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { render } from "vitest-browser-vue"
-import { defineComponent, h, reactive, ref } from "vue"
+import { defineComponent, h, nextTick, reactive, ref } from "vue"
 import { VNetworkGraph } from "@/index"
 import type { VNetworkGraphInstance } from "@/index"
 import type { SvgPanZoomInstance } from "@/modules/svg-pan-zoom-ex"
@@ -49,6 +49,17 @@ describe("pan", () => {
   test("panToCenter centers the contents", async () => {
     const { graph } = await mountGraph({ nodes, edges, layouts: offsetLayouts, configs })
 
+    await graph.panToCenter()
+    const box = graph.getViewBox()
+    expect((box.left + box.right) / 2).toBeCloseTo(100)
+    expect((box.top + box.bottom) / 2).toBeCloseTo(50)
+  })
+
+  test("panToCenter centers the contents where they are moved to", async () => {
+    const { graph, state } = await mountGraph({ nodes, edges, layouts, configs })
+
+    state.layouts.nodes = structuredClone(offsetLayouts.nodes)
+    await nextTick()
     await graph.panToCenter()
     const box = graph.getViewBox()
     expect((box.left + box.right) / 2).toBeCloseTo(100)
@@ -411,6 +422,7 @@ describe("svg-pan-zoom instance", () => {
       nodes,
       edges,
       layouts,
+      zoomLevel: 1,
       configs: {
         ...configs,
         view: { onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => (panZoom = i) },
@@ -467,6 +479,40 @@ describe("svg-pan-zoom instance", () => {
     panZoom.enableZoom()
     wheel()
     expect(panZoom.getZoom()).not.toBe(start)
+  })
+
+  test("the double click and the wheel zoom follow the configs, and only with the zoom", async () => {
+    const { state, panZoom } = await mountWithInstance()
+    const switches = async (view: Record<string, boolean>) => {
+      Object.assign(state.configs!.view!, view)
+      await nextTick()
+      return [panZoom.isDblClickZoomEnabled(), panZoom.isMouseWheelZoomEnabled()]
+    }
+
+    expect(await switches({ doubleClickZoomEnabled: false })).toEqual([false, true])
+    expect(await switches({ doubleClickZoomEnabled: true, mouseWheelZoomEnabled: false })).toEqual([
+      true,
+      false,
+    ])
+    expect(await switches({ mouseWheelZoomEnabled: true })).toEqual([true, true])
+    expect(await switches({ zoomEnabled: false })).toEqual([false, false])
+  })
+
+  test("a zoom range changed to leave out the zoom level zooms to its end", async () => {
+    const { state, panZoom } = await mountWithInstance()
+    state.zoomLevel = 2
+    await expect.poll(() => panZoom.getRealZoom()).toBeCloseTo(2)
+
+    state.configs!.view!.maxZoomLevel = 1.5
+    await expect.poll(() => panZoom.getRealZoom()).toBeCloseTo(1.5)
+  })
+
+  test("a zoom level set by the user is not told back as a zoom", async () => {
+    const { state, panZoom, events } = await mountWithInstance()
+    events.splice(0)
+    state.zoomLevel = 2
+    await expect.poll(() => panZoom.getRealZoom()).toBeCloseTo(2)
+    expect(payloadsOf(events, "view:zoom")).toEqual([])
   })
 
   test("setZoomEnabled switches the double click zoom with the zoom", async () => {
