@@ -41,6 +41,7 @@ async function mountLite(
     configs?: LiteUserConfigs
     selectedNodes?: string[]
     layers?: Layers
+    zoomLevel?: number
   },
   slots: GraphSlots = {}
 ) {
@@ -359,6 +360,62 @@ describe("force layout", () => {
       draw()
       expect(edgeAttribute("edge1", "y1")).not.toBe(edgeAttribute("edge3", "y1"))
     })
+  })
+
+  describe("a node moving a little ahead of the layouts", () => {
+    const mountDrawing = async (zoomLevel = 1) => {
+      let drawer: PositionDrawer | undefined
+      const layoutHandler: LayoutHandler = {
+        activate: ({ positionDrawer }) => (drawer = positionDrawer),
+        deactivate: () => {},
+      }
+      const mounted = await mountLite({ configs: { view: { layoutHandler } }, zoomLevel })
+      const draw = (x: number) => drawer!.draw(id => (id === "node1" ? { x, y: 100 } : undefined))
+      const drawnX = () => drawnPosition(mounted.screen.container, "node1").x
+      return { ...mounted, drawer: drawer!, draw, drawnX }
+    }
+
+    test("is drawn once it moves 0.2 pixels on the screen, at the zoom level", async () => {
+      const { draw, drawnX } = await mountDrawing(2)
+      draw(100)
+      draw(100.15)
+      expect(drawnX()).toBeCloseTo(100.15)
+    })
+
+    test("measures its move from where the layouts moved it", async () => {
+      const { state, draw, drawnX } = await mountDrawing()
+      draw(100)
+      draw(100.15)
+      expect(drawnX()).toBe(100)
+
+      state.layouts.nodes.node1 = { x: 100.15, y: 100 }
+      await nextTick()
+      draw(100.18)
+      expect(drawnX()).toBeCloseTo(100.18)
+    })
+
+    test("forgets where it was drawn once the layout stops drawing ahead and starts again", async () => {
+      const { drawer, draw, drawnX } = await mountDrawing()
+      draw(100)
+      drawer.setFlush(undefined)
+      drawer.setFlush(() => {})
+      draw(100.1)
+      expect(drawnX()).toBeCloseTo(100.1)
+    })
+  })
+
+  test("marks the positions as changing while it draws them ahead over frames", async () => {
+    let drawer: PositionDrawer | undefined
+    const layoutHandler: LayoutHandler = {
+      activate: ({ positionDrawer }) => (drawer = positionDrawer),
+      deactivate: () => {},
+    }
+    const { screen } = await mountLite({ configs: { view: { layoutHandler } } })
+    for (let x = 10; x <= 50; x += 10) {
+      drawer!.draw(id => (id === "node1" ? { x, y: 0 } : undefined))
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    }
+    expect(screen.container.querySelector(".v-ng-viewport")!.hasAttribute("data-moving")).toBe(true)
   })
 
   test("draws the nodes where the layouts have them once the layout stops drawing ahead", async () => {

@@ -253,6 +253,20 @@ describe("positions", () => {
     await vi.waitFor(() => expect(duration()).not.toBe("0s"), { timeout: 1000 })
   })
 
+  test("the positions are marked as changing while a node without edges keeps moving", async () => {
+    const { screen, state } = await mountGraph({
+      nodes: { node1: {} },
+      layouts: { nodes: { node1: { x: 0, y: 0 } } },
+    })
+    const viewport = screen.container.querySelector(".v-ng-viewport")!
+    const frame = () => new Promise(resolve => requestAnimationFrame(resolve))
+    for (let x = 10; x <= 50; x += 10) {
+      state.layouts.nodes.node1.x = x
+      await frame()
+    }
+    expect(viewport.hasAttribute("data-moving")).toBe(true)
+  })
+
   // A position the layout handler would not fix, given as it is.
   const invalidPositions = {
     missing: {},

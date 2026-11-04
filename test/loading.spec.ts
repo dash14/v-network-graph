@@ -16,7 +16,11 @@ const layouts = { nodes: { node1: { x: 100, y: 50 }, node2: { x: 200, y: 50 } } 
 /** Renders a graph in a container of the given size, without waiting for it to load. */
 async function renderGraph(
   configs: UserConfigs,
-  { size = { width: WIDTH, height: HEIGHT }, graphNodes = nodes as Record<string, object> } = {}
+  {
+    size = { width: WIDTH, height: HEIGHT },
+    graphNodes = nodes as Record<string, object>,
+    positions = layouts.nodes as Record<string, { x: number; y: number }>,
+  } = {}
 ) {
   const events: RecordedEvent[] = []
   const graph = ref<VNetworkGraphInstance>()
@@ -32,7 +36,7 @@ async function renderGraph(
               ref: graph,
               nodes: graphNodes,
               edges,
-              layouts: structuredClone(layouts),
+              layouts: structuredClone({ nodes: positions }),
               configs: state.configs,
               eventHandlers: { "*": (type, payload) => events.push({ type, payload }) },
             }),
@@ -87,6 +91,42 @@ describe("loading", () => {
     expect(payloadsOf(events, "view:pan")).toEqual([])
   })
 
+  test.each([
+    // svg-pan-zoom centers the contents first, which leaves the pan where the graph puts it.
+    ["the pan did not change", { node1: { x: -100, y: 0 }, node2: { x: 100, y: 0 } }],
+    ["the pan changed", { node1: { x: 100, y: 50 }, node2: { x: 200, y: 50 } }],
+    ["only the vertical pan changed", { node1: { x: -100, y: 50 }, node2: { x: 100, y: 50 } }],
+  ])("tells the pan once on load when %s", async (_, positions) => {
+    const { events, loaded } = await renderGraph(
+      { view: { autoPanAndZoomOnLoad: "center-zero" } },
+      { positions }
+    )
+    await loaded()
+    await nextTick()
+    expect(payloadsOf(events, "view:pan")).toEqual([{ x: WIDTH / 2, y: HEIGHT / 2 }])
+  })
+
+  test.each(["width", "height"] as const)(
+    "waits for the container to get a %s before loading",
+    async side => {
+      const size = { width: WIDTH, height: HEIGHT, [side]: 0 }
+      const { style, events, loaded } = await renderGraph({}, { size })
+      await new Promise(resolve => setTimeout(resolve, 300))
+      expect(has(events, "view:load")).toBe(false)
+
+      style[side] = `${side === "width" ? WIDTH : HEIGHT}px`
+      await loaded()
+    }
+  )
+
+  test("deactivates the layout handler on unload", async () => {
+    const layoutHandler = { activate: vi.fn(), deactivate: vi.fn() }
+    const { loaded, unmount } = await renderGraph({ view: { layoutHandler } })
+    await loaded()
+    await unmount()
+    expect(layoutHandler.deactivate).toHaveBeenCalledOnce()
+  })
+
   test("deactivates the layout handler replaced, and activates the new one", async () => {
     // Instances of a class, as the configs merge a plain object into the one it replaces.
     class Layout implements LayoutHandler {
@@ -136,6 +176,25 @@ describe("resizing", () => {
       height: HEIGHT,
     })
     expect(graph().getPan()).toEqual({ x: pan.x + 50, y: pan.y })
+  })
+
+  test("keeps the view centered as the height changes, from the size before each change", async () => {
+    let panZoom: SvgPanZoomInstance | undefined
+    const { graph, style, events, loaded } = await renderGraph({
+      view: { onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => (panZoom = i) },
+    })
+    await loaded()
+    const pan = graph().getPan()
+
+    style.height = `${HEIGHT + 100}px`
+    await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(1)
+    expect(graph().getPan()).toEqual({ x: pan.x, y: pan.y + 50 })
+    expect(panZoom!.getSizes().height).toBe(HEIGHT + 100)
+
+    style.height = `${HEIGHT + 300}px`
+    await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(2)
+    expect(payloadsOf(events, "view:resize")[1]).toMatchObject({ height: HEIGHT + 300 })
+    expect(graph().getPan()).toEqual({ x: pan.x, y: pan.y + 150 })
   })
 
   test("draws the grid over the new size", async () => {
