@@ -191,6 +191,41 @@ describe("nodes", () => {
     expect(payloadsOf(events, "node:dblclick")).toMatchObject([{ node: "node1" }])
   })
 
+  test("a click on another node right after a click makes no double click", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    pointers.up(1, node1)
+    pointers.down(1, node3)
+    pointers.up(1, node3)
+    expect(payloadsOf(events, "node:dblclick")).toEqual([])
+
+    pointers.down(1, node3)
+    pointers.up(1, node3)
+    expect(payloadsOf(events, "node:dblclick")).toMatchObject([{ node: "node3" }])
+  })
+
+  test("clicks make a double click within 500 ms while another pointer is pressed", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(0)
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+    // Holding it keeps the past clicks from being cleared.
+    pointers.down(9, node2)
+
+    pointers.down(1, node1)
+    pointers.up(1, node1)
+    now.mockReturnValue(501)
+    pointers.down(1, node1)
+    pointers.up(1, node1)
+    expect(payloadsOf(events, "node:dblclick")).toEqual([])
+
+    now.mockReturnValue(1001)
+    pointers.down(1, node1)
+    pointers.up(1, node1)
+    expect(payloadsOf(events, "node:dblclick")).toMatchObject([{ node: "node1" }])
+  })
+
   test("clicks too far apart in time make no double click", async () => {
     const now = vi.spyOn(Date, "now").mockReturnValue(0)
     const { screen, events } = await mountGraph(graph())
