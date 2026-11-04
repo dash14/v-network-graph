@@ -48,6 +48,19 @@ describe("edge selection", () => {
     expect(state.selectedEdges).toEqual(["edge2"])
   })
 
+  test("clicking the background clears the selection", async () => {
+    const { canvas, state } = await mountGraph({
+      nodes,
+      edges,
+      layouts,
+      configs,
+      selectedEdges: ["edge1", "edge2"],
+    })
+
+    await userEvent.click(canvas, { position: at(0, 100) })
+    expect(state.selectedEdges).toEqual([])
+  })
+
   test("selecting an edge clears the selected nodes, and the other way around", async () => {
     const { canvas, state } = await mountGraph({
       nodes,
@@ -117,6 +130,8 @@ describe("edge events", () => {
 
     await userEvent.click(canvas, { position: edge2, button: "right" })
     expect(payloadsOf(events, "edge:contextmenu")).toMatchObject([{ edge: "edge2" }])
+    expect(payloadsOf(events, "edge:pointerdown")).toEqual([])
+    expect(payloadsOf(events, "view:contextmenu")).toEqual([])
   })
 
   test("a cancelled pointer emits pointerup, and the nodes can still be dragged", async () => {
