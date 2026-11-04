@@ -147,8 +147,6 @@ export function makeEdgeInteractionHandlers(
     }
     modes.selectionMode.value = "edge"
 
-    const edges = edge instanceof Array ? edge : [edge]
-
     const isTouchAnySelectedEdge =
       MapUtil.valueOf(state.pointers).filter(p => {
         const edges = p.id instanceof Array ? p.id : [p.id]
@@ -156,15 +154,17 @@ export function makeEdgeInteractionHandlers(
       }).length > 0
 
     if (edge instanceof Array) {
+      // Leave out the edges removed while pressed, which cannot be selected.
+      const edges = edge.filter(edge => edge in edgeStates)
       // select only selectable edge
-      const selectableEdges = edges.find(edge => edgeStates[edge]?.selectable)
+      const selectableEdges = edges.find(edge => edgeStates[edge].selectable)
       if (selectableEdges) {
         if (event.shiftKey || isTouchAnySelectedEdge) {
           if (edges.some(edge => selectedEdges.has(edge))) {
             edges.forEach(edge => selectedEdges.delete(edge))
           } else {
             edges.forEach(edge => {
-              const selectable = edgeStates[edge]?.selectable
+              const selectable = edgeStates[edge].selectable
               if (!(typeof selectable === "number" && selectedEdges.size >= selectable)) {
                 selectedEdges.add(edge)
               }

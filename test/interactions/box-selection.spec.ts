@@ -2,7 +2,7 @@ import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
 import type { Position } from "@/index"
-import { at, drag, mountGraph, payloadsOf } from "../helpers/graph"
+import { at, catchErrors, drag, mountGraph, payloadsOf } from "../helpers/graph"
 
 const nodes = {
   node1: { name: "Node 1" },
@@ -126,18 +126,6 @@ function pointersOnSvg(svg: Element) {
     up: (pointerId: number, position: Position) =>
       dispatch("pointerup", document, pointerId, position),
   }
-}
-
-/** Errors thrown in listeners and timers, which would otherwise only be reported. */
-function catchErrors() {
-  const errors: unknown[] = []
-  const onError = (event: ErrorEvent) => {
-    event.preventDefault()
-    errors.push(event.error)
-  }
-  window.addEventListener("error", onError)
-  onTestFinished(() => window.removeEventListener("error", onError))
-  return errors
 }
 
 const selectionBoxOf = (container: Element) => {
