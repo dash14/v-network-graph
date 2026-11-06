@@ -14,7 +14,8 @@ export function useLabelTextLines(
 ) {
   const { scale } = useZoomLevel()
 
-  const texts = computed(() => props.text.toString().split(/\r?\n/))
+  // `null`, as in the data given to `<v-edge-label>`, is not replaced with the default.
+  const texts = computed(() => String(props.text ?? "").split(/\r?\n/))
 
   const fontSize = computed(() => {
     return givenFontSize() ?? props.config.fontSize * scale.value

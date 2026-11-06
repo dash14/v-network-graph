@@ -52,7 +52,8 @@ export function useNodeLabelPlacement(props: { id: string; state: NodeState }) {
     const positions = toRaw(layouts).nodes
     const oppositeNodes: OppositeNodes = {}
     for (const [edgeId, nodeId] of oppositeNodeIds) {
-      if (nodeId in positions) {
+      // An edge removed in the same tick as the node moves is still in `oppositeNodeIds`.
+      if (nodeId in positions && edgeId in edgeStates) {
         oppositeNodes[edgeId] = { nodeId, pos: copyPosition(currentPositions.of(nodeId)) }
       }
     }

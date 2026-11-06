@@ -137,6 +137,12 @@ describe("calculateEdgeShiftedPosition", () => {
     expect(p.y).toBeCloseTo(p1.y, 3)
   })
 
+  it("should keep the clock order for an unknown keepOrder", () => {
+    const p = shifted({ x: 0, y: 0 }, { x: -100, y: -100 }, "unknown" as "clock").p1
+    expect(p.x).toBeCloseTo(-3.536, 3)
+    expect(p.y).toBeCloseTo(3.536, 3)
+  })
+
   it("should flip an edge pointing left and slightly down away from the origin in vertical order", () => {
     const p = shifted({ x: 100, y: 0 }, { x: 0, y: 1 }, "vertical").p1
     expect(p.x).toBeCloseTo(99.95, 2)

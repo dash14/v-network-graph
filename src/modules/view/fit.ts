@@ -129,7 +129,7 @@ function parseFitContentMarginValue(
         return value
       }
     }
-  } else {
+  } else if (typeof marginValue === "number") {
     return marginValue
   }
   return undefined

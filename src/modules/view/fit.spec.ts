@@ -118,6 +118,20 @@ describe("fit", () => {
       }
     )
 
+    it("should keep the default and warn for a side value that is not a string or a number", () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+      const size: Size = { width: 200, height: 150 }
+      const margin = { top: true } as unknown as FitContentMargin
+      expect(parseFitContentMargin(margin, size)).toStrictEqual({
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      })
+      expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", true)
+      warnSpy.mockRestore()
+    })
+
     it.each(["%", "px"])("should warn for the unit %s without a number", value => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       const size: Size = { width: 200, height: 150 }

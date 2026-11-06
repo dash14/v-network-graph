@@ -1,6 +1,6 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
-import { nextTick } from "vue"
+import { nextTick, watch } from "vue"
 import type { Position } from "@/index"
 import { at, catchErrors, drag, mountGraph, payloadsOf } from "../helpers/graph"
 
@@ -431,6 +431,39 @@ describe("box selection pointers", () => {
     graph.stopBoxSelection()
     await new Promise(resolve => setTimeout(resolve, 150))
     expect(state.selectedNodes).toEqual([])
+  })
+
+  test("the invert type leaves out a selected node removed during the drag", async () => {
+    const errors = catchErrors()
+    const { canvas, graph, state } = await mountGraph({
+      nodes,
+      layouts,
+      configs,
+      selectedNodes: ["node3"],
+    })
+    const pointers = pointersOnSvg(canvas.element())
+    const sent: string[][] = []
+    watch(
+      () => state.selectedNodes,
+      v => sent.push(v),
+      { flush: "sync" }
+    )
+
+    graph.startBoxSelection({ type: "invert" })
+    pointers.down(1, at(-150, -50))
+    pointers.move(1, at(-50, 50))
+    await new Promise(resolve => setTimeout(resolve, 150))
+    delete state.nodes.node3
+    await nextTick()
+    sent.splice(0)
+    pointers.move(1, at(-40, 50))
+    await new Promise(resolve => setTimeout(resolve, 150))
+    pointers.up(1, at(-40, 50))
+    await nextTick()
+
+    expect(errors).toEqual([])
+    expect(state.selectedNodes).toEqual(["node1"])
+    expect(sent.flat()).not.toContain("node3")
   })
 
   test("the pointer moved after a drag in a manual selection changes nothing", async () => {

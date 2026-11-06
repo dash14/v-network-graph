@@ -280,7 +280,7 @@ function calculateLinePosition(
   let diff = (groupWidth / 2 - pointInGroup) * scale
 
   // Adjust the relative position.
-  if (diff !== 0 && keepOrder !== "clock") {
+  if (diff !== 0 && (keepOrder === "vertical" || keepOrder === "horizontal")) {
     const radian = Math.atan2(y2 - y1, x2 - x1)
     if (keepOrder === "vertical") {
       // Keep the vertical alignment of multiple edges.

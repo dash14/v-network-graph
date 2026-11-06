@@ -341,7 +341,8 @@ function _updateNodesSelection(
     // selectionType === "invert"
     const temporary = new Set<string>(selectedNodesAtSelectStarted)
     temporary.forEach(nodeId => {
-      if (enclosedNodes.has(nodeId)) {
+      // Also drops the nodes removed since the selection started.
+      if (enclosedNodes.has(nodeId) || !(nodeId in nodeStates)) {
         temporary.delete(nodeId)
       }
     })

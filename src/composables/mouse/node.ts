@@ -289,6 +289,10 @@ export function makeNodeInteractionHandlers(
     }
 
     // reflect changes while dragging.
+    // No pointerleave comes for a node removed from under the pointer.
+    for (const n of state.hoveredNodesPre) {
+      if (!(n in nodeStates)) state.hoveredNodesPre.delete(n)
+    }
     hoveredNodes.clear()
     state.hoveredNodesPre.forEach(hoveredNodes.add, hoveredNodes)
   }
