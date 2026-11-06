@@ -2,6 +2,6 @@
   "private": true,
   "description": "The pnpm in the image that scripts/test-docker.sh runs the tests in, locked here as no pnpm is there yet to read pnpm-lock.yaml.",
   "devDependencies": {
-    "pnpm": "12.14.0"
+    "pnpm": "12.15.0"
   }
 }
