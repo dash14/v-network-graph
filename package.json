@@ -69,7 +69,7 @@
     "eslint-plugin-vue": "^10.11.1",
     "fast-check": "^4.10.2",
     "lefthook": "^2.1.16",
-    "oxfmt": "^0.73.0",
+    "oxfmt": "^0.74.0",
     "oxlint": "~1.88.0",
     "playwright": "1.64.1",
     "rimraf": "^6.1.3",
