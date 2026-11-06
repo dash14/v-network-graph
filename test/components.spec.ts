@@ -9,7 +9,7 @@ import type {
   VNetworkGraphInstance,
 } from "@/index"
 import type { GraphProps } from "./helpers/graph"
-import { at, mountGraph, payloadsOf } from "./helpers/graph"
+import { at, catchErrors, mountGraph, payloadsOf } from "./helpers/graph"
 
 const graph = (configs: UserConfigs = {}): GraphProps => ({
   nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
@@ -359,6 +359,13 @@ describe("edge labels", () => {
     expect(attrsOf("transform")).toEqual(["rotate(-90 0 50)"])
   })
 
+  test("a label with a null text is drawn empty", async () => {
+    const { screen } = await mountGraph(graph(), {
+      slots: { back: () => h(VEdgeLabel, { area, config, text: null as unknown as string }) },
+    })
+    expect(screen.container.querySelector("text.v-ng-edge-label")?.textContent).toBe("")
+  })
+
   test("a label over its line gets a white background padded by 4 and 1", async () => {
     const { screen } = await mountGraph(graph(), {
       slots: { back: () => h(VEdgeLabel, { area, config, text: "label" }) },
@@ -458,6 +465,19 @@ describe("node labels", () => {
     state.layouts.nodes.node2 = { x: -100, y: 100 }
 
     await expect.poll(() => label.getAttribute("dominant-baseline")).toBe("central")
+  })
+
+  test("a node moved while its self-loop is removed adjusts its label without errors", async () => {
+    const errors = catchErrors()
+    const props = graph({ node: { label: { directionAutoAdjustment: true } } })
+    props.edges!.loop = { source: "node1", target: "node1" }
+    const { state } = await mountGraph(props)
+
+    delete state.edges.loop
+    state.layouts.nodes.node1 = { x: -100, y: 50 }
+    await nextTick()
+    await nextTick()
+    expect(errors).toEqual([])
   })
 
   test("a label to the north-west of a circle node is placed off it along the diagonal", async () => {

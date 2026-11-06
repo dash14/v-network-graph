@@ -208,6 +208,29 @@ describe("view box", () => {
     expect(panZoom!.isDblClickZoomEnabled()).toBe(true)
   })
 
+  test("what onSvgPanZoomInitialized switches off stays off", async () => {
+    let panZoom: SvgPanZoomInstance | undefined
+    await mountGraph({
+      nodes,
+      edges,
+      layouts,
+      configs: {
+        ...configs,
+        view: {
+          onSvgPanZoomInitialized: (i: SvgPanZoomInstance) => {
+            panZoom = i
+            i.disablePan()
+            i.disableDblClickZoom()
+            i.disableMouseWheelZoom()
+          },
+        },
+      },
+    })
+    expect(panZoom!.isPanEnabled()).toBe(false)
+    expect(panZoom!.isDblClickZoomEnabled()).toBe(false)
+    expect(panZoom!.isMouseWheelZoomEnabled()).toBe(false)
+  })
+
   test("panEnabled and zoomEnabled changed while the container has no size apply once it has", async () => {
     let panZoom: SvgPanZoomInstance | undefined
     const style = reactive({ width: "0px", height: "0px" })

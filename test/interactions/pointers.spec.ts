@@ -228,6 +228,31 @@ describe("nodes", () => {
     expect(payloadsOf(events, "node:dragend")).toEqual([])
   })
 
+  test("a node removed while hovered and added again is hovered by the next pointer on it", async () => {
+    const errors = catchErrors()
+    const hover = { normal: { color: "#0000ff" }, hover: { color: "#ff0000" } }
+    const { screen, canvas, state, events } = await mountGraph(graph({ node: hover }))
+    const pointers = pointersOn(screen.container)
+
+    await userEvent.hover(canvas, { position: node1 })
+    delete state.nodes.node1
+    await nextTick()
+    pointers.down(1, node2)
+    pointers.up(1, node2)
+    await nextTick()
+    expect(errors).toEqual([])
+    expect(payloadsOf(events, "node:click")).toMatchObject([{ node: "node2" }])
+
+    state.nodes.node1 = { name: "Node 1" }
+    state.layouts.nodes.node1 = { x: -100, y: 0 }
+    await nextTick()
+    await userEvent.hover(canvas, { position: at(0, 100) })
+    await userEvent.hover(canvas, { position: node1 })
+    await expect
+      .poll(() => elementAt(screen.container, node1)?.getAttribute("fill"))
+      .toBe("#ff0000")
+  })
+
   test("the selected nodes follow the drag after a cancelled one", async () => {
     const props = graph({ node: selectable })
     props.selectedNodes = ["node1", "node3"]

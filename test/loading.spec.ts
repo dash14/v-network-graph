@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest"
+import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { render } from "vitest-browser-vue"
 import { defineComponent, h, nextTick, reactive, ref } from "vue"
 import { VNetworkGraph } from "@/index"
@@ -221,6 +221,23 @@ describe("resizing", () => {
     await new Promise(resolve => setTimeout(resolve, 100))
     expect(payloadsOf(events, "view:resize")).toEqual([])
     expect(graph().getPan()).toEqual(pan)
+  })
+})
+
+describe("without ResizeObserver", () => {
+  // Server-side rendering and jsdom have none.
+  test("a graph loads, and follows no resize", async () => {
+    vi.stubGlobal("ResizeObserver", undefined)
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const { style, events, loaded, unmount } = await renderGraph({})
+    await loaded()
+
+    style.width = `${WIDTH + 100}px`
+    await new Promise(resolve => setTimeout(resolve, 100))
+    expect(payloadsOf(events, "view:resize")).toEqual([])
+    await unmount()
   })
 })
 
