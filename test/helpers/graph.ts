@@ -1,4 +1,5 @@
-import { onTestFinished, vi } from "vitest"
+import { cloneDeepWith, isPlainObject } from "lodash-es"
+import { expect, onTestFinished, vi } from "vitest"
 import { render } from "vitest-browser-vue"
 import { page, userEvent } from "vitest/browser"
 import type { Locator } from "vitest/browser"
@@ -63,7 +64,9 @@ export function fillGraphProps(
     zoomLevel: 1,
     // The graph updates the layouts in place, so each mount gets its own copy.
     ...structuredClone(data),
-    configs,
+    // Tests change the configs of a mount, so its plain objects are copied. Functions and
+    // instances, such as a layout handler, are shared.
+    configs: cloneDeepWith(configs, v => (isPlainObject(v) || Array.isArray(v) ? undefined : v)),
   }
 }
 
@@ -216,14 +219,25 @@ export function pointersOn(container: Element) {
   }
 }
 
-/** Errors thrown in listeners and timers, which would otherwise only be reported. */
+/** Errors thrown in listeners, timers and watchers, which would otherwise only be reported. */
 export function catchErrors() {
   const errors: unknown[] = []
   const onError = (event: ErrorEvent) => {
     event.preventDefault()
     errors.push(event.error)
   }
+  // Vue rethrows an error in a watcher from its scheduler, which runs as a promise job.
+  const onRejection = (event: PromiseRejectionEvent) => {
+    event.preventDefault()
+    errors.push(event.reason)
+  }
   window.addEventListener("error", onError)
-  onTestFinished(() => window.removeEventListener("error", onError))
+  window.addEventListener("unhandledrejection", onRejection)
+  onTestFinished(() => {
+    window.removeEventListener("error", onError)
+    window.removeEventListener("unhandledrejection", onRejection)
+    // A rejection is reported in a later task, which can be after the test checked the errors.
+    expect(errors).toEqual([])
+  })
   return errors
 }
