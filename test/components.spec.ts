@@ -51,12 +51,15 @@ describe("grid", () => {
     const viewport = screen.container.querySelector(".v-ng-viewport")!
     const before = lines(screen.container).map(l => l.getAttribute("d"))
     expect(before.length).toBeGreaterThan(0)
+    const transform = viewport.getAttribute("transform")
 
     instance.panBy({ x: 30, y: 20 })
     instance.zoomIn()
+    // svg-pan-zoom moves the viewport on the next animation frame.
+    await expect.poll(() => viewport.getAttribute("transform")).not.toBe(transform)
     await expect
-      .poll(() => background.getAttribute("transform"))
-      .toBe(viewport.getAttribute("transform"))
+      .poll(() => background.getAttribute("transform") === viewport.getAttribute("transform"))
+      .toBe(true)
     await expect
       .poll(() => lines(screen.container).map(l => l.getAttribute("d")))
       .not.toEqual(before)
@@ -588,12 +591,10 @@ describe("node labels", () => {
     })
 
     await userEvent.hover(label(screen.container))
+    // Depending on the environment, the pointer may enter other nodes on its way.
+    expect(payloadsOf(events, "node:pointerover").at(-1)).toMatchObject({ node: "node1" })
     await userEvent.dblClick(label(screen.container))
     await userEvent.click(label(screen.container), { button: "right" })
-    // How many times the pointer enters differs between environments, so only the node is checked.
-    const nodesOf = (type: "node:pointerover" | "node:pointerout") =>
-      new Set(payloadsOf(events, type).map(p => (p as { node: string }).node))
-    expect(nodesOf("node:pointerover")).toEqual(new Set(["node1"]))
     expect(payloadsOf(events, "node:pointerdown")).toMatchObject([
       { node: "node1" },
       { node: "node1" },
@@ -602,8 +603,9 @@ describe("node labels", () => {
     expect(payloadsOf(events, "node:contextmenu")).toMatchObject([{ node: "node1" }])
     expect(state.selectedNodes).toEqual(["node1"])
 
+    const left = events.length
     await userEvent.hover(screen.container.querySelector("svg")!, { position: at(0, 150) })
-    expect(nodesOf("node:pointerout")).toEqual(new Set(["node1"]))
+    expect(payloadsOf(events.slice(left), "node:pointerout")).toMatchObject([{ node: "node1" }])
   })
 
   test.each([false, true])(

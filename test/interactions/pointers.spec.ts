@@ -246,11 +246,12 @@ describe("nodes", () => {
     state.nodes.node1 = { name: "Node 1" }
     state.layouts.nodes.node1 = { x: -100, y: 0 }
     await nextTick()
-    await userEvent.hover(canvas, { position: at(0, 100) })
-    await userEvent.hover(canvas, { position: node1 })
-    await expect
-      .poll(() => elementAt(screen.container, node1)?.getAttribute("fill"))
-      .toBe("#ff0000")
+    // Sends only the enter event, since moving away first would also drop a node held as hovered.
+    const g = elementAt(screen.container, node1)!.closest(".v-ng-node")!
+    expect(g.classList.contains("hover")).toBe(false)
+    g.dispatchEvent(new PointerEvent("pointerenter"))
+    await nextTick()
+    expect(g.classList.contains("hover")).toBe(true)
   })
 
   test("the selected nodes follow the drag after a cancelled one", async () => {

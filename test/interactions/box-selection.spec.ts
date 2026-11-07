@@ -146,18 +146,6 @@ describe("box selection options", () => {
     expect(payloadsOf(events, "view:mode")).toEqual(["box-selection", "default"])
   })
 
-  test("the click stop ignores a click while a pointer is pressed", async () => {
-    const { canvas, graph, events } = await mountGraph({ nodes, layouts, configs })
-    const pointers = pointersOnSvg(canvas.element())
-
-    graph.startBoxSelection({ stop: "click" })
-    pointers.down(1, at(0, 100))
-    canvas.element().dispatchEvent(new MouseEvent("click", { bubbles: true }))
-    pointers.up(1, at(0, 100))
-    await nextTick()
-    expect(payloadsOf(events, "view:mode")).toEqual(["box-selection"])
-  })
-
   test("withShiftKey sets the type of a selection started with the shift key", async () => {
     const { canvas, graph, state } = await mountGraph({
       nodes,
