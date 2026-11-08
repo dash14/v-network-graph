@@ -160,14 +160,28 @@ describe("calculateEdgeGeometry", () => {
     })
   })
 
-  describe.each(["straight", "curve"] as const)(
-    "%s edges between nodes at the same position",
-    type => {
+  const rect = {
+    type: "rect",
+    width: 32,
+    height: 24,
+    borderRadius: 0,
+    strokeWidth: 0,
+  } as ShapeStyle
+  describe.each([
+    { type: "straight", nodeShape: shape },
+    { type: "curve", nodeShape: shape },
+    { type: "straight", nodeShape: rect },
+    { type: "curve", nodeShape: rect },
+  ] as const)(
+    "$type edges between $nodeShape.type nodes at the same position",
+    ({ type, nodeShape }) => {
       const at = (pointInGroup: number) =>
         calculateEdgeGeometry(
           input({
             type,
             target: { x: 0, y: 0 },
+            sourceShape: nodeShape,
+            targetShape: nodeShape,
             layoutPoint: { edge, pointInGroup, groupWidth: 10 },
             margin: 4,
           })

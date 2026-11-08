@@ -125,7 +125,7 @@ export function calculateEdgeGeometry(input: EdgeGeometryInput): EdgeGeometry {
   }
 
   // calculate the line segments to be displayed with margins applied
-  // No curve passes through nodes at the same position, so the edge is drawn straight.
+  // Nodes at the same position give a curve no direction to bend from, so the edge is drawn straight.
   const isSamePosition = source.x === target.x && source.y === target.y
   if (input.type === "straight" || summarized || isSamePosition) {
     const origin = shiftedPosition
