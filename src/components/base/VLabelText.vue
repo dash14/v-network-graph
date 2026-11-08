@@ -7,7 +7,7 @@ import { useZoomLevel } from "@/composables/zoom"
 
 type Rect = { x: number; y: number; width: number; height: number }
 
-interface Props {
+export interface Props {
   text: string
   x?: number
   y?: number

@@ -2,7 +2,7 @@
 import { AnyShapeStyle } from "@/common/configs"
 import { useShapeAttributes } from "@/composables/shape"
 
-interface Props {
+export interface Props {
   baseX?: number
   baseY?: number
   config: AnyShapeStyle

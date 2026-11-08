@@ -9,5 +9,5 @@
     }
   },
   "include": ["src/**/*.spec.ts", "test/**/*.ts", "test/**/*.vue"],
-  "exclude": []
+  "exclude": ["test/types"]
 }

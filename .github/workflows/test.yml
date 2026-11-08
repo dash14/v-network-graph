@@ -96,8 +96,8 @@ jobs:
           - name: Check formatting
             run: pnpm run format:check
 
-          - name: Build
-            run: pnpm run build
+          - name: Build and type-check the declarations
+            run: pnpm run build && pnpm run test:types
 
           - name: Type-check the tests
             run: pnpm run test:tc
@@ -110,10 +110,6 @@ jobs:
               pnpm exec playwright install --with-deps chromium
               find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/playwright-packages {} +
               pnpm run test:coverage
-
-      # Needs the lib/ that the build writes.
-      - name: Type-check the built declarations
-        run: pnpm run test:types
 
       - name: Publish the coverage summary
         if: ${{ !cancelled() && hashFiles('coverage/summary.txt') != '' }}
