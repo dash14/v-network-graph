@@ -197,6 +197,26 @@ describe("calculateDistancesFromCenterOfNodeToEndOfNode", () => {
       expect(targetMargin).toBeCloseTo(expected, 5)
     }
   )
+
+  it("should measure along a rounded corner toward another node inside the rect", () => {
+    const circle: CircleShapeStyle = { type: "circle", radius: 1, strokeWidth: 0, color: "#fff" }
+    const rect: RectangleShapeStyle = {
+      type: "rect",
+      width: 2,
+      height: 1,
+      borderRadius: 0.4,
+      strokeWidth: 0,
+      color: "#fff",
+    }
+    // The ray toward (0.05, 0.04) leaves the corner circle centered at (0.6, 0.1) near (0.624, 0.499).
+    const [, targetMargin] = v2d.calculateDistancesFromCenterOfNodeToEndOfNode(
+      { x: 0.05, y: 0.04 },
+      { x: 0, y: 0 },
+      circle,
+      rect
+    )
+    expect(targetMargin).toBeCloseTo(0.799228, 5)
+  })
 })
 
 describe("moveOnCircumference", () => {
@@ -544,14 +564,18 @@ describe("properties", () => {
     return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - radius
   }
 
-  it("puts both ends of an edge between rect nodes on their outlines, even when they overlap", () => {
+  it("puts both ends of an edge between rect nodes on their outlines", () => {
+    // About half of the offsets put the center of one node deep inside the other.
+    const near = fc.double({ min: -20, max: 20, noNaN: true })
+    const offset = fc.oneof(position, fc.record({ x: near, y: near }))
     fc.assert(
       fc.property(
         position,
-        position,
+        offset,
         rectShape,
         rectShape,
-        (sourcePos, targetPos, sourceShape, targetShape) => {
+        (sourcePos, offsetPos, sourceShape, targetShape) => {
+          const targetPos = { x: sourcePos.x + offsetPos.x, y: sourcePos.y + offsetPos.y }
           // The nodes may overlap, but their centers must give the edge a direction.
           fc.pre(distance(sourcePos, targetPos) > 1e-3)
           const direction = Vector2D.fromObject(targetPos).subtract(sourcePos).normalize()
