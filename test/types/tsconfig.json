@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "noEmit": true,
+    "paths": {
+      "v-network-graph": ["../../lib/index.d.ts"]
+    }
+  },
+  "files": ["instance.ts"]
+}

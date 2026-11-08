@@ -5,7 +5,7 @@ import { Edge, EdgeLabelArea } from "@/common/types"
 import VText from "@/components/base/VLabelText.vue"
 import { VectorLine } from "@/modules/calculation/line"
 
-interface Props {
+export interface Props {
   area: EdgeLabelArea
   config: EdgeLabelStyle
   text?: string
