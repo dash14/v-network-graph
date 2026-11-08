@@ -127,15 +127,31 @@ export function makeNodeInteractionHandlers(
         : { [pointerState.nodeId]: pointerState.nodeBasePosition }
     const z = zoomLevel.value
 
+    // Leave out the nodes removed during the drag, which the layouts would add back.
     return Object.fromEntries(
-      Object.entries(positions).map(([node, pos]) => [
-        node,
-        {
-          x: pos.x - dx / z,
-          y: pos.y - dy / z,
-        },
-      ])
+      Object.entries(positions)
+        .filter(([node]) => node in nodeStates)
+        .map(([node, pos]) => [
+          node,
+          {
+            x: pos.x - dx / z,
+            y: pos.y - dy / z,
+          },
+        ])
     )
+  }
+
+  function _emitDragEnd(pointerState: NodePointerState, position: Position) {
+    // A node made undraggable during the drag stays where the last move put it.
+    const { x, y } = nodeStates[pointerState.nodeId]?.draggable
+      ? position
+      : pointerState.draggedPosition
+    const draggingNodes = _calculateNodeNewPosition(pointerState, {
+      pointerId: pointerState.pointerId,
+      pageX: x,
+      pageY: y,
+    })
+    emitter.emit("node:dragend", draggingNodes)
   }
 
   function handleNodeClickEvent(node: string, event: MouseEvent) {
@@ -190,7 +206,8 @@ export function makeNodeInteractionHandlers(
       return
     }
 
-    if (pointerState.moveCounter === threshold + 1) {
+    if (!pointerState.isDragging) {
+      pointerState.isDragging = true
       const draggingNodes = _calculateNodeNewPosition(pointerState, {
         pointerId: pointerState.pointerId,
         pageX: pointerState.dragBasePosition.x,
@@ -198,6 +215,7 @@ export function makeNodeInteractionHandlers(
       })
       emitter.emit("node:dragstart", draggingNodes)
     }
+    pointerState.draggedPosition = { x: event.pageX, y: event.pageY }
     const draggingNodes = _calculateNodeNewPosition(pointerState, event)
     emitter.emit("node:pointermove", draggingNodes)
   }
@@ -213,16 +231,9 @@ export function makeNodeInteractionHandlers(
     for (pointerState of state.pointers.values()) {
       const node = pointerState.nodeId
 
-      const threshold = getPointerMoveDetectionThreshold(event.pointerType)
-      const isMoved = pointerState.moveCounter > threshold
-      if (isMoved) {
+      if (pointerState.isDragging) {
         // pageX/Y in cancel event are zero => use latest position
-        const draggingNodes = _calculateNodeNewPosition(pointerState, {
-          pointerId: pointerState.pointerId,
-          pageX: pointerState.latestPosition.x,
-          pageY: pointerState.latestPosition.y,
-        })
-        emitter.emit("node:dragend", draggingNodes)
+        _emitDragEnd(pointerState, pointerState.latestPosition)
       }
       emitter.emit("node:pointerup", { node, event })
     }
@@ -250,15 +261,10 @@ export function makeNodeInteractionHandlers(
 
     const threshold = getPointerMoveDetectionThreshold(event.pointerType)
     const isMoved = pointerState.moveCounter > threshold
-    if (isMoved) {
-      if (nodeStates[pointerState.nodeId]?.draggable) {
-        const draggingNodes = _calculateNodeNewPosition(pointerState, event)
-        emitter.emit("node:dragend", draggingNodes)
-        emitter.emit("node:pointerup", { node, event })
-      }
-    } else {
-      emitter.emit("node:pointerup", { node, event })
+    if (pointerState.isDragging) {
+      _emitDragEnd(pointerState, { x: event.pageX, y: event.pageY })
     }
+    emitter.emit("node:pointerup", { node, event })
 
     // No click while the node is dragged
     if (!isMoved && !isShiftClickOnOtherKind(modes, "node", event)) {
@@ -319,9 +325,11 @@ export function makeNodeInteractionHandlers(
       pointerId: event.pointerId,
       nodeId: node,
       moveCounter: 0,
+      isDragging: false,
       nodeBasePosition: _copyPosition(positionOf(node)),
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
+      draggedPosition: { x: event.pageX, y: event.pageY },
       eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)

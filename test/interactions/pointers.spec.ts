@@ -166,6 +166,31 @@ describe("nodes", () => {
     expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
   })
 
+  test("a press moved on an undraggable node emits pointerup without a drag or a click", async () => {
+    const { screen, events } = await mountGraph(
+      graph({ node: { draggable: false, selectable: true } })
+    )
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    pointers.up(1, at(-100, 50))
+    expect(types(events)).toEqual(["node:pointerdown", "node:pointerup"])
+  })
+
+  test("a press moved on an undraggable node and cancelled emits no dragend", async () => {
+    const { screen, state, events } = await mountGraph(
+      graph({ node: { draggable: false, selectable: true } })
+    )
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    pointers.cancel(1)
+    expect(types(events)).toEqual(["node:pointerdown", "node:pointerup"])
+    expect(state.layouts.nodes.node1).toEqual({ x: -100, y: 0 })
+  })
+
   test("a touch takes more moves than a mouse to start a drag", async () => {
     const { screen, events } = await mountGraph(graph())
     const pointers = pointersOn(screen.container)
@@ -212,6 +237,23 @@ describe("nodes", () => {
     ])
   })
 
+  test("a node made undraggable during its drag ends where the last move put it", async () => {
+    const { screen, state, events } = await mountGraph(
+      graph({ node: { selectable: true, draggable: node => !node.locked } })
+    )
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    state.nodes.node1.locked = true
+    await nextTick()
+    moveTo(pointers, 1, at(-100, 50), at(-100, 100))
+    pointers.up(1, at(-100, 100))
+
+    expect(payloadsOf(events, "node:dragend")).toEqual([{ node1: { x: -100, y: 50 } }])
+    expect(state.layouts.nodes.node1).toEqual({ x: -100, y: 50 })
+  })
+
   test("a node removed during its drag is released without errors", async () => {
     const errors = catchErrors()
     const { screen, state, events } = await mountGraph(graph())
@@ -225,7 +267,10 @@ describe("nodes", () => {
     pointers.up(1, at(-100, 100))
 
     expect(errors).toEqual([])
-    expect(payloadsOf(events, "node:dragend")).toEqual([])
+    // The drag still ends, for the nodes left.
+    expect(payloadsOf(events, "node:dragend")).toEqual([{}])
+    expect(payloadsOf(events, "node:pointerup")).toMatchObject([{ node: "node1" }])
+    expect(state.layouts.nodes.node1).toBeUndefined()
   })
 
   test("a node removed while hovered and added again is hovered by the next pointer on it", async () => {
