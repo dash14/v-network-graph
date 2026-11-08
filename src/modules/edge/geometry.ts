@@ -125,7 +125,9 @@ export function calculateEdgeGeometry(input: EdgeGeometryInput): EdgeGeometry {
   }
 
   // calculate the line segments to be displayed with margins applied
-  if (input.type === "straight" || summarized) {
+  // No curve passes through nodes at the same position, so the edge is drawn straight.
+  const isSamePosition = source.x === target.x && source.y === target.y
+  if (input.type === "straight" || summarized || isSamePosition) {
     const origin = shiftedPosition
     const position =
       sourceMargin === 0 && targetMargin === 0
@@ -355,9 +357,7 @@ function calculateCurveGeometry(
   let position: LinePosition
   let curve: Curve | undefined = undefined
 
-  if (radius === 0) {
-    return [originPosition, curve]
-  } else if (shift === 0) {
+  if (shift === 0) {
     // The line connecting the centers of the nodes is regarded as a straight line.
     if (sourceMargin === 0 && targetMargin === 0) {
       position = originPosition

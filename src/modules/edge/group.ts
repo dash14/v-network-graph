@@ -296,7 +296,8 @@ function calculateLinePosition(
     }
   }
 
-  if (dx === 0) {
+  // An edge between nodes at the same position is drawn horizontally, so it is shifted vertically.
+  if (dx === 0 && dy !== 0) {
     const sign = dy < 0 ? -1 : 1
     return [x1 + diff * sign, y1, x2 + diff * sign, y2]
   } else if (dy === 0) {

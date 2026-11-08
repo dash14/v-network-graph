@@ -111,8 +111,11 @@ describe("calculateEdgeShiftedPosition", () => {
     expect(shifted({ x: 10, y: 0 }, target).p1).toEqual(p1)
   })
 
-  it("should shift an edge between nodes at the same position sideways", () => {
-    expect(shifted({ x: 10, y: 0 }, { x: 10, y: 0 }).p1).toEqual({ x: 15, y: 0 })
+  it("should shift an edge between nodes at the same position across its horizontal line", () => {
+    expect(shifted({ x: 10, y: 0 }, { x: 10, y: 0 })).toEqual({
+      p1: { x: 10, y: -5 },
+      p2: { x: 10, y: -5 },
+    })
   })
 
   it("should scale the shift", () => {

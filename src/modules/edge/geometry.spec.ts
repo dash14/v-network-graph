@@ -160,6 +160,32 @@ describe("calculateEdgeGeometry", () => {
     })
   })
 
+  describe.each(["straight", "curve"] as const)(
+    "%s edges between nodes at the same position",
+    type => {
+      const at = (pointInGroup: number) =>
+        calculateEdgeGeometry(
+          input({
+            type,
+            target: { x: 0, y: 0 },
+            layoutPoint: { edge, pointInGroup, groupWidth: 10 },
+            margin: 4,
+          })
+        )
+
+      it("should be drawn as parallel horizontal lines", () => {
+        const [first, second] = [at(0), at(10)]
+
+        expect([first.curve, second.curve]).toEqual([undefined, undefined])
+        for (const { position } of [first, second]) {
+          expect(position.p1.y).toBe(position.p2.y)
+          expect(position.p1.x).not.toBeCloseTo(position.p2.x)
+        }
+        expect([first.position.p1.y, second.position.p1.y]).toEqual([-5, 5])
+      })
+    }
+  )
+
   describe("curved edge", () => {
     const layoutPoint = { edge, pointInGroup: 0, groupWidth: 4 }
 
