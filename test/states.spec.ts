@@ -3,7 +3,7 @@ import { render } from "vitest-browser-vue"
 import { userEvent } from "vitest/browser"
 import { h, markRaw, nextTick, ref } from "vue"
 import { VNetworkGraph } from "@/index"
-import type { InputPaths, Node, Paths, ZOrderConfig } from "@/index"
+import type { InputPaths, Node, Path, Paths, ZOrderConfig } from "@/index"
 import type { GraphProps } from "./helpers/graph"
 import { at, catchErrors, mountGraph, payloadsOf } from "./helpers/graph"
 
@@ -262,26 +262,36 @@ describe("paths given as an array", () => {
 
   test("without ids keep the ids made for them, with a warning", async () => {
     const warn = silenceWarnings()
-    const path1 = { edges: ["edge1", "edge2"] }
-    const path2 = { edges: ["edge2"] }
     const props = graph()
-    props.paths = [path1, path2] as InputPaths
-    props.configs = { path: { visible: true, selectable: true } }
+    props.paths = [{ edges: ["edge1", "edge2"] }, { edges: ["edge2"] }] as InputPaths
+    props.configs = {
+      path: {
+        visible: true,
+        selectable: true,
+        normal: { color: "#0000ff" },
+        selected: { color: "#ff0000" },
+      },
+    }
     const { screen, state } = await mountGraph(props)
     expect(warn).toHaveBeenCalledOnce()
-    expect(screen.container.querySelectorAll(".v-ng-path")).toHaveLength(2)
+    const strokes = () =>
+      Array.from(screen.container.querySelectorAll(".v-ng-path"), e => e.getAttribute("stroke"))
+    expect(strokes()).toHaveLength(2)
+    // The mount copies the data, so the paths the graph holds are these.
+    const [path1, path2] = state.paths as Path[]
 
     // path1 keeps its id, which stays selected.
     state.selectedPaths = ["path-1"]
-    state.paths = [path1] as InputPaths
     await nextTick()
-    expect(screen.container.querySelectorAll(".v-ng-path")).toHaveLength(1)
+    state.paths = [path1]
+    await nextTick()
+    expect(strokes()).toEqual(["#ff0000"])
     expect(state.selectedPaths).toEqual(["path-1"])
 
-    // path2 given again gets a new id.
-    state.paths = [path1, path2] as InputPaths
+    // path2 given again gets a new id, and path1 still has its own.
+    state.paths = [path1, path2]
     await nextTick()
-    expect(screen.container.querySelectorAll(".v-ng-path")).toHaveLength(2)
+    expect(strokes()).toEqual(["#ff0000", "#0000ff"])
     expect(warn).toHaveBeenCalledOnce()
   })
 })
