@@ -140,9 +140,9 @@ export function makeEdgeInteractionHandlers(
   }
 
   // Leaves out the edges removed while pressed, which have no state.
-  function selectableOf(edge: string | string[]): string[] {
+  function existingOf(edge: string | string[]): string[] {
     const edges = edge instanceof Array ? edge : [edge]
-    return edges.filter(edge => edgeStates[edge]?.selectable)
+    return edges.filter(edge => edge in edgeStates)
   }
 
   function handleEdgeClickEvent(edge: string | string[], event: MouseEvent) {
@@ -153,27 +153,30 @@ export function makeEdgeInteractionHandlers(
 
     modes.selectionMode.value = "edge"
 
-    const isTouchAnySelectedEdge =
-      MapUtil.valueOf(state.pointers).filter(p => {
-        const edges = selectableOf(p.id)
-        return edges.length > 0 && edges.every(edge => selectedEdges.has(edge))
-      }).length > 0
+    // Edges count as selected when no more of them can be selected.
+    const isSelected = (edges: string[]) =>
+      edges.some(edge => selectedEdges.has(edge)) &&
+      edges.every(edge => selectedEdges.has(edge) || !edgeStates[edge].selectable)
 
-    // A summarized edge is selected as a whole, so only when all of it fits within the limit.
-    const edges = selectableOf(edge)
-    if (edges.length > 0) {
-      const selectable = edgeStates[edges[0]].selectable
+    const isTouchAnySelectedEdge =
+      MapUtil.valueOf(state.pointers).filter(p => isSelected(existingOf(p.id))).length > 0
+
+    // A summarized edge is selected as a whole while the limit has room, even if it then goes over.
+    const edges = existingOf(edge)
+    const selectableEdges = edges.filter(edge => edgeStates[edge].selectable)
+    if (selectableEdges.length > 0) {
+      const selectable = edgeStates[selectableEdges[0]].selectable
       const limit = typeof selectable === "number" ? selectable : Infinity
       if (event.shiftKey || isTouchAnySelectedEdge) {
         if (edges.some(edge => selectedEdges.has(edge))) {
           edges.forEach(edge => selectedEdges.delete(edge))
-        } else if (selectedEdges.size + edges.length <= limit) {
-          edges.forEach(edge => selectedEdges.add(edge))
+        } else if (selectedEdges.size < limit) {
+          selectableEdges.forEach(edge => selectedEdges.add(edge))
         }
-      } else if (!edges.every(edge => selectedEdges.has(edge)) && edges.length <= limit) {
+      } else if (!isSelected(edges)) {
         // make the selectedEdges the clicked ones
         selectedEdges.clear()
-        edges.forEach(edge => selectedEdges.add(edge))
+        selectableEdges.forEach(edge => selectedEdges.add(edge))
       }
     }
     emitter.emit("edge:click", _makeEdgeEventObject(edge, event))
