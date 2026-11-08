@@ -1,5 +1,5 @@
 import type { Ref } from "vue"
-import { ref, watchEffect } from "vue"
+import { ref, shallowRef, watchEffect } from "vue"
 import type { InputPaths, Path } from "@/common/types"
 
 export interface UseTranslatePathsToObjectReturn {
@@ -8,7 +8,8 @@ export interface UseTranslatePathsToObjectReturn {
 }
 
 export function useTranslatePathsToObject(input: Ref<InputPaths>): UseTranslatePathsToObjectReturn {
-  const objects = ref<Record<string, Path>>({})
+  // Shallow, so that paths given as an object are passed on as they are, like nodes and edges.
+  const objects = shallowRef<Record<string, Path>>({})
 
   const isInCompatibilityModeForPath = ref(false)
   let nextId = 1

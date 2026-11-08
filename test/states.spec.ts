@@ -1,6 +1,8 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
+import { render } from "vitest-browser-vue"
 import { userEvent } from "vitest/browser"
-import { h, markRaw, nextTick } from "vue"
+import { h, markRaw, nextTick, ref } from "vue"
+import { VNetworkGraph } from "@/index"
 import type { InputPaths, Node, Paths, ZOrderConfig } from "@/index"
 import type { GraphProps } from "./helpers/graph"
 import { at, catchErrors, mountGraph, payloadsOf } from "./helpers/graph"
@@ -136,6 +138,47 @@ describe("selection", () => {
       expect(payloadsOf(events, `${kind.slice(0, -1)}:select` as "node:select")).toEqual([
         [existing],
       ])
+      expect(errors).toEqual([])
+    }
+  )
+  test.each([
+    { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
+    {
+      kind: "edges",
+      selection: "selectedEdges",
+      id: "edge3",
+      object: { source: "node1", target: "node3" },
+    },
+    { kind: "paths", selection: "selectedPaths", id: "path2", object: { edges: ["edge2"] } },
+  ] as const)(
+    "drops a selected ID of $kind added in place to a plain object",
+    async ({ kind, selection, id, object }) => {
+      const errors = catchErrors()
+      // Plain objects, which the graph gets as they are.
+      const data: Record<string, Record<string, any>> = {
+        ...graph(),
+        paths: { path1: { edges: ["edge1"] } },
+      }
+      const selected = ref<string[]>([])
+      const screen = await render(() =>
+        h(VNetworkGraph, {
+          ...data,
+          configs: {
+            node: { selectable: true },
+            edge: { selectable: true },
+            path: { visible: true, selectable: true },
+          },
+          [selection]: selected.value,
+          [`onUpdate:${selection}`]: (v: string[]) => (selected.value = v),
+        })
+      )
+      await expect.poll(() => screen.container.querySelector(".v-ng-path")).not.toBeNull()
+
+      data[kind][id] = object
+      const existing = Object.keys(data[kind])[0]
+      selected.value = [existing, id]
+      await vi.waitUntil(() => selected.value.length === 1)
+      expect(selected.value).toEqual([existing])
       expect(errors).toEqual([])
     }
   )
