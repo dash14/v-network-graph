@@ -527,8 +527,34 @@ describe("calculatePathPoints", () => {
       }
     )
 
+    it("should take the margin along a counterclockwise loop", () => {
+      const counterclockwise = { ...selfLoop, isClockwise: false }
+      const edges: EdgeSpec[] = [
+        ["L", "n1", "n1", { selfLoop: counterclockwise }],
+        ["E1", "n1", "n2"],
+      ]
+      const points = pointsOf(nodes, edges, { margin: 6 })
+      expectClose(points[0], v2d.moveOnCircumference(entry, center, -6 / 12))
+      expect(points[1]).toMatch(/^A 12 12 0 1 0 /)
+      expectClose(arcEnd(points[1]), exit)
+    })
+
+    it("should take the margin along a loop apart from the node", () => {
+      // The loop circle (center (-42, 0)) does not reach the node, so its ends lie 1 degree on
+      // either side of (-30, 0).
+      const apart = { ...selfLoop, offset: 30 }
+      const edges: EdgeSpec[] = [
+        ["L", "n1", "n1", { selfLoop: apart }],
+        ["E1", "n1", "n2"],
+      ]
+      const [start, arc] = pointsOf(nodes, edges)
+      const [shortened] = pointsOf(nodes, edges, { margin: 6 })
+      expect(arc).toMatch(/^A 12 12 0 1 1 /)
+      expectClose(shortened, v2d.moveOnCircumference(start as Position, { x: -42, y: 0 }, 6 / 12))
+    })
+
     it("should take the margins at both ends of a path of a single loop", () => {
-      // 56.5 of the loop is outside the node, so 36.5 remains: a small arc.
+      // 56.5 of the loop lies outside the node, and margins of 10 at both ends leave a small arc.
       const points = pointsOf(nodes, [["L", "n1", "n1", { selfLoop }]], { margin: 10 })
       expect(points).toHaveLength(2)
       expectClose(points[0], v2d.moveOnCircumference(exit, center, 10 / 12))

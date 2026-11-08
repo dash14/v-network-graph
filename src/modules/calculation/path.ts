@@ -507,7 +507,8 @@ function _getSlope(pos: VectorLine) {
 
 /**
  * The arc of a loop, shortened along the loop by the margins at its start and end.
- * Without an arc, when the margins use up the loop, both points are the end not taken by a margin.
+ * When the margins use up the loop, there is no arc, and both points are its start if its end has
+ * a margin, or else its end.
  */
 function _makeArcString(
   nodePos: Vector2D,
@@ -531,7 +532,7 @@ function _makeArcString(
   const sweep = ((isClockwise ? angle : 360 - angle) * Math.PI) / 180
   const startRad = Math.max(startMargin, 0) / rx
   const endRad = Math.max(endMargin, 0) / rx
-  if (startRad + endRad >= sweep) {
+  if (startRad + endRad > 0 && startRad + endRad >= sweep) {
     const p = endRad > 0 ? end1 : end2
     return [p, p, undefined]
   }
