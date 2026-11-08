@@ -250,15 +250,11 @@ export function makeNodeInteractionHandlers(
 
     const threshold = getPointerMoveDetectionThreshold(event.pointerType)
     const isMoved = pointerState.moveCounter > threshold
-    if (isMoved) {
-      if (nodeStates[pointerState.nodeId]?.draggable) {
-        const draggingNodes = _calculateNodeNewPosition(pointerState, event)
-        emitter.emit("node:dragend", draggingNodes)
-        emitter.emit("node:pointerup", { node, event })
-      }
-    } else {
-      emitter.emit("node:pointerup", { node, event })
+    if (isMoved && nodeStates[pointerState.nodeId]?.draggable) {
+      const draggingNodes = _calculateNodeNewPosition(pointerState, event)
+      emitter.emit("node:dragend", draggingNodes)
     }
+    emitter.emit("node:pointerup", { node, event })
 
     // No click while the node is dragged
     if (!isMoved && !isShiftClickOnOtherKind(modes, "node", event)) {

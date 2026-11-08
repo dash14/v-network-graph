@@ -166,6 +166,32 @@ describe("nodes", () => {
     expect(payloadsOf(events, "node:dragstart")).toHaveLength(1)
   })
 
+  test("a press moved on an undraggable node emits pointerup without a drag or a click", async () => {
+    const { screen, events } = await mountGraph(
+      graph({ node: { draggable: false, selectable: true } })
+    )
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    pointers.up(1, at(-100, 50))
+    expect(types(events)).toEqual(["node:pointerdown", "node:pointerup"])
+  })
+
+  test("a drag of a node removed meanwhile ends with pointerup and no dragend", async () => {
+    const { screen, state, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    delete state.nodes.node1
+    await nextTick()
+    events.splice(0)
+    pointers.up(1, at(-100, 50))
+    expect(types(events)).toEqual(["node:pointerup"])
+    expect(payloadsOf(events, "node:pointerup")).toMatchObject([{ node: "node1" }])
+  })
+
   test("a touch takes more moves than a mouse to start a drag", async () => {
     const { screen, events } = await mountGraph(graph())
     const pointers = pointersOn(screen.container)
