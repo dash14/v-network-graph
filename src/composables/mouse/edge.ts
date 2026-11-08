@@ -170,7 +170,7 @@ export function makeEdgeInteractionHandlers(
               }
             })
           }
-        } else {
+        } else if (!edges.every(edge => selectedEdges.has(edge))) {
           // make the selectedEdges the clicked summarized one
           selectedEdges.clear()
           edges.forEach(edge => selectedEdges.add(edge))
