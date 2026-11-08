@@ -1,9 +1,11 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
+import { render } from "vitest-browser-vue"
 import { userEvent } from "vitest/browser"
-import { h, nextTick } from "vue"
+import { h, markRaw, nextTick, ref } from "vue"
+import { VNetworkGraph } from "@/index"
 import type { InputPaths, Node, Paths, ZOrderConfig } from "@/index"
 import type { GraphProps } from "./helpers/graph"
-import { at, mountGraph } from "./helpers/graph"
+import { at, catchErrors, mountGraph, payloadsOf } from "./helpers/graph"
 
 const graph = (): GraphProps => ({
   nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" }, node3: { name: "Node 3" } },
@@ -77,11 +79,23 @@ describe("z-order", () => {
   })
 })
 
+// Objects added in place to data the graph does not track, with the ID to select.
+const addedInPlace = [
+  { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
+  {
+    kind: "edges",
+    selection: "selectedEdges",
+    id: "edge3",
+    object: { source: "node1", target: "node3" },
+  },
+  { kind: "paths", selection: "selectedPaths", id: "path2", object: { edges: ["edge2"] } },
+] as const
+
 describe("selection", () => {
   test("a selection may name a node that does not exist", async () => {
     const props = graph()
     props.configs = { node: { selectable: true } }
-    props.selectedNodes = ["node1", "unknown"]
+    props.selectedNodes = ["node1", "unknown", "constructor"]
     const { screen, state } = await mountGraph(props)
     expect(screen.container.querySelectorAll(".v-ng-node.selected")).toHaveLength(1)
 
@@ -89,6 +103,86 @@ describe("selection", () => {
     await nextTick()
     expect(screen.container.querySelectorAll(".v-ng-node.selected")).toHaveLength(0)
   })
+
+  test("takes a node added and selected in the same tick", async () => {
+    const props = graph()
+    props.configs = { node: { selectable: true } }
+    const { screen, state } = await mountGraph(props)
+
+    state.nodes.node4 = { name: "Node 4" }
+    state.selectedNodes = ["node4"]
+    await expect
+      .poll(() => screen.container.querySelectorAll(".v-ng-node.selected"))
+      .toHaveLength(1)
+    expect(state.selectedNodes).toEqual(["node4"])
+  })
+
+  test.each(addedInPlace)(
+    "drops a selected ID of $kind added in place without reactivity",
+    async ({ kind, selection, id, object }) => {
+      const errors = catchErrors()
+      const props = graph()
+      props.paths = { path1: { edges: ["edge1"] } }
+      props.configs = {
+        node: { selectable: true },
+        edge: { selectable: true },
+        path: { visible: true, selectable: true },
+      }
+      const { state, events } = await mountGraph(props)
+      const raw: Record<string, any> = markRaw({ ...state[kind] })
+      state[kind] = raw
+      await nextTick()
+
+      raw[id] = object
+      const existing = Object.keys(state[kind])[0]
+      state[selection] = [existing, id]
+      await vi.waitUntil(() => state[selection].length === 1)
+      expect(state[selection]).toEqual([existing])
+      expect(payloadsOf(events, `${kind.slice(0, -1)}:select` as "node:select")).toEqual([
+        [existing],
+      ])
+      expect(errors).toEqual([])
+    }
+  )
+
+  test.each(addedInPlace)(
+    "drops a selected ID of $kind added in place to a plain object",
+    async ({ kind, selection, id, object }) => {
+      const errors = catchErrors()
+      // Plain objects, which the graph gets as they are.
+      const { nodes, edges, layouts } = graph()
+      const data: Record<string, Record<string, any>> = {
+        nodes,
+        edges: edges!,
+        paths: { path1: { edges: ["edge1"] } },
+        layouts,
+      }
+      const selected = ref<string[]>([])
+      const selectEvents: string[][] = []
+      const screen = await render(() =>
+        h(VNetworkGraph, {
+          ...data,
+          configs: {
+            node: { selectable: true },
+            edge: { selectable: true },
+            path: { visible: true, selectable: true },
+          },
+          [selection]: selected.value,
+          [`onUpdate:${selection}`]: (v: string[]) => (selected.value = v),
+          eventHandlers: { [`${kind.slice(0, -1)}:select`]: (v: string[]) => selectEvents.push(v) },
+        })
+      )
+      await expect.poll(() => screen.container.querySelector(".v-ng-path")).not.toBeNull()
+
+      data[kind][id] = object
+      const existing = Object.keys(data[kind])[0]
+      selected.value = [existing, id]
+      await vi.waitUntil(() => selected.value.length === 1)
+      expect(selected.value).toEqual([existing])
+      expect(selectEvents).toEqual([[existing]])
+      expect(errors).toEqual([])
+    }
+  )
 })
 
 describe("removal", () => {

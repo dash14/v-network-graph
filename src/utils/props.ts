@@ -1,5 +1,5 @@
 import { isEqual } from "lodash-es"
-import { watch, reactive, ref, Ref } from "vue"
+import { isReactive, watch, reactive, ref, Ref } from "vue"
 import { Reactive } from "../common/common"
 
 export function bindProp<T extends object, K extends keyof T>(
@@ -45,13 +45,22 @@ export function bindPropKeySet<T extends object, K extends string & KeysOfType<T
   // Generate two-way bindings for a given prop.
   // Assumes that the specified prop indicates the key of the object.
   const bound = reactive<Set<string>>(new Set())
+  // The graph knows only the keys that non-reactive data had when it was given, so a key added
+  // to it in place later is not taken.
+  let givenKeys: Set<string> | undefined
+  watch(sourceObject, v => (givenKeys = isReactive(v) ? undefined : new Set(Object.keys(v))), {
+    immediate: true,
+    flush: "sync",
+  })
+  const has = (key: string) =>
+    givenKeys?.has(key) ?? Object.prototype.hasOwnProperty.call(sourceObject.value, key)
   watch(
     () => props[name],
     () => {
       // Since it is not recognized as a string[] by type checking,
       // use any for now.
       const prop: string[] = props[name] as any
-      const filtered = prop.filter(n => n in sourceObject.value)
+      const filtered = prop.filter(has)
       if (!isEqual(filtered, Array.from(bound))) {
         bound.clear()
         filtered.forEach(bound.add, bound)
