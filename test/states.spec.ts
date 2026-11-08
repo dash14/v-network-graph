@@ -281,15 +281,16 @@ describe("paths given as an array", () => {
     const [path1, path2] = state.paths as Path[]
 
     // path1 keeps its id, which stays selected.
-    state.selectedPaths = ["path-1"]
+    state.selectedPaths = ["path-1", "path-2"]
     await nextTick()
     state.paths = [path1]
     await nextTick()
     expect(strokes()).toEqual(["#ff0000"])
     expect(state.selectedPaths).toEqual(["path-1"])
 
-    // path2 given again gets a new id, and path1 still has its own.
+    // path2 given again gets a new id, so its old one selects nothing.
     state.paths = [path1, path2]
+    state.selectedPaths = ["path-1", "path-2"]
     await nextTick()
     expect(strokes()).toEqual(["#ff0000", "#0000ff"])
     expect(warn).toHaveBeenCalledOnce()
