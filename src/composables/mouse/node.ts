@@ -127,22 +127,31 @@ export function makeNodeInteractionHandlers(
         : { [pointerState.nodeId]: pointerState.nodeBasePosition }
     const z = zoomLevel.value
 
+    // Leave out the nodes removed during the drag, which the layouts would add back.
     return Object.fromEntries(
-      Object.entries(positions).map(([node, pos]) => [
-        node,
-        {
-          x: pos.x - dx / z,
-          y: pos.y - dy / z,
-        },
-      ])
+      Object.entries(positions)
+        .filter(([node]) => node in nodeStates)
+        .map(([node, pos]) => [
+          node,
+          {
+            x: pos.x - dx / z,
+            y: pos.y - dy / z,
+          },
+        ])
     )
   }
 
-  // Leaves out the nodes removed during the drag, which the layout would add back.
-  function _emitDragEnd(pointerState: NodePointerState, event: PointerPosition) {
-    const draggingNodes = _calculateNodeNewPosition(pointerState, event)
-    const nodes = Object.entries(draggingNodes).filter(([node]) => node in nodeStates)
-    emitter.emit("node:dragend", Object.fromEntries(nodes))
+  function _emitDragEnd(pointerState: NodePointerState, position: Position) {
+    // A node made undraggable during the drag stays where the last move put it.
+    const { x, y } = nodeStates[pointerState.nodeId]?.draggable
+      ? position
+      : pointerState.draggedPosition
+    const draggingNodes = _calculateNodeNewPosition(pointerState, {
+      pointerId: pointerState.pointerId,
+      pageX: x,
+      pageY: y,
+    })
+    emitter.emit("node:dragend", draggingNodes)
   }
 
   function handleNodeClickEvent(node: string, event: MouseEvent) {
@@ -206,6 +215,7 @@ export function makeNodeInteractionHandlers(
       })
       emitter.emit("node:dragstart", draggingNodes)
     }
+    pointerState.draggedPosition = { x: event.pageX, y: event.pageY }
     const draggingNodes = _calculateNodeNewPosition(pointerState, event)
     emitter.emit("node:pointermove", draggingNodes)
   }
@@ -223,11 +233,7 @@ export function makeNodeInteractionHandlers(
 
       if (pointerState.isDragging) {
         // pageX/Y in cancel event are zero => use latest position
-        _emitDragEnd(pointerState, {
-          pointerId: pointerState.pointerId,
-          pageX: pointerState.latestPosition.x,
-          pageY: pointerState.latestPosition.y,
-        })
+        _emitDragEnd(pointerState, pointerState.latestPosition)
       }
       emitter.emit("node:pointerup", { node, event })
     }
@@ -256,7 +262,7 @@ export function makeNodeInteractionHandlers(
     const threshold = getPointerMoveDetectionThreshold(event.pointerType)
     const isMoved = pointerState.moveCounter > threshold
     if (pointerState.isDragging) {
-      _emitDragEnd(pointerState, event)
+      _emitDragEnd(pointerState, { x: event.pageX, y: event.pageY })
     }
     emitter.emit("node:pointerup", { node, event })
 
@@ -323,6 +329,7 @@ export function makeNodeInteractionHandlers(
       nodeBasePosition: _copyPosition(positionOf(node)),
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
+      draggedPosition: { x: event.pageX, y: event.pageY },
       eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)

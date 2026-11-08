@@ -16,6 +16,7 @@ export interface NodePointerState {
   dragBasePosition: Position // drag started position
   nodeBasePosition: Position // node position at drag started
   latestPosition: Position // latest position
+  draggedPosition: Position // position of the last pointermove emitted
   eventTarget: EventTarget | null // event target
 }
 

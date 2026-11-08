@@ -237,6 +237,23 @@ describe("nodes", () => {
     ])
   })
 
+  test("a node made undraggable during its drag ends where the last move put it", async () => {
+    const { screen, state, events } = await mountGraph(
+      graph({ node: { selectable: true, draggable: node => !node.locked } })
+    )
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    state.nodes.node1.locked = true
+    await nextTick()
+    moveTo(pointers, 1, at(-100, 50), at(-100, 100))
+    pointers.up(1, at(-100, 100))
+
+    expect(payloadsOf(events, "node:dragend")).toEqual([{ node1: { x: -100, y: 50 } }])
+    expect(state.layouts.nodes.node1).toEqual({ x: -100, y: 50 })
+  })
+
   test("a node removed during its drag is released without errors", async () => {
     const errors = catchErrors()
     const { screen, state, events } = await mountGraph(graph())
