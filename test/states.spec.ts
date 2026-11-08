@@ -3,7 +3,7 @@ import { userEvent } from "vitest/browser"
 import { h, markRaw, nextTick } from "vue"
 import type { InputPaths, Node, Paths, ZOrderConfig } from "@/index"
 import type { GraphProps } from "./helpers/graph"
-import { at, catchErrors, mountGraph } from "./helpers/graph"
+import { at, catchErrors, mountGraph, payloadsOf } from "./helpers/graph"
 
 const graph = (): GraphProps => ({
   nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" }, node3: { name: "Node 3" } },
@@ -90,6 +90,19 @@ describe("selection", () => {
     expect(screen.container.querySelectorAll(".v-ng-node.selected")).toHaveLength(0)
   })
 
+  test("takes a node added and selected in the same tick", async () => {
+    const props = graph()
+    props.configs = { node: { selectable: true } }
+    const { screen, state } = await mountGraph(props)
+
+    state.nodes.node4 = { name: "Node 4" }
+    state.selectedNodes = ["node4"]
+    await expect
+      .poll(() => screen.container.querySelectorAll(".v-ng-node.selected"))
+      .toHaveLength(1)
+    expect(state.selectedNodes).toEqual(["node4"])
+  })
+
   test.each([
     { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
     {
@@ -110,7 +123,7 @@ describe("selection", () => {
         edge: { selectable: true },
         path: { visible: true, selectable: true },
       }
-      const { state } = await mountGraph(props)
+      const { state, events } = await mountGraph(props)
       const raw: Record<string, any> = markRaw({ ...state[kind] })
       state[kind] = raw
       await nextTick()
@@ -120,6 +133,9 @@ describe("selection", () => {
       state[selection] = [existing, id]
       await vi.waitUntil(() => state[selection].length === 1)
       expect(state[selection]).toEqual([existing])
+      expect(payloadsOf(events, `${kind.slice(0, -1)}:select` as "node:select")).toEqual([
+        [existing],
+      ])
       expect(errors).toEqual([])
     }
   )
