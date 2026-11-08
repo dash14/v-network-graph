@@ -52,7 +52,8 @@ export function bindPropKeySet<T extends object, K extends string & KeysOfType<T
     immediate: true,
     flush: "sync",
   })
-  const has = (key: string) => givenKeys?.has(key) ?? key in sourceObject.value
+  const has = (key: string) =>
+    givenKeys?.has(key) ?? Object.prototype.hasOwnProperty.call(sourceObject.value, key)
   watch(
     () => props[name],
     () => {

@@ -79,11 +79,23 @@ describe("z-order", () => {
   })
 })
 
+// Objects added in place to data the graph does not track, with the ID to select.
+const addedInPlace = [
+  { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
+  {
+    kind: "edges",
+    selection: "selectedEdges",
+    id: "edge3",
+    object: { source: "node1", target: "node3" },
+  },
+  { kind: "paths", selection: "selectedPaths", id: "path2", object: { edges: ["edge2"] } },
+] as const
+
 describe("selection", () => {
   test("a selection may name a node that does not exist", async () => {
     const props = graph()
     props.configs = { node: { selectable: true } }
-    props.selectedNodes = ["node1", "unknown"]
+    props.selectedNodes = ["node1", "unknown", "constructor"]
     const { screen, state } = await mountGraph(props)
     expect(screen.container.querySelectorAll(".v-ng-node.selected")).toHaveLength(1)
 
@@ -105,16 +117,7 @@ describe("selection", () => {
     expect(state.selectedNodes).toEqual(["node4"])
   })
 
-  test.each([
-    { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
-    {
-      kind: "edges",
-      selection: "selectedEdges",
-      id: "edge3",
-      object: { source: "node1", target: "node3" },
-    },
-    { kind: "paths", selection: "selectedPaths", id: "path2", object: { edges: ["edge2"] } },
-  ] as const)(
+  test.each(addedInPlace)(
     "drops a selected ID of $kind added in place without reactivity",
     async ({ kind, selection, id, object }) => {
       const errors = catchErrors()
@@ -141,16 +144,8 @@ describe("selection", () => {
       expect(errors).toEqual([])
     }
   )
-  test.each([
-    { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
-    {
-      kind: "edges",
-      selection: "selectedEdges",
-      id: "edge3",
-      object: { source: "node1", target: "node3" },
-    },
-    { kind: "paths", selection: "selectedPaths", id: "path2", object: { edges: ["edge2"] } },
-  ] as const)(
+
+  test.each(addedInPlace)(
     "drops a selected ID of $kind added in place to a plain object",
     async ({ kind, selection, id, object }) => {
       const errors = catchErrors()
@@ -163,6 +158,7 @@ describe("selection", () => {
         layouts,
       }
       const selected = ref<string[]>([])
+      const selectEvents: string[][] = []
       const screen = await render(() =>
         h(VNetworkGraph, {
           ...data,
@@ -173,6 +169,7 @@ describe("selection", () => {
           },
           [selection]: selected.value,
           [`onUpdate:${selection}`]: (v: string[]) => (selected.value = v),
+          eventHandlers: { [`${kind.slice(0, -1)}:select`]: (v: string[]) => selectEvents.push(v) },
         })
       )
       await expect.poll(() => screen.container.querySelector(".v-ng-path")).not.toBeNull()
@@ -182,6 +179,7 @@ describe("selection", () => {
       selected.value = [existing, id]
       await vi.waitUntil(() => selected.value.length === 1)
       expect(selected.value).toEqual([existing])
+      expect(selectEvents).toEqual([[existing]])
       expect(errors).toEqual([])
     }
   )
