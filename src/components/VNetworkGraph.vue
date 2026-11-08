@@ -23,7 +23,7 @@ import VMarkerHead from "./marker/VMarkerHead.vue"
 import { NodeSlotProps } from "./node/VNode.vue"
 import { NodeLabelSlotProps } from "./node/VNodeLabel.vue"
 
-interface Props {
+export interface Props {
   nodes?: Nodes
   edges?: Edges
   paths?: InputPaths

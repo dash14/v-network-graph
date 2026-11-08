@@ -111,6 +111,10 @@ jobs:
               find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/playwright-packages {} +
               pnpm run test:coverage
 
+      # Needs the lib/ that the build writes.
+      - name: Type-check the built declarations
+        run: pnpm run test:types
+
       - name: Publish the coverage summary
         if: ${{ !cancelled() && hashFiles('coverage/summary.txt') != '' }}
         run: |

@@ -44,6 +44,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:tc": "vue-tsc --noEmit -p tsconfig.test.json",
+    "test:types": "tsc -p test/types/tsconfig.json",
     "test:docker": "scripts/test-docker.sh"
   },
   "dependencies": {

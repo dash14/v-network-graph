@@ -15,7 +15,7 @@ import VMarkerHead from "./marker/VMarkerHead.vue"
 
 const BUILT_IN_LAYERS = ["edges", "nodes", "node-labels"] as const
 
-interface Props {
+export interface Props {
   nodes?: Nodes
   edges?: Edges
   layouts?: UserLayouts
