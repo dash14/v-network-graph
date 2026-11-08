@@ -565,7 +565,7 @@ describe("properties", () => {
   }
 
   it("puts both ends of an edge between rect nodes on their outlines", () => {
-    // About half of the offsets put the center of one node deep inside the other.
+    // About half of the offsets are short, so that the center of one node often lies in the other.
     const near = fc.double({ min: -20, max: 20, noNaN: true })
     const offset = fc.oneof(position, fc.record({ x: near, y: near }))
     fc.assert(
