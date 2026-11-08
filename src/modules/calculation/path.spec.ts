@@ -441,6 +441,8 @@ describe("calculatePathPoints", () => {
     ["mostly outside the node, counterclockwise", 12, 10, false, "1 0"],
     ["mostly inside the node, on the small arc", 12, -4, true, "0 1"],
     ["mostly inside the node, counterclockwise", 12, -4, false, "0 0"],
+    ["apart from the node", 12, 30, true, "1 1"],
+    ["apart from the node, counterclockwise", 12, 30, false, "1 0"],
   ])("should draw a self-loop %s", (_, radius, offset, isClockwise, flags) => {
     const nodes = { n1: { x: 0, y: -100 }, n2: { x: 0, y: 0 }, n3: { x: 0, y: 100 } }
     const selfLoop = { radius, offset, angle: 270, isClockwise }
@@ -452,4 +454,20 @@ describe("calculatePathPoints", () => {
     const arc = points.find(p => typeof p === "string")
     expect(arc).toMatch(new RegExp(`^A ${radius} ${radius} 0 ${flags} `))
   })
+
+  it.each([
+    [true, "1 1"],
+    [false, "1 0"],
+  ])(
+    "should draw a self-loop apart from the node at the end of a path (clockwise: %s)",
+    (isClockwise, flags) => {
+      const nodes = { n1: { x: 0, y: -100 }, n2: { x: 0, y: 0 } }
+      const selfLoop = { radius: 12, offset: 30, angle: 270, isClockwise }
+      const points = pointsOf(nodes, [
+        ["E1", "n1", "n2"],
+        ["L", "n2", "n2", { selfLoop }],
+      ])
+      expect(points.at(-1)).toMatch(new RegExp(`^A 12 12 0 ${flags} `))
+    }
+  )
 })
