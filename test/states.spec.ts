@@ -155,9 +155,12 @@ describe("selection", () => {
     async ({ kind, selection, id, object }) => {
       const errors = catchErrors()
       // Plain objects, which the graph gets as they are.
+      const { nodes, edges, layouts } = graph()
       const data: Record<string, Record<string, any>> = {
-        ...graph(),
+        nodes,
+        edges: edges!,
         paths: { path1: { edges: ["edge1"] } },
+        layouts,
       }
       const selected = ref<string[]>([])
       const screen = await render(() =>
