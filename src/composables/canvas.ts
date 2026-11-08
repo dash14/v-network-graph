@@ -69,17 +69,14 @@ export function useGraphCanvas(
         const instance = nonNull(svgPanZoom.value, "svg-pan-zoom instance")
         instance.resize()
         const r = entry.target.getBoundingClientRect()
+        const { width, height } = r
+        if (rectSize.width === width && rectSize.height === height) return
         if (configs.view.autoPanOnResize) {
           // Pan to keep the view area centered
-          const x = -(rectSize.width - r.width) / 2
-          const y = -(rectSize.height - r.height) / 2
-          instance.panBy({ x, y })
+          instance.panBy({ x: -(rectSize.width - width) / 2, y: -(rectSize.height - height) / 2 })
         }
-        const { width, height } = r
-        if (rectSize.width !== width || rectSize.height !== height) {
-          Object.assign(rectSize, { width, height })
-          emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
-        }
+        Object.assign(rectSize, { width, height })
+        emitter.emit("view:resize", { x: r.x, y: r.y, width, height })
       })
     : undefined
   onSvgPanZoomMounted(() => {

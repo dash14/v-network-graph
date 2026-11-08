@@ -197,18 +197,21 @@ describe("resizing", () => {
     expect(graph().getPan()).toEqual({ x: pan.x, y: pan.y + 150 })
   })
 
-  test("draws the grid over the new size", async () => {
-    const { screen, style, events, loaded } = await renderGraph({
-      view: { grid: { visible: true } },
-    })
-    await loaded()
-    const lines = () => screen.container.querySelectorAll(".v-ng-background-grid path").length
-    const before = lines()
+  test.each([true, false])(
+    "draws the grid over the new size with autoPanOnResize %s",
+    async autoPanOnResize => {
+      const { screen, style, events, loaded } = await renderGraph({
+        view: { autoPanOnResize, grid: { visible: true } },
+      })
+      await loaded()
+      const lines = () => screen.container.querySelectorAll(".v-ng-background-grid path").length
+      const before = lines()
 
-    style.width = `${WIDTH + 200}px`
-    await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(1)
-    await expect.poll(lines).toBeGreaterThan(before)
-  })
+      style.width = `${WIDTH + 200}px`
+      await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(1)
+      await expect.poll(lines).toBeGreaterThan(before)
+    }
+  )
 
   test("reports the resize but leaves the pan as it is with autoPanOnResize false", async () => {
     const { graph, style, events, loaded } = await renderGraph({
@@ -236,19 +239,6 @@ describe("resizing", () => {
     style.width = `${WIDTH + 300}px`
     await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(2)
     expect(graph().getPan()).toEqual({ x: pan.x + 100, y: pan.y })
-  })
-
-  test("draws the grid over the new size with autoPanOnResize false", async () => {
-    const { screen, style, events, loaded } = await renderGraph({
-      view: { autoPanOnResize: false, grid: { visible: true } },
-    })
-    await loaded()
-    const lines = () => screen.container.querySelectorAll(".v-ng-background-grid path").length
-    const before = lines()
-
-    style.width = `${WIDTH + 200}px`
-    await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(1)
-    await expect.poll(lines).toBeGreaterThan(before)
   })
 })
 
