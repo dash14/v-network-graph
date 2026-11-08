@@ -12,6 +12,7 @@ export interface NodePointerState {
   pointerId: number // pointer ID provided by the event
   nodeId: string // pointer down node ID
   moveCounter: number // count for pointermove event occurred
+  isDragging: boolean // whether node:dragstart was emitted for the press
   dragBasePosition: Position // drag started position
   nodeBasePosition: Position // node position at drag started
   latestPosition: Position // latest position

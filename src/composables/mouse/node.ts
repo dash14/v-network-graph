@@ -138,6 +138,13 @@ export function makeNodeInteractionHandlers(
     )
   }
 
+  // Leaves out the nodes removed during the drag, which the layout would add back.
+  function _emitDragEnd(pointerState: NodePointerState, event: PointerPosition) {
+    const draggingNodes = _calculateNodeNewPosition(pointerState, event)
+    const nodes = Object.entries(draggingNodes).filter(([node]) => node in nodeStates)
+    emitter.emit("node:dragend", Object.fromEntries(nodes))
+  }
+
   function handleNodeClickEvent(node: string, event: MouseEvent) {
     if (event.isTrusted) return // native event
     // When a finger is placed on any object and another object is tapped,
@@ -190,7 +197,8 @@ export function makeNodeInteractionHandlers(
       return
     }
 
-    if (pointerState.moveCounter === threshold + 1) {
+    if (!pointerState.isDragging) {
+      pointerState.isDragging = true
       const draggingNodes = _calculateNodeNewPosition(pointerState, {
         pointerId: pointerState.pointerId,
         pageX: pointerState.dragBasePosition.x,
@@ -213,16 +221,13 @@ export function makeNodeInteractionHandlers(
     for (pointerState of state.pointers.values()) {
       const node = pointerState.nodeId
 
-      const threshold = getPointerMoveDetectionThreshold(event.pointerType)
-      const isMoved = pointerState.moveCounter > threshold
-      if (isMoved) {
+      if (pointerState.isDragging) {
         // pageX/Y in cancel event are zero => use latest position
-        const draggingNodes = _calculateNodeNewPosition(pointerState, {
+        _emitDragEnd(pointerState, {
           pointerId: pointerState.pointerId,
           pageX: pointerState.latestPosition.x,
           pageY: pointerState.latestPosition.y,
         })
-        emitter.emit("node:dragend", draggingNodes)
       }
       emitter.emit("node:pointerup", { node, event })
     }
@@ -250,9 +255,8 @@ export function makeNodeInteractionHandlers(
 
     const threshold = getPointerMoveDetectionThreshold(event.pointerType)
     const isMoved = pointerState.moveCounter > threshold
-    if (isMoved && nodeStates[pointerState.nodeId]?.draggable) {
-      const draggingNodes = _calculateNodeNewPosition(pointerState, event)
-      emitter.emit("node:dragend", draggingNodes)
+    if (pointerState.isDragging) {
+      _emitDragEnd(pointerState, event)
     }
     emitter.emit("node:pointerup", { node, event })
 
@@ -315,6 +319,7 @@ export function makeNodeInteractionHandlers(
       pointerId: event.pointerId,
       nodeId: node,
       moveCounter: 0,
+      isDragging: false,
       nodeBasePosition: _copyPosition(positionOf(node)),
       dragBasePosition: { x: event.pageX, y: event.pageY },
       latestPosition: { x: event.pageX, y: event.pageY },
