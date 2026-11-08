@@ -503,7 +503,7 @@ function _makeArcString(
   const ends = PointUtils.getIntersectionOfCircles(nodePos, nodeRadius, center, radius[0])
   let [end1, end2] = ends ? ends.reverse() : [edge.line.source, edge.line.target]
   const isClockwise = _isForward(edge)
-  // edge.line already puts the ends of a loop apart from the node in the order of its direction.
+  // Without intersections, edge.line already puts the ends of the loop in the order of its direction.
   if (ends && !isClockwise) {
     ;[end1, end2] = [end2, end1]
   }
