@@ -69,8 +69,13 @@ export function useObjectState<
     (objects, prev) => {
       const append = prev ? objects.filter(n => !prev.includes(n)) : objects
       const removed = prev ? prev.filter(n => !objects.includes(n)) : []
-      // The selection holds only the objects that exist, so each one added has its state.
-      append.forEach(id => (states[id].selected = true))
+      // Objects changed in place without reactivity have no state yet, so their IDs are dropped
+      // like those of no object.
+      append.forEach(id => {
+        const state = states[id]
+        if (state) state.selected = true
+        else selected.delete(id)
+      })
       removed.forEach(id => {
         const state = states[id]
         if (state) state.selected = false

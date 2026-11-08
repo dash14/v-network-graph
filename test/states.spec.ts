@@ -1,9 +1,9 @@
 import { describe, expect, onTestFinished, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
-import { h, nextTick } from "vue"
+import { h, markRaw, nextTick } from "vue"
 import type { InputPaths, Node, Paths, ZOrderConfig } from "@/index"
 import type { GraphProps } from "./helpers/graph"
-import { at, mountGraph } from "./helpers/graph"
+import { at, catchErrors, mountGraph } from "./helpers/graph"
 
 const graph = (): GraphProps => ({
   nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" }, node3: { name: "Node 3" } },
@@ -89,6 +89,40 @@ describe("selection", () => {
     await nextTick()
     expect(screen.container.querySelectorAll(".v-ng-node.selected")).toHaveLength(0)
   })
+
+  test.each([
+    { kind: "nodes", selection: "selectedNodes", id: "node4", object: { name: "Node 4" } },
+    {
+      kind: "edges",
+      selection: "selectedEdges",
+      id: "edge3",
+      object: { source: "node1", target: "node3" },
+    },
+    { kind: "paths", selection: "selectedPaths", id: "path2", object: { edges: ["edge2"] } },
+  ] as const)(
+    "drops a selected ID of $kind added in place without reactivity",
+    async ({ kind, selection, id, object }) => {
+      const errors = catchErrors()
+      const props = graph()
+      props.paths = { path1: { edges: ["edge1"] } }
+      props.configs = {
+        node: { selectable: true },
+        edge: { selectable: true },
+        path: { visible: true, selectable: true },
+      }
+      const { state } = await mountGraph(props)
+      const raw: Record<string, any> = markRaw({ ...state[kind] })
+      state[kind] = raw
+      await nextTick()
+
+      raw[id] = object
+      const existing = Object.keys(state[kind])[0]
+      state[selection] = [existing, id]
+      await vi.waitUntil(() => state[selection].length === 1)
+      expect(state[selection]).toEqual([existing])
+      expect(errors).toEqual([])
+    }
+  )
 })
 
 describe("removal", () => {
