@@ -776,6 +776,39 @@ describe("edges", () => {
       expect(state.selectedEdges).toEqual(["edge1", "edge3"])
     })
 
+    test("a click on the edges all selected keeps the rest of the selection", async () => {
+      const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge2", "edge1", "edge3"]
+      const { canvas, state, events } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1 })
+      expect(state.selectedEdges).toEqual(["edge2", "edge1", "edge3"])
+      expect(payloadsOf(events, "edge:click")).toMatchObject([{ edges: ["edge1", "edge3"] }])
+    })
+
+    test("a click on the edges some of which are selected selects only them", async () => {
+      const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge2", "edge1"]
+      const { canvas, state } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1 })
+      expect(state.selectedEdges).toEqual(["edge1", "edge3"])
+    })
+
+    test("releasing a finger from the selected edges keeps the edge tapped meanwhile", async () => {
+      const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge1", "edge3"]
+      const { screen, state } = await mountGraph(props)
+      const pointers = pointersOn(screen.container)
+
+      pointers.down(1, edge1)
+      pointers.down(2, edge2)
+      pointers.up(2, edge2)
+      pointers.up(1, edge1)
+      await nextTick()
+      expect(state.selectedEdges).toEqual(["edge1", "edge3", "edge2"])
+    })
+
     test("a click with the shift key removes all of the edges when some are selected", async () => {
       const props = summarized({ edge: selectable })
       props.selectedEdges = ["edge1"]
