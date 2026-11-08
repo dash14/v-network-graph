@@ -11,6 +11,7 @@ import {
   detectClicks,
   InteractionModes,
   PathPointerState,
+  isShiftClickOnOtherKind,
 } from "./core"
 
 export function makePathInteractionHandlers(
@@ -107,15 +108,17 @@ export function makePathInteractionHandlers(
     emitter.emit("path:pointerup", _makePathEventObject(path, event))
 
     // click handling
-    const [clickEvent, doubleClickEvent] = detectClicks(
-      state.clicks,
-      pointerState.pointerId,
-      path,
-      event
-    )
-    pointerState.eventTarget?.dispatchEvent(clickEvent)
-    if (doubleClickEvent) {
-      pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
+    if (!isShiftClickOnOtherKind(modes, "path", event)) {
+      const [clickEvent, doubleClickEvent] = detectClicks(
+        state.clicks,
+        pointerState.pointerId,
+        path,
+        event
+      )
+      pointerState.eventTarget?.dispatchEvent(clickEvent)
+      if (doubleClickEvent) {
+        pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
+      }
     }
 
     if (state.pointers.size === 0) {
@@ -175,9 +178,6 @@ export function makePathInteractionHandlers(
       return
     }
 
-    if (event.shiftKey && !["container", "path"].includes(modes.selectionMode.value)) {
-      return
-    }
     modes.selectionMode.value = "path"
 
     const selectable = pathStates[path].selectable

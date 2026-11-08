@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
-import type { Paths, UserConfigs } from "@/index"
+import type { Node, Paths, UserConfigs } from "@/index"
 import type { GraphProps } from "../helpers/graph"
 import { at, catchErrors, elementAt, mountGraph, payloadsOf, pointersOn } from "../helpers/graph"
 
@@ -453,15 +453,16 @@ describe("nodes", () => {
     expect(payloadsOf(events, "node:dblclick")).toEqual([])
   })
 
-  test("a click with the shift key on a node keeps the edges selected", async () => {
+  test("a double click with the shift key on a node keeps the edges selected and emits no clicks", async () => {
     const props = graph({ node: selectable, edge: selectable })
     props.selectedEdges = ["edge1"]
     const { canvas, state, events } = await mountGraph(props)
 
-    await userEvent.click(canvas, { position: node3, modifiers: ["Shift"] })
+    await userEvent.dblClick(canvas, { position: node3, modifiers: ["Shift"] })
     expect(state.selectedEdges).toEqual(["edge1"])
     expect(state.selectedNodes).toEqual([])
     expect(payloadsOf(events, "node:click")).toEqual([])
+    expect(payloadsOf(events, "node:dblclick")).toEqual([])
   })
 
   test("a node removed while pressed is not selected when released", async () => {
@@ -559,14 +560,60 @@ describe("edges", () => {
     expect(state.selectedEdges).toEqual(["edge1", "edge2"])
   })
 
-  test("a click with the shift key on an edge keeps the nodes selected", async () => {
+  test("a double click with the shift key on an edge keeps the nodes selected and emits no clicks", async () => {
     const props = graph({ node: selectable, edge: selectable })
     props.selectedNodes = ["node1"]
     const { canvas, state, events } = await mountGraph(props)
 
-    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    await userEvent.dblClick(canvas, { position: edge2, modifiers: ["Shift"] })
     expect(state.selectedNodes).toEqual(["node1"])
     expect(payloadsOf(events, "edge:click")).toEqual([])
+    expect(payloadsOf(events, "edge:dblclick")).toEqual([])
+  })
+
+  test("a click with the shift key ignored on an edge is not the first of a double click", async () => {
+    const props = graph({ node: selectable, edge: selectable })
+    props.selectedNodes = ["node1"]
+    const { canvas, events } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    await userEvent.click(canvas, { position: edge2 })
+    expect(payloadsOf(events, "edge:click")).toHaveLength(1)
+    expect(payloadsOf(events, "edge:dblclick")).toEqual([])
+  })
+
+  test("a click with the shift key on an edge selects it once a click on a node selected nothing", async () => {
+    const props = graph({
+      node: { selectable: (node: Node) => node.name !== "Node 3" },
+      edge: selectable,
+    })
+    const { canvas, state, events } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: node3 })
+    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    expect(state.selectedEdges).toEqual(["edge2"])
+    expect(payloadsOf(events, "edge:click")).toHaveLength(1)
+  })
+
+  test("a click with the shift key on an edge keeps the nodes selected beyond node.selectable 1", async () => {
+    const props = graph({ node: { selectable: 1 }, edge: selectable })
+    props.selectedNodes = ["node1", "node2"]
+    const { canvas, state, events } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    expect(state.selectedNodes).toEqual(["node1", "node2"])
+    expect(payloadsOf(events, "edge:click")).toEqual([])
+  })
+
+  test("a click with the shift key on an edge selects it with node.selectable 1", async () => {
+    const props = graph({ node: { selectable: 1 }, edge: selectable })
+    props.selectedNodes = ["node1"]
+    const { canvas, state, events } = await mountGraph(props)
+
+    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    expect(state.selectedNodes).toEqual([])
+    expect(state.selectedEdges).toEqual(["edge2"])
+    expect(payloadsOf(events, "edge:click")).toHaveLength(1)
   })
 
   test("a number for selectable limits the edges added with the shift key", async () => {
@@ -906,14 +953,15 @@ describe("paths", () => {
     expect(state.selectedPaths).toEqual(["path1", "path2"])
   })
 
-  test("a click with the shift key on a path keeps the nodes selected", async () => {
+  test("a double click with the shift key on a path keeps the nodes selected and emits no clicks", async () => {
     const props = graph({ node: selectable, path: clickable })
     props.selectedNodes = ["node1"]
     const { canvas, state, events } = await mountGraph(props)
 
-    await userEvent.click(canvas, { position: edge2, modifiers: ["Shift"] })
+    await userEvent.dblClick(canvas, { position: edge2, modifiers: ["Shift"] })
     expect(state.selectedNodes).toEqual(["node1"])
     expect(payloadsOf(events, "path:click")).toEqual([])
+    expect(payloadsOf(events, "path:dblclick")).toEqual([])
   })
 
   test("a node can be pressed after a path is released", async () => {

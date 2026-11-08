@@ -39,6 +39,19 @@ export interface ClickState {
 export interface InteractionModes {
   selectionMode: Ref<SelectionMode>
   viewMode: Ref<ViewMode>
+  isMultipleSelectable: Ref<boolean> // whether the selection may have more than one
+}
+
+/**
+ * A click with the shift key adds to a selection that allows more than one, so it ignores another
+ * kind than the one selected.
+ */
+export function isShiftClickOnOtherKind(
+  modes: InteractionModes,
+  kind: SelectionMode,
+  event: MouseEvent
+): boolean {
+  return event.shiftKey && modes.isMultipleSelectable.value && modes.selectionMode.value !== kind
 }
 
 export function getPointerMoveDetectionThreshold(type: string): number {

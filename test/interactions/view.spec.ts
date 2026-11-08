@@ -26,7 +26,7 @@ describe("background", () => {
     expect(payloadsOf(events, "view:dblclick")).toHaveLength(1)
   })
 
-  test("a click with the shift key keeps the nodes selected", async () => {
+  test("a double click with the shift key keeps the nodes selected and emits no clicks", async () => {
     const { canvas, state, events } = await mountGraph({
       nodes,
       layouts,
@@ -34,9 +34,24 @@ describe("background", () => {
       selectedNodes: ["node1"],
     })
 
-    await userEvent.click(canvas, { position: at(0, 100), modifiers: ["Shift"] })
+    await userEvent.dblClick(canvas, { position: at(0, 100), modifiers: ["Shift"] })
     expect(state.selectedNodes).toEqual(["node1"])
     expect(payloadsOf(events, "view:click")).toEqual([])
+    expect(payloadsOf(events, "view:dblclick")).toEqual([])
+  })
+
+  test("a double click with the shift key deselects the nodes with node.selectable 1", async () => {
+    const { canvas, state, events } = await mountGraph({
+      nodes,
+      layouts,
+      configs: { node: { selectable: 1 } },
+      selectedNodes: ["node1"],
+    })
+
+    await userEvent.dblClick(canvas, { position: at(0, 100), modifiers: ["Shift"] })
+    expect(state.selectedNodes).toEqual([])
+    expect(payloadsOf(events, "view:click")).toHaveLength(2)
+    expect(payloadsOf(events, "view:dblclick")).toHaveLength(1)
   })
 
   test("two pointers make a click when both are released", async () => {

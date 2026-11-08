@@ -8,6 +8,7 @@ import {
   createClickEvents,
   getPointerMoveDetectionThreshold,
   InteractionModes,
+  isShiftClickOnOtherKind,
 } from "./core"
 
 export function setupContainerInteractionHandlers(
@@ -59,9 +60,7 @@ export function setupContainerInteractionHandlers(
       const threshold = getPointerMoveDetectionThreshold(event.pointerType)
       if (state.moveCounter <= threshold) {
         // Click container (without mouse move)
-        if (event.shiftKey && modes.selectionMode.value !== "container") {
-          return
-        }
+        if (isShiftClickOnOtherKind(modes, "container", event)) return
         modes.selectionMode.value = "container"
 
         // click handling
