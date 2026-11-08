@@ -2,7 +2,7 @@
 
 import { Emitter } from "mitt"
 import type { InjectionKey, Ref } from "vue"
-import { inject, provide, ref, watch } from "vue"
+import { computed, inject, provide, ref, watch } from "vue"
 import { nonNull, Reactive, ReadonlyRef } from "@/common/common"
 import { Configs } from "@/common/configs"
 import { Events, Position, Rectangle } from "@/common/types"
@@ -12,7 +12,7 @@ import { PathStates } from "@/models/path"
 import { entriesOf } from "@/utils/object"
 import { BoxSelectionOption, makeBoxSelectionMethods } from "./boxSelection"
 import { setupContainerInteractionHandlers } from "./container"
-import { InteractionModes } from "./core"
+import { InteractionModes, SelectionMode } from "./core"
 import { makeEdgeInteractionHandlers } from "./edge"
 import { makeNodeInteractionHandlers } from "./node"
 import { makePathInteractionHandlers } from "./path"
@@ -86,9 +86,15 @@ export function provideMouseOperation(
   configs: Configs,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
+  const selectionMode = ref<SelectionMode>("container")
   const modes: InteractionModes = {
-    selectionMode: ref("container"),
+    selectionMode,
     viewMode: ref("default"),
+    isMultipleSelectable: computed(() => {
+      if (selectionMode.value === "container") return false
+      const selectable = configs[selectionMode.value].selectable
+      return typeof selectable === "number" ? selectable > 1 : !!selectable
+    }),
   }
 
   // The last of nodes, edges and paths wins, as when an update selects them all at once.

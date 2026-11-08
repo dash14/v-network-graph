@@ -11,6 +11,7 @@ import {
   detectClicks,
   EdgePointerState,
   InteractionModes,
+  isShiftClickOnOtherKind,
 } from "./core"
 
 export function makeEdgeInteractionHandlers(
@@ -142,9 +143,7 @@ export function makeEdgeInteractionHandlers(
     // no click event is fired. Thus, click events are emulated by using
     // pointerdown/up. The following is processing for emulated events only.
 
-    if (event.shiftKey && !["container", "edge"].includes(modes.selectionMode.value)) {
-      return
-    }
+    if (isShiftClickOnOtherKind(modes, "edge", event)) return
     modes.selectionMode.value = "edge"
 
     const isTouchAnySelectedEdge =
@@ -197,6 +196,7 @@ export function makeEdgeInteractionHandlers(
 
   function handleEdgeDoubleClickEvent(edge: string | string[], event: MouseEvent) {
     if (event.isTrusted) return // native event
+    if (isShiftClickOnOtherKind(modes, "edge", event)) return
     emitter.emit("edge:dblclick", _makeEdgeEventObject(edge, event))
   }
 
