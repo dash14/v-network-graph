@@ -256,6 +256,10 @@ export function useSummarizedEdgesState(edges: () => Edges) {
   const { edgeStates } = useStates()
   const some = (key: "hovered" | "selected") =>
     computed(() => Object.keys(edges()).some(id => edgeStates[id]?.[key]))
-  const selectable = computed(() => selectableEdgesOf(edgeStates, Object.keys(edges())).length > 0)
+  // A summarized edge is selected as a whole, so not when it outnumbers the limit.
+  const selectable = computed(() => {
+    const selectable = selectableEdgesOf(edgeStates, Object.keys(edges()))
+    return selectable.edges.length > 0 && selectable.edges.length <= selectable.limit
+  })
   return { hovered: some("hovered"), selectable, selected: some("selected") }
 }

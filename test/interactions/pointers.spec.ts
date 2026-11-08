@@ -748,6 +748,15 @@ describe("edges", () => {
       expect(payloadsOf(events, "edge:click")).toMatchObject([{ edges: ["edge1", "edge3"] }])
     })
 
+    test("a click with the shift key removes the selected edges even when they outnumber the limit", async () => {
+      const props = summarized({ edge: { selectable: 1 } })
+      props.selectedEdges = ["edge1"]
+      const { canvas, state } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+      expect(state.selectedEdges).toEqual([])
+    })
+
     describe("only some of which are selectable", () => {
       const someSelectable = (selectedEdges: string[] = []) => {
         const props = summarized({ edge: { selectable: (edge: Edge) => !edge.locked } })

@@ -159,21 +159,21 @@ export function makeEdgeInteractionHandlers(
       edges.some(edge => selectedEdges.has(edge)) &&
       edges.every(edge => selectedEdges.has(edge) || !edgeStates[edge].selectable)
 
-    const isTouchAnySelectedEdge =
-      MapUtil.valueOf(state.pointers).filter(p => isSelected(existingOf(p.id))).length > 0
+    const isTouchAnySelectedEdge = MapUtil.valueOf(state.pointers).some(p =>
+      isSelected(existingOf(p.id))
+    )
 
     const edges = existingOf(edge)
-    const selectableEdges = selectableEdgesOf(edgeStates, edges)
+    // A summarized edge is selected as a whole, so not when it outnumbers the limit.
+    const { edges: selectableEdges, limit } = selectableEdgesOf(edgeStates, edges)
     if (selectableEdges.length > 0) {
-      const selectable = edgeStates[selectableEdges[0]].selectable
-      const limit = typeof selectable === "number" ? selectable : Infinity
       if (event.shiftKey || isTouchAnySelectedEdge) {
         if (edges.some(edge => selectedEdges.has(edge))) {
           edges.forEach(edge => selectedEdges.delete(edge))
         } else if (selectedEdges.size + selectableEdges.length <= limit) {
           selectableEdges.forEach(edge => selectedEdges.add(edge))
         }
-      } else if (!isSelected(edges)) {
+      } else if (!isSelected(edges) && selectableEdges.length <= limit) {
         // make the selectedEdges the clicked ones
         selectedEdges.clear()
         selectableEdges.forEach(edge => selectedEdges.add(edge))
