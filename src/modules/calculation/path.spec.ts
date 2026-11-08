@@ -5,6 +5,7 @@ import { EdgeState, EdgeStates } from "@/models/edge"
 import { NodeStates } from "@/models/node"
 import { EdgeObject, PathState } from "@/models/path"
 import { calculateEdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
+import * as v2d from "./2d"
 import { calculateDirectionsOfPathEdges, calculatePathPoints, quadraticCurveCommands } from "./path"
 
 describe("quadraticCurveCommands", () => {
@@ -470,4 +471,112 @@ describe("calculatePathPoints", () => {
       expect(points.at(-1)).toMatch(new RegExp(`^A 12 12 0 ${flags} `))
     }
   )
+
+  describe("a self-loop at an end of the path", () => {
+    // The loop circle (center (-22, 0), radius 12) crosses the node circle (radius 16) at x = -149 / 11.
+    const nodes = { n1: { x: 0, y: 0 }, n2: { x: 100, y: 0 } }
+    const selfLoop = { radius: 12, offset: 10, angle: 270, isClockwise: true }
+    const center = { x: -22, y: 0 }
+    const crossY = Math.sqrt(16 ** 2 - (149 / 11) ** 2)
+    const exit = { x: -149 / 11, y: crossY }
+    const entry = { x: -149 / 11, y: -crossY }
+    const loopFirst: EdgeSpec[] = [
+      ["L", "n1", "n1", { selfLoop }],
+      ["E1", "n1", "n2"],
+    ]
+    const loopLast: EdgeSpec[] = [
+      ["E1", "n2", "n1"],
+      ["L", "n1", "n1", { selfLoop }],
+    ]
+
+    function arcEnd(arc: unknown) {
+      const [x, y] = String(arc).split(" ").slice(-2).map(Number)
+      return { x, y }
+    }
+
+    function expectClose(actual: unknown, expected: Position) {
+      const p = actual as Position
+      expect(p.x).toBeCloseTo(expected.x)
+      expect(p.y).toBeCloseTo(expected.y)
+    }
+
+    it.each(["centerOfNode", "edgeOfNode"] as const)(
+      "should start at the point where the loop leaves the node (%s)",
+      end => {
+        const points = pointsOf(nodes, loopFirst, { end })
+        expectClose(points[0], exit)
+        expect(points[1]).toMatch(/^A 12 12 0 1 1 /)
+      }
+    )
+
+    it.each(["centerOfNode", "edgeOfNode"] as const)(
+      "should take the margin along the loop at the start (%s)",
+      end => {
+        const points = pointsOf(nodes, loopFirst, { end, margin: 6 })
+        expectClose(points[0], v2d.moveOnCircumference(exit, center, 6 / 12))
+        expectClose(arcEnd(points[1]), entry)
+      }
+    )
+
+    it.each(["centerOfNode", "edgeOfNode"] as const)(
+      "should take the margin along the loop at the end (%s)",
+      end => {
+        const points = pointsOf(nodes, loopLast, { end, margin: 6 })
+        expectClose(points.at(-2), exit)
+        expectClose(arcEnd(points.at(-1)), v2d.moveOnCircumference(entry, center, -6 / 12))
+      }
+    )
+
+    it("should take the margin along a counterclockwise loop", () => {
+      const counterclockwise = { ...selfLoop, isClockwise: false }
+      const edges: EdgeSpec[] = [
+        ["L", "n1", "n1", { selfLoop: counterclockwise }],
+        ["E1", "n1", "n2"],
+      ]
+      const points = pointsOf(nodes, edges, { margin: 6 })
+      expectClose(points[0], v2d.moveOnCircumference(entry, center, -6 / 12))
+      expect(points[1]).toMatch(/^A 12 12 0 1 0 /)
+      expectClose(arcEnd(points[1]), exit)
+    })
+
+    it("should take the margin along a loop apart from the node", () => {
+      // The loop circle (center (-42, 0)) does not reach the node, so its ends lie 1 degree on
+      // either side of (-30, 0).
+      const apart = { ...selfLoop, offset: 30 }
+      const edges: EdgeSpec[] = [
+        ["L", "n1", "n1", { selfLoop: apart }],
+        ["E1", "n1", "n2"],
+      ]
+      const [start, arc] = pointsOf(nodes, edges)
+      const [shortened] = pointsOf(nodes, edges, { margin: 6 })
+      expect(arc).toMatch(/^A 12 12 0 1 1 /)
+      expectClose(shortened, v2d.moveOnCircumference(start as Position, { x: -42, y: 0 }, 6 / 12))
+    })
+
+    it("should take the margins at both ends of a path of a single loop", () => {
+      // 56.5 of the loop lies outside the node, and margins of 10 at both ends leave a small arc.
+      const points = pointsOf(nodes, [["L", "n1", "n1", { selfLoop }]], { margin: 10 })
+      expect(points).toHaveLength(2)
+      expectClose(points[0], v2d.moveOnCircumference(exit, center, 10 / 12))
+      expect(points[1]).toMatch(/^A 12 12 0 0 1 /)
+      expectClose(arcEnd(points[1]), v2d.moveOnCircumference(entry, center, -10 / 12))
+    })
+
+    it("should start at the end of the loop when the margin uses it up", () => {
+      const points = pointsOf(nodes, loopFirst, { margin: 60 })
+      expectClose(points[0], entry)
+      expect(points.some(p => typeof p === "string")).toBe(false)
+    })
+
+    it("should end at the start of the loop when the margin uses it up", () => {
+      const points = pointsOf(nodes, loopLast, { margin: 60 })
+      expectClose(points.at(-1), exit)
+      expect(points.some(p => typeof p === "string")).toBe(false)
+    })
+
+    it("should draw nothing for a single loop that the margins use up", () => {
+      const points = pointsOf(nodes, [["L", "n1", "n1", { selfLoop }]], { margin: 30 })
+      expect(points).toEqual([])
+    })
+  })
 })

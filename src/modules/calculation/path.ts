@@ -44,7 +44,8 @@ export function calculatePathPoints(
   // ----------------------------------------------------
   // Determine the starting point.
   // ----------------------------------------------------
-  {
+  // A loop starts with its arc, which takes the margin along the loop.
+  if (!edgePos[0].loop) {
     const firstEdge = edgePos[0]
     let nodeRadius = NodeUtils.getNodeRadius(nodeStates[firstEdge.source].shape) * scale
     const lineMargin = margin + (pathEndType === "edgeOfNode" ? nodeRadius : 0)
@@ -202,9 +203,9 @@ export function calculatePathPoints(
         points.push([...control, nextPoint])
       }
     } else if (prev.loop) {
-      const [p1, p2, arc] = _makeArcString(nodePos, prev, nodeRadius)
+      const [p1, p2, arc] = _makeArcString(nodePos, prev, nodeRadius, i === 1 ? margin : 0)
       points.push(p1)
-      points.push(arc)
+      if (arc) points.push(arc)
       if (curveInNode) {
         points.push([p2, pos[1], pos[2]])
       } else {
@@ -239,9 +240,20 @@ export function calculatePathPoints(
     nodeRadius = NodeUtils.getNodeRadius(nodeStates[lastEdge.source].shape) * scale
     if (lastEdge.loop) {
       const nodePos = Vector2D.fromObject(positionOf(nodeLayouts, lastEdge.target))
-      const [p1, _, arc] = _makeArcString(nodePos, lastEdge, nodeRadius)
-      points.push(p1)
-      points.push(arc)
+      const isOnlyEdge = edgePos.length === 1
+      const [p1, _, arc] = _makeArcString(
+        nodePos,
+        lastEdge,
+        nodeRadius,
+        isOnlyEdge ? margin : 0,
+        margin
+      )
+      // A path of a single loop that the margins use up draws nothing.
+      if (arc) {
+        points.push(p1, arc)
+      } else if (!isOnlyEdge) {
+        points.push(p1)
+      }
     } else if (lastEdge.curve) {
       // curve
       const pos = points[points.length - 1]
@@ -257,7 +269,7 @@ export function calculatePathPoints(
       // straight
       points.push(nextPoint)
     }
-    if (margin > 0) {
+    if (margin > 0 && !lastEdge.loop) {
       const distance = V.distance(lastEdge.line.source, lastEdge.line.target)
       if (distance <= lineMargin + nodeRadius) {
         isMarginOverRunEnd = true
@@ -493,10 +505,17 @@ function _getSlope(pos: VectorLine) {
   return (pos.target.y - pos.source.y) / (pos.target.x - pos.source.x)
 }
 
+/**
+ * The arc of a loop, shortened along the loop by the margins at its start and end.
+ * When the margins use up the loop, there is no arc, and both points are its start if its end has
+ * a margin, or else its end.
+ */
 function _makeArcString(
   nodePos: Vector2D,
   edge: EdgeLine,
-  nodeRadius: number
+  nodeRadius: number,
+  startMargin = 0,
+  endMargin = 0
 ): [Vector2D, Vector2D, any] {
   const { radius, center } = nonNull(edge.loop, "Loop of edge parameter")
   const [rx, ry] = radius
@@ -507,15 +526,21 @@ function _makeArcString(
   if (ends && !isClockwise) {
     ;[end1, end2] = [end2, end1]
   }
-  const p1 = end1
-  const p2 = end2
-
-  const a1 = Vector2D.fromObject(p1).subtract(center).angleDegree()
-  const a2 = Vector2D.fromObject(p2).subtract(center).angleDegree()
+  const a1 = Vector2D.fromObject(end1).subtract(center).angleDegree()
+  const a2 = Vector2D.fromObject(end2).subtract(center).angleDegree()
   const angle = (a2 + 360 - a1) % 360
-  let largeArc = angle >= 180
-  largeArc = isClockwise ? largeArc : !largeArc
-  const f1 = largeArc ? 1 : 0
+  const sweep = ((isClockwise ? angle : 360 - angle) * Math.PI) / 180
+  const startRad = Math.max(startMargin, 0) / rx
+  const endRad = Math.max(endMargin, 0) / rx
+  if (startRad + endRad > 0 && startRad + endRad >= sweep) {
+    const p = endRad > 0 ? end1 : end2
+    return [p, p, undefined]
+  }
+
+  const direction = isClockwise ? 1 : -1
+  const p1 = Vector2D.fromObject(v2d.moveOnCircumference(end1, center, startRad * direction))
+  const p2 = Vector2D.fromObject(v2d.moveOnCircumference(end2, center, -endRad * direction))
+  const f1 = sweep - startRad - endRad > Math.PI ? 1 : 0
   const f2 = isClockwise ? 1 : 0
 
   return [p1, p2, `A ${rx} ${ry} 0 ${f1} ${f2} ${p2.x} ${p2.y}`]
