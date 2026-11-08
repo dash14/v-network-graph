@@ -108,15 +108,17 @@ export function makePathInteractionHandlers(
     emitter.emit("path:pointerup", _makePathEventObject(path, event))
 
     // click handling
-    const [clickEvent, doubleClickEvent] = detectClicks(
-      state.clicks,
-      pointerState.pointerId,
-      path,
-      event
-    )
-    pointerState.eventTarget?.dispatchEvent(clickEvent)
-    if (doubleClickEvent) {
-      pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
+    if (!isShiftClickOnOtherKind(modes, "path", event)) {
+      const [clickEvent, doubleClickEvent] = detectClicks(
+        state.clicks,
+        pointerState.pointerId,
+        path,
+        event
+      )
+      pointerState.eventTarget?.dispatchEvent(clickEvent)
+      if (doubleClickEvent) {
+        pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
+      }
     }
 
     if (state.pointers.size === 0) {
@@ -176,7 +178,6 @@ export function makePathInteractionHandlers(
       return
     }
 
-    if (isShiftClickOnOtherKind(modes, "path", event)) return
     modes.selectionMode.value = "path"
 
     const selectable = pathStates[path].selectable
@@ -201,7 +202,6 @@ export function makePathInteractionHandlers(
 
   function handlePathDoubleClickEvent(path: string, event: MouseEvent) {
     if (event.isTrusted) return // native event
-    if (isShiftClickOnOtherKind(modes, "path", event)) return
     if (!pathStates[path]?.clickable) {
       return
     }

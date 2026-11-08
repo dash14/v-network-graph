@@ -144,7 +144,6 @@ export function makeNodeInteractionHandlers(
     // no click event is fired. Thus, click events are emulated by using
     // pointerdown/up. The following is processing for emulated events only.
 
-    if (isShiftClickOnOtherKind(modes, "node", event)) return
     modes.selectionMode.value = "node"
 
     const selectable = nodeStates[node]?.selectable ?? false
@@ -169,7 +168,6 @@ export function makeNodeInteractionHandlers(
 
   function handleNodeDoubleClickEvent(node: string, event: MouseEvent) {
     if (event.isTrusted) return // native event
-    if (isShiftClickOnOtherKind(modes, "node", event)) return
     emitter.emit("node:dblclick", { node, event })
   }
 
@@ -262,7 +260,8 @@ export function makeNodeInteractionHandlers(
       emitter.emit("node:pointerup", { node, event })
     }
 
-    if (!isMoved /* Don't fire the click event if the node is being dragged */) {
+    // No click while the node is dragged
+    if (!isMoved && !isShiftClickOnOtherKind(modes, "node", event)) {
       // click handling
       const [clickEvent, doubleClickEvent] = detectClicks(
         state.clicks,

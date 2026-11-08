@@ -95,15 +95,17 @@ export function makeEdgeInteractionHandlers(
     emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
 
     // click handling
-    const [clickEvent, doubleClickEvent] = detectClicks(
-      state.clicks,
-      pointerState.pointerId,
-      edge instanceof Array ? edge.join(",") : edge,
-      event
-    )
-    pointerState.eventTarget?.dispatchEvent(clickEvent)
-    if (doubleClickEvent) {
-      pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
+    if (!isShiftClickOnOtherKind(modes, "edge", event)) {
+      const [clickEvent, doubleClickEvent] = detectClicks(
+        state.clicks,
+        pointerState.pointerId,
+        edge instanceof Array ? edge.join(",") : edge,
+        event
+      )
+      pointerState.eventTarget?.dispatchEvent(clickEvent)
+      if (doubleClickEvent) {
+        pointerState.eventTarget?.dispatchEvent(doubleClickEvent)
+      }
     }
 
     if (state.pointers.size === 0) {
@@ -143,7 +145,6 @@ export function makeEdgeInteractionHandlers(
     // no click event is fired. Thus, click events are emulated by using
     // pointerdown/up. The following is processing for emulated events only.
 
-    if (isShiftClickOnOtherKind(modes, "edge", event)) return
     modes.selectionMode.value = "edge"
 
     const isTouchAnySelectedEdge =
@@ -196,7 +197,6 @@ export function makeEdgeInteractionHandlers(
 
   function handleEdgeDoubleClickEvent(edge: string | string[], event: MouseEvent) {
     if (event.isTrusted) return // native event
-    if (isShiftClickOnOtherKind(modes, "edge", event)) return
     emitter.emit("edge:dblclick", _makeEdgeEventObject(edge, event))
   }
 

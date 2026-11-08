@@ -86,12 +86,15 @@ export function provideMouseOperation(
   configs: Configs,
   emitter: Emitter<Events>
 ): MouseEventHandlers {
+  const selections = { node: selectedNodes, edge: selectedEdges, path: selectedPaths }
   const selectionMode = ref<SelectionMode>("container")
   const modes: InteractionModes = {
     selectionMode,
     viewMode: ref("default"),
     isMultipleSelectable: computed(() => {
       if (selectionMode.value === "container") return false
+      const selected = selections[selectionMode.value].size
+      if (selected !== 1) return selected > 1
       const selectable = configs[selectionMode.value].selectable
       return typeof selectable === "number" ? selectable > 1 : !!selectable
     }),
@@ -108,7 +111,6 @@ export function provideMouseOperation(
 
   // The selectionMode watchers miss a mode that switches and comes back within one tick, so
   // clear the other kinds here too. "post" runs it after the per-kind watchers have set the mode.
-  const selections = { node: selectedNodes, edge: selectedEdges, path: selectedPaths }
   watch(
     [selectedNodes, selectedEdges, selectedPaths],
     () => {

@@ -40,7 +40,7 @@ describe("background", () => {
     expect(payloadsOf(events, "view:dblclick")).toEqual([])
   })
 
-  test("a double click with the shift key deselects the nodes selected one at a time", async () => {
+  test("a double click with the shift key deselects the nodes with node.selectable 1", async () => {
     const { canvas, state, events } = await mountGraph({
       nodes,
       layouts,

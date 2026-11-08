@@ -39,7 +39,7 @@ export interface ClickState {
 export interface InteractionModes {
   selectionMode: Ref<SelectionMode>
   viewMode: Ref<ViewMode>
-  isMultipleSelectable: Ref<boolean> // whether the selected kind allows more than one selected
+  isMultipleSelectable: Ref<boolean> // whether the selection may have more than one
 }
 
 /**
@@ -51,12 +51,7 @@ export function isShiftClickOnOtherKind(
   kind: SelectionMode,
   event: MouseEvent
 ): boolean {
-  return (
-    event.shiftKey &&
-    modes.isMultipleSelectable.value &&
-    modes.selectionMode.value !== "container" &&
-    modes.selectionMode.value !== kind
-  )
+  return event.shiftKey && modes.isMultipleSelectable.value && modes.selectionMode.value !== kind
 }
 
 export function getPointerMoveDetectionThreshold(type: string): number {
