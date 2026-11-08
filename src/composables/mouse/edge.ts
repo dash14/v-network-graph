@@ -2,6 +2,7 @@ import { Emitter } from "mitt"
 import { onUnmounted, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, EdgeEvent } from "@/common/types"
+import { selectableEdgesOf } from "@/composables/edgeState"
 import { EdgeStates } from "@/models/edge"
 import { MapUtil } from "@/utils/map"
 import { entriesOf } from "@/utils/object"
@@ -139,6 +140,12 @@ export function makeEdgeInteractionHandlers(
     modes.viewMode.value = "default"
   }
 
+  // Leaves out the edges removed while pressed, which have no state.
+  function existingOf(edge: string | string[]): string[] {
+    const edges = edge instanceof Array ? edge : [edge]
+    return edges.filter(edge => edge in edgeStates)
+  }
+
   function handleEdgeClickEvent(edge: string | string[], event: MouseEvent) {
     if (event.isTrusted) return // native event
     // When a finger is placed on any object and another object is tapped,
@@ -147,49 +154,29 @@ export function makeEdgeInteractionHandlers(
 
     modes.selectionMode.value = "edge"
 
-    const isTouchAnySelectedEdge =
-      MapUtil.valueOf(state.pointers).filter(p => {
-        const edges = p.id instanceof Array ? p.id : [p.id]
-        return edges.every(edge => selectedEdges.has(edge))
-      }).length > 0
+    // Edges count as selected when no more of them can be selected.
+    const isSelected = (edges: string[]) =>
+      edges.some(edge => selectedEdges.has(edge)) &&
+      edges.every(edge => selectedEdges.has(edge) || !edgeStates[edge].selectable)
 
-    if (edge instanceof Array) {
-      // Leave out the edges removed while pressed, which cannot be selected.
-      const edges = edge.filter(edge => edge in edgeStates)
-      // select only selectable edge
-      const selectableEdges = edges.find(edge => edgeStates[edge].selectable)
-      if (selectableEdges) {
-        if (event.shiftKey || isTouchAnySelectedEdge) {
-          if (edges.some(edge => selectedEdges.has(edge))) {
-            edges.forEach(edge => selectedEdges.delete(edge))
-          } else {
-            edges.forEach(edge => {
-              const selectable = edgeStates[edge].selectable
-              if (!(typeof selectable === "number" && selectedEdges.size >= selectable)) {
-                selectedEdges.add(edge)
-              }
-            })
-          }
-        } else if (!edges.every(edge => selectedEdges.has(edge))) {
-          // make the selectedEdges the clicked summarized one
-          selectedEdges.clear()
-          edges.forEach(edge => selectedEdges.add(edge))
+    const isTouchAnySelectedEdge = MapUtil.valueOf(state.pointers).some(p =>
+      isSelected(existingOf(p.id))
+    )
+
+    const edges = existingOf(edge)
+    // A summarized edge is selected as a whole, so not when it outnumbers the limit.
+    const { edges: selectableEdges, limit } = selectableEdgesOf(edgeStates, edges)
+    if (selectableEdges.length > 0) {
+      if (event.shiftKey || isTouchAnySelectedEdge) {
+        if (edges.some(edge => selectedEdges.has(edge))) {
+          edges.forEach(edge => selectedEdges.delete(edge))
+        } else if (selectedEdges.size + selectableEdges.length <= limit) {
+          selectableEdges.forEach(edge => selectedEdges.add(edge))
         }
-      }
-    } else {
-      const selectable = edgeStates[edge]?.selectable
-      if (selectable) {
-        if (event.shiftKey || isTouchAnySelectedEdge) {
-          if (selectedEdges.has(edge)) {
-            selectedEdges.delete(edge)
-          } else if (!(typeof selectable === "number" && selectedEdges.size >= selectable)) {
-            selectedEdges.add(edge)
-          }
-        } else if (!selectedEdges.has(edge)) {
-          // make the selectedEdges the clicked one
-          selectedEdges.clear()
-          selectedEdges.add(edge)
-        }
+      } else if (!isSelected(edges) && selectableEdges.length <= limit) {
+        // make the selectedEdges the clicked ones
+        selectedEdges.clear()
+        selectableEdges.forEach(edge => selectedEdges.add(edge))
       }
     }
     emitter.emit("edge:click", _makeEdgeEventObject(edge, event))

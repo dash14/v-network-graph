@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 import { nextTick } from "vue"
-import type { Node, Paths, UserConfigs } from "@/index"
+import type { Edge, Node, Paths, UserConfigs } from "@/index"
 import type { GraphProps } from "../helpers/graph"
 import { at, catchErrors, elementAt, mountGraph, payloadsOf, pointersOn } from "../helpers/graph"
 
@@ -712,12 +712,119 @@ describe("edges", () => {
       expect(state.selectedEdges).toEqual(["edge2"])
     })
 
-    test("a number for selectable limits the edges added with the shift key", async () => {
+    test("a click with the shift key adds all of the edges when they fit within the limit", async () => {
+      const { canvas, state } = await mountGraph(summarized({ edge: { selectable: 3 } }))
+
+      await userEvent.click(canvas, { position: edge2 })
+      await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+      expect(state.selectedEdges).toEqual(["edge2", "edge1", "edge3"])
+    })
+
+    test("a click with the shift key adds none of the edges when not all fit within the limit", async () => {
       const { canvas, state } = await mountGraph(summarized({ edge: { selectable: 2 } }))
 
       await userEvent.click(canvas, { position: edge2 })
       await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
-      expect(state.selectedEdges).toEqual(["edge2", "edge1"])
+      expect(state.selectedEdges).toEqual(["edge2"])
+    })
+
+    test("a click with the shift key adds none of the edges when the limit is reached", async () => {
+      const props = summarized({ edge: { selectable: 2 } })
+      props.edges!.edge4 = { source: "node2", target: "node3" }
+      props.selectedEdges = ["edge2", "edge4"]
+      const { canvas, state } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+      expect(state.selectedEdges).toEqual(["edge2", "edge4"])
+    })
+
+    test("a click selects none of the edges when they outnumber the limit", async () => {
+      const props = summarized({ edge: { selectable: 1 } })
+      props.selectedEdges = ["edge2"]
+      const { canvas, state, events } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1 })
+      expect(state.selectedEdges).toEqual(["edge2"])
+      expect(payloadsOf(events, "edge:click")).toMatchObject([{ edges: ["edge1", "edge3"] }])
+    })
+
+    test("a click with the shift key removes the selected edges even when they outnumber the limit", async () => {
+      const props = summarized({ edge: { selectable: 1 } })
+      props.selectedEdges = ["edge1"]
+      const { canvas, state } = await mountGraph(props)
+
+      await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+      expect(state.selectedEdges).toEqual([])
+    })
+
+    describe("only some of which are selectable", () => {
+      const someSelectable = (selectedEdges: string[] = []) => {
+        const props = summarized({ edge: { selectable: (edge: Edge) => !edge.locked } })
+        props.edges!.edge3.locked = true
+        props.selectedEdges = selectedEdges
+        return props
+      }
+
+      test("a click selects only the selectable edges", async () => {
+        const { canvas, state } = await mountGraph(someSelectable())
+
+        await userEvent.click(canvas, { position: edge1 })
+        expect(state.selectedEdges).toEqual(["edge1"])
+      })
+
+      test("a click with the shift key adds only the selectable edges", async () => {
+        const { canvas, state } = await mountGraph(someSelectable(["edge2"]))
+
+        await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+        expect(state.selectedEdges).toEqual(["edge2", "edge1"])
+      })
+
+      test("a click on the edges whose selectable ones are all selected keeps the selection", async () => {
+        const { canvas, state } = await mountGraph(someSelectable(["edge2", "edge1"]))
+
+        await userEvent.click(canvas, { position: edge1 })
+        expect(state.selectedEdges).toEqual(["edge2", "edge1"])
+      })
+
+      test("a click with the shift key removes all of the edges, selectable or not", async () => {
+        const { canvas, state } = await mountGraph(someSelectable(["edge1", "edge3"]))
+
+        await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+        expect(state.selectedEdges).toEqual([])
+      })
+
+      test("a click with the shift key removes the edges when only an unselectable one is selected", async () => {
+        const { canvas, state } = await mountGraph(someSelectable(["edge3"]))
+
+        await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+        expect(state.selectedEdges).toEqual([])
+      })
+
+      test("a tap while a finger holds a selected unselectable edge adds the tapped edges", async () => {
+        const props = someSelectable(["edge2"])
+        props.edges!.edge2.locked = true
+        const { screen, state } = await mountGraph(props)
+        const pointers = pointersOn(screen.container)
+
+        pointers.down(1, edge2)
+        pointers.down(2, edge1)
+        pointers.up(2, edge1)
+        await nextTick()
+        expect(state.selectedEdges).toEqual(["edge2", "edge1"])
+        pointers.cancel(1)
+      })
+
+      test("a tap with a finger on the selected edges adds the tapped edge", async () => {
+        const { screen, state } = await mountGraph(someSelectable(["edge1"]))
+        const pointers = pointersOn(screen.container)
+
+        pointers.down(1, edge1)
+        pointers.down(2, edge2)
+        pointers.up(2, edge2)
+        await nextTick()
+        expect(state.selectedEdges).toEqual(["edge1", "edge2"])
+        pointers.cancel(1)
+      })
     })
 
     test("a tap with a finger on the selected edges adds the tapped edge to the selection", async () => {
