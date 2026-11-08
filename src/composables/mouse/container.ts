@@ -55,6 +55,7 @@ export function setupContainerInteractionHandlers(
   }
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
+    if (event.button == 2 /* right button */) return // its press is not counted
     state.pointerCounter--
     if (state.pointerCounter <= 0) {
       state.pointerCounter = 0
