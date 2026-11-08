@@ -37,7 +37,9 @@ export function setupContainerInteractionHandlers(
     })
   }
 
-  function handleContainerPointerDownEvent(_: PointerEvent) {
+  function handleContainerPointerDownEvent(event: PointerEvent) {
+    // Windows fires contextmenu after the release, too late to cancel the click.
+    if (event.button == 2 /* right button */) return
     state.moveCounter = 0
     if (state.pointerCounter === 0) {
       // Add to event listener
@@ -53,6 +55,7 @@ export function setupContainerInteractionHandlers(
   }
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
+    if (event.button == 2 /* right button */) return // its press is not counted
     state.pointerCounter--
     if (state.pointerCounter <= 0) {
       state.pointerCounter = 0

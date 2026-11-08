@@ -18,6 +18,62 @@ describe("background", () => {
     expect(payloadsOf(events, "view:click")).toHaveLength(1)
   })
 
+  test.each([
+    { name: "the background", position: at(0, 100), contextmenu: "view:contextmenu" as const },
+    { name: "a path", position: at(0, 0), contextmenu: "path:contextmenu" as const },
+  ])(
+    "a right click on $name emits no click when the context menu comes after the release",
+    async ({ position, contextmenu }) => {
+      const { screen, events } = await mountGraph({
+        nodes: { node1: { name: "Node 1" }, node2: { name: "Node 2" } },
+        edges: { edge1: { source: "node1", target: "node2" } },
+        paths: { path1: { edges: ["edge1"] } },
+        layouts: { nodes: { node1: { x: -100, y: 0 }, node2: { x: 100, y: 0 } } },
+        configs: { path: { visible: true, clickable: true } },
+      })
+      const pointers = pointersOn(screen.container)
+
+      // The order on Windows.
+      pointers.down(1, position, { button: 2, buttons: 2 })
+      pointers.up(1, position, { button: 2 })
+      elementAt(screen.container, position)!.dispatchEvent(
+        new MouseEvent("contextmenu", { bubbles: true, cancelable: true, button: 2 })
+      )
+      await nextTick()
+      expect(payloadsOf(events, "view:click")).toEqual([])
+      expect(payloadsOf(events, contextmenu)).toHaveLength(1)
+    }
+  )
+
+  test("a right click while a finger holds the background leaves the tap to the finger", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const position = at(0, 100)
+
+    pointers.down(1, position, { pointerType: "touch" })
+    pointers.down(2, position, { button: 2, buttons: 2 })
+    pointers.up(2, position, { button: 2 })
+    expect(payloadsOf(events, "view:click")).toEqual([])
+
+    pointers.up(1, position, { pointerType: "touch" })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a long press that opens the context menu emits no click", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const position = at(0, 100)
+
+    pointers.down(1, position, { pointerType: "touch" })
+    elementAt(screen.container, position)!.dispatchEvent(
+      new MouseEvent("contextmenu", { bubbles: true, cancelable: true })
+    )
+    pointers.up(1, position, { pointerType: "touch" })
+    await nextTick()
+    expect(payloadsOf(events, "view:contextmenu")).toHaveLength(1)
+    expect(payloadsOf(events, "view:click")).toEqual([])
+  })
+
   test("a double click emits two clicks and a double click", async () => {
     const { canvas, events } = await mountGraph({ nodes, layouts })
 
