@@ -712,12 +712,20 @@ describe("edges", () => {
       expect(state.selectedEdges).toEqual(["edge2"])
     })
 
-    test("a click with the shift key adds all of the edges while the limit has room", async () => {
-      const { canvas, state } = await mountGraph(summarized({ edge: { selectable: 2 } }))
+    test("a click with the shift key adds all of the edges when they fit within the limit", async () => {
+      const { canvas, state } = await mountGraph(summarized({ edge: { selectable: 3 } }))
 
       await userEvent.click(canvas, { position: edge2 })
       await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
       expect(state.selectedEdges).toEqual(["edge2", "edge1", "edge3"])
+    })
+
+    test("a click with the shift key adds none of the edges when not all fit within the limit", async () => {
+      const { canvas, state } = await mountGraph(summarized({ edge: { selectable: 2 } }))
+
+      await userEvent.click(canvas, { position: edge2 })
+      await userEvent.click(canvas, { position: edge1, modifiers: ["Shift"] })
+      expect(state.selectedEdges).toEqual(["edge2"])
     })
 
     test("a click with the shift key adds none of the edges when the limit is reached", async () => {
@@ -730,11 +738,14 @@ describe("edges", () => {
       expect(state.selectedEdges).toEqual(["edge2", "edge4"])
     })
 
-    test("a click selects all of the edges even beyond the limit", async () => {
-      const { canvas, state } = await mountGraph(summarized({ edge: { selectable: 1 } }))
+    test("a click selects none of the edges when they outnumber the limit", async () => {
+      const props = summarized({ edge: { selectable: 1 } })
+      props.selectedEdges = ["edge2"]
+      const { canvas, state, events } = await mountGraph(props)
 
       await userEvent.click(canvas, { position: edge1 })
-      expect(state.selectedEdges).toEqual(["edge1", "edge3"])
+      expect(state.selectedEdges).toEqual(["edge2"])
+      expect(payloadsOf(events, "edge:click")).toMatchObject([{ edges: ["edge1", "edge3"] }])
     })
 
     describe("only some of which are selectable", () => {

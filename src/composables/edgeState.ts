@@ -151,3 +151,11 @@ function toEdgeMarker(marker: MarkerStyle): MarkerStyle {
     return marker
   }
 }
+
+/** The edges a click on the given ones selects: the selectable ones, or none if over the limit. */
+export function selectableEdgesOf(edgeStates: EdgeModel.EdgeStates, edges: string[]): string[] {
+  const selectableEdges = edges.filter(edge => edgeStates[edge]?.selectable)
+  const selectable = edgeStates[selectableEdges[0]]?.selectable
+  const limit = typeof selectable === "number" ? selectable : Infinity
+  return selectableEdges.length <= limit ? selectableEdges : []
+}

@@ -13,7 +13,7 @@ import * as PathModel from "@/models/path"
 import * as EdgeGroup from "@/modules/edge/group"
 import type { UpdatableCurrentPositions } from "./currentPositions"
 import { makeEdgePlacement } from "./edgePlacement"
-import { createEdgeEntries, createNewEdgeState } from "./edgeState"
+import { createEdgeEntries, createNewEdgeState, selectableEdgesOf } from "./edgeState"
 import { MarkerState } from "./marker"
 import { createNewNodeState, makeOpposingNodes } from "./nodeState"
 import { useObjectState } from "./objectState"
@@ -251,10 +251,11 @@ export function drawnStateOf(edgeStates: EdgeModel.EdgeStates, edges: Edges) {
   return edgeId ? edgeStates[edgeId] : undefined
 }
 
-/** Whether a summarized group is hovered, selectable or selected: whether any of its edges is. */
+/** Whether a summarized group is hovered or selected (any of its edges is), and clickable to select. */
 export function useSummarizedEdgesState(edges: () => Edges) {
   const { edgeStates } = useStates()
-  const some = (key: "hovered" | "selectable" | "selected") =>
+  const some = (key: "hovered" | "selected") =>
     computed(() => Object.keys(edges()).some(id => edgeStates[id]?.[key]))
-  return { hovered: some("hovered"), selectable: some("selectable"), selected: some("selected") }
+  const selectable = computed(() => selectableEdgesOf(edgeStates, Object.keys(edges())).length > 0)
+  return { hovered: some("hovered"), selectable, selected: some("selected") }
 }

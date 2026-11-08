@@ -2,6 +2,7 @@ import { Emitter } from "mitt"
 import { onUnmounted, watch } from "vue"
 import { Reactive } from "@/common/common"
 import { Events, EdgeEvent } from "@/common/types"
+import { selectableEdgesOf } from "@/composables/edgeState"
 import { EdgeStates } from "@/models/edge"
 import { MapUtil } from "@/utils/map"
 import { entriesOf } from "@/utils/object"
@@ -161,16 +162,15 @@ export function makeEdgeInteractionHandlers(
     const isTouchAnySelectedEdge =
       MapUtil.valueOf(state.pointers).filter(p => isSelected(existingOf(p.id))).length > 0
 
-    // A summarized edge is selected as a whole while the limit has room, even if it then goes over.
     const edges = existingOf(edge)
-    const selectableEdges = edges.filter(edge => edgeStates[edge].selectable)
+    const selectableEdges = selectableEdgesOf(edgeStates, edges)
     if (selectableEdges.length > 0) {
       const selectable = edgeStates[selectableEdges[0]].selectable
       const limit = typeof selectable === "number" ? selectable : Infinity
       if (event.shiftKey || isTouchAnySelectedEdge) {
         if (edges.some(edge => selectedEdges.has(edge))) {
           edges.forEach(edge => selectedEdges.delete(edge))
-        } else if (selectedEdges.size < limit) {
+        } else if (selectedEdges.size + selectableEdges.length <= limit) {
           selectableEdges.forEach(edge => selectedEdges.add(edge))
         }
       } else if (!isSelected(edges)) {

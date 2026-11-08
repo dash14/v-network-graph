@@ -53,6 +53,20 @@ describe("the slots of summarized edges", () => {
 })
 
 describe("summarized edges", () => {
+  test.each([
+    [true, true],
+    [2, true],
+    [1, false],
+  ])("are drawn as selectable with selectable: %s, %s", async (selectable, expected) => {
+    const graph = props()
+    const { screen } = await mountGraph({
+      ...graph,
+      configs: { edge: { ...graph.configs.edge, selectable } },
+    })
+    const line = screen.container.querySelector(".v-ng-line-summarized")!
+    expect(line.classList.contains("selectable")).toBe(expected)
+  })
+
   test("put the shape and the count in the middle of the line", async () => {
     const tilted = props()
     tilted.layouts.nodes = { node1: { x: -100, y: -20 }, node2: { x: 100, y: 40 } }
