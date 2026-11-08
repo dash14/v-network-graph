@@ -441,6 +441,8 @@ describe("calculatePathPoints", () => {
     ["mostly outside the node, counterclockwise", 12, 10, false, "1 0"],
     ["mostly inside the node, on the small arc", 12, -4, true, "0 1"],
     ["mostly inside the node, counterclockwise", 12, -4, false, "0 0"],
+    ["apart from the node", 12, 30, true, "1 1"],
+    ["apart from the node, counterclockwise", 12, 30, false, "1 0"],
   ])("should draw a self-loop %s", (_, radius, offset, isClockwise, flags) => {
     const nodes = { n1: { x: 0, y: -100 }, n2: { x: 0, y: 0 }, n3: { x: 0, y: 100 } }
     const selfLoop = { radius, offset, angle: 270, isClockwise }
