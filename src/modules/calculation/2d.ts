@@ -78,22 +78,15 @@ function calculateDistanceToAvoidOverlapsWithRect(
     ]
     const index = Math.floor(((centerLine.v.angleDegree() + 360) % 360) / 90)
     const centerOfNearestCircle = vertexes[index]
-    const point = PointUtils.getIntersectionOfLineTargetAndCircle(
-      centerLine.source,
-      PointUtils.getNearestPoint(centerOfNearestCircle, centerLine),
-      centerOfNearestCircle,
-      borderRadius
-    )
-    // The line leaves the box across the corner square, whose inner edges are radii of the corner
-    // circle, so it always crosses the circle. Kept for rounding errors.
-    /* v8 ignore else */
-    if (point) {
-      return LineUtils.toLineVector(point, centerLine.target).length()
-    } else {
-      return (
-        LineUtils.toLineVector(centerOfNearestCircle, centerLine.target).length() + borderRadius
-      )
-    }
+    // The ray from the center of the rect toward the source, wherever the source lies, leaves the
+    // corner circle at the outline. A zero-length line counts as pointing right, so the ray points left.
+    const direction = centerLine.v.clone().normalize().multiplyScalar(-1)
+    const toCenter = Vector2D.fromObject(targetPos).subtract(centerOfNearestCircle)
+    const b = direction.dot(toCenter)
+    // The ray leaves the box across the corner square, whose inner edges are radii of the corner
+    // circle, so it crosses the circle. The clamp absorbs rounding errors.
+    const discriminant = Math.max(b ** 2 - toCenter.lengthSquared() + borderRadius ** 2, 0)
+    return -b + Math.sqrt(discriminant)
   }
 }
 
