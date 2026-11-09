@@ -58,6 +58,19 @@ describe("fit", () => {
       })
     })
 
+    it.each([
+      ["12.5", 12.5, 12.5],
+      ["12.5px", 12.5, 12.5],
+      ["12.5%", 25, 18.75],
+      ["-12", -12, -12],
+      ["-12px", -12, -12],
+      ["-10%", -20, -15],
+    ])("should parse the string %s as the number it shows", (value, x, y) => {
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin(value as FitContentMargin, size)
+      expect(actual).toStrictEqual({ top: y, left: x, right: x, bottom: y })
+    })
+
     it("should parse the object value", () => {
       const size: Size = { width: 200, height: 150 }
       const actual: Box = parseFitContentMargin(
@@ -141,7 +154,7 @@ describe("fit", () => {
       warnSpy.mockRestore()
     })
 
-    it.each(["12em", "-12"])("should warn for the string %s", value => {
+    it.each(["12em", "12 em", "12px%", "1 2", " px"])("should warn for the string %s", value => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
       const size: Size = { width: 200, height: 150 }
       const actual: Box = parseFitContentMargin(value as FitContentMargin, size)

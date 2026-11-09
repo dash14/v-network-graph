@@ -25,7 +25,7 @@ interface ZoomAt {
 // Constants
 // -----------------------------------------------------------------------
 
-const NUMERIC_PATTERN = new RegExp("^\\d+$")
+const UNIT_PATTERN = /(%|px)$/
 
 // -----------------------------------------------------------------------
 // Exported functions
@@ -118,16 +118,11 @@ function parseFitContentMarginValue(
   baseSize: number
 ): number | undefined {
   if (typeof marginValue === "string") {
-    if (marginValue.endsWith("%")) {
-      const value = parseInt(marginValue.toString())
-      if (Number.isFinite(value)) {
-        return baseSize * (value / 100.0)
-      }
-    } else if (marginValue.endsWith("px") || NUMERIC_PATTERN.test(marginValue)) {
-      const value = parseInt(marginValue.toString())
-      if (Number.isFinite(value)) {
-        return value
-      }
+    const text = marginValue.replace(UNIT_PATTERN, "")
+    // Number() reads a blank string as 0, though no number was given.
+    const value = text.trim() === "" ? NaN : Number(text)
+    if (Number.isFinite(value)) {
+      return marginValue.endsWith("%") ? baseSize * (value / 100.0) : value
     }
   } else if (typeof marginValue === "number") {
     return marginValue
