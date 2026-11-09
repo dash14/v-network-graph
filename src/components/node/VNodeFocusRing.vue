@@ -52,8 +52,14 @@ watchEffect(() => {
         shapeStyle.strokeWidth +
         config.focusring.padding * 2 +
         config.focusring.width,
+      // Rounded by as much as the ring stands off the node, so the corners are concentric.
       borderRadius:
-        shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + config.focusring.padding : 0,
+        shapeStyle.borderRadius > 0
+          ? shapeStyle.borderRadius +
+            shapeStyle.strokeWidth / 2 +
+            config.focusring.padding +
+            config.focusring.width / 2
+          : 0,
       color: "none",
       strokeWidth: config.focusring.width,
       strokeColor: config.focusring.color,
