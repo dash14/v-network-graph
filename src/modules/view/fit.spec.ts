@@ -58,6 +58,21 @@ describe("fit", () => {
       })
     })
 
+    it.each([
+      ["12.5", 12.5, 12.5],
+      ["12.5px", 12.5, 12.5],
+      ["12.5%", 25, 18.75],
+      ["-12", -12, -12],
+      ["-12px", -12, -12],
+      ["-10%", -20, -15],
+      [".5", 0.5, 0.5],
+      ["12.px", 12, 12],
+    ])("should parse the string %s as the number it shows", (value, x, y) => {
+      const size: Size = { width: 200, height: 150 }
+      const actual: Box = parseFitContentMargin(value as FitContentMargin, size)
+      expect(actual).toStrictEqual({ top: y, left: x, right: x, bottom: y })
+    })
+
     it("should parse the object value", () => {
       const size: Size = { width: 200, height: 150 }
       const actual: Box = parseFitContentMargin(
@@ -141,14 +156,17 @@ describe("fit", () => {
       warnSpy.mockRestore()
     })
 
-    it.each(["12em", "-12"])("should warn for the string %s", value => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
-      const size: Size = { width: 200, height: 150 }
-      const actual: Box = parseFitContentMargin(value as FitContentMargin, size)
-      expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
-      expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", value)
-      warnSpy.mockRestore()
-    })
+    it.each(["12em", "12px%", "12 px", " 12", "0x10px", "1e2", "+12", "-", "."])(
+      "should warn for the string %s",
+      value => {
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+        const size: Size = { width: 200, height: 150 }
+        const actual: Box = parseFitContentMargin(value as FitContentMargin, size)
+        expect(actual).toStrictEqual({ top: 0, left: 0, right: 0, bottom: 0 })
+        expect(warnSpy).toHaveBeenCalledWith("Invalid `fitContentMargin` value.", value)
+        warnSpy.mockRestore()
+      }
+    )
 
     it("should handle partial object with only top", () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})

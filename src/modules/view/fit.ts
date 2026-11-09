@@ -25,7 +25,7 @@ interface ZoomAt {
 // Constants
 // -----------------------------------------------------------------------
 
-const NUMERIC_PATTERN = new RegExp("^\\d+$")
+const MARGIN_PATTERN = /^(-?(?:\d+\.?\d*|\.\d+))(%|px)?$/
 
 // -----------------------------------------------------------------------
 // Exported functions
@@ -118,16 +118,10 @@ function parseFitContentMarginValue(
   baseSize: number
 ): number | undefined {
   if (typeof marginValue === "string") {
-    if (marginValue.endsWith("%")) {
-      const value = parseInt(marginValue.toString())
-      if (Number.isFinite(value)) {
-        return baseSize * (value / 100.0)
-      }
-    } else if (marginValue.endsWith("px") || NUMERIC_PATTERN.test(marginValue)) {
-      const value = parseInt(marginValue.toString())
-      if (Number.isFinite(value)) {
-        return value
-      }
+    const match = MARGIN_PATTERN.exec(marginValue)
+    if (match) {
+      const value = Number(match[1])
+      return match[2] === "%" ? baseSize * (value / 100.0) : value
     }
   } else if (typeof marginValue === "number") {
     return marginValue
