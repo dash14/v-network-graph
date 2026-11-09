@@ -905,7 +905,7 @@ describe("edges", () => {
       }
     )
 
-    test("a tap while a finger holds edges only some of which are selected selects only the tapped one", async () => {
+    test("a tap while a finger holds edges only some of which are selected adds the tapped one", async () => {
       const props = summarized({ edge: selectable })
       props.selectedEdges = ["edge1"]
       const { screen, state } = await mountGraph(props)
@@ -915,7 +915,7 @@ describe("edges", () => {
       pointers.down(2, edge2)
       pointers.up(2, edge2)
       await nextTick()
-      expect(state.selectedEdges).toEqual(["edge2"])
+      expect(state.selectedEdges).toEqual(["edge1", "edge2"])
       pointers.cancel(1)
     })
 

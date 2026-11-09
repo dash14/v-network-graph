@@ -159,8 +159,9 @@ export function makeEdgeInteractionHandlers(
       edges.some(edge => selectedEdges.has(edge)) &&
       edges.every(edge => selectedEdges.has(edge) || !edgeStates[edge].selectable)
 
+    // A summarized edge only some of whose edges are selected is drawn as selected, too.
     const isTouchAnySelectedEdge = MapUtil.valueOf(state.pointers).some(p =>
-      isSelected(existingOf(p.id))
+      existingOf(p.id).some(edge => selectedEdges.has(edge))
     )
 
     const edges = existingOf(edge)
