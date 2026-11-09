@@ -40,7 +40,8 @@ watchEffect(() => {
   const t = props.area.target
   if (props.align === "source") {
     if (s.above.x == t.above.x) {
-      textAnchor.value = s.above.y > t.above.y ? "start" : "end"
+      // On an area of a single point, the labels of the two ends run apart from it.
+      textAnchor.value = s.above.y >= t.above.y ? "start" : "end"
     } else {
       textAnchor.value = s.above.x < t.above.x ? "start" : "end"
     }

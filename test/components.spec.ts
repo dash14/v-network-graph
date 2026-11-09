@@ -343,12 +343,15 @@ describe("edge labels", () => {
     }
   )
 
-  test.each(["source", "target"])(
-    "a label aligned to the %s of an edge of no length ends at the point",
-    async align => {
+  test.each([
+    ["source", "start"],
+    ["target", "end"],
+  ])(
+    "a label aligned to the %s of an area of a single point is anchored at its %s",
+    async (align, anchor) => {
       const point = { above: { x: 0, y: 0 }, below: { x: 0, y: 10 } }
       const attrsOf = await label({ align, area: { source: point, target: point } })
-      expect(attrsOf("text-anchor")).toEqual(["end"])
+      expect(attrsOf("text-anchor")).toEqual([anchor])
     }
   )
 
