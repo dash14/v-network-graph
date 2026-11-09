@@ -717,7 +717,7 @@ describe("focus ring", () => {
   })
 
   test.each([
-    { name: "round corners", borderRadius: 4, rx: 7 },
+    { name: "round corners", borderRadius: 4, rx: 10 },
     { name: "square corners", borderRadius: 0, rx: 0 },
   ])(
     "is drawn around a rect with $name, past its stroke by the padding",

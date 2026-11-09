@@ -7,7 +7,7 @@
       <path class="v-ng-line selectable v-ng-edge" stroke="#4466cc" stroke-width="2" stroke-linecap="butt" data-edge-id="edge2" d="M 0 0 L 100 0" />
     </g>
     <g class="v-ng-layer-nodes-selections">
-      <rect class="v-ng-shape-rect v-ng-node-focusring" x="-21" y="-21" width="42" height="42" rx="7" ry="7" fill="none" stroke="#eebb00" stroke-width="4" />
+      <rect class="v-ng-shape-rect v-ng-node-focusring" x="-21" y="-21" width="42" height="42" rx="10" ry="10" fill="none" stroke="#eebb00" stroke-width="4" />
     </g>
     <g class="v-ng-layer-nodes v-ng-graph-objects">
       <g class="v-ng-node" transform="translate(-100 0)">

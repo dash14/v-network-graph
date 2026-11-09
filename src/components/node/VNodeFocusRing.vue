@@ -25,14 +25,12 @@ const shapeConfig = reactive<ShapeStyle>({} as any)
 
 watchEffect(() => {
   const shapeStyle = props.state.shape
+  // Distance from the node's shape to the middle of the ring's stroke
+  const offset = shapeStyle.strokeWidth / 2 + config.focusring.padding + config.focusring.width / 2
   if (shapeStyle.type === "circle") {
     const shape: CircleShapeStyle = {
       type: "circle",
-      radius:
-        shapeStyle.radius +
-        shapeStyle.strokeWidth / 2 +
-        config.focusring.padding +
-        config.focusring.width / 2,
+      radius: shapeStyle.radius + offset,
       color: "none",
       strokeWidth: config.focusring.width,
       strokeColor: config.focusring.color,
@@ -42,18 +40,10 @@ watchEffect(() => {
   } else {
     const shape: RectangleShapeStyle = {
       type: "rect",
-      width:
-        shapeStyle.width +
-        shapeStyle.strokeWidth +
-        config.focusring.padding * 2 +
-        config.focusring.width,
-      height:
-        shapeStyle.height +
-        shapeStyle.strokeWidth +
-        config.focusring.padding * 2 +
-        config.focusring.width,
-      borderRadius:
-        shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + config.focusring.padding : 0,
+      width: shapeStyle.width + offset * 2,
+      height: shapeStyle.height + offset * 2,
+      // Rounded by the same offset as the sides, so the corners are concentric.
+      borderRadius: shapeStyle.borderRadius > 0 ? shapeStyle.borderRadius + offset : 0,
       color: "none",
       strokeWidth: config.focusring.width,
       strokeColor: config.focusring.color,
