@@ -175,14 +175,13 @@ export function makePathInteractionHandlers(
     // pointerdown/up. The following is processing for emulated events only.
 
     // A path removed while pressed is still clicked, as nodes and edges are.
-    const pathState = pathStates[path]
-    if (pathState && !pathState.clickable) {
+    if (pathStates[path]?.clickable === false) {
       return
     }
 
     modes.selectionMode.value = "path"
 
-    const selectable = pathState?.selectable
+    const selectable = pathStates[path]?.selectable
     if (selectable) {
       const isTouchAnySelectedPath =
         MapUtil.valueOf(state.pointers).filter(p => selectedPaths.has(p.id)).length > 0
@@ -204,7 +203,7 @@ export function makePathInteractionHandlers(
 
   function handlePathDoubleClickEvent(path: string, event: MouseEvent) {
     if (event.isTrusted) return // native event
-    if (pathStates[path] && !pathStates[path].clickable) {
+    if (pathStates[path]?.clickable === false) {
       return
     }
     emitter.emit("path:dblclick", _makePathEventObject(path, event))
