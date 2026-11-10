@@ -1219,7 +1219,7 @@ describe("paths", () => {
     expect(state.selectedPaths).toEqual([])
   })
 
-  test("a path removed while pressed makes no double click", async () => {
+  test("a path removed while pressed is clicked and double clicked, as nodes and edges are", async () => {
     const errors = catchErrors()
     const { screen, state, events } = await mountGraph(graph({ path: clickable }))
     const pointers = pointersOn(screen.container)
@@ -1232,7 +1232,23 @@ describe("paths", () => {
     pointers.up(1, edge1)
 
     expect(errors).toEqual([])
-    expect(payloadsOf(events, "path:dblclick")).toEqual([])
+    expect(payloadsOf(events, "path:click")).toMatchObject([{ path: "path1" }, { path: "path1" }])
+    expect(payloadsOf(events, "path:dblclick")).toMatchObject([{ path: "path1" }])
+  })
+
+  test("a path removed while pressed is clicked without being selected", async () => {
+    const errors = catchErrors()
+    const { screen, state, events } = await mountGraph(graph({ path: clickable }))
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1)
+    delete (state.paths as Paths).path1
+    await nextTick()
+    pointers.up(1, edge1)
+
+    expect(errors).toEqual([])
+    expect(payloadsOf(events, "path:click")).toMatchObject([{ path: "path1" }])
+    expect(state.selectedPaths).toEqual([])
   })
 
   test("a path that is clickable but not hoverable emits no hover events", async () => {
