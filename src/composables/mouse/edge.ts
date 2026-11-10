@@ -154,26 +154,37 @@ export function makeEdgeInteractionHandlers(
 
     modes.selectionMode.value = "edge"
 
+    const isAnySelected = (edges: string[]) => edges.some(edge => selectedEdges.has(edge))
+
     // Edges count as selected when no more of them can be selected.
     const isSelected = (edges: string[]) =>
-      edges.some(edge => selectedEdges.has(edge)) &&
+      isAnySelected(edges) &&
       edges.every(edge => selectedEdges.has(edge) || !edgeStates[edge].selectable)
 
     // A summarized edge only some of whose edges are selected is drawn as selected, too.
-    const isTouchAnySelectedEdge = MapUtil.valueOf(state.pointers).some(p =>
-      existingOf(p.id).some(edge => selectedEdges.has(edge))
-    )
+    const heldSelectedEdges = MapUtil.valueOf(state.pointers)
+      .map(p => existingOf(p.id))
+      .filter(isAnySelected)
+    const isTouchAnySelectedEdge = heldSelectedEdges.length > 0
 
     const edges = existingOf(edge)
     // A summarized edge is selected as a whole, so not when it outnumbers the limit.
     const { edges: selectableEdges, limit } = selectableEdgesOf(edgeStates, edges)
     if (selectableEdges.length > 0) {
       if (event.shiftKey || isTouchAnySelectedEdge) {
-        if (edges.some(edge => selectedEdges.has(edge))) {
+        if (isAnySelected(edges)) {
           edges.forEach(edge => selectedEdges.delete(edge))
         } else if (selectedEdges.size + selectableEdges.length <= limit) {
           selectableEdges.forEach(edge => selectedEdges.add(edge))
         }
+        // Fill the held ones still selected, so that releasing them keeps the selection.
+        heldSelectedEdges.filter(isAnySelected).forEach(held => {
+          const { edges: selectable, limit: heldLimit } = selectableEdgesOf(edgeStates, held)
+          const rest = selectable.filter(edge => !selectedEdges.has(edge))
+          if (selectedEdges.size + rest.length <= heldLimit) {
+            rest.forEach(edge => selectedEdges.add(edge))
+          }
+        })
       } else if (!isSelected(edges) && selectableEdges.length <= limit) {
         // make the selectedEdges the clicked ones
         selectedEdges.clear()

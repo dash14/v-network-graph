@@ -905,8 +905,24 @@ describe("edges", () => {
       }
     )
 
-    test("a tap while a finger holds edges only some of which are selected adds the tapped one", async () => {
+    test("a tap while a finger holds edges only some of which are selected adds the tapped one and the rest held", async () => {
       const props = summarized({ edge: selectable })
+      props.selectedEdges = ["edge1"]
+      const { screen, state } = await mountGraph(props)
+      const pointers = pointersOn(screen.container)
+
+      pointers.down(1, edge1)
+      pointers.down(2, edge2)
+      pointers.up(2, edge2)
+      await nextTick()
+      expect(state.selectedEdges).toEqual(["edge1", "edge2", "edge3"])
+      pointers.up(1, edge1)
+      await nextTick()
+      expect(state.selectedEdges).toEqual(["edge1", "edge2", "edge3"])
+    })
+
+    test("a tap while a finger holds edges only some of which are selected leaves the rest held out of the limit", async () => {
+      const props = summarized({ edge: { selectable: 2 } })
       props.selectedEdges = ["edge1"]
       const { screen, state } = await mountGraph(props)
       const pointers = pointersOn(screen.container)
