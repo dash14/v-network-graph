@@ -45,6 +45,38 @@ describe("background", () => {
     }
   )
 
+  test.each([
+    { name: "before", os: "macOS" },
+    { name: "after", os: "Windows" },
+  ])(
+    "a press that releases the right button last, with the context menu on a node $name the release, leaves the next click",
+    async ({ os }) => {
+      const { screen, events } = await mountGraph({ nodes, layouts })
+      const pointers = pointersOn(screen.container)
+      const background = at(0, 100)
+      const node = at(0, 0)
+      const contextmenu = () =>
+        elementAt(screen.container, node)!.dispatchEvent(
+          new MouseEvent("contextmenu", { bubbles: true, cancelable: true, button: 2 })
+        )
+
+      // The right button joins the left one's press, and is released last.
+      pointers.down(1, background, { button: 0, buttons: 1 })
+      pointers.move(1, node, { button: 2, buttons: 3 })
+      if (os === "macOS") contextmenu()
+      pointers.move(1, node, { button: 0, buttons: 2 })
+      pointers.up(1, node, { button: 2, buttons: 0 })
+      if (os === "Windows") contextmenu()
+      await nextTick()
+      expect(payloadsOf(events, "node:contextmenu")).toHaveLength(1)
+      expect(payloadsOf(events, "view:click")).toEqual([])
+
+      pointers.down(1, background, { button: 0, buttons: 1 })
+      pointers.up(1, background, { button: 0, buttons: 0 })
+      expect(payloadsOf(events, "view:click")).toHaveLength(1)
+    }
+  )
+
   test("a right click while a finger holds the background leaves the tap to the finger", async () => {
     const { screen, events } = await mountGraph({ nodes, layouts })
     const pointers = pointersOn(screen.container)
