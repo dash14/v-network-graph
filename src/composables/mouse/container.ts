@@ -19,7 +19,7 @@ export function setupContainerInteractionHandlers(
 ) {
   const state = {
     moveCounter: 0,
-    pointerCounter: 0,
+    pressedPointers: new Set<number>(), // IDs of the pointers whose press is counted
     clickState: undefined as ClickState | undefined,
   }
 
@@ -41,13 +41,13 @@ export function setupContainerInteractionHandlers(
     // Windows fires contextmenu after the release, too late to cancel the click.
     if (event.button == 2 /* right button */) return
     state.moveCounter = 0
-    if (state.pointerCounter === 0) {
+    if (state.pressedPointers.size === 0) {
       // Add to event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         document.addEventListener(ev, handler, { passive: true })
       })
     }
-    state.pointerCounter++
+    state.pressedPointers.add(event.pointerId)
   }
 
   function handleContainerPointerMoveEvent(_: PointerEvent) {
@@ -55,10 +55,9 @@ export function setupContainerInteractionHandlers(
   }
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
-    if (event.button == 2 /* right button */) return // its press is not counted
-    state.pointerCounter--
-    if (state.pointerCounter <= 0) {
-      state.pointerCounter = 0
+    // Ends a counted press whichever of its chorded buttons is released last.
+    if (!state.pressedPointers.delete(event.pointerId)) return
+    if (state.pressedPointers.size === 0) {
       removePointerHandlers()
       const threshold = getPointerMoveDetectionThreshold(event.pointerType)
       if (state.moveCounter <= threshold) {
@@ -99,9 +98,9 @@ export function setupContainerInteractionHandlers(
   function handleContainerContextMenuEvent(event: MouseEvent) {
     emitter.emit("view:contextmenu", { event })
 
-    if (state.pointerCounter > 0) {
+    if (state.pressedPointers.size > 0) {
       // reset pointer down state
-      state.pointerCounter = 0
+      state.pressedPointers.clear()
       removePointerHandlers()
     }
   }
