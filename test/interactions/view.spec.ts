@@ -69,11 +69,11 @@ describe("background", () => {
       if (os === "Windows") contextmenu()
       await nextTick()
       expect(payloadsOf(events, "node:contextmenu")).toHaveLength(1)
-      const clicks = payloadsOf(events, "view:click").length
+      expect(payloadsOf(events, "view:click")).toEqual([])
 
       pointers.down(1, background, { button: 0, buttons: 1 })
       pointers.up(1, background, { button: 0, buttons: 0 })
-      expect(payloadsOf(events, "view:click")).toHaveLength(clicks + 1)
+      expect(payloadsOf(events, "view:click")).toHaveLength(1)
     }
   )
 

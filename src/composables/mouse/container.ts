@@ -60,7 +60,8 @@ export function setupContainerInteractionHandlers(
     if (state.pressedPointers.size === 0) {
       removePointerHandlers()
       const threshold = getPointerMoveDetectionThreshold(event.pointerType)
-      if (state.moveCounter <= threshold) {
+      // No click on the right button's release either, for the same reason as on its press.
+      if (state.moveCounter <= threshold && event.button != 2 /* right button */) {
         // Click container (without mouse move)
         if (isShiftClickOnOtherKind(modes, "container", event)) return
         modes.selectionMode.value = "container"
@@ -98,11 +99,9 @@ export function setupContainerInteractionHandlers(
   function handleContainerContextMenuEvent(event: MouseEvent) {
     emitter.emit("view:contextmenu", { event })
 
-    if (state.pressedPointers.size > 0) {
-      // reset pointer down state
-      state.pressedPointers.clear()
-      removePointerHandlers()
-    }
+    // reset pointer down state
+    state.pressedPointers.clear()
+    removePointerHandlers()
   }
 
   const preventDefault = (e: MouseEvent) => {
