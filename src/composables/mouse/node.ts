@@ -13,6 +13,7 @@ import {
   InteractionModes,
   NodePointerState,
   isShiftClickOnOtherKind,
+  isPrimaryButton,
 } from "./core"
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
@@ -303,9 +304,7 @@ export function makeNodeInteractionHandlers(
   }
 
   function handleNodePointerDownEvent(node: string, event: PointerEvent) {
-    if (event.button == 2 /* right button */) {
-      return
-    }
+    if (!isPrimaryButton(event)) return
     event.stopPropagation()
 
     if (!["default", "node"].includes(modes.viewMode.value)) {

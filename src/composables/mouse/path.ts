@@ -12,6 +12,7 @@ import {
   InteractionModes,
   PathPointerState,
   isShiftClickOnOtherKind,
+  isPrimaryButton,
 } from "./core"
 
 export function makePathInteractionHandlers(
@@ -66,9 +67,7 @@ export function makePathInteractionHandlers(
       return
     }
 
-    if (event.button == 2 /* right button */) {
-      return
-    }
+    if (!isPrimaryButton(event)) return
     event.stopPropagation()
 
     if (!["default", "path"].includes(modes.viewMode.value)) {
