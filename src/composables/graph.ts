@@ -162,7 +162,7 @@ export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptio
   // Mouse processing
   // -----------------------------------------------------------------------
 
-  const { dragging, touches } = useViewMode(svgPanZoom, configs, emitter)
+  const { touches } = useViewMode(svgPanZoom, configs, emitter)
 
   const {
     nodeStates,
@@ -195,25 +195,30 @@ export function useGraph(props: GraphProps, emit: GraphEmit, options: GraphOptio
   const isSvgWheelZoomEnabled = computed(() => isMouseWheelZoomEnabled(configs.view))
 
   // mouse and touch support
-  const { isBoxSelectionMode, selectionBox, startBoxSelection, stopBoxSelection } =
-    provideMouseOperation(
-      svg,
-      currentPositions.of,
-      readonly(zoomLevel),
-      nodeStates,
-      edgeStates,
-      pathStates,
-      currentSelectedNodes,
-      currentSelectedEdges,
-      currentSelectedPaths,
-      hoveredNodes,
-      hoveredEdges,
-      hoveredPaths,
-      options.paths?.isInCompatibilityMode ?? ref(false),
-      isSvgWheelZoomEnabled,
-      configs,
-      emitter
-    )
+  const {
+    isDraggingNodes: dragging,
+    isBoxSelectionMode,
+    selectionBox,
+    startBoxSelection,
+    stopBoxSelection,
+  } = provideMouseOperation(
+    svg,
+    currentPositions.of,
+    readonly(zoomLevel),
+    nodeStates,
+    edgeStates,
+    pathStates,
+    currentSelectedNodes,
+    currentSelectedEdges,
+    currentSelectedPaths,
+    hoveredNodes,
+    hoveredEdges,
+    hoveredPaths,
+    options.paths?.isInCompatibilityMode ?? ref(false),
+    isSvgWheelZoomEnabled,
+    configs,
+    emitter
+  )
 
   // -----------------------------------------------------------------------
   // View methods and loading

@@ -98,12 +98,37 @@ describe("nodes", () => {
     state.selectedNodes = ["node1", "node3"]
     await nextTick()
     expect(payloadsOf(events, "node:dragend")).toEqual([{ node2: { x: 0, y: 50 } }])
+    expect(screen.container.querySelector("svg.v-ng-canvas.dragging")).not.toBeNull()
 
     moveTo(pointers, 1, at(-100, 50), at(-100, 100))
     pointers.up(1, at(-100, 100))
     expect(payloadsOf(events, "node:dragend")).toEqual([
       { node2: { x: 0, y: 50 } },
       { node1: { x: -100, y: 100 }, node3: { x: 100, y: 100 } },
+    ])
+  })
+
+  test("a node deselected after the node it follows became undraggable ends where it stopped", async () => {
+    const props = graph({ node: { selectable: true, draggable: node => !node.locked } })
+    props.selectedNodes = ["node1", "node3"]
+    const { screen, state, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1)
+    moveTo(pointers, 1, node1, at(-100, 50))
+    state.nodes.node1.locked = true
+    await nextTick()
+    moveTo(pointers, 1, at(-100, 50), at(-100, 100))
+    // The first change only rebases the following nodes, and the second ends a drag.
+    state.selectedNodes = ["node1", "node3", "node2"]
+    await nextTick()
+    state.selectedNodes = ["node1", "node2"]
+    await nextTick()
+    pointers.up(1, at(-100, 100))
+
+    expect(payloadsOf(events, "node:dragend")).toEqual([
+      { node3: { x: 100, y: 50 } },
+      { node1: { x: -100, y: 50 }, node2: { x: 0, y: 0 } },
     ])
   })
 
@@ -177,7 +202,7 @@ describe("nodes", () => {
     ])
   })
 
-  test("the canvas stays in the dragging state until the last of the dragged nodes is released", async () => {
+  test("the canvas stays in the dragging state until the last pointer dragging a node is released", async () => {
     const { screen } = await mountGraph(graph())
     const canvas = screen.container.querySelector("svg.v-ng-canvas")!
     const pointers = pointersOn(screen.container)
