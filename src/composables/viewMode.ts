@@ -19,9 +19,31 @@ export function useViewMode(
 ) {
   // mouse pointer change on dragging
   const dragging = ref<boolean>(false)
-  emitter.on("node:dragstart", _ => (dragging.value = true))
-  emitter.on("node:dragend", _ => (dragging.value = false))
+  // Counted per node, as each pointer and each node following it ends its drag on its own.
+  const draggedNodes = new Map<string, number>()
+  emitter.on("node:dragstart", nodes => {
+    for (const node of Object.keys(nodes)) {
+      draggedNodes.set(node, (draggedNodes.get(node) ?? 0) + 1)
+    }
+    dragging.value = true
+  })
+  emitter.on("node:dragend", nodes => {
+    for (const node of Object.keys(nodes)) {
+      const count = (draggedNodes.get(node) ?? 0) - 1
+      if (count > 0) {
+        draggedNodes.set(node, count)
+      } else {
+        draggedNodes.delete(node)
+      }
+    }
+    dragging.value = draggedNodes.size > 0
+  })
   emitter.on("view:mode", mode => {
+    if (mode === "default") {
+      // No dragend names a node removed during its drag.
+      draggedNodes.clear()
+      dragging.value = false
+    }
     // avoid pan/zoom when using nodes and edges with multi-touch
     if (configs.view.panEnabled) {
       if (mode === "default") {

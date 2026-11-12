@@ -29,6 +29,29 @@ describe("useViewMode", () => {
     expect(dragging.value).toBe(false)
   })
 
+  it("should tell a node is dragged until each node that started a drag has ended it", () => {
+    const { dragging, emitter } = setup()
+    emitter.emit("node:dragstart", { node1: { x: 0, y: 0 }, node2: { x: 0, y: 0 } })
+    emitter.emit("node:dragstart", { node1: { x: 0, y: 0 } })
+    emitter.emit("node:dragend", { node1: { x: 0, y: 0 }, node2: { x: 0, y: 0 } })
+    expect(dragging.value).toBe(true)
+    emitter.emit("node:dragend", { node1: { x: 0, y: 0 } })
+    expect(dragging.value).toBe(false)
+  })
+
+  it("should end the drag of a node that no dragend names once the pointers are released", () => {
+    const { dragging, emitter } = setup()
+    emitter.emit("node:dragstart", { node1: { x: 0, y: 0 } })
+    emitter.emit("node:dragend", {})
+    expect(dragging.value).toBe(true)
+    emitter.emit("view:mode", "default")
+    expect(dragging.value).toBe(false)
+
+    emitter.emit("node:dragstart", { node2: { x: 0, y: 0 } })
+    emitter.emit("node:dragend", { node2: { x: 0, y: 0 } })
+    expect(dragging.value).toBe(false)
+  })
+
   it("should stop the pan and the zoom outside the default mode, and resume them in it", () => {
     const { instance, emitter } = setup()
     emitter.emit("view:mode", "box-selection")

@@ -60,6 +60,23 @@ export function makeNodeInteractionHandlers(
   })
 
   function _updateFollowNodes(pointerState: NodePointerState) {
+    const before = _draggedFollowerPositions()
+    _resetFollowNodes(pointerState)
+    const followed = state.pointers.get(state.follow.followedPointerId)
+    const after = followed?.isDragging ? _existingNodes(state.follow.nodeBasePositions) : {}
+
+    // Pair the drag events of each node that stops or starts following a drag in progress.
+    const ended = Object.entries(before).filter(([node]) => !(node in after))
+    const started = Object.entries(after).filter(([node]) => !(node in before))
+    if (ended.length > 0) {
+      emitter.emit("node:dragend", Object.fromEntries(ended))
+    }
+    if (started.length > 0) {
+      emitter.emit("node:dragstart", Object.fromEntries(started))
+    }
+  }
+
+  function _resetFollowNodes(pointerState: NodePointerState) {
     const isFollowed = state.follow.followedPointerId === pointerState.pointerId
     const isSelectedNode = selectedNodes.has(pointerState.nodeId)
 
@@ -127,18 +144,33 @@ export function makeNodeInteractionHandlers(
         : { [pointerState.nodeId]: pointerState.nodeBasePosition }
     const z = zoomLevel.value
 
-    // Leave out the nodes removed during the drag, which the layouts would add back.
     return Object.fromEntries(
-      Object.entries(positions)
-        .filter(([node]) => node in nodeStates)
-        .map(([node, pos]) => [
-          node,
-          {
-            x: pos.x - dx / z,
-            y: pos.y - dy / z,
-          },
-        ])
+      Object.entries(_existingNodes(positions)).map(([node, pos]) => [
+        node,
+        {
+          x: pos.x - dx / z,
+          y: pos.y - dy / z,
+        },
+      ])
     )
+  }
+
+  // Leave out the nodes removed during the drag, which the layouts would add back.
+  function _existingNodes(positions: Record<string, Position>) {
+    return Object.fromEntries(Object.entries(positions).filter(([node]) => node in nodeStates))
+  }
+
+  /** Where the last move put the nodes following the drag, or none if it is not dragging. */
+  function _draggedFollowerPositions(): Record<string, Position> {
+    const followed = state.pointers.get(state.follow.followedPointerId)
+    if (!followed?.isDragging) return {}
+    const positions = _calculateNodeNewPosition(followed, {
+      pointerId: followed.pointerId,
+      pageX: followed.draggedPosition.x,
+      pageY: followed.draggedPosition.y,
+    })
+    delete positions[followed.nodeId]
+    return positions
   }
 
   function _emitDragEnd(pointerState: NodePointerState, position: Position) {
@@ -342,7 +374,11 @@ export function makeNodeInteractionHandlers(
       } else {
         // current pointer is in charge of this node.
         // do not follow another node anymore.
-        delete state.follow.nodeBasePositions[pointerState.nodeId]
+        const position = _draggedFollowerPositions()[node]
+        delete state.follow.nodeBasePositions[node]
+        if (position) {
+          emitter.emit("node:dragend", { [node]: position })
+        }
       }
     }
 
