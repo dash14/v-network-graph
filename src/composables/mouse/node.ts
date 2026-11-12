@@ -12,8 +12,8 @@ import {
   getPointerMoveDetectionThreshold,
   InteractionModes,
   NodePointerState,
-  isShiftClickOnOtherKind,
   isPrimaryButton,
+  isShiftClickOnOtherKind,
 } from "./core"
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">

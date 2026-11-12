@@ -1314,6 +1314,17 @@ describe("buttons other than the primary", () => {
     }
   )
 
+  test("a tap with the eraser of a pen selects a node", async () => {
+    const { screen, state, events } = await mountGraph(graph({ node: selectable }))
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node2, { pointerType: "pen", button: 5, buttons: 32 })
+    pointers.up(1, node2, { pointerType: "pen", button: 5, buttons: 0 })
+    await nextTick()
+    expect(payloadsOf(events, "node:click")).toMatchObject([{ node: "node2" }])
+    expect(state.selectedNodes).toEqual(["node2"])
+  })
+
   test("a drag with the middle button leaves the node where it is", async () => {
     const { screen, state, events } = await mountGraph(graph())
     const pointers = pointersOn(screen.container)

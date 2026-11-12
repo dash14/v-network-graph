@@ -12,8 +12,8 @@ import {
   detectClicks,
   EdgePointerState,
   InteractionModes,
-  isShiftClickOnOtherKind,
   isPrimaryButton,
+  isShiftClickOnOtherKind,
 } from "./core"
 
 export function makeEdgeInteractionHandlers(

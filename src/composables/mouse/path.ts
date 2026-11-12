@@ -11,8 +11,8 @@ import {
   detectClicks,
   InteractionModes,
   PathPointerState,
-  isShiftClickOnOtherKind,
   isPrimaryButton,
+  isShiftClickOnOtherKind,
 } from "./core"
 
 export function makePathInteractionHandlers(
