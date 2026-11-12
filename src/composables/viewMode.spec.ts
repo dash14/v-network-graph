@@ -52,6 +52,15 @@ describe("useViewMode", () => {
     expect(dragging.value).toBe(false)
   })
 
+  it("should leave out a node in a dragend that started no drag", () => {
+    const { dragging, emitter } = setup()
+    emitter.emit("node:dragstart", { node1: { x: 0, y: 0 } })
+    emitter.emit("node:dragend", { node2: { x: 0, y: 0 } })
+    expect(dragging.value).toBe(true)
+    emitter.emit("node:dragend", { node1: { x: 0, y: 0 } })
+    expect(dragging.value).toBe(false)
+  })
+
   it("should stop the pan and the zoom outside the default mode, and resume them in it", () => {
     const { instance, emitter } = setup()
     emitter.emit("view:mode", "box-selection")
