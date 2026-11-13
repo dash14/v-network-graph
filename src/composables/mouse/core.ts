@@ -57,11 +57,10 @@ export function isShiftClickOnOtherKind(
 }
 
 /**
- * Only the primary button makes a click, like a native one. Touches and pen contacts count as
- * primary, including the eraser end of a pen, which reports button 5.
+ * Only the primary button makes a click, like a native one. Touches and pen tips are primary too.
  */
 export function isPrimaryButton(event: PointerEvent): boolean {
-  return event.button === 0 || (event.pointerType === "pen" && event.button === 5)
+  return event.button === 0
 }
 
 export function getPointerMoveDetectionThreshold(type: string): number {
