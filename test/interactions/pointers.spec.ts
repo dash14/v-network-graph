@@ -1276,3 +1276,52 @@ describe("paths", () => {
     expect(payloadsOf(events, "path:dblclick")).toEqual([])
   })
 })
+
+describe("buttons other than the primary", () => {
+  const buttons = [
+    { name: "middle", button: 1, buttons: 4 },
+    { name: "back", button: 3, buttons: 8 },
+    { name: "forward", button: 4, buttons: 16 },
+  ]
+  const targets = [
+    { target: "the background", position: at(0, 100) },
+    { target: "a node", position: node2 },
+    { target: "an edge", position: edge2 },
+    { target: "a path", position: edge1 },
+  ]
+
+  test.each(buttons.flatMap(b => targets.map(t => ({ ...b, ...t }))))(
+    "the $name button on $target emits no press or click and keeps the selection",
+    async ({ button, buttons, position }) => {
+      const props = graph({
+        node: selectable,
+        edge: selectable,
+        path: { visible: true, clickable: true, selectable: true },
+      })
+      props.selectedNodes = ["node1"]
+      const { screen, state, events } = await mountGraph(props)
+      const pointers = pointersOn(screen.container)
+
+      for (let i = 0; i < 2; i++) {
+        pointers.down(1, position, { button, buttons })
+        pointers.up(1, position, { button, buttons: 0 })
+      }
+      await nextTick()
+      expect(types(events).filter(t => /:(pointerdown|pointerup|click|dblclick)$/.test(t))).toEqual(
+        []
+      )
+      expect(state.selectedNodes).toEqual(["node1"])
+    }
+  )
+
+  test("a drag with the middle button leaves the node where it is", async () => {
+    const { screen, state, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node2, { button: 1, buttons: 4 })
+    moveTo(pointers, 1, node2, at(50, 50))
+    pointers.up(1, at(50, 50), { button: 1, buttons: 0 })
+    expect(state.layouts.nodes.node2).toEqual({ x: 0, y: 0 })
+    expect(payloadsOf(events, "node:dragstart")).toEqual([])
+  })
+})

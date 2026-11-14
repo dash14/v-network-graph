@@ -8,6 +8,7 @@ import {
   createClickEvents,
   getPointerMoveDetectionThreshold,
   InteractionModes,
+  isPrimaryButton,
   isShiftClickOnOtherKind,
 } from "./core"
 
@@ -38,8 +39,7 @@ export function setupContainerInteractionHandlers(
   }
 
   function handleContainerPointerDownEvent(event: PointerEvent) {
-    // Windows fires contextmenu after the release, too late to cancel the click.
-    if (event.button == 2 /* right button */) return
+    if (!isPrimaryButton(event)) return
     state.moveCounter = 0
     if (state.pressedPointers.size === 0) {
       // Add to event listener
@@ -60,7 +60,7 @@ export function setupContainerInteractionHandlers(
     if (state.pressedPointers.size === 0) {
       removePointerHandlers()
       const threshold = getPointerMoveDetectionThreshold(event.pointerType)
-      // No click on the right button's release either, for the same reason as on its press.
+      // Windows fires contextmenu after the right button's release, too late to cancel the click.
       if (state.moveCounter <= threshold && event.button != 2 /* right button */) {
         // Click container (without mouse move)
         if (isShiftClickOnOtherKind(modes, "container", event)) return

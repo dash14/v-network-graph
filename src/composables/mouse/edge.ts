@@ -12,6 +12,7 @@ import {
   detectClicks,
   EdgePointerState,
   InteractionModes,
+  isPrimaryButton,
   isShiftClickOnOtherKind,
 } from "./core"
 
@@ -54,9 +55,7 @@ export function makeEdgeInteractionHandlers(
   })
 
   function handleEdgePointerDownEvent(edge: string | string[], event: PointerEvent) {
-    if (event.button == 2 /* right button */) {
-      return
-    }
+    if (!isPrimaryButton(event)) return
     event.stopPropagation()
 
     if (!["default", "edge"].includes(modes.viewMode.value)) {
