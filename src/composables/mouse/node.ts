@@ -1,5 +1,5 @@
 import { Emitter } from "mitt"
-import { onUnmounted, watch } from "vue"
+import { onUnmounted, readonly, ref, watch } from "vue"
 import { Reactive, ReadonlyRef } from "@/common/common"
 import { Events, Position } from "@/common/types"
 import { NodeStates } from "@/models/node"
@@ -46,6 +46,7 @@ export function makeNodeInteractionHandlers(
     hoveredNodesPre: new Set(),
     clicks: new Map(),
   }
+  const isDraggingNodes = ref(false)
 
   const nodePointerHandlers = {
     pointermove: handleNodePointerMoveEvent,
@@ -61,6 +62,23 @@ export function makeNodeInteractionHandlers(
   })
 
   function _updateFollowNodes(pointerState: NodePointerState) {
+    const before = _draggedFollowerPositions()
+    _resetFollowNodes(pointerState)
+    const followed = state.pointers.get(state.follow.followedPointerId)
+    const after = followed?.isDragging ? _existingNodes(state.follow.nodeBasePositions) : {}
+
+    // Pair the drag events of each node that stops or starts following a drag in progress.
+    const ended = Object.entries(before).filter(([node]) => !(node in after))
+    const started = Object.entries(after).filter(([node]) => !(node in before))
+    if (ended.length > 0) {
+      emitter.emit("node:dragend", Object.fromEntries(ended))
+    }
+    if (started.length > 0) {
+      emitter.emit("node:dragstart", Object.fromEntries(started))
+    }
+  }
+
+  function _resetFollowNodes(pointerState: NodePointerState) {
     const isFollowed = state.follow.followedPointerId === pointerState.pointerId
     const isSelectedNode = selectedNodes.has(pointerState.nodeId)
 
@@ -93,7 +111,10 @@ export function makeNodeInteractionHandlers(
           .filter(n => nodeStates[n]?.draggable)
           .map(n => [n, _copyPosition(positionOf(n))])
       )
-      pointerState.dragBasePosition = { ...pointerState.latestPosition }
+      // Moves on a node made undraggable no longer move it, so measure from the last drag.
+      pointerState.dragBasePosition = {
+        ...(pointerState.isDragging ? pointerState.draggedPosition : pointerState.latestPosition),
+      }
       pointerState.nodeBasePosition = _copyPosition(positionOf(pointerState.nodeId))
     }
   }
@@ -128,18 +149,33 @@ export function makeNodeInteractionHandlers(
         : { [pointerState.nodeId]: pointerState.nodeBasePosition }
     const z = zoomLevel.value
 
-    // Leave out the nodes removed during the drag, which the layouts would add back.
     return Object.fromEntries(
-      Object.entries(positions)
-        .filter(([node]) => node in nodeStates)
-        .map(([node, pos]) => [
-          node,
-          {
-            x: pos.x - dx / z,
-            y: pos.y - dy / z,
-          },
-        ])
+      Object.entries(_existingNodes(positions)).map(([node, pos]) => [
+        node,
+        {
+          x: pos.x - dx / z,
+          y: pos.y - dy / z,
+        },
+      ])
     )
+  }
+
+  // Leave out the nodes removed during the drag, which the layouts would add back.
+  function _existingNodes(positions: Record<string, Position>) {
+    return Object.fromEntries(Object.entries(positions).filter(([node]) => node in nodeStates))
+  }
+
+  /** Where the last move put the nodes following the drag, or none if it is not dragging. */
+  function _draggedFollowerPositions(): Record<string, Position> {
+    const followed = state.pointers.get(state.follow.followedPointerId)
+    if (!followed?.isDragging) return {}
+    const positions = _calculateNodeNewPosition(followed, {
+      pointerId: followed.pointerId,
+      pageX: followed.draggedPosition.x,
+      pageY: followed.draggedPosition.y,
+    })
+    delete positions[followed.nodeId]
+    return positions
   }
 
   function _emitDragEnd(pointerState: NodePointerState, position: Position) {
@@ -209,6 +245,7 @@ export function makeNodeInteractionHandlers(
 
     if (!pointerState.isDragging) {
       pointerState.isDragging = true
+      isDraggingNodes.value = true
       const draggingNodes = _calculateNodeNewPosition(pointerState, {
         pointerId: pointerState.pointerId,
         pageX: pointerState.dragBasePosition.x,
@@ -241,6 +278,7 @@ export function makeNodeInteractionHandlers(
 
     // reset state
     state.pointers.clear()
+    isDraggingNodes.value = false
     state.follow = { followedPointerId: -1, nodeBasePositions: {} }
     entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
@@ -257,6 +295,7 @@ export function makeNodeInteractionHandlers(
     }
 
     state.pointers.delete(event.pointerId)
+    isDraggingNodes.value = MapUtil.valueOf(state.pointers).some(p => p.isDragging)
 
     const node = pointerState.nodeId
 
@@ -341,7 +380,11 @@ export function makeNodeInteractionHandlers(
       } else {
         // current pointer is in charge of this node.
         // do not follow another node anymore.
-        delete state.follow.nodeBasePositions[pointerState.nodeId]
+        const position = _draggedFollowerPositions()[node]
+        delete state.follow.nodeBasePositions[node]
+        if (position) {
+          emitter.emit("node:dragend", { [node]: position })
+        }
       }
     }
 
@@ -372,6 +415,7 @@ export function makeNodeInteractionHandlers(
   }
 
   return {
+    isDraggingNodes: readonly(isDraggingNodes),
     handleNodePointerDownEvent,
     handleNodePointerOverEvent,
     handleNodePointerOutEvent,

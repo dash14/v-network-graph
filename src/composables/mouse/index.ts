@@ -31,6 +31,7 @@ interface MouseEventHandlers {
   hoveredPaths: Reactive<Set<string>>
 
   // for Nodes
+  isDraggingNodes: ReadonlyRef<boolean>
   handleNodePointerDownEvent: NodeEventHandler
   handleNodePointerOverEvent: NodeEventHandler
   handleNodePointerOutEvent: NodeEventHandler

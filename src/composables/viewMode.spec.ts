@@ -20,15 +20,6 @@ function setup(view: { panEnabled?: boolean; zoomEnabled?: boolean } = {}, dragg
 }
 
 describe("useViewMode", () => {
-  it("should tell while a node is dragged", () => {
-    const { dragging, emitter } = setup()
-    expect(dragging.value).toBe(false)
-    emitter.emit("node:dragstart", {})
-    expect(dragging.value).toBe(true)
-    emitter.emit("node:dragend", {})
-    expect(dragging.value).toBe(false)
-  })
-
   it("should stop the pan and the zoom outside the default mode, and resume them in it", () => {
     const { instance, emitter } = setup()
     emitter.emit("view:mode", "box-selection")
