@@ -236,6 +236,34 @@ describe("background", () => {
     expect(payloadsOf(events, "view:click")).toHaveLength(1)
   })
 
+  test("a mouse moved with no button down ends the press whose release did not come", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const mouse = { pointerType: "mouse", isPrimary: true }
+
+    pointers.down(1, at(0, 100), { ...mouse, buttons: 1 })
+    pointers.move(1, at(0, 150), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "view:click")).toEqual([])
+
+    pointers.down(2, at(0, 100), { pointerType: "touch" })
+    pointers.up(2, at(0, 100), { pointerType: "touch" })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("the moves of a press whose release did not come do not hold back the next click", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const first = { pointerType: "touch", isPrimary: true }
+
+    pointers.down(1, at(0, 150), { pointerType: "pen", isPrimary: true })
+    pointers.down(2, at(-50, 100), first)
+    for (let x = -49; x <= -40; x++) pointers.move(2, at(x, 100), first)
+    pointers.down(3, at(50, 100), first)
+    pointers.up(3, at(50, 100), first)
+    pointers.up(1, at(0, 150), { pointerType: "pen" })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
   test("a second finger leaves the first one pressed", async () => {
     const { screen, events } = await mountGraph({ nodes, layouts })
     const pointers = pointersOn(screen.container)

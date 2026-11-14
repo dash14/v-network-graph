@@ -21,12 +21,11 @@ export function setupContainerInteractionHandlers(
   const state = {
     // The pointers whose press is counted, with the type and the number of moves of each
     pressedPointers: new Map<number, { type: string; moves: number }>(),
-    isClickable: true, // whether the press can still end in a click
+    isClickable: true, // false once a pointer of the press is cancelled or released after a drag
     clickState: undefined as ClickState | undefined,
   }
 
-  // measure the number of move events in the pointerdown state
-  // and use it to determine the click when pointerup.
+  // Count the moves of each pressed pointer, to tell a click from a drag when it is released.
   const containerPointerHandlers = {
     pointermove: handleContainerPointerMoveEvent,
     pointerup: handleContainerPointerUpEvent,
@@ -61,26 +60,37 @@ export function setupContainerInteractionHandlers(
   function handleContainerPointerMoveEvent(event: PointerEvent) {
     const pressed = state.pressedPointers.get(event.pointerId)
     if (!pressed) return
-    pressed.moves++
-    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.type)) {
-      state.isClickable = false
+    if (["mouse", "pen"].includes(event.pointerType) && event.buttons === 0) {
+      // A mouse or pen moving with no button down was released where the document did not hear it.
+      endPress(event.pointerId)
+      return
     }
+    pressed.moves++
   }
 
   function handleContainerPointerCancelEvent(event: PointerEvent) {
-    if (!state.pressedPointers.delete(event.pointerId)) return
+    if (!state.pressedPointers.has(event.pointerId)) return
     // A press the browser takes over, for a scroll or a pinch, is no tap.
     state.isClickable = false
-    if (state.pressedPointers.size === 0) {
-      removePointerHandlers()
-    }
+    endPress(event.pointerId)
+  }
+
+  /** Forgets a pointer of the press, and returns whether it was the last one. */
+  function endPress(pointerId: number) {
+    state.pressedPointers.delete(pointerId)
+    if (state.pressedPointers.size > 0) return false
+    removePointerHandlers()
+    return true
   }
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
     // Ends a counted press whichever of its chorded buttons is released last.
-    if (!state.pressedPointers.delete(event.pointerId)) return
-    if (state.pressedPointers.size === 0) {
-      removePointerHandlers()
+    const pressed = state.pressedPointers.get(event.pointerId)
+    if (!pressed) return
+    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.type)) {
+      state.isClickable = false
+    }
+    if (endPress(event.pointerId)) {
       // Windows fires contextmenu after the right button's release, too late to cancel the click.
       if (state.isClickable && event.button != 2 /* right button */) {
         // Click container (without mouse move)
