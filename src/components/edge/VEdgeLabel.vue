@@ -38,10 +38,11 @@ const angle = ref(0)
 watchEffect(() => {
   const s = props.area.source
   const t = props.area.target
-  const direction = Vector2D.fromObject(
-    props.area.direction ?? { x: t.above.x - s.above.x, y: t.above.y - s.above.y }
-  )
+  const direction = props.area.direction
+    ? Vector2D.fromObject(props.area.direction)
+    : Vector2D.fromObject(t.above).subtract(s.above)
   // Whether the text, turned to read left to right or upward, runs toward the target or the source.
+  // A direction of no length runs toward neither.
   const forward = direction.x > 0 || (direction.x === 0 && direction.y < 0)
   const backward = direction.x < 0 || (direction.x === 0 && direction.y > 0)
   // On an area shrunk to a point, each label runs from it toward its own end of the edge.

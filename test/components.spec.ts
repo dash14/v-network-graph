@@ -600,27 +600,29 @@ describe("edge labels with a padding of half the edge or more", () => {
     return { source: text("source"), target: text("target") }
   }
   const box = (text: SVGTextElement) => text.getBoundingClientRect()
+  // Glyphs can reach a little past the point they are anchored at.
+  const tolerance = 1
 
   test.each([84, 100])(
     "the labels run apart from the middle of an edge going right, with a padding of %i",
     async padding => {
       // The line between the outlines of the nodes is 168 long.
       const { source, target } = await labels([-100, 0, 100, 0], padding)
-      expect(box(source).right).toBeLessThanOrEqual(box(target).left)
+      expect(box(source).right).toBeLessThanOrEqual(box(target).left + tolerance)
       expect(source.getAttribute("transform")).toMatch(/^rotate\(0 /)
     }
   )
 
   test("the labels of an edge going down stay turned along it", async () => {
     const { source, target } = await labels([0, -100, 0, 100], 100)
-    expect(box(source).bottom).toBeLessThanOrEqual(box(target).top)
+    expect(box(source).bottom).toBeLessThanOrEqual(box(target).top + tolerance)
     expect(source.getAttribute("transform")).toMatch(/^rotate\(-90 /)
     expect(target.getAttribute("transform")).toMatch(/^rotate\(-90 /)
   })
 
   test("the source label of an edge between nodes at the same position stays on the right", async () => {
     const { source, target } = await labels([0, 0, 0, 0], 20)
-    expect(box(target).right).toBeLessThanOrEqual(box(source).left)
+    expect(box(target).right).toBeLessThanOrEqual(box(source).left + tolerance)
   })
 })
 
