@@ -19,8 +19,9 @@ export function setupContainerInteractionHandlers(
   emitter: Emitter<Events>
 ) {
   const state = {
-    moveCounter: 0,
-    pressedPointers: new Set<number>(), // IDs of the pointers whose press is counted
+    // The pointers whose press is counted, with the type and the number of moves of each
+    pressedPointers: new Map<number, { type: string; moves: number }>(),
+    isClickable: true, // whether the press can still end in a click
     clickState: undefined as ClickState | undefined,
   }
 
@@ -29,7 +30,7 @@ export function setupContainerInteractionHandlers(
   const containerPointerHandlers = {
     pointermove: handleContainerPointerMoveEvent,
     pointerup: handleContainerPointerUpEvent,
-    pointercancel: handleContainerPointerUpEvent,
+    pointercancel: handleContainerPointerCancelEvent,
   }
 
   function removePointerHandlers() {
@@ -40,18 +41,39 @@ export function setupContainerInteractionHandlers(
 
   function handleContainerPointerDownEvent(event: PointerEvent) {
     if (!isPrimaryButton(event)) return
-    state.moveCounter = 0
+    if (event.isPrimary) {
+      // A primary pointer is the only one of its type down, so the others were released unseen,
+      // over an iframe or while the window lost focus.
+      for (const [pointerId, { type }] of state.pressedPointers) {
+        if (type === event.pointerType) state.pressedPointers.delete(pointerId)
+      }
+    }
     if (state.pressedPointers.size === 0) {
+      state.isClickable = true
       // Add to event listener
       entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
         document.addEventListener(ev, handler, { passive: true })
       })
     }
-    state.pressedPointers.add(event.pointerId)
+    state.pressedPointers.set(event.pointerId, { type: event.pointerType, moves: 0 })
   }
 
-  function handleContainerPointerMoveEvent(_: PointerEvent) {
-    state.moveCounter++
+  function handleContainerPointerMoveEvent(event: PointerEvent) {
+    const pressed = state.pressedPointers.get(event.pointerId)
+    if (!pressed) return
+    pressed.moves++
+    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.type)) {
+      state.isClickable = false
+    }
+  }
+
+  function handleContainerPointerCancelEvent(event: PointerEvent) {
+    if (!state.pressedPointers.delete(event.pointerId)) return
+    // A press the browser takes over, for a scroll or a pinch, is no tap.
+    state.isClickable = false
+    if (state.pressedPointers.size === 0) {
+      removePointerHandlers()
+    }
   }
 
   function handleContainerPointerUpEvent(event: PointerEvent) {
@@ -59,9 +81,8 @@ export function setupContainerInteractionHandlers(
     if (!state.pressedPointers.delete(event.pointerId)) return
     if (state.pressedPointers.size === 0) {
       removePointerHandlers()
-      const threshold = getPointerMoveDetectionThreshold(event.pointerType)
       // Windows fires contextmenu after the right button's release, too late to cancel the click.
-      if (state.moveCounter <= threshold && event.button != 2 /* right button */) {
+      if (state.isClickable && event.button != 2 /* right button */) {
         // Click container (without mouse move)
         if (isShiftClickOnOtherKind(modes, "container", event)) return
         modes.selectionMode.value = "container"
