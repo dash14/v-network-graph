@@ -111,11 +111,11 @@ export function calculateEdgeLabelArea(
   const line = VectorLine.fromLinePosition(linePos)
   const normalized = line.v.clone().normalize()
 
-  // source side
-  const sv = line.source.clone().add(normalized.clone().multiplyScalar(padding * scale))
-
-  // target side
-  const tv = line.target.clone().subtract(normalized.clone().multiplyScalar(padding * scale))
+  // The padding moves the ends in, at most to the middle so that they do not pass each other.
+  const middle = line.source.clone().add(line.v.clone().multiplyScalar(0.5))
+  const half = Math.max(line.v.length() / 2 - padding * scale, 0)
+  const sv = middle.clone().subtract(normalized.clone().multiplyScalar(half))
+  const tv = middle.clone().add(normalized.clone().multiplyScalar(half))
 
   // margin for edges
   const labelMargin = (edgeStyle.width / 2 + margin) * scale
@@ -134,6 +134,7 @@ export function calculateEdgeLabelArea(
   return {
     source: { above: sourceAbove, below: sourceBelow },
     target: { above: targetAbove, below: targetBelow },
+    direction: normalized.toObject(),
   }
 }
 

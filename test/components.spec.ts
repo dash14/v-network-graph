@@ -353,6 +353,20 @@ describe("edge labels", () => {
   )
 
   test.each([
+    ["source", { x: 1, y: 0 }, "end"],
+    ["target", { x: 1, y: 0 }, "start"],
+    ["source", { x: 0, y: 1 }, "start"],
+    ["target", { x: 0, y: 1 }, "end"],
+  ])(
+    "a label aligned to the %s of an area shrunk to a point runs toward its own end of the edge going %o",
+    async (align, direction, anchor) => {
+      const point = { above: { x: 0, y: 0 }, below: { x: 0, y: 10 } }
+      const attrsOf = await label({ align, area: { source: point, target: point, direction } })
+      expect(attrsOf("text-anchor")).toEqual([anchor])
+    }
+  )
+
+  test.each([
     ["up", { x: 0, y: 100 }, { x: 0, y: 0 }],
     ["down", { x: 0, y: 0 }, { x: 0, y: 100 }],
   ])("the label of a vertical edge going %s is turned to read upward", async (_, s, t) => {
@@ -565,6 +579,50 @@ describe("edge labels", () => {
     })
     const transform = screen.container.querySelector(".v-ng-edge-label")?.getAttribute("transform")
     expect(transform).toMatch(new RegExp(`^rotate\\(${angle} `))
+  })
+})
+
+describe("edge labels with a padding of half the edge or more", () => {
+  const labels = async (layout: number[], padding: number) => {
+    const [x1, y1, x2, y2] = layout
+    const props = graph({ edge: { label: { padding } } })
+    props.layouts = { nodes: { node1: { x: x1, y: y1 }, node2: { x: x2, y: y2 } } }
+    const { screen } = await mountGraph(props, {
+      slots: {
+        "edge-label": (p: any) => [
+          h(VEdgeLabel, { ...p, text: "source", align: "source", class: "source" }),
+          h(VEdgeLabel, { ...p, text: "target", align: "target", class: "target" }),
+        ],
+      },
+    })
+    const text = (name: string) =>
+      screen.container.querySelector(`.v-ng-edge-label.${name}`) as SVGTextElement
+    return { source: text("source"), target: text("target") }
+  }
+  const box = (text: SVGTextElement) => text.getBoundingClientRect()
+  // Glyphs can reach a little past the point they are anchored at.
+  const tolerance = 1
+
+  test.each([84, 100])(
+    "the labels run apart from the middle of an edge going right, with a padding of %i",
+    async padding => {
+      // The line between the outlines of the nodes is 168 long.
+      const { source, target } = await labels([-100, 0, 100, 0], padding)
+      expect(box(source).right).toBeLessThanOrEqual(box(target).left + tolerance)
+      expect(source.getAttribute("transform")).toMatch(/^rotate\(0 /)
+    }
+  )
+
+  test("the labels of an edge going down stay turned along it", async () => {
+    const { source, target } = await labels([0, -100, 0, 100], 100)
+    expect(box(source).bottom).toBeLessThanOrEqual(box(target).top + tolerance)
+    expect(source.getAttribute("transform")).toMatch(/^rotate\(-90 /)
+    expect(target.getAttribute("transform")).toMatch(/^rotate\(-90 /)
+  })
+
+  test("the source label of an edge between nodes at the same position stays on the right", async () => {
+    const { source, target } = await labels([0, 0, 0, 0], 20)
+    expect(box(target).right).toBeLessThanOrEqual(box(source).left + tolerance)
   })
 })
 

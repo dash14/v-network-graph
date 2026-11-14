@@ -409,6 +409,19 @@ describe("calculateEdgeLabelArea", () => {
     expect(result.source.above.y).toBeCloseTo(-12)
   })
 
+  it.each([
+    ["half of the line", 50],
+    ["more than half of the line", 80],
+  ])("should stop both ends at the middle with padding of %s", (_, padding) => {
+    const linePos = { p1: { x: 100, y: 0 }, p2: { x: 0, y: 0 } }
+    const result = v2d.calculateEdgeLabelArea(linePos, edgeStyle, 5, padding, 1)
+
+    expect(result.source.above.x).toBeCloseTo(50)
+    expect(result.target.above.x).toBeCloseTo(50)
+    expect(result.source.above).toEqual(result.target.above)
+    expect(result.direction).toEqual({ x: -1, y: 0 })
+  })
+
   // Boundary: angle conditions for swap (angle < -90 || angle >= 90)
   describe("boundary: angle-based swap condition", () => {
     it.each([
@@ -625,14 +638,13 @@ describe("properties", () => {
               ? forward
               : forward.clone().multiplyScalar(-1)
           const up = new Vector2D(reading.y, -reading.x)
-          const sourceCenter = forward
-            .clone()
-            .multiplyScalar(padding * scale)
-            .add(p1)
-          const targetCenter = forward
-            .clone()
-            .multiplyScalar(-padding * scale)
-            .add(p2)
+          // The padding moves the ends in, up to the middle.
+          const middle = Vector2D.fromObject(p1).add(p2).multiplyScalar(0.5)
+          const half = Math.max(distance(p1, p2) / 2 - padding * scale, 0)
+          const sourceCenter = forward.clone().multiplyScalar(-half).add(middle)
+          const targetCenter = forward.clone().multiplyScalar(half).add(middle)
+          expect(area.direction!.x).toBeCloseTo(forward.x, 6)
+          expect(area.direction!.y).toBeCloseTo(forward.y, 6)
           const offset = up.multiplyScalar(((width + 2 * margin) * scale) / 2)
           for (const [end, center] of [
             [area.source, sourceCenter],
