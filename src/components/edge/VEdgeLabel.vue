@@ -3,7 +3,7 @@ import { computed, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "@/common/configs"
 import { Edge, EdgeLabelArea } from "@/common/types"
 import VText from "@/components/base/VLabelText.vue"
-import { VectorLine } from "@/modules/calculation/line"
+import { Vector2D } from "@/modules/vector2d"
 
 export interface Props {
   area: EdgeLabelArea
@@ -38,12 +38,16 @@ const angle = ref(0)
 watchEffect(() => {
   const s = props.area.source
   const t = props.area.target
+  const direction = Vector2D.fromObject(
+    props.area.direction ?? { x: t.above.x - s.above.x, y: t.above.y - s.above.y }
+  )
+  // Whether the text, turned to read left to right or upward, runs toward the target or the source.
+  const forward = direction.x > 0 || (direction.x === 0 && direction.y < 0)
+  const backward = direction.x < 0 || (direction.x === 0 && direction.y > 0)
+  // On an area shrunk to a point, each label runs from it toward its own end of the edge.
+  const isPoint = !!props.area.direction && s.above.x === t.above.x && s.above.y === t.above.y
   if (props.align === "source") {
-    if (s.above.x == t.above.x) {
-      textAnchor.value = s.above.y > t.above.y ? "start" : "end"
-    } else {
-      textAnchor.value = s.above.x < t.above.x ? "start" : "end"
-    }
+    textAnchor.value = (isPoint ? backward : forward) ? "start" : "end"
     if (props.verticalAlign === "above") {
       x.value = s.above.x
       y.value = s.above.y
@@ -59,11 +63,7 @@ watchEffect(() => {
       dominantBaseline.value = "central"
     }
   } else if (props.align === "target") {
-    if (s.above.x == t.above.x) {
-      textAnchor.value = s.above.y < t.above.y ? "start" : "end"
-    } else {
-      textAnchor.value = s.above.x > t.above.x ? "start" : "end"
-    }
+    textAnchor.value = (isPoint ? forward : backward) ? "start" : "end"
     if (props.verticalAlign === "above") {
       x.value = t.above.x
       y.value = t.above.y
@@ -96,7 +96,7 @@ watchEffect(() => {
       dominantBaseline.value = "central"
     }
   }
-  let degree = VectorLine.fromPositions(s.above, t.above).v.angleDegree()
+  let degree = direction.angleDegree()
   if (degree < -90 || degree >= 90) {
     degree = degree + 180
     if (degree > 180) {
