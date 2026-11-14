@@ -155,6 +155,131 @@ describe("background", () => {
     expect(payloadsOf(events, "view:click")).toHaveLength(1)
   })
 
+  test("a cancelled press emits no click, and the next tap does", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const touch = { pointerType: "touch" }
+
+    pointers.down(1, at(0, 100), touch)
+    pointers.move(1, at(0, 101), touch)
+    pointers.cancel(1)
+    expect(payloadsOf(events, "view:click")).toEqual([])
+
+    pointers.down(2, at(0, 100), touch)
+    pointers.up(2, at(0, 100), touch)
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a cancelled pointer leaves no click to the one released after it", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const touch = { pointerType: "touch" }
+
+    pointers.down(1, at(-50, 100), touch)
+    pointers.down(2, at(50, 100), touch)
+    pointers.cancel(1)
+    pointers.up(2, at(50, 100), touch)
+    expect(payloadsOf(events, "view:click")).toEqual([])
+  })
+
+  test("a cancel of a pointer not pressed on the background leaves the click", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, at(0, 100))
+    pointers.cancel(9)
+    pointers.up(1, at(0, 100))
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a drag with one pointer emits no click after a tap with another", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const touch = { pointerType: "touch" }
+
+    pointers.down(1, at(-50, 100), touch)
+    for (let x = -49; x <= -40; x++) pointers.move(1, at(x, 100), touch)
+    pointers.down(2, at(50, 100), touch)
+    pointers.up(2, at(50, 100), touch)
+    pointers.move(1, at(-39, 100), touch)
+    pointers.up(1, at(-39, 100), touch)
+    expect(payloadsOf(events, "view:click")).toEqual([])
+  })
+
+  test("pointers each moved within the threshold make a click", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const touch = { pointerType: "touch" }
+
+    pointers.down(1, at(-50, 100), touch)
+    pointers.down(2, at(50, 100), touch)
+    for (let d = 1; d <= 4; d++) {
+      pointers.move(1, at(-50 + d, 100), touch)
+      pointers.move(2, at(50 + d, 100), touch)
+    }
+    // Nor do the moves of a pointer not pressed on the background count.
+    for (let x = 1; x <= 10; x++) pointers.move(9, at(x, 150))
+    pointers.up(1, at(-46, 100), touch)
+    pointers.up(2, at(54, 100), touch)
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a tap of a first finger ends the presses whose release did not come", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const first = { pointerType: "touch", isPrimary: true }
+
+    // Pointer 1 is released where the document gets no event, such as over an iframe.
+    pointers.down(1, at(0, 100), first)
+    pointers.down(2, at(0, 100), first)
+    pointers.up(2, at(0, 100), first)
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a mouse moved with no button down ends the press whose release did not come", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const mouse = { pointerType: "mouse", isPrimary: true }
+
+    pointers.down(1, at(0, 100), { ...mouse, buttons: 1 })
+    pointers.move(1, at(0, 150), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "view:click")).toEqual([])
+
+    pointers.down(2, at(0, 100), { pointerType: "touch" })
+    pointers.up(2, at(0, 100), { pointerType: "touch" })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("the moves of a press whose release did not come do not hold back the next click", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+    const first = { pointerType: "touch", isPrimary: true }
+
+    pointers.down(1, at(0, 150), { pointerType: "pen", isPrimary: true })
+    pointers.down(2, at(-50, 100), first)
+    for (let x = -49; x <= -40; x++) pointers.move(2, at(x, 100), first)
+    pointers.down(3, at(50, 100), first)
+    pointers.up(3, at(50, 100), first)
+    pointers.up(1, at(0, 150), { pointerType: "pen" })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
+  test("a second finger leaves the first one pressed", async () => {
+    const { screen, events } = await mountGraph({ nodes, layouts })
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, at(-50, 100), { pointerType: "touch", isPrimary: true })
+    pointers.down(2, at(50, 100), { pointerType: "touch", isPrimary: false })
+    // Nor does a mouse, which is primary for its own type.
+    pointers.down(3, at(0, 150), { pointerType: "mouse", isPrimary: true })
+    pointers.up(3, at(0, 150), { pointerType: "mouse" })
+    pointers.up(2, at(50, 100), { pointerType: "touch" })
+    expect(payloadsOf(events, "view:click")).toEqual([])
+
+    pointers.up(1, at(-50, 100), { pointerType: "touch" })
+    expect(payloadsOf(events, "view:click")).toHaveLength(1)
+  })
+
   test("a context menu opened without a press emits contextmenu", async () => {
     const { canvas, events } = await mountGraph({ nodes, layouts })
 
