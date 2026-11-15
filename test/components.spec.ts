@@ -367,6 +367,18 @@ describe("edge labels", () => {
   )
 
   test.each([
+    ["source", "end"],
+    ["target", "start"],
+  ])(
+    "a label aligned to the %s of an area with its ends swapped follows the corners over the direction",
+    async (align, anchor) => {
+      const swapped = { source: area.target, target: area.source, direction: { x: 1, y: 0 } }
+      const attrsOf = await label({ align, area: swapped })
+      expect(attrsOf("text-anchor")).toEqual([anchor])
+    }
+  )
+
+  test.each([
     ["up", { x: 0, y: 100 }, { x: 0, y: 0 }],
     ["down", { x: 0, y: 0 }, { x: 0, y: 100 }],
   ])("the label of a vertical edge going %s is turned to read upward", async (_, s, t) => {

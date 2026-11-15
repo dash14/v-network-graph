@@ -119,8 +119,8 @@ export interface EdgeLabelArea {
     below: Position
   }
   /**
-   * Unit vector from the source to the target. Without it, the direction comes from the corners,
-   * which give none on an area shrunk to a point.
+   * Unit vector from the source to the target. The direction comes from the corners, and from this
+   * only on an area shrunk to a point, where the corners give none.
    */
   direction?: Position
 }
