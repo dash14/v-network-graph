@@ -1632,4 +1632,23 @@ describe("presses released where the document did not hear it", () => {
     expect(payloadsOf(events, "view:click")).toEqual([])
     expect(state.selectedNodes).toEqual(["node2"])
   })
+
+  test("a primary finger ends the drags of earlier fingers without passing the following on", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node2", "node3"]
+    const { screen, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1, touch)
+    pointers.down(2, node2, { ...touch, isPrimary: false })
+    moveTo(pointers, 1, node1, at(-100, 50), 10)
+    moveTo(pointers, 2, node2, at(0, 50), 10)
+    pointers.down(3, at(0, 100), touch)
+
+    expect(payloadsOf(events, "node:dragstart")).toHaveLength(2)
+    expect(payloadsOf(events, "node:dragend")).toEqual([
+      { node1: { x: -100, y: 50 }, node3: { x: 100, y: 50 } },
+      { node2: { x: 0, y: 50 } },
+    ])
+  })
 })

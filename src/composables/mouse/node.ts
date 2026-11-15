@@ -324,12 +324,16 @@ export function makeNodeInteractionHandlers(
 
   /** Ends without a click the presses released where the document did not hear it. */
   function _endUnseenReleases(pointerIds: number[], event: PointerEvent) {
-    for (const pointerId of pointerIds) {
-      const pointerState = state.pointers.get(pointerId)!
+    if (pointerIds.length === 0) return
+    const released = pointerIds.map(pointerId => state.pointers.get(pointerId)!)
+    // All at once, so that the following is not handed to one of them on the way.
+    released.forEach(p => state.pointers.delete(p.pointerId))
+    released.forEach(p => {
       // Where the last move put the node, as the release was not seen.
-      _releasePointer(pointerState, pointerState.draggedPosition, event)
-      _afterRelease(pointerState)
-    }
+      _releasePointer(p, p.draggedPosition, event)
+    })
+    const followed = released.find(p => p.pointerId === state.follow.followedPointerId)
+    _afterRelease(followed ?? released[0])
   }
 
   function _releasePointer(

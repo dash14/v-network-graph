@@ -158,10 +158,8 @@ export function makePathInteractionHandlers(
       emitter.emit("path:pointerup", _makePathEventObject(path, event))
     }
 
-    // reset state
     state.pointers.clear()
-    pressListeners.remove()
-    modes.viewMode.value = "default"
+    endPress()
   }
 
   function handlePathPointerOverEvent(path: string, event: PointerEvent) {

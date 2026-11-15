@@ -146,10 +146,8 @@ export function makeEdgeInteractionHandlers(
       emitter.emit("edge:pointerup", _makeEdgeEventObject(edge, event))
     }
 
-    // reset state
     state.pointers.clear()
-    pressListeners.remove()
-    modes.viewMode.value = "default"
+    endPress()
   }
 
   // Leaves out the edges removed while pressed, which have no state.
