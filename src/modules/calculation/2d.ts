@@ -112,7 +112,7 @@ export function calculateEdgeLabelArea(
   const normalized = line.v.clone().normalize()
 
   // The padding moves the ends in, at most to the middle so that they do not pass each other.
-  const middle = line.source.clone().add(line.v.clone().multiplyScalar(0.5))
+  const middle = LineUtils.getCenterOfLinePosition(linePos)
   const half = Math.max(line.v.length() / 2 - padding * scale, 0)
   const sv = middle.clone().subtract(normalized.clone().multiplyScalar(half))
   const tv = middle.clone().add(normalized.clone().multiplyScalar(half))
