@@ -5,7 +5,6 @@ import { Events, EdgeEvent } from "@/common/types"
 import { selectableEdgesOf } from "@/composables/edgeState"
 import { EdgeStates } from "@/models/edge"
 import { MapUtil } from "@/utils/map"
-import { entriesOf } from "@/utils/object"
 import {
   cleanClickState,
   ClickState,
@@ -13,8 +12,10 @@ import {
   EdgePointerState,
   InteractionModes,
   isPrimaryButton,
+  isMovedReleased,
   isShiftClickOnOtherKind,
-  pointersReleasedUnseen,
+  makePressListeners,
+  pointersReleasedBy,
 } from "./core"
 
 export function makeEdgeInteractionHandlers(
@@ -29,29 +30,22 @@ export function makeEdgeInteractionHandlers(
     clicks: new Map<number, ClickState>(),
   }
 
-  const edgePointerHandlers = {
-    pointermove: handleUnseenReleases,
-    pointerup: handleEdgePointerUpEvent,
-    pointercancel: handleEdgePointerCancelEvent,
-  }
-
-  function addPointerHandlers() {
-    entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
-      document.addEventListener(ev, handler)
-    })
-    // Before the press reaches an object, which ignores it while this kind is pressed.
-    document.addEventListener("pointerdown", handleUnseenReleases, { capture: true })
-  }
-
-  function removePointerHandlers() {
-    entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-    document.removeEventListener("pointerdown", handleUnseenReleases, { capture: true })
-  }
+  const pressListeners = makePressListeners(
+    {
+      pointermove: event => {
+        if (state.pointers.has(event.pointerId) && isMovedReleased(event)) {
+          endUnseenReleases([event.pointerId], event)
+        }
+      },
+      pointerup: handleEdgePointerUpEvent,
+      pointercancel: handleEdgePointerCancelEvent,
+    },
+    // Before an object ignores the press, as one does while edges are pressed.
+    event => endUnseenReleases(pointersReleasedBy(state.pointers, event), event)
+  )
 
   // A pointer still pressed when the graph unmounts is released after it is gone.
-  onUnmounted(removePointerHandlers)
+  onUnmounted(pressListeners.remove)
 
   watch(selectedEdges, selected => {
     if (selected.size > 0 && modes.selectionMode.value !== "edge") {
@@ -78,7 +72,7 @@ export function makeEdgeInteractionHandlers(
     if (state.pointers.size == 0) {
       // Add event listeners
       modes.viewMode.value = "edge"
-      addPointerHandlers()
+      pressListeners.add()
     }
 
     // Create new pointer state
@@ -93,20 +87,20 @@ export function makeEdgeInteractionHandlers(
     emitter.emit("edge:pointerdown", _makeEdgeEventObject(edge, event))
   }
 
-  // Ends without a click the presses released where the document did not hear it.
-  function handleUnseenReleases(event: PointerEvent) {
-    const pointerIds = pointersReleasedUnseen(state.pointers, event)
-    if (pointerIds.length === 0) return
+  /** Ends without a click the presses released where the document did not hear it. */
+  function endUnseenReleases(pointerIds: number[], event: PointerEvent) {
     for (const pointerId of pointerIds) {
       const pointerState = state.pointers.get(pointerId)!
       state.pointers.delete(pointerId)
       emitter.emit("edge:pointerup", _makeEdgeEventObject(pointerState.id, event))
     }
-    if (state.pointers.size === 0) {
-      removePointerHandlers()
-      cleanClickState(state.clicks)
-      modes.viewMode.value = "default"
-    }
+    if (state.pointers.size === 0) endPress()
+  }
+
+  function endPress() {
+    pressListeners.remove()
+    cleanClickState(state.clicks)
+    modes.viewMode.value = "default"
   }
 
   function handleEdgePointerUpEvent(event: PointerEvent) {
@@ -136,12 +130,7 @@ export function makeEdgeInteractionHandlers(
       }
     }
 
-    if (state.pointers.size === 0) {
-      // reset state
-      removePointerHandlers()
-      cleanClickState(state.clicks)
-      modes.viewMode.value = "default"
-    }
+    if (state.pointers.size === 0) endPress()
   }
 
   function handleEdgePointerCancelEvent(event: PointerEvent) {
@@ -159,7 +148,7 @@ export function makeEdgeInteractionHandlers(
 
     // reset state
     state.pointers.clear()
-    removePointerHandlers()
+    pressListeners.remove()
     modes.viewMode.value = "default"
   }
 

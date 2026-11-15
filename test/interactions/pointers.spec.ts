@@ -1617,4 +1617,19 @@ describe("presses released where the document did not hear it", () => {
     pointers.up(1, edge1, touch)
     expect(payloadsOf(events, "path:click")).toMatchObject([{ path: "path1" }])
   })
+
+  test("a mouse pressed on a node ends its earlier press on the background", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1"]
+    const { screen, state, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, at(0, 100), mouse)
+    pointers.down(1, node2, mouse)
+    pointers.up(1, node2, { ...mouse, buttons: 0 })
+    await nextTick()
+
+    expect(payloadsOf(events, "view:click")).toEqual([])
+    expect(state.selectedNodes).toEqual(["node2"])
+  })
 })

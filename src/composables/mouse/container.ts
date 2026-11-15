@@ -2,15 +2,16 @@ import { Emitter } from "mitt"
 import { onMounted, onUnmounted, Ref, watch } from "vue"
 import { nonNull } from "@/common/common"
 import { Events } from "@/common/types"
-import { entriesOf } from "@/utils/object"
 import {
   ClickState,
   createClickEvents,
   getPointerMoveDetectionThreshold,
   InteractionModes,
   isPrimaryButton,
+  isMovedReleased,
   isShiftClickOnOtherKind,
-  pointersReleasedUnseen,
+  makePressListeners,
+  pointersReleasedBy,
 } from "./core"
 
 export function setupContainerInteractionHandlers(
@@ -27,29 +28,21 @@ export function setupContainerInteractionHandlers(
   }
 
   // Count the moves of each pressed pointer, to tell a click from a drag when it is released.
-  const containerPointerHandlers = {
-    pointermove: handleContainerPointerMoveEvent,
-    pointerup: handleContainerPointerUpEvent,
-    pointercancel: handleContainerPointerCancelEvent,
-  }
-
-  function removePointerHandlers() {
-    entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-  }
+  const pressListeners = makePressListeners(
+    {
+      pointermove: handleContainerPointerMoveEvent,
+      pointerup: handleContainerPointerUpEvent,
+      pointercancel: handleContainerPointerCancelEvent,
+    },
+    // Also for a press on an object, which the container does not hear.
+    event => pointersReleasedBy(state.pressedPointers, event).forEach(endPress)
+  )
 
   function handleContainerPointerDownEvent(event: PointerEvent) {
     if (!isPrimaryButton(event)) return
-    for (const pointerId of pointersReleasedUnseen(state.pressedPointers, event)) {
-      state.pressedPointers.delete(pointerId)
-    }
     if (state.pressedPointers.size === 0) {
       state.isClickable = true
-      // Add to event listener
-      entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        document.addEventListener(ev, handler, { passive: true })
-      })
+      pressListeners.add()
     }
     state.pressedPointers.set(event.pointerId, { pointerType: event.pointerType, moves: 0 })
   }
@@ -57,7 +50,7 @@ export function setupContainerInteractionHandlers(
   function handleContainerPointerMoveEvent(event: PointerEvent) {
     const pressed = state.pressedPointers.get(event.pointerId)
     if (!pressed) return
-    if (pointersReleasedUnseen(state.pressedPointers, event).length > 0) {
+    if (isMovedReleased(event)) {
       endPress(event.pointerId)
       return
     }
@@ -75,7 +68,7 @@ export function setupContainerInteractionHandlers(
   function endPress(pointerId: number) {
     state.pressedPointers.delete(pointerId)
     if (state.pressedPointers.size > 0) return false
-    removePointerHandlers()
+    pressListeners.remove()
     return true
   }
 
@@ -128,7 +121,7 @@ export function setupContainerInteractionHandlers(
 
     // reset pointer down state
     state.pressedPointers.clear()
-    removePointerHandlers()
+    pressListeners.remove()
   }
 
   const preventDefault = (e: MouseEvent) => {
@@ -147,7 +140,7 @@ export function setupContainerInteractionHandlers(
   })
 
   // The <svg> and its listeners are gone by now, but not those on the document for a pressed pointer.
-  onUnmounted(removePointerHandlers)
+  onUnmounted(pressListeners.remove)
 
   watch(isSvgWheelZoomEnabled, enabled => {
     const c = nonNull(container.value, "container")

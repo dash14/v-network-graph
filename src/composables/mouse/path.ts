@@ -4,7 +4,6 @@ import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
 import { MapUtil } from "@/utils/map"
-import { entriesOf } from "@/utils/object"
 import {
   cleanClickState,
   ClickState,
@@ -12,8 +11,10 @@ import {
   InteractionModes,
   PathPointerState,
   isPrimaryButton,
+  isMovedReleased,
   isShiftClickOnOtherKind,
-  pointersReleasedUnseen,
+  makePressListeners,
+  pointersReleasedBy,
 } from "./core"
 
 export function makePathInteractionHandlers(
@@ -37,29 +38,22 @@ export function makePathInteractionHandlers(
     }
   }
 
-  const pathPointerHandlers = {
-    pointermove: handleUnseenReleases,
-    pointerup: handlePathPointerUpEvent,
-    pointercancel: handlePathPointerCancelEvent,
-  }
-
-  function addPointerHandlers() {
-    entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
-      document.addEventListener(ev, handler)
-    })
-    // Before the press reaches an object, which ignores it while this kind is pressed.
-    document.addEventListener("pointerdown", handleUnseenReleases, { capture: true })
-  }
-
-  function removePointerHandlers() {
-    entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-    document.removeEventListener("pointerdown", handleUnseenReleases, { capture: true })
-  }
+  const pressListeners = makePressListeners(
+    {
+      pointermove: event => {
+        if (state.pointers.has(event.pointerId) && isMovedReleased(event)) {
+          endUnseenReleases([event.pointerId], event)
+        }
+      },
+      pointerup: handlePathPointerUpEvent,
+      pointercancel: handlePathPointerCancelEvent,
+    },
+    // Before an object ignores the press, as one does while paths are pressed.
+    event => endUnseenReleases(pointersReleasedBy(state.pointers, event), event)
+  )
 
   // A pointer still pressed when the graph unmounts is released after it is gone.
-  onUnmounted(removePointerHandlers)
+  onUnmounted(pressListeners.remove)
 
   watch(selectedPaths, selected => {
     if (selected.size > 0 && modes.selectionMode.value !== "path") {
@@ -90,7 +84,7 @@ export function makePathInteractionHandlers(
     if (state.pointers.size == 0) {
       // Add event listeners
       modes.viewMode.value = "path"
-      addPointerHandlers()
+      pressListeners.add()
     }
 
     // Create new pointer state
@@ -105,20 +99,20 @@ export function makePathInteractionHandlers(
     emitter.emit("path:pointerdown", _makePathEventObject(path, event))
   }
 
-  // Ends without a click the presses released where the document did not hear it.
-  function handleUnseenReleases(event: PointerEvent) {
-    const pointerIds = pointersReleasedUnseen(state.pointers, event)
-    if (pointerIds.length === 0) return
+  /** Ends without a click the presses released where the document did not hear it. */
+  function endUnseenReleases(pointerIds: number[], event: PointerEvent) {
     for (const pointerId of pointerIds) {
       const pointerState = state.pointers.get(pointerId)!
       state.pointers.delete(pointerId)
       emitter.emit("path:pointerup", _makePathEventObject(pointerState.id, event))
     }
-    if (state.pointers.size === 0) {
-      removePointerHandlers()
-      cleanClickState(state.clicks)
-      modes.viewMode.value = "default"
-    }
+    if (state.pointers.size === 0) endPress()
+  }
+
+  function endPress() {
+    pressListeners.remove()
+    cleanClickState(state.clicks)
+    modes.viewMode.value = "default"
   }
 
   function handlePathPointerUpEvent(event: PointerEvent) {
@@ -148,12 +142,7 @@ export function makePathInteractionHandlers(
       }
     }
 
-    if (state.pointers.size === 0) {
-      // reset state
-      removePointerHandlers()
-      cleanClickState(state.clicks)
-      modes.viewMode.value = "default"
-    }
+    if (state.pointers.size === 0) endPress()
   }
 
   function handlePathPointerCancelEvent(event: PointerEvent) {
@@ -171,7 +160,7 @@ export function makePathInteractionHandlers(
 
     // reset state
     state.pointers.clear()
-    removePointerHandlers()
+    pressListeners.remove()
     modes.viewMode.value = "default"
   }
 
