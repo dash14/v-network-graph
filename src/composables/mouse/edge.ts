@@ -14,6 +14,7 @@ import {
   InteractionModes,
   isPrimaryButton,
   isShiftClickOnOtherKind,
+  pointersReleasedUnseen,
 } from "./core"
 
 export function makeEdgeInteractionHandlers(
@@ -29,16 +30,28 @@ export function makeEdgeInteractionHandlers(
   }
 
   const edgePointerHandlers = {
+    pointermove: handleUnseenReleases,
     pointerup: handleEdgePointerUpEvent,
     pointercancel: handleEdgePointerCancelEvent,
   }
 
-  // A pointer still pressed when the graph unmounts is released after it is gone.
-  onUnmounted(() => {
+  function addPointerHandlers() {
+    entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
+      document.addEventListener(ev, handler)
+    })
+    // Before the press reaches an object, which ignores it while this kind is pressed.
+    document.addEventListener("pointerdown", handleUnseenReleases, { capture: true })
+  }
+
+  function removePointerHandlers() {
     entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
-  })
+    document.removeEventListener("pointerdown", handleUnseenReleases, { capture: true })
+  }
+
+  // A pointer still pressed when the graph unmounts is released after it is gone.
+  onUnmounted(removePointerHandlers)
 
   watch(selectedEdges, selected => {
     if (selected.size > 0 && modes.selectionMode.value !== "edge") {
@@ -65,20 +78,35 @@ export function makeEdgeInteractionHandlers(
     if (state.pointers.size == 0) {
       // Add event listeners
       modes.viewMode.value = "edge"
-      entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
-        document.addEventListener(ev, handler)
-      })
+      addPointerHandlers()
     }
 
     // Create new pointer state
     const pointerState: EdgePointerState = {
       pointerId: event.pointerId,
+      pointerType: event.pointerType,
       id: edge,
       eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)
 
     emitter.emit("edge:pointerdown", _makeEdgeEventObject(edge, event))
+  }
+
+  // Ends without a click the presses released where the document did not hear it.
+  function handleUnseenReleases(event: PointerEvent) {
+    const pointerIds = pointersReleasedUnseen(state.pointers, event)
+    if (pointerIds.length === 0) return
+    for (const pointerId of pointerIds) {
+      const pointerState = state.pointers.get(pointerId)!
+      state.pointers.delete(pointerId)
+      emitter.emit("edge:pointerup", _makeEdgeEventObject(pointerState.id, event))
+    }
+    if (state.pointers.size === 0) {
+      removePointerHandlers()
+      cleanClickState(state.clicks)
+      modes.viewMode.value = "default"
+    }
   }
 
   function handleEdgePointerUpEvent(event: PointerEvent) {
@@ -110,9 +138,7 @@ export function makeEdgeInteractionHandlers(
 
     if (state.pointers.size === 0) {
       // reset state
-      entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
-        document.removeEventListener(ev, handler)
-      })
+      removePointerHandlers()
       cleanClickState(state.clicks)
       modes.viewMode.value = "default"
     }
@@ -133,9 +159,7 @@ export function makeEdgeInteractionHandlers(
 
     // reset state
     state.pointers.clear()
-    entriesOf(edgePointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
+    removePointerHandlers()
     modes.viewMode.value = "default"
   }
 

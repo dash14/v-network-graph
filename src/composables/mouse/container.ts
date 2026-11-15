@@ -10,6 +10,7 @@ import {
   InteractionModes,
   isPrimaryButton,
   isShiftClickOnOtherKind,
+  pointersReleasedUnseen,
 } from "./core"
 
 export function setupContainerInteractionHandlers(
@@ -20,7 +21,7 @@ export function setupContainerInteractionHandlers(
 ) {
   const state = {
     // The pointers whose press is counted, with the type and the number of moves of each
-    pressedPointers: new Map<number, { type: string; moves: number }>(),
+    pressedPointers: new Map<number, { pointerType: string; moves: number }>(),
     isClickable: true, // false once a pointer of the press is cancelled or released after a drag
     clickState: undefined as ClickState | undefined,
   }
@@ -40,12 +41,8 @@ export function setupContainerInteractionHandlers(
 
   function handleContainerPointerDownEvent(event: PointerEvent) {
     if (!isPrimaryButton(event)) return
-    if (event.isPrimary) {
-      // A primary pointer is the only one of its type down, so the others were released unseen,
-      // over an iframe or while the window lost focus.
-      for (const [pointerId, { type }] of state.pressedPointers) {
-        if (type === event.pointerType) state.pressedPointers.delete(pointerId)
-      }
+    for (const pointerId of pointersReleasedUnseen(state.pressedPointers, event)) {
+      state.pressedPointers.delete(pointerId)
     }
     if (state.pressedPointers.size === 0) {
       state.isClickable = true
@@ -54,14 +51,13 @@ export function setupContainerInteractionHandlers(
         document.addEventListener(ev, handler, { passive: true })
       })
     }
-    state.pressedPointers.set(event.pointerId, { type: event.pointerType, moves: 0 })
+    state.pressedPointers.set(event.pointerId, { pointerType: event.pointerType, moves: 0 })
   }
 
   function handleContainerPointerMoveEvent(event: PointerEvent) {
     const pressed = state.pressedPointers.get(event.pointerId)
     if (!pressed) return
-    if (["mouse", "pen"].includes(event.pointerType) && event.buttons === 0) {
-      // A mouse or pen moving with no button down was released where the document did not hear it.
+    if (pointersReleasedUnseen(state.pressedPointers, event).length > 0) {
       endPress(event.pointerId)
       return
     }
@@ -87,7 +83,7 @@ export function setupContainerInteractionHandlers(
     // Ends a counted press whichever of its chorded buttons is released last.
     const pressed = state.pressedPointers.get(event.pointerId)
     if (!pressed) return
-    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.type)) {
+    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.pointerType)) {
       state.isClickable = false
     }
     if (endPress(event.pointerId)) {

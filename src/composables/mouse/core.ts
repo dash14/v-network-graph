@@ -10,6 +10,7 @@ export type SelectionMode = "container" | "node" | "edge" | "path"
 // state for each pointer of multi touch
 export interface NodePointerState {
   pointerId: number // pointer ID provided by the event
+  pointerType: string // pointer type provided by the event
   nodeId: string // pointer down node ID
   moveCounter: number // count for pointermove event occurred
   isDragging: boolean // whether node:dragstart was emitted for the press
@@ -22,12 +23,14 @@ export interface NodePointerState {
 
 export interface EdgePointerState {
   pointerId: number // pointer ID provided by the event
+  pointerType: string // pointer type provided by the event
   id: string | string[] // pointer down edge ID
   eventTarget: EventTarget | null // event target
 }
 
 export interface PathPointerState {
   pointerId: number // pointer ID provided by the event
+  pointerType: string // pointer type provided by the event
   id: string // pointer down path ID
   eventTarget: EventTarget | null // event target
 }
@@ -61,6 +64,29 @@ export function isShiftClickOnOtherKind(
  */
 export function isPrimaryButton(event: PointerEvent): boolean {
   return event.button === 0
+}
+
+/**
+ * The pressed pointers that the event shows were released where the document did not hear it,
+ * over an iframe or while the window lost focus.
+ */
+export function pointersReleasedUnseen(
+  pointers: Map<number, { pointerType: string }>,
+  event: PointerEvent
+): number[] {
+  if (event.type === "pointerdown") {
+    // A primary pointer is the only one of its type down.
+    if (!event.isPrimary) return []
+    return Array.from(pointers)
+      .filter(([_, { pointerType }]) => pointerType === event.pointerType)
+      .map(([pointerId]) => pointerId)
+  }
+  // A mouse or pen moving with no button down is released.
+  const isReleased =
+    pointers.has(event.pointerId) &&
+    ["mouse", "pen"].includes(event.pointerType) &&
+    event.buttons === 0
+  return isReleased ? [event.pointerId] : []
 }
 
 export function getPointerMoveDetectionThreshold(type: string): number {

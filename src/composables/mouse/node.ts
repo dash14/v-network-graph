@@ -14,6 +14,7 @@ import {
   NodePointerState,
   isPrimaryButton,
   isShiftClickOnOtherKind,
+  pointersReleasedUnseen,
 } from "./core"
 
 type PointerPosition = Pick<PointerEvent, "pageX" | "pageY" | "pointerId">
@@ -54,12 +55,23 @@ export function makeNodeInteractionHandlers(
     pointercancel: handleNodePointerCancelEvent,
   }
 
-  // A pointer still pressed when the graph unmounts is released after it is gone.
-  onUnmounted(() => {
+  function addPointerHandlers() {
+    entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
+      document.addEventListener(ev, handler)
+    })
+    // Before the press reaches an object, which ignores it while nodes are pressed.
+    document.addEventListener("pointerdown", handleUnseenReleases, { capture: true })
+  }
+
+  function removePointerHandlers() {
     entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
       document.removeEventListener(ev, handler)
     })
-  })
+    document.removeEventListener("pointerdown", handleUnseenReleases, { capture: true })
+  }
+
+  // A pointer still pressed when the graph unmounts is released after it is gone.
+  onUnmounted(removePointerHandlers)
 
   function _updateFollowNodes(pointerState: NodePointerState) {
     const before = _draggedFollowerPositions()
@@ -231,6 +243,9 @@ export function makeNodeInteractionHandlers(
     if (!pointerState) {
       return
     }
+    if (handleUnseenReleases(event)) {
+      return
+    }
     pointerState.latestPosition = { x: event.pageX, y: event.pageY }
     pointerState.moveCounter++
 
@@ -280,9 +295,7 @@ export function makeNodeInteractionHandlers(
     state.pointers.clear()
     isDraggingNodes.value = false
     state.follow = { followedPointerId: -1, nodeBasePositions: {} }
-    entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
+    removePointerHandlers()
     modes.viewMode.value = "default"
   }
 
@@ -294,17 +307,11 @@ export function makeNodeInteractionHandlers(
       return
     }
 
-    state.pointers.delete(event.pointerId)
-    isDraggingNodes.value = MapUtil.valueOf(state.pointers).some(p => p.isDragging)
-
     const node = pointerState.nodeId
 
     const threshold = getPointerMoveDetectionThreshold(event.pointerType)
     const isMoved = pointerState.moveCounter > threshold
-    if (pointerState.isDragging) {
-      _emitDragEnd(pointerState, { x: event.pageX, y: event.pageY })
-    }
-    emitter.emit("node:pointerup", { node, event })
+    _releasePointer(pointerState, { x: event.pageX, y: event.pageY }, event)
 
     // No click while the node is dragged
     if (!isMoved && !isShiftClickOnOtherKind(modes, "node", event)) {
@@ -321,12 +328,43 @@ export function makeNodeInteractionHandlers(
       }
     }
 
+    _afterRelease(pointerState)
+  }
+
+  /**
+   * Ends without a click the presses released where the document did not hear it, and returns
+   * whether there were any.
+   */
+  function handleUnseenReleases(event: PointerEvent) {
+    const pointerIds = pointersReleasedUnseen(state.pointers, event)
+    for (const pointerId of pointerIds) {
+      const pointerState = state.pointers.get(pointerId)!
+      // Where the last move put the node, as the release was not seen.
+      _releasePointer(pointerState, pointerState.draggedPosition, event)
+      _afterRelease(pointerState)
+    }
+    return pointerIds.length > 0
+  }
+
+  function _releasePointer(
+    pointerState: NodePointerState,
+    position: Position,
+    event: PointerEvent
+  ) {
+    state.pointers.delete(pointerState.pointerId)
+    isDraggingNodes.value = MapUtil.valueOf(state.pointers).some(p => p.isDragging)
+
+    if (pointerState.isDragging) {
+      _emitDragEnd(pointerState, position)
+    }
+    emitter.emit("node:pointerup", { node: pointerState.nodeId, event })
+  }
+
+  function _afterRelease(pointerState: NodePointerState) {
     if (state.pointers.size === 0) {
       // re-initialize state
       state.follow = { followedPointerId: -1, nodeBasePositions: {} }
-      entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
-        document.removeEventListener(ev, handler)
-      })
+      removePointerHandlers()
       cleanClickState(state.clicks)
       modes.viewMode.value = "default"
     } else {
@@ -353,14 +391,13 @@ export function makeNodeInteractionHandlers(
     if (state.pointers.size == 0) {
       // Add event listeners
       modes.viewMode.value = "node"
-      entriesOf(nodePointerHandlers).forEach(([ev, handler]) => {
-        document.addEventListener(ev, handler)
-      })
+      addPointerHandlers()
     }
 
     // Create new pointer state
     const pointerState: NodePointerState = {
       pointerId: event.pointerId,
+      pointerType: event.pointerType,
       nodeId: node,
       moveCounter: 0,
       isDragging: false,
