@@ -3,7 +3,7 @@ import { computed, Ref, ref, watchEffect } from "vue"
 import { EdgeLabelStyle } from "@/common/configs"
 import { Edge, EdgeLabelArea } from "@/common/types"
 import VText from "@/components/base/VLabelText.vue"
-import { VectorLine } from "@/modules/calculation/line"
+import { Vector2D } from "@/modules/vector2d"
 
 export interface Props {
   area: EdgeLabelArea
@@ -38,12 +38,17 @@ const angle = ref(0)
 watchEffect(() => {
   const s = props.area.source
   const t = props.area.target
+  const corners = Vector2D.fromObject(t.above).subtract(s.above)
+  // The corners give the direction unless the area is shrunk to a point.
+  const isPoint = !!props.area.direction && corners.x === 0 && corners.y === 0
+  const direction = isPoint ? Vector2D.fromObject(props.area.direction!) : corners
+  // Whether the text, turned to read left to right or upward, runs toward the target or the source.
+  // A direction of no length runs toward neither.
+  const forward = direction.x > 0 || (direction.x === 0 && direction.y < 0)
+  const backward = direction.x < 0 || (direction.x === 0 && direction.y > 0)
+  // On an area shrunk to a point, each label runs from it toward its own end of the edge.
   if (props.align === "source") {
-    if (s.above.x == t.above.x) {
-      textAnchor.value = s.above.y > t.above.y ? "start" : "end"
-    } else {
-      textAnchor.value = s.above.x < t.above.x ? "start" : "end"
-    }
+    textAnchor.value = (isPoint ? backward : forward) ? "start" : "end"
     if (props.verticalAlign === "above") {
       x.value = s.above.x
       y.value = s.above.y
@@ -59,11 +64,7 @@ watchEffect(() => {
       dominantBaseline.value = "central"
     }
   } else if (props.align === "target") {
-    if (s.above.x == t.above.x) {
-      textAnchor.value = s.above.y < t.above.y ? "start" : "end"
-    } else {
-      textAnchor.value = s.above.x > t.above.x ? "start" : "end"
-    }
+    textAnchor.value = (isPoint ? forward : backward) ? "start" : "end"
     if (props.verticalAlign === "above") {
       x.value = t.above.x
       y.value = t.above.y
@@ -96,7 +97,7 @@ watchEffect(() => {
       dominantBaseline.value = "central"
     }
   }
-  let degree = VectorLine.fromPositions(s.above, t.above).v.angleDegree()
+  let degree = direction.angleDegree()
   if (degree < -90 || degree >= 90) {
     degree = degree + 180
     if (degree > 180) {
