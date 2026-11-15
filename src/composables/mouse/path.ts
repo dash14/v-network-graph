@@ -4,7 +4,6 @@ import { Reactive } from "@/common/common"
 import { Events, PathEvent } from "@/common/types"
 import { PathStates } from "@/models/path"
 import { MapUtil } from "@/utils/map"
-import { entriesOf } from "@/utils/object"
 import {
   cleanClickState,
   ClickState,
@@ -12,7 +11,10 @@ import {
   InteractionModes,
   PathPointerState,
   isPrimaryButton,
+  isMovedReleased,
   isShiftClickOnOtherKind,
+  makePressListeners,
+  pointersReleasedBy,
 } from "./core"
 
 export function makePathInteractionHandlers(
@@ -36,17 +38,22 @@ export function makePathInteractionHandlers(
     }
   }
 
-  const pathPointerHandlers = {
-    pointerup: handlePathPointerUpEvent,
-    pointercancel: handlePathPointerCancelEvent,
-  }
+  const pressListeners = makePressListeners(
+    {
+      pointermove: event => {
+        if (state.pointers.has(event.pointerId) && isMovedReleased(event)) {
+          endUnseenReleases([event.pointerId], event)
+        }
+      },
+      pointerup: handlePathPointerUpEvent,
+      pointercancel: handlePathPointerCancelEvent,
+    },
+    // Before an object ignores the press, as one does while paths are pressed.
+    event => endUnseenReleases(pointersReleasedBy(state.pointers, event), event)
+  )
 
   // A pointer still pressed when the graph unmounts is released after it is gone.
-  onUnmounted(() => {
-    entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-  })
+  onUnmounted(pressListeners.remove)
 
   watch(selectedPaths, selected => {
     if (selected.size > 0 && modes.selectionMode.value !== "path") {
@@ -77,20 +84,35 @@ export function makePathInteractionHandlers(
     if (state.pointers.size == 0) {
       // Add event listeners
       modes.viewMode.value = "path"
-      entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
-        document.addEventListener(ev, handler)
-      })
+      pressListeners.add()
     }
 
     // Create new pointer state
     const pointerState: PathPointerState = {
       pointerId: event.pointerId,
+      pointerType: event.pointerType,
       id: path,
       eventTarget: event.currentTarget,
     }
     state.pointers.set(event.pointerId, pointerState)
 
     emitter.emit("path:pointerdown", _makePathEventObject(path, event))
+  }
+
+  /** Ends without a click the presses released where the document did not hear it. */
+  function endUnseenReleases(pointerIds: number[], event: PointerEvent) {
+    for (const pointerId of pointerIds) {
+      const pointerState = state.pointers.get(pointerId)!
+      state.pointers.delete(pointerId)
+      emitter.emit("path:pointerup", _makePathEventObject(pointerState.id, event))
+    }
+    if (state.pointers.size === 0) endPress()
+  }
+
+  function endPress() {
+    pressListeners.remove()
+    cleanClickState(state.clicks)
+    modes.viewMode.value = "default"
   }
 
   function handlePathPointerUpEvent(event: PointerEvent) {
@@ -120,14 +142,7 @@ export function makePathInteractionHandlers(
       }
     }
 
-    if (state.pointers.size === 0) {
-      // reset state
-      entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
-        document.removeEventListener(ev, handler)
-      })
-      cleanClickState(state.clicks)
-      modes.viewMode.value = "default"
-    }
+    if (state.pointers.size === 0) endPress()
   }
 
   function handlePathPointerCancelEvent(event: PointerEvent) {
@@ -143,12 +158,8 @@ export function makePathInteractionHandlers(
       emitter.emit("path:pointerup", _makePathEventObject(path, event))
     }
 
-    // reset state
     state.pointers.clear()
-    entriesOf(pathPointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-    modes.viewMode.value = "default"
+    endPress()
   }
 
   function handlePathPointerOverEvent(path: string, event: PointerEvent) {

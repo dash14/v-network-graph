@@ -1,5 +1,6 @@
 import { Ref } from "vue"
 import { Position, ViewMode } from "@/common/types"
+import { entriesOf } from "@/utils/object"
 
 const MOUSE_MOVE_DETECTION_THRESHOLD = 3 // Sensitivity to start dragging
 const TOUCH_MOVE_DETECTION_THRESHOLD = 6 // Sensitivity to start dragging in touches
@@ -10,6 +11,7 @@ export type SelectionMode = "container" | "node" | "edge" | "path"
 // state for each pointer of multi touch
 export interface NodePointerState {
   pointerId: number // pointer ID provided by the event
+  pointerType: string // pointer type provided by the event
   nodeId: string // pointer down node ID
   moveCounter: number // count for pointermove event occurred
   isDragging: boolean // whether node:dragstart was emitted for the press
@@ -22,12 +24,14 @@ export interface NodePointerState {
 
 export interface EdgePointerState {
   pointerId: number // pointer ID provided by the event
+  pointerType: string // pointer type provided by the event
   id: string | string[] // pointer down edge ID
   eventTarget: EventTarget | null // event target
 }
 
 export interface PathPointerState {
   pointerId: number // pointer ID provided by the event
+  pointerType: string // pointer type provided by the event
   id: string // pointer down path ID
   eventTarget: EventTarget | null // event target
 }
@@ -61,6 +65,56 @@ export function isShiftClickOnOtherKind(
  */
 export function isPrimaryButton(event: PointerEvent): boolean {
   return event.button === 0
+}
+
+// A release can happen where the document does not hear it, over an iframe or while the window
+// has lost focus. The two functions below find it from the events that follow.
+
+/**
+ * The pressed pointers that a pointerdown shows were released, as a primary pointer is the only
+ * one of its type down.
+ */
+export function pointersReleasedBy(
+  pointers: Map<number, { pointerType: string }>,
+  event: PointerEvent
+): number[] {
+  if (!event.isPrimary) return []
+  return Array.from(pointers)
+    .filter(([_, { pointerType }]) => pointerType === event.pointerType)
+    .map(([pointerId]) => pointerId)
+}
+
+/** Whether a pointermove shows its mouse or pen was released, as no button is down. */
+export function isMovedReleased(event: PointerEvent): boolean {
+  return (event.pointerType === "mouse" || event.pointerType === "pen") && event.buttons === 0
+}
+
+type PressHandlers = Partial<
+  Record<"pointermove" | "pointerup" | "pointercancel", (event: PointerEvent) => void>
+>
+
+/**
+ * Listens on the document to the moves and releases of a press, and, before the objects hear
+ * them, to the pointerdowns that may show a missed release.
+ */
+export function makePressListeners(
+  handlers: PressHandlers,
+  handlePointerDown: (event: PointerEvent) => void
+) {
+  return {
+    add() {
+      entriesOf(handlers).forEach(([ev, handler]) => {
+        document.addEventListener(ev, handler!, { passive: true })
+      })
+      document.addEventListener("pointerdown", handlePointerDown, { capture: true, passive: true })
+    },
+    remove() {
+      entriesOf(handlers).forEach(([ev, handler]) => {
+        document.removeEventListener(ev, handler!)
+      })
+      document.removeEventListener("pointerdown", handlePointerDown, { capture: true })
+    },
+  }
 }
 
 export function getPointerMoveDetectionThreshold(type: string): number {

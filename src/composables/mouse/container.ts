@@ -2,14 +2,16 @@ import { Emitter } from "mitt"
 import { onMounted, onUnmounted, Ref, watch } from "vue"
 import { nonNull } from "@/common/common"
 import { Events } from "@/common/types"
-import { entriesOf } from "@/utils/object"
 import {
   ClickState,
   createClickEvents,
   getPointerMoveDetectionThreshold,
   InteractionModes,
   isPrimaryButton,
+  isMovedReleased,
   isShiftClickOnOtherKind,
+  makePressListeners,
+  pointersReleasedBy,
 } from "./core"
 
 export function setupContainerInteractionHandlers(
@@ -20,48 +22,35 @@ export function setupContainerInteractionHandlers(
 ) {
   const state = {
     // The pointers whose press is counted, with the type and the number of moves of each
-    pressedPointers: new Map<number, { type: string; moves: number }>(),
+    pressedPointers: new Map<number, { pointerType: string; moves: number }>(),
     isClickable: true, // false once a pointer of the press is cancelled or released after a drag
     clickState: undefined as ClickState | undefined,
   }
 
   // Count the moves of each pressed pointer, to tell a click from a drag when it is released.
-  const containerPointerHandlers = {
-    pointermove: handleContainerPointerMoveEvent,
-    pointerup: handleContainerPointerUpEvent,
-    pointercancel: handleContainerPointerCancelEvent,
-  }
-
-  function removePointerHandlers() {
-    entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-      document.removeEventListener(ev, handler)
-    })
-  }
+  const pressListeners = makePressListeners(
+    {
+      pointermove: handleContainerPointerMoveEvent,
+      pointerup: handleContainerPointerUpEvent,
+      pointercancel: handleContainerPointerCancelEvent,
+    },
+    // Also for a press on an object, which the container does not hear.
+    event => pointersReleasedBy(state.pressedPointers, event).forEach(endPress)
+  )
 
   function handleContainerPointerDownEvent(event: PointerEvent) {
     if (!isPrimaryButton(event)) return
-    if (event.isPrimary) {
-      // A primary pointer is the only one of its type down, so the others were released unseen,
-      // over an iframe or while the window lost focus.
-      for (const [pointerId, { type }] of state.pressedPointers) {
-        if (type === event.pointerType) state.pressedPointers.delete(pointerId)
-      }
-    }
     if (state.pressedPointers.size === 0) {
       state.isClickable = true
-      // Add to event listener
-      entriesOf(containerPointerHandlers).forEach(([ev, handler]) => {
-        document.addEventListener(ev, handler, { passive: true })
-      })
+      pressListeners.add()
     }
-    state.pressedPointers.set(event.pointerId, { type: event.pointerType, moves: 0 })
+    state.pressedPointers.set(event.pointerId, { pointerType: event.pointerType, moves: 0 })
   }
 
   function handleContainerPointerMoveEvent(event: PointerEvent) {
     const pressed = state.pressedPointers.get(event.pointerId)
     if (!pressed) return
-    if (["mouse", "pen"].includes(event.pointerType) && event.buttons === 0) {
-      // A mouse or pen moving with no button down was released where the document did not hear it.
+    if (isMovedReleased(event)) {
       endPress(event.pointerId)
       return
     }
@@ -79,7 +68,7 @@ export function setupContainerInteractionHandlers(
   function endPress(pointerId: number) {
     state.pressedPointers.delete(pointerId)
     if (state.pressedPointers.size > 0) return false
-    removePointerHandlers()
+    pressListeners.remove()
     return true
   }
 
@@ -87,7 +76,7 @@ export function setupContainerInteractionHandlers(
     // Ends a counted press whichever of its chorded buttons is released last.
     const pressed = state.pressedPointers.get(event.pointerId)
     if (!pressed) return
-    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.type)) {
+    if (pressed.moves > getPointerMoveDetectionThreshold(pressed.pointerType)) {
       state.isClickable = false
     }
     if (endPress(event.pointerId)) {
@@ -132,7 +121,7 @@ export function setupContainerInteractionHandlers(
 
     // reset pointer down state
     state.pressedPointers.clear()
-    removePointerHandlers()
+    pressListeners.remove()
   }
 
   const preventDefault = (e: MouseEvent) => {
@@ -151,7 +140,7 @@ export function setupContainerInteractionHandlers(
   })
 
   // The <svg> and its listeners are gone by now, but not those on the document for a pressed pointer.
-  onUnmounted(removePointerHandlers)
+  onUnmounted(pressListeners.remove)
 
   watch(isSvgWheelZoomEnabled, enabled => {
     const c = nonNull(container.value, "container")

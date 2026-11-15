@@ -1458,3 +1458,197 @@ describe("buttons other than the primary", () => {
     expect(payloadsOf(events, "node:dragstart")).toEqual([])
   })
 })
+
+describe("presses released where the document did not hear it", () => {
+  const mouse = { pointerType: "mouse", isPrimary: true, buttons: 1 }
+  const touch = { pointerType: "touch", isPrimary: true }
+  const clickable = { visible: true, clickable: true }
+
+  test("a mouse moved with no button down ends the drag of a node where the last move put it", async () => {
+    const { screen, state, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node2, mouse)
+    for (let y = 10; y <= 50; y += 10) pointers.move(1, at(0, y), mouse)
+    pointers.move(1, at(0, 80), { ...mouse, buttons: 0 })
+    pointers.move(1, at(0, 100), { ...mouse, buttons: 0 })
+
+    expect(state.layouts.nodes.node2).toEqual({ x: 0, y: 50 })
+    expect(payloadsOf(events, "node:dragend")).toEqual([{ node2: { x: 0, y: 50 } }])
+    expect(payloadsOf(events, "node:pointerup")).toMatchObject([{ node: "node2" }])
+    expect(payloadsOf(events, "node:click")).toEqual([])
+    expect(screen.container.querySelector("svg.v-ng-canvas.dragging")).toBeNull()
+  })
+
+  test("a primary finger ends the presses on nodes, before an edge takes its press", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node3"]
+    const { screen, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1, touch)
+    pointers.down(2, node2, { ...touch, isPrimary: false })
+    moveTo(pointers, 1, node1, at(-100, 50), 10)
+    pointers.down(3, edge2, touch)
+    pointers.up(3, edge2, touch)
+
+    expect(payloadsOf(events, "node:pointerup")).toMatchObject([
+      { node: "node1" },
+      { node: "node2" },
+    ])
+    expect(payloadsOf(events, "node:dragend")).toEqual([
+      { node1: { x: -100, y: 50 }, node3: { x: 100, y: 50 } },
+    ])
+    expect(payloadsOf(events, "node:click")).toEqual([])
+    expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "edge2" }])
+  })
+
+  test("a mouse pressed again on a node ends its earlier press, which kept the same pointer ID", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1, mouse)
+    pointers.down(1, node2, mouse)
+    pointers.up(1, node2, { ...mouse, buttons: 0 })
+
+    expect(payloadsOf(events, "node:pointerup")).toMatchObject([
+      { node: "node1" },
+      { node: "node2" },
+    ])
+    expect(payloadsOf(events, "node:click")).toMatchObject([{ node: "node2" }])
+  })
+
+  test("a second finger or a mouse leaves a finger on a node pressed", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1, touch)
+    pointers.down(2, at(0, 100), { ...touch, isPrimary: false })
+    pointers.down(3, at(0, 100), mouse)
+    pointers.move(3, at(0, 100), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "node:pointerup")).toEqual([])
+
+    pointers.up(1, node1, touch)
+    expect(payloadsOf(events, "node:click")).toMatchObject([{ node: "node1" }])
+  })
+
+  test("a mouse moved with no button down ends the press of an edge, so a node can be pressed", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1, mouse)
+    pointers.move(1, edge1, mouse)
+    pointers.move(1, at(0, 100), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "edge:pointerup")).toMatchObject([{ edge: "edge1" }])
+    expect(payloadsOf(events, "edge:click")).toEqual([])
+
+    pointers.down(1, node3, mouse)
+    expect(payloadsOf(events, "node:pointerdown")).toMatchObject([{ node: "node3" }])
+  })
+
+  test("a primary finger ends the press of an edge, before a node takes its press", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1, touch)
+    pointers.down(2, edge2, { ...touch, isPrimary: false })
+    pointers.down(3, node3, touch)
+    expect(payloadsOf(events, "edge:pointerup")).toMatchObject([
+      { edge: "edge1" },
+      { edge: "edge2" },
+    ])
+    expect(payloadsOf(events, "node:pointerdown")).toMatchObject([{ node: "node3" }])
+  })
+
+  test("a mouse moved with no button down ends the press of a path, so a node can be pressed", async () => {
+    const props = graph({ path: clickable })
+    props.paths = { path1: { edges: ["edge1"] } } // off node3
+    const { screen, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1, mouse)
+    pointers.move(1, edge1, mouse)
+    pointers.move(1, at(0, 100), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "path:pointerup")).toMatchObject([{ path: "path1" }])
+    expect(payloadsOf(events, "path:click")).toEqual([])
+
+    pointers.down(1, node3, mouse)
+    expect(payloadsOf(events, "node:pointerdown")).toMatchObject([{ node: "node3" }])
+  })
+
+  test("a primary finger ends the press of a path, before a node takes its press", async () => {
+    const props = graph({ path: clickable })
+    props.paths = { path1: { edges: ["edge1"] } } // off node3
+    const { screen, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1, touch)
+    pointers.down(2, at(-30, 0), { ...touch, isPrimary: false })
+    pointers.down(3, node3, touch)
+    expect(payloadsOf(events, "path:pointerup")).toMatchObject([
+      { path: "path1" },
+      { path: "path1" },
+    ])
+    expect(payloadsOf(events, "node:pointerdown")).toMatchObject([{ node: "node3" }])
+  })
+
+  test("an edge whose mouse press ended unseen leaves a finger on another edge pressed", async () => {
+    const { screen, events } = await mountGraph(graph())
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1, touch)
+    pointers.down(2, edge2, mouse)
+    pointers.move(2, at(0, 100), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "edge:pointerup")).toMatchObject([{ edge: "edge2" }])
+
+    pointers.up(1, edge1, touch)
+    expect(payloadsOf(events, "edge:click")).toMatchObject([{ edge: "edge1" }])
+  })
+
+  test("a path whose mouse press ended unseen leaves a finger on another path pressed", async () => {
+    const { screen, events } = await mountGraph(graph({ path: clickable }))
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, edge1, touch)
+    pointers.down(2, edge2, mouse)
+    pointers.move(2, at(0, 100), { ...mouse, buttons: 0 })
+    expect(payloadsOf(events, "path:pointerup")).toMatchObject([{ path: "path2" }])
+
+    pointers.up(1, edge1, touch)
+    expect(payloadsOf(events, "path:click")).toMatchObject([{ path: "path1" }])
+  })
+
+  test("a mouse pressed on a node ends its earlier press on the background", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1"]
+    const { screen, state, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, at(0, 100), mouse)
+    pointers.down(1, node2, mouse)
+    pointers.up(1, node2, { ...mouse, buttons: 0 })
+    await nextTick()
+
+    expect(payloadsOf(events, "view:click")).toEqual([])
+    expect(state.selectedNodes).toEqual(["node2"])
+  })
+
+  test("a primary finger ends the drags of earlier fingers without passing the following on", async () => {
+    const props = graph({ node: selectable })
+    props.selectedNodes = ["node1", "node2", "node3"]
+    const { screen, events } = await mountGraph(props)
+    const pointers = pointersOn(screen.container)
+
+    pointers.down(1, node1, touch)
+    pointers.down(2, node2, { ...touch, isPrimary: false })
+    moveTo(pointers, 1, node1, at(-100, 50), 10)
+    moveTo(pointers, 2, node2, at(0, 50), 10)
+    pointers.down(3, at(0, 100), touch)
+
+    expect(payloadsOf(events, "node:dragstart")).toHaveLength(2)
+    expect(payloadsOf(events, "node:dragend")).toEqual([
+      { node1: { x: -100, y: 50 }, node3: { x: 100, y: 50 } },
+      { node2: { x: 0, y: 50 } },
+    ])
+  })
+})
