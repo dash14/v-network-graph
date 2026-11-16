@@ -5,7 +5,7 @@ import type { ComputedRef, ReactiveEffectRunner, Ref, ShallowRef } from "vue"
 import { computed, effect, shallowRef, stop, toRef, triggerRef, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, EdgeConfig, ShapeStyle } from "@/common/configs"
-import { Edges, Position } from "@/common/types"
+import { Edge, Edges, Position } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
@@ -34,6 +34,20 @@ function initialEdgeGeometry(): EdgeGeometry {
 // Colors do not change where an edge is drawn, so they are left out of what is compared.
 function withoutColors(shape: ShapeStyle): ShapeStyle {
   return { ...shape, color: "", strokeColor: undefined, strokeDasharray: undefined }
+}
+
+// The summarized line is drawn with the stroke and markers of the group, from the source of this
+// edge, so that every edge of the group places it the same.
+function summarizedLineOf(config: EdgeConfig, edges: Edges, edge: Edge) {
+  const stroke = Config.values(config.summarized.stroke, edges)
+  const source = Config.values(config.summarized.marker.source, [edges, stroke])
+  const target = Config.values(config.summarized.marker.target, [edges, stroke])
+  const reversed = edge.source !== Object.values(edges)[0].source
+  return {
+    normalWidth: stroke.width,
+    source: reversed ? target : source,
+    target: reversed ? source : target,
+  }
 }
 
 /** The parts of the geometry of an edge, each replaced as the edge is placed. */
@@ -115,7 +129,7 @@ export function makeEdgePlacement(
       edgeGroupStates.edgeLayoutPoints,
       id
     )
-    const isEdgeSummarized: Ref<true | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
+    const summarizedGroup: Ref<string | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
 
     // Copied out of the reactive objects so that placing reads none. The positions and the scale
     // are left out, since a layout tick or a zoom changes them for every edge.
@@ -135,7 +149,8 @@ export function makeEdgePlacement(
       }
 
       const layoutPoint = edgeLayoutPoint.value
-      const l = line.value
+      const group = summarizedGroup.value && edgeGroupStates.edgeGroups[summarizedGroup.value]
+      const l = group ? summarizedLineOf(config, group.edges, edge) : line.value
       const selfLoop =
         edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
       return {
@@ -148,7 +163,7 @@ export function makeEdgePlacement(
           ...layoutPoint,
           edge: { source: layoutPoint.edge.source, target: layoutPoint.edge.target },
         },
-        summarized: isEdgeSummarized.value ?? false,
+        summarized: !!group,
         line: {
           normalWidth: l.normalWidth,
           source: { ...l.source, color: null },

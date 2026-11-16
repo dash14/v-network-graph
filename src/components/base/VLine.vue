@@ -7,6 +7,8 @@ const props = defineProps<{
   p1: Position
   p2: Position
   config: StrokeStyle
+  markerStart?: string
+  markerEnd?: string
 }>()
 
 const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(() => props.config)
@@ -21,5 +23,7 @@ const { strokeWidth, strokeDasharray, animationSpeed } = useStrokeAttributes(() 
     :stroke-dasharray="strokeDasharray"
     :stroke-linecap="config.linecap"
     :style="animationSpeed"
+    :marker-start="markerStart ? `url('#${markerStart}')` : undefined"
+    :marker-end="markerEnd ? `url('#${markerEnd}')` : undefined"
   />
 </template>

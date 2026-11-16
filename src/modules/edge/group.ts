@@ -1,7 +1,14 @@
 import { isEqual } from "lodash-es"
 import { Ref, toRaw, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
-import { Config, Configs, EdgeKeepOrderType } from "@/common/configs"
+import {
+  Config,
+  Configs,
+  EdgeConfig,
+  EdgeKeepOrderType,
+  MarkerStyle,
+  StrokeStyle,
+} from "@/common/configs"
 import { Edge, Edges, LinePosition, Nodes, Position } from "@/common/types"
 import { EdgeGroup, EdgeGroupStates, EdgeLayoutPoint } from "@/models/edge"
 import { updateObjectDiff } from "@/utils/object"
@@ -46,8 +53,8 @@ export function makeEdgeGroupStates(
 
   // calc layout and check summarize
   watchEffect(() => {
-    const summarizedEdges: Record<string, true> = {}
-    for (const [id, { edges, groupWidth }] of Object.entries(state.edgeGroups)) {
+    const summarizedEdges: Record<string, string> = {}
+    for (const [key, { edges, groupWidth }] of Object.entries(state.edgeGroups)) {
       // A group of a single edge has no width, and nothing to summarize.
       let summarize = false
       if (groupWidth !== 0) {
@@ -62,15 +69,40 @@ export function makeEdgeGroupStates(
           summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
         }
       }
-      state.edgeGroups[id].summarize = summarize
+      state.edgeGroups[key].summarize = summarize
       if (summarize) {
-        Object.keys(edges).forEach(id => (summarizedEdges[id] = true))
+        Object.keys(edges).forEach(id => (summarizedEdges[id] = key))
       }
     }
     updateObjectDiff(state.summarizedEdges, summarizedEdges)
   })
 
   return state
+}
+
+/**
+ * The marker that the edges put at an end of their summarized line: the first one that is not
+ * "none", or that of the first edge.
+ * @param marker the marker config of the edges
+ * @param edges the summarized edges
+ * @param stroke the stroke of the summarized line
+ * @param end the end of the line, where the source is that of the first edge
+ * @returns the marker
+ */
+export function summarizedMarkerOf(
+  marker: EdgeConfig["marker"],
+  edges: Edges,
+  stroke: StrokeStyle,
+  end: "source" | "target"
+): MarkerStyle {
+  const all = Object.values(edges)
+  const markers = all.map(edge => {
+    // A reversed edge puts its marker of the other end here.
+    const reversed = edge.source !== all[0].source
+    const key = reversed ? (end === "source" ? "target" : "source") : end
+    return Config.values(marker[key], [edge, stroke])
+  })
+  return markers.find(m => m.type !== "none") ?? markers[0]
 }
 
 /**

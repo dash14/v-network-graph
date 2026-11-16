@@ -6,6 +6,21 @@ const graph = {
   layouts: { nodes: { node1: { x: -100, y: 0 }, node2: { x: 100, y: 0 } } },
 }
 
+// The second edge runs the other way, and puts its target marker at the source of the line.
+const summarized = {
+  ...graph,
+  edges: {
+    edge1: { source: "node1", target: "node2" },
+    edge2: { source: "node2", target: "node1" },
+  },
+  configs: {
+    edge: {
+      summarize: () => true,
+      marker: { target: { type: "arrow" as const } },
+    },
+  },
+}
+
 const types = ["arrow", "angle", "circle"] as const
 const unitsList = ["strokeWidth", "userSpaceOnUse"] as const
 
@@ -53,6 +68,38 @@ export default [
       configs: {
         node: { normal: { type: "rect", width: 40, height: 20 } },
         edge: { margin: 2, marker: { target: { type: "arrow", color: "#ff0000" } } },
+      },
+    },
+  },
+  {
+    name: "summarized-in-one-direction",
+    props: {
+      ...summarized,
+      edges: {
+        edge1: { source: "node1", target: "node2" },
+        edge2: { source: "node1", target: "node2" },
+      },
+    },
+  },
+  {
+    name: "summarized-in-both-directions",
+    props: summarized,
+  },
+  {
+    name: "summarized-with-their-own-markers",
+    props: {
+      ...summarized,
+      configs: {
+        edge: {
+          ...summarized.configs.edge,
+          summarized: {
+            stroke: { width: 3 },
+            marker: {
+              source: { type: "none" },
+              target: { type: "circle", units: "userSpaceOnUse", color: "#ff0000" },
+            },
+          },
+        },
       },
     },
   },

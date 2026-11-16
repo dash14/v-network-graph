@@ -1,10 +1,14 @@
 import { merge } from "lodash-es"
 import { SimpleLayout } from "../layouts/simple"
+import { summarizedMarkerOf } from "../modules/edge/group"
 import {
   Config,
   Configs,
+  EdgeConfig,
   LiteViewConfig,
+  MarkerStyle,
   NodeLabelDirection,
+  StrokeStyle,
   UserConfigs,
   withSelf,
 } from "./configs"
@@ -217,6 +221,10 @@ export function getConfigDefaults(): Configs {
           animate: false,
           animationSpeed: 50,
         },
+        marker: {
+          source: summarizedMarker(self, "source"),
+          target: summarizedMarker(self, "target"),
+        },
       },
       selfLoop: {
         radius: 12,
@@ -332,6 +340,30 @@ export function getConfigDefaults(): Configs {
       transition: undefined,
     })),
   }
+}
+
+const MARKER_KEYS: (keyof MarkerStyle)[] = [
+  "type",
+  "width",
+  "height",
+  "margin",
+  "offset",
+  "units",
+  "color",
+  "customId",
+]
+
+type SummarizedMarkerConfig = EdgeConfig["summarized"]["marker"]["source"]
+
+// Each value from the markers of the edges, so that a user config can override any one of them.
+function summarizedMarker(self: EdgeConfig, end: "source" | "target"): SummarizedMarkerConfig {
+  return Object.fromEntries(
+    MARKER_KEYS.map(key => [
+      key,
+      ([edges, stroke]: [Edges, StrokeStyle]) =>
+        summarizedMarkerOf(self.marker, edges, stroke, end)[key],
+    ])
+  ) as SummarizedMarkerConfig
 }
 
 /** The configs of VNetworkGraph plus view.layoutsUpdateInterval. */
