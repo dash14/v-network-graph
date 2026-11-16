@@ -47,8 +47,8 @@ export function useViewMethods(
 
     await updateBorderBox()
 
-    const { clientWidth: width, clientHeight: height } = nonNull(svg.value)
-    const size = { width, height }
+    const svgElement = nonNull(svg.value)
+    const size = { width: svgElement.clientWidth, height: svgElement.clientHeight }
     const margins = parseFitContentMargin(fitContentMargin, size)
 
     const result = calculateFit(

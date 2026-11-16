@@ -99,7 +99,7 @@ export function makeBoxSelectionMethods(
     if (states.options.stopTrigger !== "click") return
     if (states.pointers.size > 0) return
 
-    const point = { x: event.offsetX, y: event.offsetY }
+    const point = translateFromClientToElementCoordinates(nonNull(container.value), event)
     if (states.startPoint && Vector2D.fromObject(states.startPoint).distance(point) > 10) {
       return // ignore in dragging
     }
@@ -109,7 +109,7 @@ export function makeBoxSelectionMethods(
   function handlePointerDownEvent(event: PointerEvent) {
     event.stopPropagation()
 
-    const point = { x: event.offsetX, y: event.offsetY }
+    const point = translateFromClientToElementCoordinates(nonNull(container.value), event)
     if (states.pointers.size === 0) {
       states.startPoint = point
 
