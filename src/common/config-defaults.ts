@@ -1,6 +1,6 @@
 import { merge } from "lodash-es"
 import { SimpleLayout } from "../layouts/simple"
-import { summarizedMarkerOf } from "../modules/edge/group"
+import { summarizedMarkerOf } from "../modules/edge/marker"
 import {
   Config,
   Configs,

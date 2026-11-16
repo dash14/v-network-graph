@@ -59,14 +59,18 @@ const markerIds = shallowRef(madeMarkers)
 watchEffect(() => {
   const stroke = strokeConfig.value
   const marker = config.summarized.marker
+  // The drawn edge is the first one, as the states are made before the group is drawn.
   const source = Config.values(marker.source, [props.edges, stroke])
   const target = Config.values(marker.target, [props.edges, stroke])
   const { instanceId } = markers
+  const previous = madeMarkers
   madeMarkers = {
-    source: makeMarker(source, true, madeMarkers.source, stroke.color, instanceId),
-    target: makeMarker(target, false, madeMarkers.target, stroke.color, instanceId),
+    source: makeMarker(source, true, previous.source, stroke.color, instanceId),
+    target: makeMarker(target, false, previous.target, stroke.color, instanceId),
   }
-  markerIds.value = madeMarkers
+  if (madeMarkers.source !== previous.source || madeMarkers.target !== previous.target) {
+    markerIds.value = madeMarkers
+  }
 })
 onUnmounted(() => {
   clearMarker(madeMarkers.source)
