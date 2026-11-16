@@ -81,6 +81,22 @@ describe("box selection", () => {
     expect(state.selectedNodes).toEqual(["node1"])
   })
 
+  test("follows the pointer in a container scaled by an ancestor", async () => {
+    const { screen, canvas, graph, state } = await mountGraph({ nodes, layouts, configs })
+    screen.container.style.transform = "scale(0.5)"
+    const pointers = pointersOnSvg(canvas.element())
+    const scaled = ({ x, y }: Position) => ({ x: x / 2, y: y / 2 })
+
+    graph.startBoxSelection({ stop: "manual" })
+    pointers.down(1, scaled(at(-150, -50)))
+    pointers.move(1, scaled(at(50, 50)))
+    await vi.waitFor(() => expect(state.selectedNodes).toEqual(["node1", "node2"]))
+    const { x, y } = at(-150, -50)
+    expect(selectionBoxOf(screen.container)).toEqual([x, y, 200, 100])
+    pointers.up(1, scaled(at(50, 50)))
+    expect(state.selectedNodes).toEqual(["node1", "node2"])
+  })
+
   test("dragging the background without box selection does not select", async () => {
     const { canvas, state } = await mountGraph({ nodes, layouts, configs })
 

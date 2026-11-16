@@ -20,6 +20,7 @@ async function renderGraph(
     size = { width: WIDTH, height: HEIGHT },
     graphNodes = nodes as Record<string, object>,
     positions = layouts.nodes as Record<string, { x: number; y: number }>,
+    scale = 1,
   } = {}
 ) {
   const events: RecordedEvent[] = []
@@ -30,16 +31,18 @@ async function renderGraph(
   const screen = await render(
     defineComponent(
       () => () =>
-        h("div", { class: "container", style }, [
-          shown.value &&
-            h(VNetworkGraph, {
-              ref: graph,
-              nodes: graphNodes,
-              edges,
-              layouts: structuredClone({ nodes: positions }),
-              configs: state.configs,
-              eventHandlers: { "*": (type, payload) => events.push({ type, payload }) },
-            }),
+        h("div", { style: { transform: `scale(${scale})` } }, [
+          h("div", { class: "container", style }, [
+            shown.value &&
+              h(VNetworkGraph, {
+                ref: graph,
+                nodes: graphNodes,
+                edges,
+                layouts: structuredClone({ nodes: positions }),
+                configs: state.configs,
+                eventHandlers: { "*": (type, payload) => events.push({ type, payload }) },
+              }),
+          ]),
         ])
     )
   )
@@ -239,6 +242,48 @@ describe("resizing", () => {
     style.width = `${WIDTH + 300}px`
     await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(2)
     expect(graph().getPan()).toEqual({ x: pan.x + 100, y: pan.y })
+  })
+})
+
+describe("in a container scaled by an ancestor", () => {
+  test("keeps the view centered and emits the size before the scaling", async () => {
+    const { graph, style, events, loaded } = await renderGraph({}, { scale: 0.5 })
+    await loaded()
+    const pan = graph().getPan()
+
+    style.width = `${WIDTH + 100}px`
+    await expect.poll(() => payloadsOf(events, "view:resize")).toHaveLength(1)
+    expect(payloadsOf(events, "view:resize")[0]).toMatchObject({
+      width: WIDTH + 100,
+      height: HEIGHT,
+    })
+    expect(graph().getPan()).toEqual({ x: pan.x + 50, y: pan.y })
+  })
+
+  test("draws the grid over the whole container", async () => {
+    const grid = async (scale: number) => {
+      const { screen, loaded, unmount } = await renderGraph(
+        { view: { grid: { visible: true } } },
+        { scale }
+      )
+      await loaded()
+      const lines = screen.container.querySelectorAll(".v-ng-background-grid path").length
+      await unmount()
+      return lines
+    }
+    expect(await grid(0.5)).toBe(await grid(1))
+  })
+
+  test("fits the contents to the container as without the scaling", async () => {
+    const fit = async (scale: number) => {
+      const { graph, loaded, unmount } = await renderGraph({}, { scale })
+      await loaded()
+      await graph().fitToContents()
+      const result = { viewBox: graph().getViewBox(), pan: graph().getPan() }
+      await unmount()
+      return result
+    }
+    expect(await fit(0.5)).toEqual(await fit(1))
   })
 })
 

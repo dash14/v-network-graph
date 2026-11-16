@@ -17,6 +17,15 @@ export function translateFromDomToSvgCoordinates(
   return { x: svgPoint.x, y: svgPoint.y }
 }
 
+/** A point in the client area, in the pixels the element is laid out in before CSS transforms. */
+export function translateFromClientToElementCoordinates(element: Element, client: Point): Point {
+  const rect = element.getBoundingClientRect()
+  return {
+    x: ((client.x - rect.x) * element.clientWidth) / rect.width,
+    y: ((client.y - rect.y) * element.clientHeight) / rect.height,
+  }
+}
+
 export function translateFromSvgToDomCoordinates(
   svg: SVGSVGElement,
   viewport: SVGGElement,
