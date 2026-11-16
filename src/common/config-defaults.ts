@@ -342,27 +342,35 @@ export function getConfigDefaults(): Configs {
   }
 }
 
-const MARKER_KEYS: (keyof MarkerStyle)[] = [
-  "type",
-  "width",
-  "height",
-  "margin",
-  "offset",
-  "units",
-  "color",
-  "customId",
-]
+// Every key of MarkerStyle, as the type requires.
+const MARKER_KEYS = Object.keys({
+  type: 0,
+  width: 0,
+  height: 0,
+  margin: 0,
+  offset: 0,
+  units: 0,
+  color: 0,
+  customId: 0,
+} satisfies Record<keyof MarkerStyle, 0>) as (keyof MarkerStyle)[]
 
 type SummarizedMarkerConfig = EdgeConfig["summarized"]["marker"]["source"]
+type SummarizedMarkerArgs = [Edges, StrokeStyle]
 
 // Each value from the markers of the edges, so that a user config can override any one of them.
 function summarizedMarker(self: EdgeConfig, end: "source" | "target"): SummarizedMarkerConfig {
+  // Config.values passes the same args to every value, so the marker is found once for them.
+  const found = new WeakMap<SummarizedMarkerArgs, MarkerStyle>()
+  const markerOf = (args: SummarizedMarkerArgs) => {
+    let marker = found.get(args)
+    if (!marker) {
+      marker = summarizedMarkerOf(self.marker, args[0], args[1], end)
+      found.set(args, marker)
+    }
+    return marker
+  }
   return Object.fromEntries(
-    MARKER_KEYS.map(key => [
-      key,
-      ([edges, stroke]: [Edges, StrokeStyle]) =>
-        summarizedMarkerOf(self.marker, edges, stroke, end)[key],
-    ])
+    MARKER_KEYS.map(key => [key, (args: SummarizedMarkerArgs) => markerOf(args)[key]])
   ) as SummarizedMarkerConfig
 }
 

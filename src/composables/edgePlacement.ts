@@ -36,17 +36,25 @@ function withoutColors(shape: ShapeStyle): ShapeStyle {
   return { ...shape, color: "", strokeColor: undefined, strokeDasharray: undefined }
 }
 
-// The summarized line is drawn with the stroke and markers of the group, from the source of this
-// edge, so that every edge of the group places it the same.
-function summarizedLineOf(config: EdgeConfig, edges: Edges, edge: Edge) {
+// The stroke and markers that a summarized line is drawn with, from the source of the first edge.
+function summarizedLineOf(config: EdgeConfig, edges: Edges) {
   const stroke = Config.values(config.summarized.stroke, edges)
-  const source = Config.values(config.summarized.marker.source, [edges, stroke])
-  const target = Config.values(config.summarized.marker.target, [edges, stroke])
-  const reversed = edge.source !== Object.values(edges)[0].source
   return {
+    first: Object.values(edges)[0],
     normalWidth: stroke.width,
-    source: reversed ? target : source,
-    target: reversed ? source : target,
+    source: Config.values(config.summarized.marker.source, [edges, stroke]),
+    target: Config.values(config.summarized.marker.target, [edges, stroke]),
+  }
+}
+
+// The summarized line as placed from the source of the given edge, so that every edge of the group
+// places it the same.
+function orientedLine(line: ReturnType<typeof summarizedLineOf>, edge: Edge) {
+  const reversed = edge.source !== line.first.source
+  return {
+    normalWidth: line.normalWidth,
+    source: reversed ? line.target : line.source,
+    target: reversed ? line.source : line.target,
   }
 }
 
@@ -86,6 +94,16 @@ export function makeEdgePlacement(
   changes: PositionChanges
 ): EdgePlacement {
   const placers = new Map<string, ReactiveEffectRunner>()
+  // Once for each group, rather than for each of its edges.
+  const summarizedLines = new WeakMap<Edges, ComputedRef<ReturnType<typeof summarizedLineOf>>>()
+  const summarizedLine = (edges: Edges) => {
+    let line = summarizedLines.get(edges)
+    if (!line) {
+      line = computed(() => summarizedLineOf(config, edges))
+      summarizedLines.set(edges, line)
+    }
+    return line.value
+  }
   const placersAhead = new Map<string, (draw: DrawEdge) => void>()
   const geometries = new Map<string, EdgeGeometry>()
   const dirtyEdges = new Set<string>()
@@ -149,8 +167,9 @@ export function makeEdgePlacement(
       }
 
       const layoutPoint = edgeLayoutPoint.value
-      const group = summarizedGroup.value && edgeGroupStates.edgeGroups[summarizedGroup.value]
-      const l = group ? summarizedLineOf(config, group.edges, edge) : line.value
+      const groupKey = summarizedGroup.value
+      const group = groupKey ? edgeGroupStates.edgeGroups[groupKey] : undefined
+      const l = group ? orientedLine(summarizedLine(group.edges), edge) : line.value
       const selfLoop =
         edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
       return {
@@ -163,7 +182,7 @@ export function makeEdgePlacement(
           ...layoutPoint,
           edge: { source: layoutPoint.edge.source, target: layoutPoint.edge.target },
         },
-        summarized: !!group,
+        summarized: !!groupKey,
         line: {
           normalWidth: l.normalWidth,
           source: { ...l.source, color: null },
