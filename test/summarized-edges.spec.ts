@@ -110,3 +110,135 @@ describe("the order of summarized edges", () => {
     ).toBeTruthy()
   })
 })
+
+describe("the markers of summarized edges", () => {
+  const arrows = () => {
+    const p = props()
+    return {
+      ...p,
+      configs: { edge: { ...p.configs.edge, marker: { target: { type: "arrow" as const } } } },
+    }
+  }
+
+  // The marker an end of the summarized line refers to, if any.
+  const markerAt = (container: Element, end: "start" | "end") => {
+    const line = container.querySelector(".v-ng-line-summarized .v-ng-line")
+    const url = line?.getAttribute(`marker-${end}`)
+    const id = url?.match(/#([^')]+)/)?.[1]
+    return id ? container.querySelector(`marker#${id}`) : null
+  }
+  const markerIds = (container: Element) =>
+    [...container.querySelectorAll("marker")].map(m => m.id).sort()
+
+  test("keep the fields of the edges' markers that the override does not set", async () => {
+    const graph = arrows()
+    const { screen } = await mountGraph({
+      ...graph,
+      configs: {
+        edge: {
+          ...graph.configs.edge,
+          summarized: { marker: { target: { color: "#ff0000" } } },
+        },
+      },
+    })
+    const target = markerAt(screen.container, "end")!
+    expect(target.querySelector("polygon")?.getAttribute("fill")).toBe("#ff0000")
+    expect(target.getAttribute("markerWidth")).toBe("5")
+    expect(target.getAttribute("markerUnits")).toBe("strokeWidth")
+    // The source end is not overridden.
+    const source = markerAt(screen.container, "start")!
+    expect(source.querySelector("polygon")?.getAttribute("fill")).toBe("#4466cc")
+  })
+
+  test("call a function with the edges and the stroke of the summarized line", async () => {
+    const graph = arrows()
+    const calls: [string[], number][] = []
+    const { screen } = await mountGraph({
+      ...graph,
+      configs: {
+        edge: {
+          ...graph.configs.edge,
+          summarized: {
+            stroke: { width: 3 },
+            marker: {
+              target: {
+                color: ([edges, stroke]) => {
+                  calls.push([Object.keys(edges).sort(), stroke.width])
+                  return "#ff0000"
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+    expect(calls).toContainEqual([["edge1", "edge2"], 3])
+    const marker = markerAt(screen.container, "end")!
+    expect(marker.querySelector("polygon")?.getAttribute("fill")).toBe("#ff0000")
+  })
+
+  // Each edge in turn, as the group may reorder them.
+  test.each(["edge1", "edge2"])(
+    "take the marker other than none from %s among the edges",
+    async marked => {
+      const graph = arrows()
+      const { screen } = await mountGraph({
+        ...graph,
+        edges: {
+          edge1: { source: "node1", target: "node2", marked: marked === "edge1" },
+          edge2: { source: "node1", target: "node2", marked: marked === "edge2" },
+        },
+        configs: {
+          edge: {
+            ...graph.configs.edge,
+            marker: {
+              target: {
+                type: ([edge]) => (edge.marked ? "circle" : "none"),
+              },
+            },
+          },
+        },
+      })
+      expect(markerAt(screen.container, "end")?.querySelector("ellipse")).toBeInstanceOf(SVGElement)
+      expect(markerAt(screen.container, "start")).toBeNull()
+    }
+  )
+
+  test("are not drawn on summarized self-loops", async () => {
+    const graph = arrows()
+    const { screen } = await mountGraph({
+      ...graph,
+      edges: {
+        edge1: { source: "node1", target: "node1" },
+        edge2: { source: "node1", target: "node1" },
+      },
+    })
+    const line = screen.container.querySelector(".v-ng-line-summarized .v-ng-line")!
+    expect(line.hasAttribute("marker-start")).toBe(false)
+    expect(line.hasAttribute("marker-end")).toBe(false)
+  })
+
+  test("are removed when the edges are no longer summarized", async () => {
+    const { screen, state } = await mountGraph(arrows())
+    expect(markerIds(screen.container)).toHaveLength(2)
+    expect(markerAt(screen.container, "start")).not.toBeNull()
+
+    state.edges = { edge1: { source: "node1", target: "node2" } }
+    // The single edge has an arrow only at its target end.
+    await expect.poll(() => markerIds(screen.container)).toHaveLength(1)
+    expect(screen.container.querySelector(".v-ng-line-summarized")).toBeNull()
+
+    state.edges = {}
+    await expect.poll(() => screen.container.querySelector("marker")).toBeNull()
+  })
+
+  test("are in the SVG the graph is exported as", async () => {
+    const { screen, graph } = await mountGraph(arrows())
+    const svg = graph.getAsSvg()
+    for (const end of ["start", "end"] as const) {
+      const id = markerAt(screen.container, end)!.id
+      expect(svg).toContain(`<marker id="${id}"`)
+      expect(svg).toContain(`marker-${end}="url('#${id}')"`)
+    }
+  })
+})

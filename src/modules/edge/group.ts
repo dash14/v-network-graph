@@ -46,8 +46,8 @@ export function makeEdgeGroupStates(
 
   // calc layout and check summarize
   watchEffect(() => {
-    const summarizedEdges: Record<string, true> = {}
-    for (const [id, { edges, groupWidth }] of Object.entries(state.edgeGroups)) {
+    const summarizedEdges: Record<string, string> = {}
+    for (const [key, { edges, groupWidth }] of Object.entries(state.edgeGroups)) {
       // A group of a single edge has no width, and nothing to summarize.
       let summarize = false
       if (groupWidth !== 0) {
@@ -62,9 +62,9 @@ export function makeEdgeGroupStates(
           summarize = defaultCheckSummarize(nodes.value, edges, configs, groupWidth)
         }
       }
-      state.edgeGroups[id].summarize = summarize
+      state.edgeGroups[key].summarize = summarize
       if (summarize) {
-        Object.keys(edges).forEach(id => (summarizedEdges[id] = true))
+        Object.keys(edges).forEach(id => (summarizedEdges[id] = key))
       }
     }
     updateObjectDiff(state.summarizedEdges, summarizedEdges)

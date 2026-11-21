@@ -18,7 +18,8 @@ export interface EdgeGroup {
 export interface EdgeGroupStates {
   edgeLayoutPoints: Record<string, EdgeLayoutPoint>
   edgeGroups: Record<string, EdgeGroup>
-  summarizedEdges: Record<string, true>
+  /** The key of the group of each summarized edge. */
+  summarizedEdges: Record<string, string>
 }
 
 // States of edges

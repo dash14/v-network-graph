@@ -5,7 +5,7 @@ import type { ComputedRef, ReactiveEffectRunner, Ref, ShallowRef } from "vue"
 import { computed, effect, shallowRef, stop, toRef, triggerRef, watchEffect } from "vue"
 import { Reactive } from "@/common/common"
 import { Config, EdgeConfig, ShapeStyle } from "@/common/configs"
-import { Edges, Position } from "@/common/types"
+import { Edge, Edges, Position } from "@/common/types"
 import * as EdgeModel from "@/models/edge"
 import * as NodeModel from "@/models/node"
 import { calculateEdgeGeometry, EdgeGeometry, EdgeGeometryInput } from "@/modules/edge/geometry"
@@ -34,6 +34,28 @@ function initialEdgeGeometry(): EdgeGeometry {
 // Colors do not change where an edge is drawn, so they are left out of what is compared.
 function withoutColors(shape: ShapeStyle): ShapeStyle {
   return { ...shape, color: "", strokeColor: undefined, strokeDasharray: undefined }
+}
+
+// The stroke and markers that a summarized line is drawn with, from the source of the first edge.
+function summarizedLineOf(config: EdgeConfig, edges: Edges) {
+  const stroke = Config.values(config.summarized.stroke, edges)
+  return {
+    first: Object.values(edges)[0],
+    normalWidth: stroke.width,
+    source: Config.values(config.summarized.marker.source, [edges, stroke]),
+    target: Config.values(config.summarized.marker.target, [edges, stroke]),
+  }
+}
+
+// The summarized line as placed from the source of the given edge, so that every edge of the group
+// places it the same.
+function orientedLine(line: ReturnType<typeof summarizedLineOf>, edge: Edge) {
+  const reversed = edge.source !== line.first.source
+  return {
+    normalWidth: line.normalWidth,
+    source: reversed ? line.target : line.source,
+    target: reversed ? line.source : line.target,
+  }
 }
 
 /** The parts of the geometry of an edge, each replaced as the edge is placed. */
@@ -72,6 +94,16 @@ export function makeEdgePlacement(
   changes: PositionChanges
 ): EdgePlacement {
   const placers = new Map<string, ReactiveEffectRunner>()
+  // Once for each group, rather than for each of its edges.
+  const summarizedLines = new WeakMap<Edges, ComputedRef<ReturnType<typeof summarizedLineOf>>>()
+  const summarizedLine = (edges: Edges) => {
+    let line = summarizedLines.get(edges)
+    if (!line) {
+      line = computed(() => summarizedLineOf(config, edges))
+      summarizedLines.set(edges, line)
+    }
+    return line.value
+  }
   const placersAhead = new Map<string, (draw: DrawEdge) => void>()
   const geometries = new Map<string, EdgeGeometry>()
   const dirtyEdges = new Set<string>()
@@ -115,7 +147,7 @@ export function makeEdgePlacement(
       edgeGroupStates.edgeLayoutPoints,
       id
     )
-    const isEdgeSummarized: Ref<true | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
+    const summarizedGroup: Ref<string | undefined> = toRef(edgeGroupStates.summarizedEdges, id)
 
     // Copied out of the reactive objects so that placing reads none. The positions and the scale
     // are left out, since a layout tick or a zoom changes them for every edge.
@@ -135,9 +167,12 @@ export function makeEdgePlacement(
       }
 
       const layoutPoint = edgeLayoutPoint.value
-      const l = line.value
       const selfLoop =
         edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
+      const groupKey = summarizedGroup.value
+      // A summarized self-loop is drawn with no markers, so it keeps the room of its own.
+      const group = groupKey && !selfLoop ? edgeGroupStates.edgeGroups[groupKey] : undefined
+      const l = group ? orientedLine(summarizedLine(group.edges), edge) : line.value
       return {
         sourceId: edge.source,
         targetId: edge.target,
@@ -148,7 +183,7 @@ export function makeEdgePlacement(
           ...layoutPoint,
           edge: { source: layoutPoint.edge.source, target: layoutPoint.edge.target },
         },
-        summarized: isEdgeSummarized.value ?? false,
+        summarized: !!groupKey,
         line: {
           normalWidth: l.normalWidth,
           source: { ...l.source, color: null },

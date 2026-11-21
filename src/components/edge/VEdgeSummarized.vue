@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue"
-import { Config } from "@/common/configs"
+import { computed, onUnmounted, ref, shallowRef, watchEffect } from "vue"
+import { Config, MarkerStyle } from "@/common/configs"
 import { Edges, NodePositions, LinePosition, Position } from "@/common/types"
 import VText from "@/components/base/VLabelText.vue"
 import VLine from "@/components/base/VLine.vue"
 import VShape from "@/components/base/VShape.vue"
 import { useEdgeConfig } from "@/composables/config"
+import { useMarker } from "@/composables/marker"
 import { useMouseOperation } from "@/composables/mouse"
 import { drawnStateOf, useStates, useSummarizedEdgesState } from "@/composables/state"
 
@@ -24,7 +25,7 @@ const {
   handleEdgesContextMenu,
 } = useMouseOperation()
 
-const { edgeStates } = useStates()
+const { edgeStates, markers } = useStates()
 
 // Since the specified edges are in the same pair,
 // get the first one and draw it.
@@ -50,6 +51,36 @@ const shapeConfig = computed(() => Config.values(config.summarized.shape, props.
 const strokeConfig = computed(() => Config.values(config.summarized.stroke, props.edges))
 
 const { hovered, selectable, selected } = useSummarizedEdgesState(() => props.edges)
+
+const NONE = { type: "none" } as MarkerStyle
+const { makeMarker, clearMarker } = useMarker(markers.state)
+// Kept out of the effect's dependencies, as the effect replaces them.
+let madeMarkers: { source?: string; target?: string } = {}
+const markerIds = shallowRef(madeMarkers)
+watchEffect(() => {
+  const stroke = strokeConfig.value
+  const marker = config.summarized.marker
+  // A summarized self-loop is drawn as a straight line between the ends of its loop, which no
+  // marker points along.
+  const first = Object.values(props.edges)[0]
+  const selfLoop = first.source === first.target
+  // The drawn edge is the first one, as the states are made before the group is drawn.
+  const source = selfLoop ? NONE : Config.values(marker.source, [props.edges, stroke])
+  const target = selfLoop ? NONE : Config.values(marker.target, [props.edges, stroke])
+  const { instanceId } = markers
+  const previous = madeMarkers
+  madeMarkers = {
+    source: makeMarker(source, true, previous.source, stroke.color, instanceId),
+    target: makeMarker(target, false, previous.target, stroke.color, instanceId),
+  }
+  if (madeMarkers.source !== previous.source || madeMarkers.target !== previous.target) {
+    markerIds.value = madeMarkers
+  }
+})
+onUnmounted(() => {
+  clearMarker(madeMarkers.source)
+  clearMarker(madeMarkers.target)
+})
 </script>
 
 <template>
@@ -62,7 +93,13 @@ const { hovered, selectable, selected } = useSummarizedEdgesState(() => props.ed
     @dblclick.stop="handleEdgesDoubleClickEvent(edgeIds, $event)"
     @contextmenu="handleEdgesContextMenu(edgeIds, $event)"
   >
-    <v-line v-bind="pos" :config="strokeConfig" :data-edge-id="edgeIds[0]" />
+    <v-line
+      v-bind="pos"
+      :config="strokeConfig"
+      :marker-start="markerIds.source"
+      :marker-end="markerIds.target"
+      :data-edge-id="edgeIds[0]"
+    />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
       :text="Object.keys(edges).length.toString()"

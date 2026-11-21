@@ -287,6 +287,11 @@ export interface EdgeConfig<E extends Edge = Edge> {
     label: CallableValues<LabelStyle, Record<string, E>>
     shape: CallableValues<ShapeStyle, Record<string, E>>
     stroke: CallableValues<StrokeStyle, Record<string, E>>
+    /** The source end is that of the first of the edges. */
+    marker: {
+      source: CallableValues<MarkerStyle, [Record<string, E>, StrokeStyle]>
+      target: CallableValues<MarkerStyle, [Record<string, E>, StrokeStyle]>
+    }
   }
   selfLoop: CallableValues<SelfLoopEdgeStyle, E>
   keepOrder: EdgeKeepOrderType
