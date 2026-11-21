@@ -10,7 +10,7 @@ import { useMarker } from "@/composables/marker"
 import { useMouseOperation } from "@/composables/mouse"
 import { drawnStateOf, useStates, useSummarizedEdgesState } from "@/composables/state"
 import { Arc } from "@/models/edge"
-import { edgeLengthOf, pointAlongEdge } from "@/modules/edge/geometry"
+import { loopApexOf } from "@/modules/edge/geometry"
 
 const props = defineProps<{
   edges: Edges
@@ -42,9 +42,9 @@ watchEffect(() => {
   if (state) {
     pos.value = state.position
     loop.value = state.loop
-    // The middle along a loop, which the middle of its ends is not on.
+    // The far side of a loop from the node, which its ends, moved by the markers, do not shift.
     centerPos.value = state.loop
-      ? pointAlongEdge(state, edgeLengthOf(state) / 2)
+      ? loopApexOf(state.loop, state.origin.p1)
       : {
           x: (pos.value.p1.x + pos.value.p2.x) / 2,
           y: (pos.value.p1.y + pos.value.p2.y) / 2,

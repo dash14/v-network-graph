@@ -182,6 +182,17 @@ export function edgePathOf(edge: DrawnEdge): string {
 }
 
 /**
+ * Calculate the point of a loop farthest from its node.
+ * @param loop the loop
+ * @param node the position of the node
+ * @returns the point
+ */
+export function loopApexOf(loop: Arc, node: Position): Position {
+  const { center, radius } = loop
+  return center.clone().subtract(node).normalize().multiplyScalar(radius[0]).add(center)
+}
+
+/**
  * Calculate the length of the drawn line of an edge.
  * @param edge the geometry of the edge
  * @returns the length

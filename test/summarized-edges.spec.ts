@@ -107,14 +107,22 @@ describe("summarized self-loops", () => {
     expect(line.getAttribute("fill")).toBe("none")
   })
 
-  test("put the shape and the count in the middle of the loop", async () => {
-    const { screen } = await mountGraph(loops(true, 2))
+  test("put the shape and the count on the far side of the loop from the node", async () => {
+    // A marker at one end only, which does not move them.
+    const graph = loops(true, 2)
+    const { screen } = await mountGraph({
+      ...graph,
+      configs: { edge: { ...graph.configs.edge, marker: { target: { type: "arrow" } } } },
+    })
     const group = screen.container.querySelector(".v-ng-line-summarized")!
-    const line = group.querySelector<SVGPathElement>(".v-ng-line")!
-    const middle = line.getPointAtLength(line.getTotalLength() / 2)
+    // The node at (-100, 0), and a loop of radius 12 to its left at offset 10 from it.
     const text = group.querySelector("text")!
-    expect(Number(text.getAttribute("x"))).toBeCloseTo(middle.x, 1)
-    expect(Number(text.getAttribute("y"))).toBeCloseTo(middle.y, 1)
+    expect(Number(text.getAttribute("x"))).toBeCloseTo(-134)
+    expect(Number(text.getAttribute("y"))).toBeCloseTo(0)
+    // A 12x12 rect by default.
+    const shape = group.querySelector("rect")!
+    expect(Number(shape.getAttribute("x"))).toBeCloseTo(-140)
+    expect(Number(shape.getAttribute("y"))).toBeCloseTo(-6)
   })
 })
 
