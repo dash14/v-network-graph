@@ -84,6 +84,40 @@ describe("summarized edges", () => {
   })
 })
 
+describe("summarized self-loops", () => {
+  const loops = (summarize: boolean, count: number) => {
+    const p = props()
+    return {
+      ...p,
+      edges: Object.fromEntries(
+        [...Array(count)].map((_, i) => [`edge${i}`, { source: "node1", target: "node1" }])
+      ),
+      configs: { edge: { summarize: () => summarize, margin: 4 } },
+    }
+  }
+
+  test("are drawn as the loop of a single self-loop", async () => {
+    const single = await mountGraph(loops(false, 1))
+    const expected = single.screen.container.querySelector(".v-ng-edge")!.getAttribute("d")
+    single.screen.unmount()
+
+    const { screen } = await mountGraph(loops(true, 3))
+    const line = screen.container.querySelector(".v-ng-line-summarized .v-ng-line")!
+    expect(line.getAttribute("d")).toBe(expected)
+    expect(line.getAttribute("fill")).toBe("none")
+  })
+
+  test("put the shape and the count in the middle of the loop", async () => {
+    const { screen } = await mountGraph(loops(true, 2))
+    const group = screen.container.querySelector(".v-ng-line-summarized")!
+    const line = group.querySelector<SVGPathElement>(".v-ng-line")!
+    const middle = line.getPointAtLength(line.getTotalLength() / 2)
+    const text = group.querySelector("text")!
+    expect(Number(text.getAttribute("x"))).toBeCloseTo(middle.x, 1)
+    expect(Number(text.getAttribute("y"))).toBeCloseTo(middle.y, 1)
+  })
+})
+
 describe("the order of summarized edges", () => {
   test("summarized edges are ordered by the highest z-index among them", async () => {
     const p = props()
@@ -204,7 +238,7 @@ describe("the markers of summarized edges", () => {
     }
   )
 
-  test("are not drawn on summarized self-loops", async () => {
+  test("are drawn at the ends of a summarized self-loop", async () => {
     const graph = arrows()
     const { screen } = await mountGraph({
       ...graph,
@@ -214,8 +248,9 @@ describe("the markers of summarized edges", () => {
       },
     })
     const line = screen.container.querySelector(".v-ng-line-summarized .v-ng-line")!
-    expect(line.hasAttribute("marker-start")).toBe(false)
-    expect(line.hasAttribute("marker-end")).toBe(false)
+    expect(line.getAttribute("d")).toMatch(/ A /)
+    expect(markerAt(screen.container, "end")?.querySelector("polygon")).toBeInstanceOf(SVGElement)
+    expect(markerAt(screen.container, "start")).toBeNull()
   })
 
   test("are removed when the edges are no longer summarized", async () => {

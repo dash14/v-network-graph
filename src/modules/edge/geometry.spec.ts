@@ -360,6 +360,14 @@ describe("calculateEdgeGeometry", () => {
       expect(g.loop!.isClockwise).toBe(true)
     })
 
+    it("should draw a summarized loop where a single one is", () => {
+      const layoutPoint = { edge: loopEdge, pointInGroup: 8, groupWidth: 16 }
+      const g = calculateEdgeGeometry(loopInput({ layoutPoint, summarized: true }))
+      expect(g).toEqual(calculateEdgeGeometry(loopInput()))
+      // Not summarized, the loop is drawn wider.
+      expect(calculateEdgeGeometry(loopInput({ layoutPoint })).loop!.radius).toEqual([16, 16])
+    })
+
     it("should start the arc at the outline of the node with a marker", () => {
       // A marker of no size, which only makes the edge start at the outline.
       const marker: MarkerStyle = { ...arrow, units: "userSpaceOnUse", margin: -5 }

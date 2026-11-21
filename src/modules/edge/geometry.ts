@@ -112,7 +112,8 @@ export function calculateEdgeGeometry(input: EdgeGeometryInput): EdgeGeometry {
       isStartEdgeOfNode,
       sourceMargin,
       targetMargin,
-      layoutPoint?.pointInGroup ?? 0,
+      // A summarized loop is drawn where a single one is.
+      summarized ? 0 : (layoutPoint?.pointInGroup ?? 0),
       s
     )
     const origin = LineUtils.toLinePosition(source, target)

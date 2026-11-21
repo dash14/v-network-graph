@@ -74,7 +74,8 @@ const cases: { name: string; edges: Edges; configs: UserConfigs; line: string }[
       edge1: { source: "node1", target: "node1" },
       edge2: { source: "node1", target: "node1" },
     },
-    configs: { edge: { summarize: () => true } },
+    // Short of a full circle, which the browser measures less precisely.
+    configs: { edge: { summarize: () => true, margin: 4 } },
     line: ".v-ng-line-summarized [data-edge-id]",
   },
 ]
