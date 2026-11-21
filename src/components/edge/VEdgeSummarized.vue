@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, shallowRef, watchEffect } from "vue"
-import { Config, MarkerStyle } from "@/common/configs"
+import { Config } from "@/common/configs"
 import { Edges, NodePositions, LinePosition, Position } from "@/common/types"
 import VText from "@/components/base/VLabelText.vue"
 import VLine from "@/components/base/VLine.vue"
@@ -9,6 +9,8 @@ import { useEdgeConfig } from "@/composables/config"
 import { useMarker } from "@/composables/marker"
 import { useMouseOperation } from "@/composables/mouse"
 import { drawnStateOf, useStates, useSummarizedEdgesState } from "@/composables/state"
+import { Arc } from "@/models/edge"
+import { edgeLengthOf, pointAlongEdge } from "@/modules/edge/geometry"
 
 const props = defineProps<{
   edges: Edges
@@ -30,6 +32,7 @@ const { edgeStates, markers } = useStates()
 // Since the specified edges are in the same pair,
 // get the first one and draw it.
 const pos = ref<LinePosition>({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } })
+const loop = shallowRef<Arc>()
 const centerPos = ref<Position>({ x: 0, y: 0 })
 
 watchEffect(() => {
@@ -38,10 +41,14 @@ watchEffect(() => {
   /* v8 ignore else */
   if (state) {
     pos.value = state.position
-    centerPos.value = {
-      x: (pos.value.p1.x + pos.value.p2.x) / 2,
-      y: (pos.value.p1.y + pos.value.p2.y) / 2,
-    }
+    loop.value = state.loop
+    // The middle along a loop, which the middle of its ends is not on.
+    centerPos.value = state.loop
+      ? pointAlongEdge(state, edgeLengthOf(state) / 2)
+      : {
+          x: (pos.value.p1.x + pos.value.p2.x) / 2,
+          y: (pos.value.p1.y + pos.value.p2.y) / 2,
+        }
   }
 })
 
@@ -52,7 +59,6 @@ const strokeConfig = computed(() => Config.values(config.summarized.stroke, prop
 
 const { hovered, selectable, selected } = useSummarizedEdgesState(() => props.edges)
 
-const NONE = { type: "none" } as MarkerStyle
 const { makeMarker, clearMarker } = useMarker(markers.state)
 // Kept out of the effect's dependencies, as the effect replaces them.
 let madeMarkers: { source?: string; target?: string } = {}
@@ -60,13 +66,9 @@ const markerIds = shallowRef(madeMarkers)
 watchEffect(() => {
   const stroke = strokeConfig.value
   const marker = config.summarized.marker
-  // A summarized self-loop is drawn as a straight line between the ends of its loop, which no
-  // marker points along.
-  const first = Object.values(props.edges)[0]
-  const selfLoop = first.source === first.target
   // The drawn edge is the first one, as the states are made before the group is drawn.
-  const source = selfLoop ? NONE : Config.values(marker.source, [props.edges, stroke])
-  const target = selfLoop ? NONE : Config.values(marker.target, [props.edges, stroke])
+  const source = Config.values(marker.source, [props.edges, stroke])
+  const target = Config.values(marker.target, [props.edges, stroke])
   const { instanceId } = markers
   const previous = madeMarkers
   madeMarkers = {
@@ -95,6 +97,7 @@ onUnmounted(() => {
   >
     <v-line
       v-bind="pos"
+      :loop="loop"
       :config="strokeConfig"
       :marker-start="markerIds.source"
       :marker-end="markerIds.target"
