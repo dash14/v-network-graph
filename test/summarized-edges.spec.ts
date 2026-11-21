@@ -204,6 +204,20 @@ describe("the markers of summarized edges", () => {
     }
   )
 
+  test("are not drawn on summarized self-loops", async () => {
+    const graph = arrows()
+    const { screen } = await mountGraph({
+      ...graph,
+      edges: {
+        edge1: { source: "node1", target: "node1" },
+        edge2: { source: "node1", target: "node1" },
+      },
+    })
+    const line = screen.container.querySelector(".v-ng-line-summarized .v-ng-line")!
+    expect(line.hasAttribute("marker-start")).toBe(false)
+    expect(line.hasAttribute("marker-end")).toBe(false)
+  })
+
   test("are removed when the edges are no longer summarized", async () => {
     const { screen, state } = await mountGraph(arrows())
     expect(markerIds(screen.container)).toHaveLength(2)

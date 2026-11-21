@@ -167,11 +167,12 @@ export function makeEdgePlacement(
       }
 
       const layoutPoint = edgeLayoutPoint.value
-      const groupKey = summarizedGroup.value
-      const group = groupKey ? edgeGroupStates.edgeGroups[groupKey] : undefined
-      const l = group ? orientedLine(summarizedLine(group.edges), edge) : line.value
       const selfLoop =
         edge.source === edge.target ? Config.values(config.selfLoop, edge) : undefined
+      const groupKey = summarizedGroup.value
+      // A summarized self-loop is drawn with no markers, so it keeps the room of its own.
+      const group = groupKey && !selfLoop ? edgeGroupStates.edgeGroups[groupKey] : undefined
+      const l = group ? orientedLine(summarizedLine(group.edges), edge) : line.value
       return {
         sourceId: edge.source,
         targetId: edge.target,
