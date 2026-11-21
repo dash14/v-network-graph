@@ -444,13 +444,11 @@ function calculateArcGeometry(
 
   let p1: Point2D | undefined, p2: Point2D | undefined
   if (isStartEdgeOfNode) {
-    const nodeRadius = NodeUtils.getNodeRadius(nodeShape) * s
-    const intersects = PointUtils.getIntersectionOfCircles(
-      center,
-      radius,
-      Vector2D.fromObject(nodePos),
-      nodeRadius
-    )
+    const node = {
+      center: Vector2D.fromObject(nodePos),
+      radius: NodeUtils.getNodeRadius(nodeShape) * s,
+    }
+    const intersects = PointUtils.getIntersectionOfCircles(center, radius, node.center, node.radius)
     if (intersects) {
       ;[p1, p2] = intersects
       let direction = 1
@@ -458,7 +456,6 @@ function calculateArcGeometry(
         ;[p1, p2] = [p2, p1]
         direction = -1
       }
-      const node = { center: Vector2D.fromObject(nodePos), radius: nodeRadius }
       p1 = shortenLoopEnd(p1, center, radius, node, sourceMargin * s, direction)
       p2 = shortenLoopEnd(p2, center, radius, node, targetMargin * s, -direction)
     }
@@ -491,12 +488,13 @@ function calculateArcGeometry(
 
 /**
  * Move an end of a loop back from the node by a length, as a marker there takes it. The marker
- * goes on straight along the loop, so the end is where it reaches the outline of the node.
+ * goes on straight from the end along the loop, so the end is where it first reaches the outline
+ * of the node with its tip.
  * @param end the end of the loop on the outline of the node
  * @param center the center of the loop
  * @param radius the radius of the loop
  * @param node the circle of the node
- * @param length the length to leave
+ * @param length the length of the marker
  * @param turn the direction to move the end in, 1 or -1
  * @returns the moved end
  */
@@ -509,17 +507,25 @@ function shortenLoopEnd(
   turn: number
 ): Point2D {
   if (length === 0) return end
-  // The tips of the lines of that length touching the loop are this far from its center.
+  // A tip at that length along the loop is this far from its center, and a turn ahead of the end.
   const tips = PointUtils.getIntersectionOfCircles(
     center,
     Math.hypot(radius, length),
     node.center,
     node.radius
   )
-  // A marker too long to reach the node turns the end back by the same angle from the outline.
+  const ahead = Math.atan2(length, radius) * turn
+  const endBefore = (tip: Vector2D) =>
+    tip.clone().subtract(center).normalize().multiplyScalar(radius).rotate(ahead).add(center)
+  // The tip where the marker goes into the node, not where it comes out after passing through.
   const tip = tips
-    ? tips.reduce((a, b) => (V2D.distance(a, end) <= V2D.distance(b, end) ? a : b))
-    : Vector2D.fromObject(end)
-  const onLoop = tip.clone().subtract(center).normalize().multiplyScalar(radius)
-  return center.clone().add(V2D.rotate(onLoop, Math.atan2(length, radius) * turn))
+    ?.sort((a, b) => a.distance(end) - b.distance(end))
+    .find(tip => tip.clone().subtract(endBefore(tip)).dot(tip.clone().subtract(node.center)) <= 0)
+  if (tip) return endBefore(tip)
+
+  // Too long to reach the node, the marker goes past it, touching its outline.
+  const toNode = node.center.clone().subtract(center)
+  const side = Math.sign(toNode.cross(V2D.subtract(end, center)))
+  const angle = Math.acos((radius - node.radius) / toNode.length()) * side
+  return toNode.normalize().multiplyScalar(radius).rotate(angle).add(center)
 }
