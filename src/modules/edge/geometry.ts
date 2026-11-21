@@ -112,7 +112,8 @@ export function calculateEdgeGeometry(input: EdgeGeometryInput): EdgeGeometry {
       isStartEdgeOfNode,
       sourceMargin,
       targetMargin,
-      layoutPoint?.pointInGroup ?? 0,
+      // A summarized loop is drawn where a single one is.
+      summarized ? 0 : (layoutPoint?.pointInGroup ?? 0),
       s
     )
     const origin = LineUtils.toLinePosition(source, target)
@@ -178,6 +179,17 @@ export function edgePathOf(edge: DrawnEdge): string {
   } else {
     return `M ${p.p1.x} ${p.p1.y} L ${p.p2.x} ${p.p2.y}`
   }
+}
+
+/**
+ * Calculate the point of a loop farthest from its node.
+ * @param loop the loop
+ * @param node the position of the node
+ * @returns the point
+ */
+export function loopApexOf(loop: Arc, node: Position): Position {
+  const { center, radius } = loop
+  return center.clone().subtract(node).normalize().multiplyScalar(radius[0]).add(center)
 }
 
 /**

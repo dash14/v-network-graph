@@ -103,4 +103,14 @@ export default [
       },
     },
   },
+  {
+    name: "summarized-self-loops",
+    props: {
+      ...summarized,
+      edges: {
+        edge1: { source: "node1", target: "node1" },
+        edge2: { source: "node1", target: "node1" },
+      },
+    },
+  },
 ] satisfies GraphCase[]
