@@ -46,7 +46,7 @@ jobs:
       # No cache, so what gets deployed never depends on a cache another run saved.
       # Buildcage keeps the build to packages and the Node.js that devEngines pins.
       - name: Build the site
-        uses: buildcage/isolated-run@e17dbc9c53e03b39835b2f3e11834243d90aa183 # v2.5.0
+        uses: buildcage/isolated-run@6e4a23d9fadd854988f3e498cd6570bcaa608716 # v2.6.1
         with:
           proxy-mode: restrict
           allowed-url-rules: |
