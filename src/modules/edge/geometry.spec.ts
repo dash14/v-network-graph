@@ -494,7 +494,7 @@ describe("calculateEdgeGeometry", () => {
       )
 
     it("should keep a long marker out of the node up to its tip", () => {
-      // Its tip on the far side of the node would be on the outline too.
+      // Long, but short enough to reach the node.
       const marker = markerAt(longLoop(14), "p2", 14)
 
       expect(distance(marker(1), node)).toBeCloseTo(16)

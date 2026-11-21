@@ -507,7 +507,7 @@ function shortenLoopEnd(
   turn: number
 ): Point2D {
   if (length === 0) return end
-  // A tip at that length along the loop is this far from its center, and a turn ahead of the end.
+  // A tip that far along the loop is this far from its center.
   const tips = PointUtils.getIntersectionOfCircles(
     center,
     Math.hypot(radius, length),
