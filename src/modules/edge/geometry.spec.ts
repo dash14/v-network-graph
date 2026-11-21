@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import { MarkerStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
 import { Curve, EdgeLayoutPoint } from "@/models/edge"
+import * as V2D from "@/modules/vector2d"
 import { Vector2D } from "@/modules/vector2d"
 import {
   calculateEdgeGeometry,
@@ -461,15 +462,43 @@ describe("calculateEdgeGeometry", () => {
         const g = at({ normalWidth: 2, source: marker, target: outline })
         const { center } = g.loop!
 
-        expect(arcBetween(center, plain.position.p1, g.position.p1)).toBeCloseTo(10)
+        // The marker goes on along the loop from its end, and reaches the outline of the node.
+        const tip = (end: Position, length: number) => {
+          const radius = distance(end, center)
+          const along = V2D.rotate(
+            { x: (end.x - center.x) / radius, y: (end.y - center.y) / radius },
+            (Math.PI / 2) * (isClockwise ? 1 : -1)
+          )
+          return { x: end.x + along.x * length, y: end.y + along.y * length }
+        }
+        expect(distance(tip(g.position.p1, -10), node)).toBeCloseTo(32)
         expect(distance(g.position.p1, node)).toBeGreaterThan(32)
         expect(g.position.p2).toEqual(plain.position.p2)
 
         const toTarget = at({ normalWidth: 2, source: outline, target: marker })
-        expect(arcBetween(center, plain.position.p2, toTarget.position.p2)).toBeCloseTo(10)
+        expect(distance(tip(toTarget.position.p2, 10), node)).toBeCloseTo(32)
         expect(distance(toTarget.position.p2, node)).toBeGreaterThan(32)
       }
     )
+
+    it("should move the end of a loop by the angle of a marker too long to reach the node", () => {
+      // Its tip would be farther from the center of the loop than the node reaches.
+      const marker: MarkerStyle = { ...arrow, units: "userSpaceOnUse", width: 30, margin: 0 }
+      const outline: MarkerStyle = { ...marker, margin: -30 }
+      const at = (source: MarkerStyle) =>
+        calculateEdgeGeometry(
+          loopInput({
+            selfLoop: { ...selfLoop, offset: 0 },
+            line: { normalWidth: 2, source, target: outline },
+          })
+        )
+      const plain = at(outline)
+      const g = at(marker)
+
+      expect(arcBetween(g.loop!.center, plain.position.p1, g.position.p1)).toBeCloseTo(
+        12 * Math.atan2(30, 12)
+      )
+    })
 
     it("should scale the loop", () => {
       const g = calculateEdgeGeometry(loopInput({ scale: 2 }))
