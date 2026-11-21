@@ -8,8 +8,8 @@
     <g class="v-ng-layer-edges v-ng-graph-objects">
       <g class="v-ng-line-summarized">
         <path class="v-ng-line" d="M -113.54545454545455 8.515906361452362 A 12 12 0 1 1 -124.13535087073943 -11.80848324971638" fill="none" stroke="#4466cc" stroke-width="5" marker-end="url('#marker_v-0_arrow_5_5_-1_0_IzQ0NjZjYw_R_rel')" data-edge-id="edge1" />
-        <rect class="v-ng-shape-rect" x="-138.64205141472482" y="-0.4550255468259161" width="12" height="12" rx="3" ry="3" fill="#ffffff" stroke="#4466cc" stroke-width="1" />
-        <text class="v-ng-text" text-anchor="middle" x="-132.64205141472482" y="5.544974453174084" dominant-baseline="central" font-size="10" fill="#4466cc">
+        <rect class="v-ng-shape-rect" x="-140" y="-5.999999999999996" width="12" height="12" rx="3" ry="3" fill="#ffffff" stroke="#4466cc" stroke-width="1" />
+        <text class="v-ng-text" text-anchor="middle" x="-134" y="4.163799117101001e-15" dominant-baseline="central" font-size="10" fill="#4466cc">
           2
         </text>
       </g>
