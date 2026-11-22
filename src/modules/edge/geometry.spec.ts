@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest"
 import { MarkerStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
 import { Curve, EdgeLayoutPoint } from "@/models/edge"
+import * as V2D from "@/modules/vector2d"
 import { Vector2D } from "@/modules/vector2d"
 import {
   calculateEdgeGeometry,
   edgeLengthOf,
   edgePathOf,
+  EdgeGeometry,
   EdgeGeometryInput,
   pointAlongEdge,
 } from "./geometry"
@@ -358,6 +360,14 @@ describe("calculateEdgeGeometry", () => {
       expect(g.loop!.isClockwise).toBe(true)
     })
 
+    it("should draw a summarized loop where a single one is", () => {
+      const layoutPoint = { edge: loopEdge, pointInGroup: 8, groupWidth: 16 }
+      const g = calculateEdgeGeometry(loopInput({ layoutPoint, summarized: true }))
+      expect(g).toEqual(calculateEdgeGeometry(loopInput()))
+      // Not summarized, the loop is drawn wider.
+      expect(calculateEdgeGeometry(loopInput({ layoutPoint })).loop!.radius).toEqual([16, 16])
+    })
+
     it("should start the arc at the outline of the node with a marker", () => {
       // A marker of no size, which only makes the edge start at the outline.
       const marker: MarkerStyle = { ...arrow, units: "userSpaceOnUse", margin: -5 }
@@ -447,6 +457,16 @@ describe("calculateEdgeGeometry", () => {
       expect(distance(g.position.p2, node)).toBeCloseTo(32)
     })
 
+    // A marker at an end of a loop, which goes on straight from the end along the loop.
+    const markerAt = (g: EdgeGeometry, end: "p1" | "p2", length: number) => {
+      const { center, isClockwise } = g.loop!
+      const p = g.position[end]
+      const along = V2D.rotate(
+        V2D.multiplyScalar(V2D.subtract(p, center), 1 / distance(p, center)),
+        (Math.PI / 2) * (isClockwise ? 1 : -1) * (end === "p1" ? -1 : 1)
+      )
+      return (t: number) => ({ x: p.x + along.x * length * t, y: p.y + along.y * length * t })
+    }
     it.each([true, false])(
       "should move the start of a loop away from the node by its scaled margin, clockwise %s",
       isClockwise => {
@@ -459,17 +479,78 @@ describe("calculateEdgeGeometry", () => {
         const outline: MarkerStyle = { ...marker, margin: -5 }
         const plain = at({ normalWidth: 2, source: outline, target: outline })
         const g = at({ normalWidth: 2, source: marker, target: outline })
-        const { center } = g.loop!
-
-        expect(arcBetween(center, plain.position.p1, g.position.p1)).toBeCloseTo(10)
+        // The marker at each end reaches the outline of the node with its tip.
+        expect(distance(markerAt(g, "p1", 10)(1), node)).toBeCloseTo(32)
         expect(distance(g.position.p1, node)).toBeGreaterThan(32)
         expect(g.position.p2).toEqual(plain.position.p2)
 
         const toTarget = at({ normalWidth: 2, source: outline, target: marker })
-        expect(arcBetween(center, plain.position.p2, toTarget.position.p2)).toBeCloseTo(10)
+        expect(distance(markerAt(toTarget, "p2", 10)(1), node)).toBeCloseTo(32)
         expect(distance(toTarget.position.p2, node)).toBeGreaterThan(32)
       }
     )
+
+    const longLoopAt = (offset: number, width: number) =>
+      calculateEdgeGeometry(
+        loopInput({
+          selfLoop: { ...selfLoop, offset },
+          line: {
+            normalWidth: 2,
+            source: { ...arrow, units: "userSpaceOnUse", width, margin: 0 },
+            target: { ...arrow, units: "userSpaceOnUse", width, margin: 0 },
+          },
+        })
+      )
+    const longLoop = (width: number) => longLoopAt(selfLoop.offset, width)
+
+    it("should keep a long marker out of the node up to its tip", () => {
+      // Long, but short enough to reach the node.
+      const marker = markerAt(longLoop(14), "p2", 14)
+
+      expect(distance(marker(1), node)).toBeCloseTo(16)
+      for (let t = 0; t < 1; t += 0.05) {
+        expect(distance(marker(t), node)).toBeGreaterThan(16 - 1e-9)
+      }
+    })
+
+    it.each([25, 40])(
+      "should put a marker of %s, too long to reach the node, past it touching its outline",
+      length => {
+        // At 25 a tip would still be on the outline, but on its far side.
+        const g = longLoop(length)
+        const marker = markerAt(g, "p2", length)
+        const closest = Math.min(...[...Array(101)].map((_, i) => distance(marker(i / 100), node)))
+
+        expect(closest).toBeCloseTo(16, 2)
+        // Longer, it stays there.
+        const longer = longLoop(60).position.p2
+        expect(longer.x).toBeCloseTo(g.position.p2.x)
+        expect(longer.y).toBeCloseTo(g.position.p2.y)
+      }
+    )
+
+    it("should take the ends into the node along the loop with a negative margin", () => {
+      // Markers of no size, which make the ends start at the outline.
+      const outline: MarkerStyle = { ...arrow, units: "userSpaceOnUse", width: 5, margin: -5 }
+      const line = { normalWidth: 2, source: outline, target: outline }
+      const plain = calculateEdgeGeometry(loopInput({ line }))
+      const g = calculateEdgeGeometry(loopInput({ line, margin: -4 }))
+      const { center } = g.loop!
+
+      expect(arcBetween(center, plain.position.p1, g.position.p1)).toBeCloseTo(4)
+      expect(arcBetween(center, plain.position.p2, g.position.p2)).toBeCloseTo(4)
+      expect(distance(g.position.p1, node)).toBeLessThan(16)
+      expect(distance(g.position.p2, node)).toBeLessThan(16)
+    })
+
+    it("should keep both ends of a loop touching the node apart with long markers", () => {
+      const ends = (offset: number) => {
+        const { p1, p2 } = longLoopAt(offset, 30).position
+        return [p1.x, p1.y, p2.x, p2.y]
+      }
+      const touching = ends(16)
+      ends(15.999).forEach((v, i) => expect(touching[i]).toBeCloseTo(v, 2))
+    })
 
     it("should scale the loop", () => {
       const g = calculateEdgeGeometry(loopInput({ scale: 2 }))

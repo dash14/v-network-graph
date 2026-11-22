@@ -72,16 +72,11 @@ const center = computed<Point>(() => {
   return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }
 })
 
-// Summarized edges are drawn as a straight line, even between the ends of a self-loop.
-const drawnEdge = computed(() =>
-  props.isSummarized ? { position: props.state.position } : props.state
-)
-
-const length = computed(() => edgeLengthOf(drawnEdge.value))
+const length = computed(() => edgeLengthOf(props.state))
 
 function calculatePointAtLength(distance: number): Point {
   if (Number.isNaN(distance)) return props.state.position.p1
-  return pointAlongEdge(drawnEdge.value, distance)
+  return pointAlongEdge(props.state, distance)
 }
 </script>
 

@@ -36,6 +36,8 @@ interface States {
   edgeZOrderedList: ComputedRef<EdgeModel.EdgeEntry[]>
   pathZOrderedList: ComputedRef<PathModel.PathState[]>
   layouts: Layouts
+  /** Where the markers are made, for the summarized edges, which have no state. */
+  markers: { state: MarkerState; instanceId: string }
 }
 
 export type ReadonlyStates = Readonly<States>
@@ -224,6 +226,7 @@ export function provideStates(
     nodeZOrderedList,
     edgeZOrderedList,
     pathZOrderedList,
+    markers: { state: makerState, instanceId },
   }
   provide(statesKey, states)
   return {

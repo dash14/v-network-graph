@@ -1,10 +1,14 @@
 import { merge } from "lodash-es"
 import { SimpleLayout } from "../layouts/simple"
+import { summarizedMarkerOf } from "../modules/edge/marker"
 import {
   Config,
   Configs,
+  EdgeConfig,
   LiteViewConfig,
+  MarkerStyle,
   NodeLabelDirection,
+  StrokeStyle,
   UserConfigs,
   withSelf,
 } from "./configs"
@@ -217,6 +221,10 @@ export function getConfigDefaults(): Configs {
           animate: false,
           animationSpeed: 50,
         },
+        marker: {
+          source: summarizedMarker(self, "source"),
+          target: summarizedMarker(self, "target"),
+        },
       },
       selfLoop: {
         radius: 12,
@@ -332,6 +340,38 @@ export function getConfigDefaults(): Configs {
       transition: undefined,
     })),
   }
+}
+
+// Every key of MarkerStyle, as the type requires.
+const MARKER_KEYS = Object.keys({
+  type: 0,
+  width: 0,
+  height: 0,
+  margin: 0,
+  offset: 0,
+  units: 0,
+  color: 0,
+  customId: 0,
+} satisfies Record<keyof MarkerStyle, 0>) as (keyof MarkerStyle)[]
+
+type SummarizedMarkerConfig = EdgeConfig["summarized"]["marker"]["source"]
+type SummarizedMarkerArgs = [Edges, StrokeStyle]
+
+// Each value from the markers of the edges, so that a user config can override any one of them.
+function summarizedMarker(self: EdgeConfig, end: "source" | "target"): SummarizedMarkerConfig {
+  // Config.values passes the same args to every value, so the marker is found once for them.
+  const found = new WeakMap<SummarizedMarkerArgs, MarkerStyle>()
+  const markerOf = (args: SummarizedMarkerArgs) => {
+    let marker = found.get(args)
+    if (!marker) {
+      marker = summarizedMarkerOf(self.marker, args[0], args[1], end)
+      found.set(args, marker)
+    }
+    return marker
+  }
+  return Object.fromEntries(
+    MARKER_KEYS.map(key => [key, (args: SummarizedMarkerArgs) => markerOf(args)[key]])
+  ) as SummarizedMarkerConfig
 }
 
 /** The configs of VNetworkGraph plus view.layoutsUpdateInterval. */

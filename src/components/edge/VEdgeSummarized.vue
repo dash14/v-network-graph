@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue"
+import { computed, onUnmounted, ref, shallowRef, watchEffect } from "vue"
 import { Config } from "@/common/configs"
 import { Edges, NodePositions, LinePosition, Position } from "@/common/types"
 import VText from "@/components/base/VLabelText.vue"
 import VLine from "@/components/base/VLine.vue"
 import VShape from "@/components/base/VShape.vue"
 import { useEdgeConfig } from "@/composables/config"
+import { useMarker } from "@/composables/marker"
 import { useMouseOperation } from "@/composables/mouse"
 import { drawnStateOf, useStates, useSummarizedEdgesState } from "@/composables/state"
+import { Arc } from "@/models/edge"
+import { loopApexOf } from "@/modules/edge/geometry"
 
 const props = defineProps<{
   edges: Edges
@@ -24,11 +27,12 @@ const {
   handleEdgesContextMenu,
 } = useMouseOperation()
 
-const { edgeStates } = useStates()
+const { edgeStates, markers } = useStates()
 
 // Since the specified edges are in the same pair,
 // get the first one and draw it.
 const pos = ref<LinePosition>({ p1: { x: 0, y: 0 }, p2: { x: 0, y: 0 } })
+const loop = shallowRef<Arc>()
 const centerPos = ref<Position>({ x: 0, y: 0 })
 
 watchEffect(() => {
@@ -37,10 +41,14 @@ watchEffect(() => {
   /* v8 ignore else */
   if (state) {
     pos.value = state.position
-    centerPos.value = {
-      x: (pos.value.p1.x + pos.value.p2.x) / 2,
-      y: (pos.value.p1.y + pos.value.p2.y) / 2,
-    }
+    loop.value = state.loop
+    // The far side of the loop, which stays put when a marker at one end shortens the loop.
+    centerPos.value = state.loop
+      ? loopApexOf(state.loop, state.origin.p1)
+      : {
+          x: (pos.value.p1.x + pos.value.p2.x) / 2,
+          y: (pos.value.p1.y + pos.value.p2.y) / 2,
+        }
   }
 })
 
@@ -50,6 +58,31 @@ const shapeConfig = computed(() => Config.values(config.summarized.shape, props.
 const strokeConfig = computed(() => Config.values(config.summarized.stroke, props.edges))
 
 const { hovered, selectable, selected } = useSummarizedEdgesState(() => props.edges)
+
+const { makeMarker, clearMarker } = useMarker(markers.state)
+// Kept out of the effect's dependencies, as the effect replaces them.
+let madeMarkers: { source?: string; target?: string } = {}
+const markerIds = shallowRef(madeMarkers)
+watchEffect(() => {
+  const stroke = strokeConfig.value
+  const marker = config.summarized.marker
+  // The drawn edge is the first one, as the states are made before the group is drawn.
+  const source = Config.values(marker.source, [props.edges, stroke])
+  const target = Config.values(marker.target, [props.edges, stroke])
+  const { instanceId } = markers
+  const previous = madeMarkers
+  madeMarkers = {
+    source: makeMarker(source, true, previous.source, stroke.color, instanceId),
+    target: makeMarker(target, false, previous.target, stroke.color, instanceId),
+  }
+  if (madeMarkers.source !== previous.source || madeMarkers.target !== previous.target) {
+    markerIds.value = madeMarkers
+  }
+})
+onUnmounted(() => {
+  clearMarker(madeMarkers.source)
+  clearMarker(madeMarkers.target)
+})
 </script>
 
 <template>
@@ -62,7 +95,14 @@ const { hovered, selectable, selected } = useSummarizedEdgesState(() => props.ed
     @dblclick.stop="handleEdgesDoubleClickEvent(edgeIds, $event)"
     @contextmenu="handleEdgesContextMenu(edgeIds, $event)"
   >
-    <v-line v-bind="pos" :config="strokeConfig" :data-edge-id="edgeIds[0]" />
+    <v-line
+      v-bind="pos"
+      :loop="loop"
+      :config="strokeConfig"
+      :marker-start="markerIds.source"
+      :marker-end="markerIds.target"
+      :data-edge-id="edgeIds[0]"
+    />
     <v-shape :base-x="centerPos.x" :base-y="centerPos.y" :config="shapeConfig" />
     <v-text
       :text="Object.keys(edges).length.toString()"
