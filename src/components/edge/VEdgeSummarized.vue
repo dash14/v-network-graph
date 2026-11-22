@@ -42,7 +42,7 @@ watchEffect(() => {
   if (state) {
     pos.value = state.position
     loop.value = state.loop
-    // The far side of a loop from the node, which its ends, moved by the markers, do not shift.
+    // The far side of the loop, which stays put when a marker at one end shortens the loop.
     centerPos.value = state.loop
       ? loopApexOf(state.loop, state.origin.p1)
       : {
