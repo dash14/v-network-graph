@@ -6,7 +6,10 @@ import { Configs } from "@/common/configs"
 import { Point, Position, Rectangle } from "@/common/types"
 import { NodeStates } from "@/models/node"
 import { Vector2D } from "@/modules/vector2d"
-import { translateFromDomToSvgCoordinates } from "@/utils/svg"
+import {
+  translateFromClientToElementCoordinates,
+  translateFromDomToSvgCoordinates,
+} from "@/utils/svg"
 import { InteractionModes } from "./core"
 
 // ------------------------------------------------------------------
@@ -96,7 +99,7 @@ export function makeBoxSelectionMethods(
     if (states.options.stopTrigger !== "click") return
     if (states.pointers.size > 0) return
 
-    const point = { x: event.offsetX, y: event.offsetY }
+    const point = translateFromClientToElementCoordinates(nonNull(container.value), event)
     if (states.startPoint && Vector2D.fromObject(states.startPoint).distance(point) > 10) {
       return // ignore in dragging
     }
@@ -106,7 +109,7 @@ export function makeBoxSelectionMethods(
   function handlePointerDownEvent(event: PointerEvent) {
     event.stopPropagation()
 
-    const point = { x: event.offsetX, y: event.offsetY }
+    const point = translateFromClientToElementCoordinates(nonNull(container.value), event)
     if (states.pointers.size === 0) {
       states.startPoint = point
 
@@ -128,8 +131,7 @@ export function makeBoxSelectionMethods(
   }
 
   function handlePointerUpEvent(event: PointerEvent) {
-    const rect = nonNull(container.value).getBoundingClientRect()
-    const point = { x: event.x - rect.x, y: event.y - rect.y }
+    const point = translateFromClientToElementCoordinates(nonNull(container.value), event)
 
     // Apply the selection for the box at the release point before the box is cleared.
     states.points.set(event.pointerId, point)
@@ -154,8 +156,7 @@ export function makeBoxSelectionMethods(
   }
 
   function handlePointerMoveEvent(event: PointerEvent) {
-    const rect = nonNull(container.value).getBoundingClientRect()
-    const point = { x: event.x - rect.x, y: event.y - rect.y }
+    const point = translateFromClientToElementCoordinates(nonNull(container.value), event)
     states.points.set(event.pointerId, point)
     updateRectangle()
     updateNodesSelection()

@@ -47,12 +47,13 @@ export function useViewMethods(
 
     await updateBorderBox()
 
-    const rect = nonNull(svg.value).getBoundingClientRect()
-    const margins = parseFitContentMargin(fitContentMargin, rect)
+    const svgElement = nonNull(svg.value)
+    const size = { width: svgElement.clientWidth, height: svgElement.clientHeight }
+    const margins = parseFitContentMargin(fitContentMargin, size)
 
     const result = calculateFit(
       nonNull(viewport.value),
-      rect,
+      size,
       currentPositions.all(),
       zoomLevel.value,
       margins,

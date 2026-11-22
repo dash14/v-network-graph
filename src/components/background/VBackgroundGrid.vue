@@ -29,10 +29,9 @@ onMounted(() => {
       y: -pan.y,
     }
   }
-  const rect = container.value.getBoundingClientRect()
   viewport.value = {
-    width: rect.width,
-    height: rect.height,
+    width: container.value.clientWidth,
+    height: container.value.clientHeight,
   }
 })
 
