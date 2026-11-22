@@ -487,14 +487,14 @@ function calculateArcGeometry(
 }
 
 /**
- * Move an end of a loop back from the node by a length, as a marker there takes it. The marker
- * goes on straight from the end along the loop, so the end is where it first reaches the outline
- * of the node with its tip.
+ * Move an end of a loop back from the node by its margin, the marker there included. The marker
+ * goes on straight from the end along the loop, so the end is where a line of that length first
+ * reaches the outline of the node.
  * @param end the end of the loop on the outline of the node
  * @param center the center of the loop
  * @param radius the radius of the loop
  * @param node the circle of the node
- * @param length the length of the marker
+ * @param length the margin of the end
  * @param turn the direction to move the end in, 1 or -1
  * @returns the moved end
  */
@@ -507,6 +507,8 @@ function shortenLoopEnd(
   turn: number
 ): Point2D {
   if (length === 0) return end
+  // A negative margin takes the end into the node along the loop.
+  if (length < 0) return v2d.moveOnCircumference(end, center, (length / radius) * turn)
   // A tip that far along the loop is this far from its center.
   const tips = PointUtils.getIntersectionOfCircles(
     center,
@@ -523,9 +525,10 @@ function shortenLoopEnd(
     .find(tip => tip.clone().subtract(endBefore(tip)).dot(tip.clone().subtract(node.center)) <= 0)
   if (tip) return endBefore(tip)
 
-  // Too long to reach the node, the marker goes past it, touching its outline.
+  // Too long to reach the node, the end goes no farther than where its tangent touches the outline.
   const toNode = node.center.clone().subtract(center)
-  const side = Math.sign(toNode.cross(V2D.subtract(end, center)))
+  // On a loop touching the node, the end lies on the line through the centers: go the way it turns.
+  const side = Math.sign(toNode.cross(V2D.subtract(end, center))) || turn
   const angle = Math.acos((radius - node.radius) / toNode.length()) * side
   return toNode.normalize().multiplyScalar(radius).rotate(angle).add(center)
 }

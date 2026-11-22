@@ -482,16 +482,18 @@ describe("calculateEdgeGeometry", () => {
       }
     )
 
-    const longLoop = (width: number) =>
+    const longLoopAt = (offset: number, width: number) =>
       calculateEdgeGeometry(
         loopInput({
+          selfLoop: { ...selfLoop, offset },
           line: {
             normalWidth: 2,
-            source: { ...arrow, units: "userSpaceOnUse", width: 0, margin: 0 },
+            source: { ...arrow, units: "userSpaceOnUse", width, margin: 0 },
             target: { ...arrow, units: "userSpaceOnUse", width, margin: 0 },
           },
         })
       )
+    const longLoop = (width: number) => longLoopAt(selfLoop.offset, width)
 
     it("should keep a long marker out of the node up to its tip", () => {
       // Long, but short enough to reach the node.
@@ -513,10 +515,34 @@ describe("calculateEdgeGeometry", () => {
 
         expect(closest).toBeCloseTo(16, 2)
         // Longer, it stays there.
-        expect(longLoop(60).position.p2.x).toBeCloseTo(g.position.p2.x)
-        expect(longLoop(60).position.p2.y).toBeCloseTo(g.position.p2.y)
+        const longer = longLoop(60).position.p2
+        expect(longer.x).toBeCloseTo(g.position.p2.x)
+        expect(longer.y).toBeCloseTo(g.position.p2.y)
       }
     )
+
+    it("should take the ends into the node along the loop with a negative margin", () => {
+      // Markers of no size, which make the ends start at the outline.
+      const outline: MarkerStyle = { ...arrow, units: "userSpaceOnUse", width: 5, margin: -5 }
+      const line = { normalWidth: 2, source: outline, target: outline }
+      const plain = calculateEdgeGeometry(loopInput({ line }))
+      const g = calculateEdgeGeometry(loopInput({ line, margin: -4 }))
+      const { center } = g.loop!
+
+      expect(arcBetween(center, plain.position.p1, g.position.p1)).toBeCloseTo(4)
+      expect(arcBetween(center, plain.position.p2, g.position.p2)).toBeCloseTo(4)
+      expect(distance(g.position.p1, node)).toBeLessThan(16)
+      expect(distance(g.position.p2, node)).toBeLessThan(16)
+    })
+
+    it("should keep both ends of a loop touching the node apart with long markers", () => {
+      const ends = (offset: number) => {
+        const { p1, p2 } = longLoopAt(offset, 30).position
+        return [p1.x, p1.y, p2.x, p2.y]
+      }
+      const touching = ends(16)
+      ends(15.999).forEach((v, i) => expect(touching[i]).toBeCloseTo(v, 2))
+    })
 
     it("should scale the loop", () => {
       const g = calculateEdgeGeometry(loopInput({ scale: 2 }))
