@@ -6,9 +6,8 @@ import * as v2d from "@/modules/calculation/2d"
 import * as LineUtils from "@/modules/calculation/line"
 import { VectorLine } from "@/modules/calculation/line"
 import { quadraticCurveCommands } from "@/modules/calculation/path"
-import * as PointUtils from "@/modules/calculation/point"
 import { calculateEdgeShiftedPosition } from "@/modules/edge/group"
-import * as NodeUtils from "@/modules/node/node"
+import * as NodeOutline from "@/modules/node/outline"
 import { Vector2D } from "@/modules/vector2d"
 import * as V2D from "@/modules/vector2d"
 import { Point2D } from "@/modules/vector2d/core"
@@ -456,20 +455,17 @@ function calculateArcGeometry(
 
   let p1: Point2D | undefined, p2: Point2D | undefined
   if (isStartEdgeOfNode) {
-    const node = {
-      center: Vector2D.fromObject(nodePos),
-      radius: NodeUtils.getNodeRadius(nodeShape) * s,
-    }
-    const intersects = PointUtils.getIntersectionOfCircles(center, radius, node.center, node.radius)
-    if (intersects) {
-      ;[p1, p2] = intersects
+    const outline = NodeOutline.outlineOf(nodeShape, nodePos, s)
+    const ends = loopEndsOnOutline(center, radius, outline)
+    if (ends) {
+      ;[p1, p2] = ends
       let direction = 1
       if (!isClockwise) {
         ;[p1, p2] = [p2, p1]
         direction = -1
       }
-      p1 = shortenLoopEnd(p1, center, radius, node, sourceMargin * s, direction)
-      p2 = shortenLoopEnd(p2, center, radius, node, targetMargin * s, -direction)
+      p1 = shortenLoopEnd(p1, center, radius, outline, sourceMargin * s, direction)
+      p2 = shortenLoopEnd(p2, center, radius, outline, targetMargin * s, -direction)
     }
   }
   if (p1 === undefined || p2 === undefined) {
@@ -499,13 +495,45 @@ function calculateArcGeometry(
 }
 
 /**
+ * Find where a loop leaves its node and where it comes back, the nearest crossings on either side
+ * of the point of the loop farthest from the node.
+ * @param center the center of the loop
+ * @param radius the radius of the loop
+ * @param outline the outline of the node
+ * @returns the crossing before that point and the one after it, clockwise on screen, or undefined
+ * if the loop does not go out of the node and back
+ */
+function loopEndsOnOutline(
+  center: Vector2D,
+  radius: number,
+  outline: NodeOutline.NodeOutline
+): [Vector2D, Vector2D] | undefined {
+  const away = center.clone().subtract(outline.center)
+  const apex = away.clone().normalize().multiplyScalar(radius).add(center)
+  if (NodeOutline.distanceOutside(outline, apex) <= 0) return undefined
+  const apexAngle = away.angle()
+  let before: [number, Vector2D] | undefined
+  let after: [number, Vector2D] | undefined
+  for (const p of NodeOutline.crossingsOfCircle(outline, center, radius)) {
+    // the angle from the apex, in [0, 2 PI)
+    const angle = (((p.clone().subtract(center).angle() - apexAngle) % TURN) + TURN) % TURN
+    // A loop touching the node meets it once, opposite the apex, where both ends are.
+    if (!after || angle < after[0]) after = [angle, p]
+    if (!before || angle > before[0]) before = [angle, p]
+  }
+  return before && after ? [before[1], after[1]] : undefined
+}
+
+const TURN = 2 * Math.PI
+
+/**
  * Move an end of a loop back from the node by its margin, the marker there included. The marker
  * goes on straight from the end along the loop, so the end is where a line of that length first
  * reaches the outline of the node.
  * @param end the end of the loop on the outline of the node
  * @param center the center of the loop
  * @param radius the radius of the loop
- * @param node the circle of the node
+ * @param outline the outline of the node
  * @param length the margin of the end
  * @param turn the direction to move the end in, 1 or -1
  * @returns the moved end
@@ -514,7 +542,7 @@ function shortenLoopEnd(
   end: Point2D,
   center: Vector2D,
   radius: number,
-  node: { center: Vector2D; radius: number },
+  outline: NodeOutline.NodeOutline,
   length: number,
   turn: number
 ): Point2D {
@@ -522,25 +550,50 @@ function shortenLoopEnd(
   // A negative margin takes the end into the node along the loop.
   if (length < 0) return v2d.moveOnCircumference(end, center, (length / radius) * turn)
   // A tip that far along the loop is this far from its center.
-  const tips = PointUtils.getIntersectionOfCircles(
-    center,
-    Math.hypot(radius, length),
-    node.center,
-    node.radius
-  )
+  const tips = NodeOutline.crossingsOfCircle(outline, center, Math.hypot(radius, length))
   const ahead = Math.atan2(length, radius) * turn
   const endBefore = (tip: Vector2D) =>
     tip.clone().subtract(center).normalize().multiplyScalar(radius).rotate(ahead).add(center)
   // The tip where the marker goes into the node, not where it comes out after passing through.
+  // The node is convex, so the marker is clear of it up to there.
   const tip = tips
-    ?.sort((a, b) => a.distance(end) - b.distance(end))
-    .find(tip => tip.clone().subtract(endBefore(tip)).dot(tip.clone().subtract(node.center)) <= 0)
+    .sort((a, b) => a.distance(end) - b.distance(end))
+    .find(
+      tip => tip.clone().subtract(endBefore(tip)).dot(NodeOutline.outwardNormal(outline, tip)) <= 0
+    )
   if (tip) return endBefore(tip)
 
   // Too long to reach the node, the end goes no farther than where its tangent touches the outline.
-  const toNode = node.center.clone().subtract(center)
-  // On a loop touching the node, the end lies on the line through the centers: go the way it turns.
-  const side = Math.sign(toNode.cross(V2D.subtract(end, center))) || turn
-  const angle = Math.acos((radius - node.radius) / toNode.length()) * side
-  return toNode.normalize().multiplyScalar(radius).rotate(angle).add(center)
+  const toNode = outline.center.clone().subtract(center)
+  const distance = toNode.length()
+  toNode.normalize()
+  // How far the node reaches past the tangent at the angle from the node, turned the way the end
+  // moves away from it, negative once clear.
+  const overlap = (angle: number) => {
+    const n = toNode.clone().rotate(angle * turn)
+    return distance * Math.cos(angle) + NodeOutline.reachOf(outline, n) - radius
+  }
+  const toEnd = V2D.subtract(end, center)
+  const start = Math.atan2(toNode.cross(toEnd), toNode.dot(toEnd)) * turn
+  // The first angle where it is clear, with the overlap falling as the end moves away from the node.
+  let lo = start
+  let hi = Math.PI
+  const steps = 32
+  for (let i = 1; i <= steps; i++) {
+    const angle = start + ((Math.PI - start) * i) / steps
+    if (overlap(angle) <= 0) {
+      hi = angle
+      break
+    }
+    lo = angle
+  }
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2
+    if (overlap(mid) <= 0) hi = mid
+    else lo = mid
+  }
+  return toNode
+    .multiplyScalar(radius)
+    .rotate(hi * turn)
+    .add(center)
 }
