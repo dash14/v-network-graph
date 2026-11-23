@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { MarkerStyle, ShapeStyle } from "@/common/configs"
+import { AnyShapeStyle, MarkerStyle, ShapeStyle } from "@/common/configs"
 import { Position } from "@/common/types"
 import { Curve, EdgeLayoutPoint } from "@/models/edge"
+import { distanceOutside, outlineOf } from "@/modules/node/outline"
 import * as V2D from "@/modules/vector2d"
 import { Vector2D } from "@/modules/vector2d"
 import {
@@ -557,6 +558,108 @@ describe("calculateEdgeGeometry", () => {
 
       expect(g.loop!.radius).toEqual([24, 24])
       expect(g.loop!.center.x).toBeCloseTo(-44)
+    })
+
+    describe("on a rectangle node", () => {
+      // Wider than the loop, which goes out of its left side.
+      const rect = { type: "rect", width: 60, height: 20, borderRadius: 0, strokeWidth: 0 }
+      const rectInput = (overrides: Partial<EdgeGeometryInput> = {}) =>
+        loopInput({
+          sourceShape: rect as ShapeStyle,
+          targetShape: rect as ShapeStyle,
+          ...overrides,
+        })
+      const lineOf = (width: number, margin: number) => {
+        const marker: MarkerStyle = { ...arrow, units: "userSpaceOnUse", width, margin }
+        return { normalWidth: 2, source: marker, target: marker }
+      }
+      const outside = (shape: typeof rect, p: Position) =>
+        distanceOutside(outlineOf(shape as AnyShapeStyle, node, 1), p)
+
+      it("should start the arc at the outline of the node with a marker", () => {
+        // Markers of no size, which only make the edge start at the outline.
+        const g = calculateEdgeGeometry(rectInput({ line: lineOf(5, -5) }))
+        const { p1, p2 } = g.position
+
+        expect(p1.x).toBeCloseTo(-30)
+        expect(p2.x).toBeCloseTo(-30)
+        // The loop around x -22 with the radius 12 crosses x -30 at 8 from x -22.
+        expect(p1.y).toBeCloseTo(Math.sqrt(12 ** 2 - 8 ** 2))
+        expect(p2.y).toBeCloseTo(-Math.sqrt(12 ** 2 - 8 ** 2))
+      })
+
+      it.each([true, false])(
+        "should put the tip of a marker on the outline of the node, clockwise %s",
+        isClockwise => {
+          const g = calculateEdgeGeometry(
+            rectInput({ selfLoop: { ...selfLoop, isClockwise }, line: lineOf(5, 0) })
+          )
+          for (const end of ["p1", "p2"] as const) {
+            const marker = markerAt(g, end, 5)
+            expect(outside(rect, marker(1))).toBeCloseTo(0)
+            for (let t = 0; t < 1; t += 0.05) {
+              expect(outside(rect, marker(t))).toBeGreaterThan(-1e-9)
+            }
+          }
+        }
+      )
+
+      it("should put a marker too long to reach the node past it touching its outline", () => {
+        const g = calculateEdgeGeometry(rectInput({ line: lineOf(40, 0) }))
+        const marker = markerAt(g, "p2", 40)
+        const closest = Math.min(...[...Array(101)].map((_, i) => outside(rect, marker(i / 100))))
+
+        expect(closest).toBeCloseTo(0, 2)
+      })
+
+      it("should draw a loop inside the node as one clear of it, even with a marker", () => {
+        // To the right, reaching x 24 inside the node.
+        const inside = { ...selfLoop, angle: 90, offset: 0 }
+        const g = calculateEdgeGeometry(rectInput({ selfLoop: inside, line: lineOf(5, 0) }))
+        const plain = calculateEdgeGeometry(rectInput({ selfLoop: inside }))
+
+        expect(g.position).toEqual(plain.position)
+      })
+
+      it("should start the arc on a rounded corner of the node", () => {
+        const rounded = { ...rect, width: 40, height: 40, borderRadius: 16 }
+        // Up and left, toward the corner.
+        const g = calculateEdgeGeometry(
+          rectInput({
+            sourceShape: rounded as ShapeStyle,
+            selfLoop: { ...selfLoop, angle: 315, offset: 0 },
+            line: lineOf(5, -5),
+          })
+        )
+        const corner = { x: -4, y: -4 }
+
+        expect(distance(g.position.p1, corner)).toBeCloseTo(16)
+        expect(distance(g.position.p2, corner)).toBeCloseTo(16)
+        // Off the sides, which are straight up to 4 from the middle.
+        for (const p of [g.position.p1, g.position.p2]) {
+          expect(p.x).toBeLessThan(-4)
+          expect(p.y).toBeLessThan(-4)
+        }
+      })
+
+      it("should draw a loop on a square rounded to a circle as on the circle", () => {
+        const square = { ...rect, width: 32, height: 32, borderRadius: 16 }
+        const at = (shape: ShapeStyle) =>
+          calculateEdgeGeometry(
+            loopInput({
+              sourceShape: shape,
+              line: lineOf(5, 0),
+              selfLoop: { ...selfLoop, angle: 30 },
+            })
+          )
+        const g = at(square as ShapeStyle)
+        const circle = at(shape)
+
+        expect(g.position.p1.x).toBeCloseTo(circle.position.p1.x)
+        expect(g.position.p1.y).toBeCloseTo(circle.position.p1.y)
+        expect(g.position.p2.x).toBeCloseTo(circle.position.p2.x)
+        expect(g.position.p2.y).toBeCloseTo(circle.position.p2.y)
+      })
     })
   })
 })
